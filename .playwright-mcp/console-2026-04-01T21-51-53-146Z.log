@@ -1,0 +1,8 @@
+[      54ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[      56ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[      56ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[    1839ms] [LOG] drillDown called with: pid-15362 conductor-mashed-1775080005:0.0 @ http://localhost:34115/src/App.svelte?t=1775080292282:425
+[   18983ms] [LOG] Spawning in repo: /Users/linus/Development/esurfr @ http://localhost:34115/src/views/NotificationFeed.svelte?t=1775080209280:1329
+[   19024ms] [LOG] SpawnAgent returned target: conductor-esurfr-1775080332:0.0 @ http://localhost:34115/src/views/NotificationFeed.svelte?t=1775080209280:1331
+[   19024ms] [LOG] Dispatching select with agent: {"agentId":"spawned-1775080332170","agentName":"claude-opus-4-6","model":"claude-opus-4-6","repoName":"esurfr","repoPath":"/Users/linus/Development/esurfr","repoBranch":"dev","eventType":"running","tmuxTarget":"conductor-esurfr-1775080332:0.0","tokensUsed":0,"tokensMax":1000000,"summary":"New session in esurfr"} @ http://localhost:34115/src/views/NotificationFeed.svelte?t=1775080209280:1347
+[   19024ms] [LOG] drillDown called with: spawned-1775080332170 conductor-esurfr-1775080332:0.0 @ http://localhost:34115/src/App.svelte?t=1775080292282:425

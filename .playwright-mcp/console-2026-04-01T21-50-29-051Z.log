@@ -1,0 +1,8 @@
+[      65ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[      66ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[      66ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[   20323ms] [LOG] Spawning in repo: /Users/linus/Development/surf-seer @ http://localhost:34115/src/views/NotificationFeed.svelte?t=1775080209280:1329
+[   20333ms] [LOG] SpawnAgent returned target: conductor-surf-seer-1775080249:0.0 @ http://localhost:34115/src/views/NotificationFeed.svelte?t=1775080209280:1331
+[   20333ms] [LOG] Dispatching select with agent: {"agentId":"spawned-1775080249384","agentName":"claude-opus-4-6","model":"claude-opus-4-6","repoName":"surf-seer","repoPath":"/Users/linus/Development/surf-seer","repoBranch":"preflight","eventType":"running","tmuxTarget":"conductor-surf-seer-1775080249:0.0","tokensUsed":0,"tokensMax":1000000,"summary":"New session in surf-seer"} @ http://localhost:34115/src/views/NotificationFeed.svelte?t=1775080209280:1347
+[   71563ms] [LOG] drillDown called with: pid-15361 conductor-mashed-1775080005:0.0 @ http://localhost:34115/src/App.svelte?t=1775080292282:425
+[   79136ms] [LOG] drillDown called with: pid-50365  @ http://localhost:34115/src/App.svelte?t=1775080292282:425

@@ -112,9 +112,10 @@
     if (spawningRepo) return;
     spawningRepo = repo.path;
     try {
+      console.log('Spawning in repo:', repo.path);
       const target = await SpawnAgent(repo.path, 'claude-opus-4-6');
-      // Navigate to the new agent
-      dispatch('select', {
+      console.log('SpawnAgent returned target:', target);
+      const agent = {
         agentId: `spawned-${Date.now()}`,
         agentName: 'claude-opus-4-6',
         model: 'claude-opus-4-6',
@@ -126,7 +127,9 @@
         tokensUsed: 0,
         tokensMax: 1000000,
         summary: `New session in ${repo.name}`,
-      });
+      };
+      console.log('Dispatching select with agent:', JSON.stringify(agent));
+      dispatch('select', agent);
     } catch (e) {
       console.error('Spawn failed:', e);
     } finally {

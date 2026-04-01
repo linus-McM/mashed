@@ -106,6 +106,8 @@
 
     term.open(terminalEl);
     fitAddon.fit();
+    // Focus the terminal so it receives keyboard input
+    term.focus();
 
     const resizeObserver = new ResizeObserver(() => fitAddon.fit());
     resizeObserver.observe(terminalEl);
@@ -137,9 +139,11 @@
           term.write('\r\n\x1b[31m● Connection error\x1b[0m\r\n');
         };
 
+        // Send keystrokes as binary (bridge expects BinaryMessage for pty input)
+        const encoder = new TextEncoder();
         term.onData((data) => {
           if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(data);
+            ws.send(encoder.encode(data));
           }
         });
       }
@@ -165,7 +169,15 @@
   });
 </script>
 
-<div class="terminal-wrapper" bind:this={terminalEl}></div>
+<div
+  class="terminal-wrapper"
+  bind:this={terminalEl}
+  on:click={() => term && term.focus()}
+  on:keydown={() => {}}
+  role="textbox"
+  tabindex="0"
+  aria-label="Terminal"
+></div>
 
 <style>
   .terminal-wrapper {

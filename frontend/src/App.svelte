@@ -41,6 +41,7 @@
   }
 
   function drillDown(agent) {
+    console.log('drillDown called with:', agent?.agentId, agent?.tmuxTarget);
     selectedAgent = agent;
     currentView = 'detail';
   }
