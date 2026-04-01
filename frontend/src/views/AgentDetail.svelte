@@ -3,6 +3,8 @@
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
   import StatusBadge from '../components/StatusBadge.svelte';
   import SparkLine from '../components/SparkLine.svelte';
+  import Terminal from '../components/Terminal.svelte';
+  import DiffView from '../components/DiffView.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -114,22 +116,7 @@
       <!-- Changed files -->
       <section class="info-section">
         <h3 class="section-title">Changed Files</h3>
-        {#if changedFiles.length > 0}
-          <div class="file-list">
-            {#each changedFiles as file}
-              <div class="file-row">
-                <span class="file-path mono">{file.path}</span>
-                <span class="file-stats">
-                  {#if file.added > 0}<span class="stat-add">+{file.added}</span>{/if}
-                  {#if file.removed > 0}<span class="stat-remove">-{file.removed}</span>{/if}
-                  {#if file.isNew}<span class="stat-new">new</span>{/if}
-                </span>
-              </div>
-            {/each}
-          </div>
-        {:else}
-          <div class="no-data">No changes yet</div>
-        {/if}
+        <DiffView files={changedFiles} />
       </section>
 
       <!-- Worktree -->
@@ -151,10 +138,7 @@
 
     <!-- Right panel: terminal placeholder -->
     <div class="panel-right">
-      <div id="terminal-container" class="terminal-placeholder">
-        <!-- Terminal component will be added later -->
-        <div class="placeholder-text">Terminal output will appear here</div>
-      </div>
+      <Terminal paneTarget={agent?.tmuxTarget || ''} />
     </div>
   </div>
 
@@ -304,44 +288,7 @@
     margin-top: var(--sp-sm);
   }
 
-  /* Changed files */
-  .file-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-2xs);
-  }
-
-  .file-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--sp-2xs) 0;
-  }
-
-  .file-path {
-    font-size: var(--text-body);
-    color: var(--text-primary);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .file-stats {
-    display: flex;
-    gap: var(--sp-xs);
-    flex-shrink: 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-  }
-
-  .stat-add { color: var(--accent-green); }
-  .stat-remove { color: var(--accent-red); }
-  .stat-new { color: var(--accent-blue); }
-
-  .no-data {
-    font-size: var(--text-body);
-    color: var(--text-muted);
-  }
+  /* Changed files — now handled by DiffView component */
 
   /* Worktree */
   .worktree-section {
@@ -376,22 +323,7 @@
     color: var(--accent-green);
   }
 
-  /* Terminal placeholder */
-  .terminal-placeholder {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-deepest);
-    border-radius: 0;
-    font-family: var(--font-terminal);
-    font-size: var(--text-body);
-  }
-
-  .placeholder-text {
-    color: var(--text-muted);
-    user-select: none;
-  }
+  /* Terminal — now handled by Terminal component */
 
   /* Bottom bar */
   .bottom-bar {
