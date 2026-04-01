@@ -8,30 +8,85 @@
   /** @type {any[]} Notifications passed from App.svelte */
   export let notifications = [];
 
-  let selectedIndex = 0;
+  let selectedId = null;
 
-  // Group order: NEEDS RESPONSE (green), ERRORS (red), COMPLETED (blue), RUNNING (amber)
-  const groupOrder = ['needs_response', 'error', 'completed', 'running', 'started'];
-  const groupLabels = {
-    needs_response: 'NEEDS RESPONSE',
-    error: 'ERRORS',
-    completed: 'COMPLETED',
-    running: 'RUNNING',
-    started: 'STARTED',
-  };
-
-  $: grouped = groupOrder
-    .map(type => ({
-      type,
-      label: groupLabels[type],
-      items: notifications.filter(e => e.eventType === type),
-    }))
-    .filter(g => g.items.length > 0);
-
-  $: flatEvents = grouped.flatMap(g => g.items);
-  $: totalAgents = new Set(notifications.map(e => e.agentId)).size;
-  $: totalRepos = new Set(notifications.map(e => e.repoName)).size;
+  // Group: repo → agents → sub-agents
+  $: repoGroups = buildRepoTree(notifications);
+  $: flatAgents = repoGroups.flatMap(r => r.agents);
+  $: totalAgents = flatAgents.length;
+  $: totalRepos = repoGroups.length;
   $: totalTokens = notifications.reduce((sum, e) => sum + (e.tokensUsed || 0), 0);
+
+  function buildRepoTree(events) {
+    const repoMap = new Map();
+
+    for (const evt of events) {
+      const repoKey = evt.repoName || 'unknown';
+      if (!repoMap.has(repoKey)) {
+        repoMap.set(repoKey, {
+          name: repoKey,
+          path: evt.repoPath || '',
+          branch: evt.repoBranch || '',
+          agents: [],
+          worstStatus: 'running',
+        });
+      }
+      const repo = repoMap.get(repoKey);
+
+      // Check if this is a sub-agent (ID contains "-sub-")
+      const isSubAgent = evt.agentId && evt.agentId.includes('-sub-');
+
+      if (isSubAgent) {
+        // Find parent agent and nest under it
+        const parentId = evt.agentId.split('-sub-')[0];
+        let parent = repo.agents.find(a => a.agentId === parentId);
+        if (!parent) {
+          // Parent not found, show as top-level
+          repo.agents.push({ ...evt, subAgents: [] });
+        } else {
+          if (!parent.subAgents) parent.subAgents = [];
+          parent.subAgents.push(evt);
+        }
+      } else {
+        // Top-level agent
+        const existing = repo.agents.find(a => a.agentId === evt.agentId);
+        if (existing) {
+          Object.assign(existing, evt);
+        } else {
+          repo.agents.push({ ...evt, subAgents: [] });
+        }
+      }
+
+      // Track worst status for repo header
+      if (evt.eventType === 'needs_response' || evt.eventType === 'error') {
+        repo.worstStatus = evt.eventType;
+      }
+    }
+
+    // Sort repos: repos with attention-needed first, then alphabetical
+    const statusPriority = { needs_response: 0, error: 1, running: 2, started: 3, completed: 4 };
+    return Array.from(repoMap.values()).sort((a, b) => {
+      const pa = statusPriority[a.worstStatus] ?? 5;
+      const pb = statusPriority[b.worstStatus] ?? 5;
+      if (pa !== pb) return pa - pb;
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  function repoTokens(repo) {
+    let sum = 0;
+    for (const a of repo.agents) {
+      sum += a.tokensUsed || 0;
+      if (a.subAgents) {
+        for (const s of a.subAgents) sum += s.tokensUsed || 0;
+      }
+    }
+    return sum;
+  }
+
+  function repoStatusColor(repo) {
+    return statusColor(repo.worstStatus);
+  }
 
   function formatTokens(n) {
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
@@ -50,30 +105,35 @@
     return hrs + 'h ' + (mins % 60) + 'm';
   }
 
+  function handleClick(evt) {
+    selectedId = evt.agentId;
+    dispatch('select', evt);
+  }
+
   function handleKeydown(e) {
+    const allIds = flatAgents.map(a => a.agentId);
+    const currentIdx = allIds.indexOf(selectedId);
+
     if (e.key === 'j' || e.key === 'ArrowDown') {
       e.preventDefault();
-      selectedIndex = Math.min(selectedIndex + 1, flatEvents.length - 1);
-      scrollSelectedIntoView();
+      const next = Math.min(currentIdx + 1, allIds.length - 1);
+      selectedId = allIds[next];
+      scrollIntoView(selectedId);
     } else if (e.key === 'k' || e.key === 'ArrowUp') {
       e.preventDefault();
-      selectedIndex = Math.max(selectedIndex - 1, 0);
-      scrollSelectedIntoView();
-    } else if (e.key === 'Enter') {
+      const prev = Math.max(currentIdx - 1, 0);
+      selectedId = allIds[prev];
+      scrollIntoView(selectedId);
+    } else if (e.key === 'Enter' && selectedId) {
       e.preventDefault();
-      const ev = flatEvents[selectedIndex];
-      if (ev) dispatch('select', ev);
+      const evt = flatAgents.find(a => a.agentId === selectedId);
+      if (evt) dispatch('select', evt);
     }
   }
 
-  function scrollSelectedIntoView() {
-    const el = document.querySelector(`[data-index="${selectedIndex}"]`);
+  function scrollIntoView(id) {
+    const el = document.querySelector(`[data-agent-id="${id}"]`);
     if (el) el.scrollIntoView({ block: 'nearest' });
-  }
-
-  function handleClick(ev, idx) {
-    selectedIndex = idx;
-    dispatch('select', ev);
   }
 </script>
 
@@ -81,54 +141,89 @@
 
 <div class="feed">
   <div class="feed-scroll">
-    {#each grouped as group}
-      <div class="group">
-        <div class="group-header">{group.label}</div>
-        {#each group.items as event, i}
-          {@const globalIdx = flatEvents.indexOf(event)}
+    {#each repoGroups as repo}
+      <div class="repo-group">
+        <!-- Repo header -->
+        <div class="repo-header">
+          <div class="repo-accent" style="background: {repoStatusColor(repo)}" />
+          <span class="repo-name">{repo.name}</span>
+          {#if repo.branch}
+            <span class="repo-branch">⎇ {repo.branch}</span>
+          {/if}
+          <span class="repo-stats mono">
+            {repo.agents.length} agent{repo.agents.length !== 1 ? 's' : ''} · {formatTokens(repoTokens(repo))}
+          </span>
+        </div>
+
+        <!-- Agents -->
+        {#each repo.agents as agent}
           <div
-            class="row"
-            class:selected={globalIdx === selectedIndex}
-            data-index={globalIdx}
-            on:click={() => handleClick(event, globalIdx)}
-            on:keydown={(e) => { if (e.key === 'Enter') handleClick(event, globalIdx); }}
+            class="agent-row"
+            class:selected={selectedId === agent.agentId}
+            data-agent-id={agent.agentId}
+            on:click={() => handleClick(agent)}
+            on:keydown={(e) => { if (e.key === 'Enter') handleClick(agent); }}
             role="button"
             tabindex="0"
           >
-            <div class="accent-stripe" style="background: {statusColor(event.eventType)}" />
-            <div class="row-content">
-              <span class="repo mono">{event.repoName}</span>
-              <span class="agent">{event.agentName}</span>
-              <span class="summary">{event.summary}</span>
-              {#if event.tokenBurn && event.tokenBurn.length > 0}
-                <SparkLine data={event.tokenBurn} />
-              {/if}
-              <span class="elapsed mono">{formatElapsed(event.timestamp)}</span>
+            <div class="agent-stripe" style="background: {statusColor(agent.eventType)}" />
+            <div class="agent-content">
+              <span class="agent-indicator">●</span>
+              <span class="agent-model">{agent.model || agent.agentName}</span>
+              <StatusBadge status={agent.eventType} size="sm" />
+              <span class="agent-summary">{agent.summary}</span>
+              <span class="agent-tokens mono">{formatTokens(agent.tokensUsed || 0)}</span>
+              <span class="agent-elapsed mono">{formatElapsed(agent.timestamp)}</span>
             </div>
           </div>
+
+          <!-- Sub-agents (indented) -->
+          {#if agent.subAgents && agent.subAgents.length > 0}
+            {#each agent.subAgents as sub}
+              <div
+                class="sub-agent-row"
+                class:selected={selectedId === sub.agentId}
+                data-agent-id={sub.agentId}
+                on:click={() => handleClick(sub)}
+                on:keydown={(e) => { if (e.key === 'Enter') handleClick(sub); }}
+                role="button"
+                tabindex="0"
+              >
+                <div class="sub-stripe" style="background: {statusColor(sub.eventType)}" />
+                <div class="sub-content">
+                  <span class="tree-line">├─</span>
+                  <span class="sub-indicator">·</span>
+                  <span class="sub-name">{sub.agentName}</span>
+                  <StatusBadge status={sub.eventType} size="sm" />
+                  <span class="sub-summary">{sub.summary}</span>
+                  <span class="agent-elapsed mono">{formatElapsed(sub.timestamp)}</span>
+                </div>
+              </div>
+            {/each}
+          {/if}
         {/each}
       </div>
     {/each}
 
     {#if notifications.length === 0}
       <div class="empty">
-        <div class="empty-icon">&#9671;</div>
+        <div class="empty-icon">⬡</div>
         <div class="empty-text">No active agents</div>
-        <div class="empty-sub">Start a Claude Code session to see events here</div>
+        <div class="empty-sub">Press <kbd>⌘N</kbd> to spawn a new agent, or start a Claude Code session</div>
       </div>
     {/if}
   </div>
 
   <div class="status-bar">
     <span>{totalAgents} agent{totalAgents !== 1 ? 's' : ''}</span>
-    <span class="sep">&middot;</span>
+    <span class="sep">·</span>
     <span>{totalRepos} repo{totalRepos !== 1 ? 's' : ''}</span>
-    <span class="sep">&middot;</span>
+    <span class="sep">·</span>
     <span class="mono">{formatTokens(totalTokens)} tokens</span>
     <span class="keys">
-      <kbd>j</kbd>/<kbd>k</kbd> navigate &middot; <kbd>Enter</kbd> open &middot;
+      <kbd>j</kbd>/<kbd>k</kbd> navigate · <kbd>Enter</kbd> open ·
       <button class="spawn-btn" on:click={() => dispatch('spawn')}>
-        <kbd>&#8984;N</kbd> Spawn Agent
+        <kbd>⌘N</kbd> Spawn Agent
       </button>
     </span>
   </div>
@@ -162,77 +257,163 @@
     padding: var(--sp-sm) 0;
   }
 
-  /* Group */
-  .group {
-    margin-bottom: var(--sp-sm);
+  /* Repo group */
+  .repo-group {
+    margin-bottom: 2px;
   }
 
-  .group-header {
-    padding: var(--sp-xs) var(--sp-lg);
-    font-size: var(--text-label);
-    font-weight: 600;
-    color: var(--text-dim);
-    letter-spacing: 0.06em;
+  .repo-header {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    padding: var(--sp-sm) var(--sp-lg);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
     user-select: none;
   }
 
-  /* Row */
-  .row {
+  .repo-accent {
+    width: 3px;
+    height: 16px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .repo-name {
+    font-family: var(--font-mono);
+    font-size: var(--text-data);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .repo-branch {
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    color: var(--text-dim);
+  }
+
+  .repo-stats {
+    margin-left: auto;
+    font-size: var(--text-label);
+    color: var(--text-dim);
+  }
+
+  /* Agent row */
+  .agent-row {
     display: flex;
     align-items: stretch;
     cursor: pointer;
-    transition: background var(--duration-short) var(--ease-enter);
+    transition: background 100ms ease-out;
   }
 
-  .row:hover {
-    background: var(--bg-surface);
-  }
+  .agent-row:hover { background: var(--bg-surface); }
+  .agent-row.selected { background: var(--bg-elevated); }
 
-  .row.selected {
-    background: var(--bg-elevated);
-  }
-
-  .accent-stripe {
-    width: 4px;
+  .agent-stripe {
+    width: 3px;
     flex-shrink: 0;
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   }
 
-  .row-content {
+  .agent-content {
     display: flex;
     align-items: center;
-    gap: var(--sp-md);
-    padding: var(--sp-sm) var(--sp-lg);
+    gap: var(--sp-sm);
+    padding: var(--sp-xs) var(--sp-lg);
+    padding-left: 20px;
     flex: 1;
     min-width: 0;
   }
 
-  .repo {
-    font-size: var(--text-data);
-    font-weight: 500;
+  .agent-indicator {
+    color: var(--accent-green);
+    font-size: 8px;
+    flex-shrink: 0;
+  }
+
+  .agent-model {
+    font-family: var(--font-mono);
+    font-size: var(--text-body);
     color: var(--text-primary);
     flex-shrink: 0;
   }
 
-  .agent {
+  .agent-summary {
     font-size: var(--text-body);
     color: var(--text-dim);
-    flex-shrink: 0;
-  }
-
-  .summary {
-    font-size: var(--text-body);
-    color: var(--text-primary);
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .elapsed {
+  .agent-tokens {
     font-size: var(--text-label);
     color: var(--text-dim);
     flex-shrink: 0;
+  }
+
+  .agent-elapsed {
+    font-size: var(--text-label);
+    color: var(--text-muted);
+    flex-shrink: 0;
+    min-width: 32px;
+    text-align: right;
+  }
+
+  /* Sub-agent row */
+  .sub-agent-row {
+    display: flex;
+    align-items: stretch;
+    cursor: pointer;
+    transition: background 100ms ease-out;
+  }
+
+  .sub-agent-row:hover { background: var(--bg-surface); }
+  .sub-agent-row.selected { background: var(--bg-elevated); }
+
+  .sub-stripe {
+    width: 3px;
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+
+  .sub-content {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    padding: 2px var(--sp-lg);
+    padding-left: 32px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tree-line {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .sub-indicator {
+    color: var(--text-dim);
+    font-size: 8px;
+    flex-shrink: 0;
+  }
+
+  .sub-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .sub-summary {
+    font-size: 12px;
+    color: var(--text-muted);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* Empty state */
@@ -246,9 +427,10 @@
   }
 
   .empty-icon {
-    font-size: 32px;
-    color: var(--text-muted);
+    font-size: 40px;
+    color: var(--accent-green);
     margin-bottom: var(--sp-lg);
+    opacity: 0.3;
   }
 
   .empty-text {
@@ -260,6 +442,17 @@
   .empty-sub {
     font-size: var(--text-body);
     color: var(--text-muted);
+  }
+
+  .empty-sub :global(kbd) {
+    display: inline-block;
+    padding: 0 4px;
+    background: var(--bg-active);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
   }
 
   /* Status bar */
@@ -275,9 +468,8 @@
     user-select: none;
   }
 
-  .sep {
-    color: var(--text-muted);
-  }
+  .sep { color: var(--text-muted); }
+  .mono { font-family: var(--font-mono); }
 
   .keys {
     margin-left: auto;
@@ -309,7 +501,5 @@
     gap: 4px;
   }
 
-  .spawn-btn:hover {
-    opacity: 0.8;
-  }
+  .spawn-btn:hover { opacity: 0.8; }
 </style>

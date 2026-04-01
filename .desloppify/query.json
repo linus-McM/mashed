@@ -1,9 +1,9 @@
 {
   "command": "scan",
-  "overall_score": 6.4,
-  "objective_score": 25.4,
-  "strict_score": 6.4,
-  "verified_strict_score": 25.4,
+  "overall_score": 6.5,
+  "objective_score": 26.1,
+  "strict_score": 6.5,
+  "verified_strict_score": 26.1,
   "prev_overall_score": 6.4,
   "prev_objective_score": 25.4,
   "prev_strict_score": 6.4,
@@ -12,12 +12,12 @@
   "noise_budget": 10,
   "noise_global_budget": 0,
   "hidden_by_detector": {
-    "test_coverage": 17,
+    "test_coverage": 18,
     "subjective_review": 10
   },
-  "hidden_total": 27,
+  "hidden_total": 28,
   "diff": {
-    "new": 0,
+    "new": 1,
     "auto_resolved": 0,
     "reopened": 0,
     "total_current": 32,
@@ -31,12 +31,12 @@
     "suppressed_pct": 0.0
   },
   "stats": {
-    "total": 50,
+    "total": 51,
     "auto_resolved": 0,
     "deferred": 0,
     "false_positive": 0,
     "fixed": 0,
-    "open": 50,
+    "open": 51,
     "triaged_out": 0,
     "wontfix": 0,
     "by_tier": {
@@ -45,7 +45,7 @@
         "deferred": 0,
         "false_positive": 0,
         "fixed": 0,
-        "open": 2,
+        "open": 3,
         "triaged_out": 0,
         "wontfix": 0
       },
@@ -70,9 +70,9 @@
     }
   },
   "open_scope": {
-    "in_scope": 50,
+    "in_scope": 51,
     "out_of_scope": 0,
-    "global": 50
+    "global": 51
   },
   "warnings": [
     "Coverage reduced (golangci_lint): golangci-lint tooling unavailable (tool_not_found) Repercussion: Detector results may be under-reported for this scan. Fix: Install/fix the tool command and rerun scan."
@@ -127,17 +127,17 @@
       }
     },
     "Test health": {
-      "score": 2.1,
-      "strict": 2.1,
-      "verified_strict_score": 2.1,
-      "checks": 179,
-      "failing": 27,
+      "score": 3.2,
+      "strict": 3.2,
+      "verified_strict_score": 3.2,
+      "checks": 181,
+      "failing": 28,
       "tier": 4,
       "detectors": {
         "test_coverage": {
-          "potential": 179,
-          "pass_rate": 0.021428226342865918,
-          "failing": 27,
+          "potential": 181,
+          "pass_rate": 0.03224117411808287,
+          "failing": 28,
           "weighted_failures": 175.164347484627
         }
       }
@@ -581,10 +581,10 @@
     }
   },
   "score_breakdown": {
-    "overall_score": 6.4,
+    "overall_score": 6.5,
     "mechanical_fraction": 0.25,
     "subjective_fraction": 0.75,
-    "mechanical_avg": 25.429361702127657,
+    "mechanical_avg": 26.072573839662446,
     "subjective_avg": 0.0,
     "entries": [
       {
@@ -595,9 +595,9 @@
         "sample_factor": 0.035,
         "configured_weight": 1.0,
         "effective_weight": 0.035,
-        "pool_share": 0.029787234042553193,
-        "overall_per_point": 0.007446808510638298,
-        "overall_contribution": 0.7446808510638299,
+        "pool_share": 0.029535864978902954,
+        "overall_per_point": 0.007383966244725738,
+        "overall_contribution": 0.7383966244725738,
         "overall_drag": 0.0
       },
       {
@@ -608,9 +608,9 @@
         "sample_factor": 0.075,
         "configured_weight": 1.0,
         "effective_weight": 0.075,
-        "pool_share": 0.06382978723404255,
-        "overall_per_point": 0.015957446808510637,
-        "overall_contribution": 1.5957446808510638,
+        "pool_share": 0.06329113924050632,
+        "overall_per_point": 0.01582278481012658,
+        "overall_contribution": 1.582278481012658,
         "overall_drag": 0.0
       },
       {
@@ -621,23 +621,23 @@
         "sample_factor": 0.075,
         "configured_weight": 2.0,
         "effective_weight": 0.15,
-        "pool_share": 0.1276595744680851,
-        "overall_per_point": 0.031914893617021274,
-        "overall_contribution": 3.1914893617021276,
+        "pool_share": 0.12658227848101264,
+        "overall_per_point": 0.03164556962025316,
+        "overall_contribution": 3.164556962025316,
         "overall_drag": 0.0
       },
       {
         "name": "Test health",
         "pool": "mechanical",
-        "score": 2.1,
-        "checks": 179.0,
-        "sample_factor": 0.895,
+        "score": 3.2,
+        "checks": 181.0,
+        "sample_factor": 0.905,
         "configured_weight": 1.0,
-        "effective_weight": 0.895,
-        "pool_share": 0.7617021276595745,
-        "overall_per_point": 0.19042553191489361,
-        "overall_contribution": 0.3998936170212766,
-        "overall_drag": 18.642659574468087
+        "effective_weight": 0.905,
+        "pool_share": 0.7637130801687764,
+        "overall_per_point": 0.1909282700421941,
+        "overall_contribution": 0.6109704641350211,
+        "overall_drag": 18.481856540084387
       },
       {
         "name": "Duplication",
@@ -647,9 +647,9 @@
         "sample_factor": 0.02,
         "configured_weight": 1.0,
         "effective_weight": 0.02,
-        "pool_share": 0.01702127659574468,
-        "overall_per_point": 0.00425531914893617,
-        "overall_contribution": 0.425531914893617,
+        "pool_share": 0.016877637130801686,
+        "overall_per_point": 0.004219409282700422,
+        "overall_contribution": 0.42194092827004215,
         "overall_drag": 0.0
       },
       {
@@ -942,7 +942,7 @@
     "go": {
       "structural": 15,
       "flat_dirs": 7,
-      "test_coverage": 179,
+      "test_coverage": 181,
       "security": 15,
       "subjective_review": 20,
       "stale_wontfix": 0
@@ -986,7 +986,7 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-01T21:23:00+00:00"
+      "updated_at": "2026-04-01T21:31:54+00:00"
     }
   },
   "zone_distribution": {
@@ -995,7 +995,7 @@
   },
   "narrative": {
     "phase": "stagnation",
-    "headline": "Score plateaued at 6.4 for 5 scans. Abstraction fit (0.0%) is where the breakthrough is.",
+    "headline": "Score plateaued at 6.5 for 5 scans. Abstraction fit (0.0%) is where the breakthrough is.",
     "dimensions": {
       "lowest_dimensions": [
         {
@@ -1038,11 +1038,6 @@
         {
           "name": "File health",
           "strict": 100.0,
-          "stuck_scans": 5
-        },
-        {
-          "name": "Test health",
-          "strict": 2.1,
           "stuck_scans": 5
         },
         {
@@ -1156,8 +1151,8 @@
       {
         "type": "refactor",
         "detector": "test_coverage",
-        "count": 27,
-        "description": "27 test_coverage issues in 2 cluster(s) \u2014 run `desloppify next`",
+        "count": 28,
+        "description": "28 test_coverage issues in 2 cluster(s) \u2014 run `desloppify next`",
         "command": "desloppify next",
         "impact": 0.0,
         "dimension": "Test health",
@@ -1199,7 +1194,7 @@
     "strategy": {
       "fixer_leverage": {
         "auto_fixable_count": 0,
-        "total_count": 70,
+        "total_count": 71,
         "coverage": 0.0,
         "impact_ratio": 0.0,
         "recommendation": "none"
@@ -1265,7 +1260,7 @@
     "milestone": null,
     "primary_action": {
       "command": "desloppify next",
-      "description": "27 test_coverage issues in 2 cluster(s) \u2014 run `desloppify next`"
+      "description": "28 test_coverage issues in 2 cluster(s) \u2014 run `desloppify next`"
     },
     "why_now": "Try a different dimension to break the plateau.",
     "verification_step": {
@@ -1275,8 +1270,8 @@
     "risk_flags": [],
     "strict_target": {
       "target": 85.0,
-      "current": 6.4,
-      "gap": 78.6,
+      "current": 6.5,
+      "gap": 78.5,
       "state": "below",
       "warning": null
     },
@@ -1291,7 +1286,7 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 11,
+      "report_scores": 12,
       "feedback_nudge": 3,
       "stagnant_nudge": 25,
       "zone_classification": 3
@@ -1336,7 +1331,7 @@
   "plan": {
     "active": true,
     "focus": null,
-    "total_ordered": 20,
+    "total_ordered": 0,
     "total_skipped": 0,
     "plan_overrides_narrative": true
   }
