@@ -11,13 +11,17 @@
   let notifications = [];
 
   onMount(async () => {
-    // Check if already configured
-    const dir = await GetDevDir();
-    if (dir) {
-      currentView = 'feed';
-      notifications = await GetNotifications();
-    } else {
-      // No directory configured, show setup
+    try {
+      const dir = await GetDevDir();
+      console.log('GetDevDir returned:', JSON.stringify(dir));
+      if (dir && dir.length > 0) {
+        currentView = 'feed';
+        notifications = await GetNotifications();
+      } else {
+        currentView = 'setup';
+      }
+    } catch (e) {
+      console.error('GetDevDir failed:', e);
       currentView = 'setup';
     }
   });
