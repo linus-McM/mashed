@@ -1,0 +1,9 @@
+[      65ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[      69ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[      69ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[     224ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:34115/favicon.ico:0
+[   41863ms] [LOG] drillDown called with: pid-41319  @ http://localhost:34115/src/App.svelte?t=1775083937538:425
+[  132477ms] [LOG] Spawning in repo: /Users/linus/Development/mashed @ http://localhost:34115/src/views/NotificationFeed.svelte?t=1775083936597:1329
+[  132496ms] [LOG] SpawnAgent returned target: conductor-mashed-1775085254:0.0 @ http://localhost:34115/src/views/NotificationFeed.svelte?t=1775083936597:1331
+[  132496ms] [LOG] Dispatching select with agent: {"agentId":"spawned-1775085254144","agentName":"claude-opus-4-6","model":"claude-opus-4-6","repoName":"mashed","repoPath":"/Users/linus/Development/mashed","repoBranch":"main","eventType":"running","tmuxTarget":"conductor-mashed-1775085254:0.0","tokensUsed":0,"tokensMax":1000000,"summary":"New session in mashed"} @ http://localhost:34115/src/views/NotificationFeed.svelte?t=1775083936597:1347
+[  132496ms] [LOG] drillDown called with: spawned-1775085254144 conductor-mashed-1775085254:0.0 @ http://localhost:34115/src/App.svelte?t=1775083937538:425
