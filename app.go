@@ -154,6 +154,13 @@ func (a *App) doScan() {
 		return
 	}
 
+	// Build repo info for branch lookups
+	repos, _ := a.repoScanner.ScanRepos(nil)
+	repoBranch := make(map[string]string) // path -> branch
+	for _, r := range repos {
+		repoBranch[r.Path] = r.Branch
+	}
+
 	for _, s := range sessions {
 		dir, err := a.provider.GetWorkingDir(s.PID)
 		if err != nil {
@@ -171,8 +178,13 @@ func (a *App) doScan() {
 		sessionData := a.findLatestSession(sessionDir)
 
 		var tokensUsed int64
+		var tokensMax int64 = 200000 // default context window
 		if sessionData != nil {
 			tokensUsed = sessionData.TotalTokens
+		}
+		// Opus models have 1M context
+		if model == "claude-opus-4-6" || model == "opus" {
+			tokensMax = 1000000
 		}
 
 		// Determine status from session data
@@ -181,28 +193,33 @@ func (a *App) doScan() {
 			status = a.inferStatus(sessionData)
 		}
 
-		ag := domain.Agent{
-			ID:         agentID,
-			Name:       model,
-			Model:      model,
-			Status:     status,
-			PID:        s.PID,
-			TokensUsed: tokensUsed,
-			Elapsed:    time.Since(s.StartedAt),
-		}
-
-		// Check for tmux pane
+		// Look up tmux pane target
+		var tmuxTarget string
 		if pane, err := a.panes.FindPaneForPID(s.PID); err == nil && pane != nil {
-			ag.HasTmuxPane = true
+			tmuxTarget = pane.Target()
 		}
 
-		// Feed to engine (only emits on state transitions)
+		ag := domain.Agent{
+			ID:          agentID,
+			Name:        model,
+			Model:       model,
+			Status:      status,
+			PID:         s.PID,
+			TokensUsed:  tokensUsed,
+			TokensMax:   tokensMax,
+			Elapsed:     time.Since(s.StartedAt),
+			HasTmuxPane: tmuxTarget != "",
+			TmuxTarget:  tmuxTarget,
+			RepoPath:    dir,
+		}
+
 		repoName := repoNameFromDir(dir)
-		_ = a.engine.ProcessAgentUpdate(ag, repoName, "")
+		branch := repoBranch[dir]
+
+		_ = a.engine.ProcessAgentUpdate(ag, repoName, branch)
 	}
 
 	// Emit repos to frontend
-	repos, _ := a.repoScanner.ScanRepos(nil)
 	runtime.EventsEmit(a.ctx, "repos", repos)
 }
 
@@ -258,13 +275,40 @@ func (a *App) consumeEngineEvents() {
 	}
 }
 
-// findLatestSession finds the most recently modified .jsonl in a session directory.
-func (a *App) findLatestSession(dir string) *domain.SessionData {
-	entries, err := a.provider.ParseSession(dir)
+// findLatestSession finds and parses the most recently modified .jsonl file in a session directory.
+func (a *App) findLatestSession(sessionDir string) *domain.SessionData {
+	entries, err := os.ReadDir(sessionDir)
 	if err != nil {
 		return nil
 	}
-	return entries
+
+	var latestPath string
+	var latestMod time.Time
+
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".jsonl" {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		if info.ModTime().After(latestMod) {
+			latestMod = info.ModTime()
+			latestPath = filepath.Join(sessionDir, entry.Name())
+		}
+	}
+
+	if latestPath == "" {
+		return nil
+	}
+
+	data, err := a.provider.ParseSession(latestPath)
+	if err != nil {
+		log.Printf("parse session %s: %v", latestPath, err)
+		return nil
+	}
+	return data
 }
 
 // inferStatus determines agent status from session data.

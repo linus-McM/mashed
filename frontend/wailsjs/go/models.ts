@@ -24,7 +24,9 @@ export namespace domain {
 	    id: string;
 	    agentId: string;
 	    agentName: string;
+	    model: string;
 	    repoName: string;
+	    repoPath: string;
 	    repoBranch: string;
 	    eventType: string;
 	    summary: string;
@@ -33,7 +35,9 @@ export namespace domain {
 	    read: boolean;
 	    priority: number;
 	    tokensUsed: number;
+	    tokensMax: number;
 	    tmuxTarget: string;
+	    pid: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new NotificationEvent(source);
@@ -44,7 +48,9 @@ export namespace domain {
 	        this.id = source["id"];
 	        this.agentId = source["agentId"];
 	        this.agentName = source["agentName"];
+	        this.model = source["model"];
 	        this.repoName = source["repoName"];
+	        this.repoPath = source["repoPath"];
 	        this.repoBranch = source["repoBranch"];
 	        this.eventType = source["eventType"];
 	        this.summary = source["summary"];
@@ -52,7 +58,9 @@ export namespace domain {
 	        this.read = source["read"];
 	        this.priority = source["priority"];
 	        this.tokensUsed = source["tokensUsed"];
+	        this.tokensMax = source["tokensMax"];
 	        this.tmuxTarget = source["tmuxTarget"];
+	        this.pid = source["pid"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

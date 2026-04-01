@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
+  import { GetScopedDiff, GetWorktrees } from '../../wailsjs/go/main/App.js';
   import StatusBadge from '../components/StatusBadge.svelte';
   import SparkLine from '../components/SparkLine.svelte';
   import Terminal from '../components/Terminal.svelte';
@@ -36,32 +36,33 @@
     }
   }
 
-  onMount(() => {
-    EventsOn('agent:diff', (data) => {
-      if (data.agentId === agent?.agentId) {
-        changedFiles = data.files || [];
-      }
-    });
-
-    EventsOn('agent:worktree', (data) => {
-      if (data.agentId === agent?.agentId) {
-        worktree = data;
-      }
-    });
-
-    EventsOn('agent:tokenburn', (data) => {
-      if (data.agentId === agent?.agentId) {
-        tokenBurn = data.history || [];
-      }
-    });
-
+  onMount(async () => {
     window.addEventListener('keydown', handleKeydown);
+
+    // Fetch scoped diff for the agent's working directory
+    if (agent?.repoPath) {
+      try {
+        const diff = await GetScopedDiff(agent.repoPath);
+        if (diff && diff.files) {
+          changedFiles = diff.files;
+        }
+      } catch (e) {
+        console.warn('Failed to get scoped diff:', e);
+      }
+
+      // Fetch worktrees
+      try {
+        const worktrees = await GetWorktrees(agent.repoPath);
+        if (worktrees && worktrees.length > 0) {
+          worktree = worktrees[0];
+        }
+      } catch (e) {
+        console.warn('Failed to get worktrees:', e);
+      }
+    }
   });
 
   onDestroy(() => {
-    EventsOff('agent:diff');
-    EventsOff('agent:worktree');
-    EventsOff('agent:tokenburn');
     window.removeEventListener('keydown', handleKeydown);
   });
 </script>

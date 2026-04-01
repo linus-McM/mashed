@@ -48,6 +48,8 @@ type Agent struct {
 	Elapsed     time.Duration `json:"elapsed"`
 	PID         int           `json:"pid"`         // 0 for in-process sub-agents
 	HasTmuxPane bool          `json:"hasTmuxPane"`
+	TmuxTarget  string        `json:"tmuxTarget"`  // tmux pane target string
+	RepoPath    string        `json:"repoPath"`    // working directory path
 }
 
 // DagEdge represents a parent→child relationship between agents.
@@ -139,7 +141,9 @@ type NotificationEvent struct {
 	ID         string    `json:"id"`
 	AgentID    string    `json:"agentId"`
 	AgentName  string    `json:"agentName"`
+	Model      string    `json:"model"`
 	RepoName   string    `json:"repoName"`
+	RepoPath   string    `json:"repoPath"`
 	RepoBranch string    `json:"repoBranch"`
 	EventType  EventType `json:"eventType"`
 	Summary    string    `json:"summary"`
@@ -147,7 +151,9 @@ type NotificationEvent struct {
 	Read       bool      `json:"read"`
 	Priority   int       `json:"priority"`   // 0=needs-response, 1=error, 2=completed, 3=running
 	TokensUsed int64     `json:"tokensUsed"`
+	TokensMax  int64     `json:"tokensMax"`  // context window size
 	TmuxTarget string    `json:"tmuxTarget"` // tmux pane target for drill-down (empty if no pane)
+	PID        int       `json:"pid"`
 }
 
 // WorktreeInfo describes a git worktree associated with an agent branch.

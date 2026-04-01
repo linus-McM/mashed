@@ -98,6 +98,7 @@ func (e *NotificationEngine) ProcessAgentUpdate(agent domain.Agent, repoName, re
 		ID:         fmt.Sprintf("%s-%d", agent.ID, now.UnixNano()),
 		AgentID:    agent.ID,
 		AgentName:  agent.Name,
+		Model:      agent.Model,
 		RepoName:   repoName,
 		RepoBranch: repoBranch,
 		EventType:  eventType,
@@ -105,6 +106,10 @@ func (e *NotificationEngine) ProcessAgentUpdate(agent domain.Agent, repoName, re
 		Timestamp:  now,
 		Priority:   priorityFor(eventType),
 		TokensUsed: agent.TokensUsed,
+		TokensMax:  agent.TokensMax,
+		TmuxTarget: agent.TmuxTarget,
+		RepoPath:   agent.RepoPath,
+		PID:        agent.PID,
 	}
 
 	// Emit to Wails frontend
