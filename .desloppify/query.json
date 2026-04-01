@@ -986,7 +986,7 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-01T20:38:08+00:00"
+      "updated_at": "2026-04-01T20:43:43+00:00"
     }
   },
   "zone_distribution": {
@@ -1296,10 +1296,10 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 5,
+      "report_scores": 6,
       "feedback_nudge": 3,
       "stagnant_nudge": 25,
-      "zone_classification": 2
+      "zone_classification": 3
     }
   },
   "config": {
@@ -1341,7 +1341,7 @@
   "plan": {
     "active": true,
     "focus": null,
-    "total_ordered": 20,
+    "total_ordered": 0,
     "total_skipped": 0,
     "plan_overrides_narrative": true
   }

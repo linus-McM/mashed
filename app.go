@@ -8,6 +8,10 @@ import (
 	"sync"
 	"time"
 
+	"encoding/json"
+	"os"
+	"path/filepath"
+
 	"conductor/internal/agent"
 	"conductor/internal/domain"
 	"conductor/internal/git"
@@ -28,7 +32,43 @@ type App struct {
 	panes       *terminal.PaneDiscovery
 	mu          sync.Mutex
 
+	devDir        string // root directory to scan for repos
 	notifications []domain.NotificationEvent
+}
+
+// conductorConfig persists user settings between launches.
+type conductorConfig struct {
+	DevDir string `json:"devDir"`
+}
+
+// configPath returns the path to the conductor config file.
+func configPath() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".conductor", "config.json")
+}
+
+// loadConfig reads the persisted config, or returns empty config.
+func loadConfig() conductorConfig {
+	data, err := os.ReadFile(configPath())
+	if err != nil {
+		return conductorConfig{}
+	}
+	var cfg conductorConfig
+	json.Unmarshal(data, &cfg)
+	return cfg
+}
+
+// saveConfig persists the config to disk.
+func saveConfig(cfg conductorConfig) error {
+	dir := filepath.Dir(configPath())
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("creating config dir: %w", err)
+	}
+	data, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshaling config: %w", err)
+	}
+	return os.WriteFile(configPath(), data, 0644)
 }
 
 // NewApp creates a new App instance.
@@ -43,15 +83,6 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx, a.cancel = context.WithCancel(ctx)
 
-	// Initialize provider (needs home dir)
-	provider, err := scanner.NewClaudeCodeProvider("")
-	if err != nil {
-		log.Printf("failed to init claude provider: %v", err)
-		return
-	}
-	a.provider = provider
-	a.repoScanner = scanner.NewRepoScanner("")
-
 	// Engine needs Wails context for event emission
 	a.engine = agent.NewNotificationEngine(a.ctx)
 
@@ -60,10 +91,34 @@ func (a *App) startup(ctx context.Context) {
 		log.Printf("terminal bridge start failed: %v", err)
 	}
 
-	// Start background goroutines
+	// Check for saved config
+	cfg := loadConfig()
+	if cfg.DevDir != "" {
+		a.initScanning(cfg.DevDir)
+	} else {
+		// Tell frontend to show the directory picker
+		runtime.EventsEmit(a.ctx, "needs-setup", true)
+	}
+}
+
+// initScanning starts all background goroutines for a given dev directory.
+func (a *App) initScanning(devDir string) {
+	a.devDir = devDir
+
+	provider, err := scanner.NewClaudeCodeProvider(devDir)
+	if err != nil {
+		log.Printf("failed to init claude provider: %v", err)
+		return
+	}
+	a.provider = provider
+	a.repoScanner = scanner.NewRepoScanner(devDir)
+
 	go a.scanLoop()
 	go a.watchSessions()
 	go a.consumeEngineEvents()
+
+	// Tell frontend setup is done
+	runtime.EventsEmit(a.ctx, "needs-setup", false)
 }
 
 // shutdown is called by Wails when the app is closing.
@@ -241,6 +296,46 @@ func repoNameFromDir(dir string) string {
 }
 
 // --- Wails-bound methods (called from Svelte frontend) ---
+
+// PickDirectory opens the native OS directory picker dialog and returns the selected path.
+func (a *App) PickDirectory() (string, error) {
+	dir, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
+		Title:                "Choose Development Directory",
+		CanCreateDirectories: true,
+	})
+	if err != nil {
+		return "", fmt.Errorf("directory dialog: %w", err)
+	}
+	return dir, nil
+}
+
+// SetDevDir saves the chosen directory and starts scanning.
+func (a *App) SetDevDir(dir string) error {
+	if dir == "" {
+		return fmt.Errorf("empty directory path")
+	}
+	// Verify it exists
+	info, err := os.Stat(dir)
+	if err != nil {
+		return fmt.Errorf("directory not accessible: %w", err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("path is not a directory: %s", dir)
+	}
+
+	// Persist
+	if err := saveConfig(conductorConfig{DevDir: dir}); err != nil {
+		log.Printf("failed to save config: %v", err)
+	}
+
+	a.initScanning(dir)
+	return nil
+}
+
+// GetDevDir returns the current development directory.
+func (a *App) GetDevDir() string {
+	return a.devDir
+}
 
 // GetNotifications returns the current notification list sorted by priority.
 func (a *App) GetNotifications() []domain.NotificationEvent {
