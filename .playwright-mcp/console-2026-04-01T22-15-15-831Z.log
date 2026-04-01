@@ -1,0 +1,4 @@
+[      58ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[      60ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[      61ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[   27661ms] [LOG] drillDown called with: pid-14635  @ http://localhost:34115/src/App.svelte?t=1775081690611:425

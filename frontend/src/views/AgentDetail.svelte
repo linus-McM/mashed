@@ -244,23 +244,28 @@
     flex: 1;
     display: flex;
     overflow: hidden;
+    max-width: 100%;
+    width: 100%;
   }
 
   .terminal-pane {
-    flex: 1;
+    flex: 1 1 0;
     display: flex;
     flex-direction: column;
     min-width: 0;
-    transition: flex 150ms ease-out;
+    width: 0; /* critical: prevents flex item from overflowing */
+    overflow: hidden;
   }
 
   .terminal-pane.half {
-    flex: 0 0 50%;
+    flex: 0 0 calc(50% - 90px);
+    width: calc(50% - 90px);
   }
 
   /* File strip */
   .file-strip {
     width: 0;
+    flex-shrink: 0;
     overflow: hidden;
     border-left: 1px solid var(--border-subtle);
     background: var(--bg-surface);
@@ -363,7 +368,7 @@
 
   /* Editor pane */
   .editor-pane {
-    flex: 0 0 50%;
+    flex: 0 0 calc(50% - 90px);
     display: flex;
     flex-direction: column;
     border-left: 1px solid var(--border-subtle);

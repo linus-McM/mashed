@@ -1,0 +1,75 @@
+- main [ref=e3]:
+  - generic [ref=e446]:
+    - generic [ref=e447]:
+      - button "← Back" [ref=e448] [cursor=pointer]
+      - generic [ref=e449]: mashed
+      - generic [ref=e450]: /
+      - generic [ref=e451]: claude-opus-4-6
+      - generic [ref=e452]: RUNNING
+      - generic [ref=e453]: ⎇ main
+      - generic [ref=e458]: 246.8M / 1.0M
+    - generic [ref=e459]:
+      - textbox "Terminal" [ref=e461]:
+        - textbox "Terminal input" [active] [ref=e465]
+      - generic [ref=e470]:
+        - generic [ref=e471]:
+          - generic [ref=e472]: FILES
+          - generic [ref=e473]: "15"
+        - generic [ref=e474]:
+          - button ".DS_Store bin" [ref=e475] [cursor=pointer]:
+            - generic [ref=e476]: .DS_Store
+            - generic [ref=e477]: bin
+          - button "agent-a612ec5f" [ref=e478] [cursor=pointer]:
+            - generic [ref=e479]: agent-a612ec5f
+          - button "agent-a6c3218b" [ref=e480] [cursor=pointer]:
+            - generic [ref=e481]: agent-a6c3218b
+          - button "agent-a9947603" [ref=e482] [cursor=pointer]:
+            - generic [ref=e483]: agent-a9947603
+          - button "plan.json +98 -57" [ref=e484] [cursor=pointer]:
+            - generic [ref=e485]: plan.json
+            - generic [ref=e486]:
+              - generic [ref=e487]: "+98"
+              - generic [ref=e488]: "-57"
+          - button "plan.json.bak +32 -32" [ref=e489] [cursor=pointer]:
+            - generic [ref=e490]: plan.json.bak
+            - generic [ref=e491]:
+              - generic [ref=e492]: "+32"
+              - generic [ref=e493]: "-32"
+          - button "progression.jsonl +1" [ref=e494] [cursor=pointer]:
+            - generic [ref=e495]: progression.jsonl
+            - generic [ref=e497]: "+1"
+          - button "query.json +76 -76" [ref=e498] [cursor=pointer]:
+            - generic [ref=e499]: query.json
+            - generic [ref=e500]:
+              - generic [ref=e501]: "+76"
+              - generic [ref=e502]: "-76"
+          - button "state-go.json +214 -66" [ref=e503] [cursor=pointer]:
+            - generic [ref=e504]: state-go.json
+            - generic [ref=e505]:
+              - generic [ref=e506]: "+214"
+              - generic [ref=e507]: "-66"
+          - button "state-go.json.bak +214 -66" [ref=e508] [cursor=pointer]:
+            - generic [ref=e509]: state-go.json.bak
+            - generic [ref=e510]:
+              - generic [ref=e511]: "+214"
+              - generic [ref=e512]: "-66"
+          - button "AgentDetail.svelte +3 -3" [ref=e513] [cursor=pointer]:
+            - generic [ref=e514]: AgentDetail.svelte
+            - generic [ref=e515]:
+              - generic [ref=e516]: "+3"
+              - generic [ref=e517]: "-3"
+          - button "scorecard.png bin" [ref=e518] [cursor=pointer]:
+            - generic [ref=e519]: scorecard.png
+            - generic [ref=e520]: bin
+          - button "console-2026-04-01T22-09-33-251Z.log" [ref=e521] [cursor=pointer]:
+            - generic [ref=e522]: console-2026-04-01T22-09-33-251Z.log
+          - button "page-2026-04-01T22-09-33-442Z.yml" [ref=e523] [cursor=pointer]:
+            - generic [ref=e524]: page-2026-04-01T22-09-33-442Z.yml
+          - button "conductor-current.png" [ref=e525] [cursor=pointer]:
+            - generic [ref=e526]: conductor-current.png
+        - generic [ref=e527]:
+          - generic [ref=e528]: WT
+          - generic [ref=e529]: main
+    - generic [ref=e530]:
+      - generic [ref=e531]: Esc
+      - text: Back to feed
