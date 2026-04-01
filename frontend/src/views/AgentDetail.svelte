@@ -139,7 +139,7 @@
 
     <!-- Right panel: terminal placeholder -->
     <div class="panel-right">
-      <Terminal paneTarget={agent?.tmuxTarget || ''} />
+      <Terminal paneTarget={agent?.tmuxTarget || ''} repoPath={agent?.repoPath || ''} />
     </div>
   </div>
 

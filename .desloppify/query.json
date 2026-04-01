@@ -1,9 +1,9 @@
 {
   "command": "scan",
-  "overall_score": 6.3,
-  "objective_score": 25.1,
-  "strict_score": 6.3,
-  "verified_strict_score": 25.1,
+  "overall_score": 6.4,
+  "objective_score": 25.4,
+  "strict_score": 6.4,
+  "verified_strict_score": 25.4,
   "prev_overall_score": 6.3,
   "prev_objective_score": 25.1,
   "prev_strict_score": 6.3,
@@ -127,16 +127,16 @@
       }
     },
     "Test health": {
-      "score": 1.6,
-      "strict": 1.6,
-      "verified_strict_score": 1.6,
-      "checks": 178,
+      "score": 2.1,
+      "strict": 2.1,
+      "verified_strict_score": 2.1,
+      "checks": 179,
       "failing": 27,
       "tier": 4,
       "detectors": {
         "test_coverage": {
-          "potential": 178,
-          "pass_rate": 0.01593063210883707,
+          "potential": 179,
+          "pass_rate": 0.021428226342865918,
           "failing": 27,
           "weighted_failures": 175.164347484627
         }
@@ -581,10 +581,10 @@
     }
   },
   "score_breakdown": {
-    "overall_score": 6.3,
+    "overall_score": 6.4,
     "mechanical_fraction": 0.25,
     "subjective_fraction": 0.75,
-    "mechanical_avg": 25.148717948717948,
+    "mechanical_avg": 25.429361702127657,
     "subjective_avg": 0.0,
     "entries": [
       {
@@ -595,9 +595,9 @@
         "sample_factor": 0.035,
         "configured_weight": 1.0,
         "effective_weight": 0.035,
-        "pool_share": 0.02991452991452992,
-        "overall_per_point": 0.00747863247863248,
-        "overall_contribution": 0.747863247863248,
+        "pool_share": 0.029787234042553193,
+        "overall_per_point": 0.007446808510638298,
+        "overall_contribution": 0.7446808510638299,
         "overall_drag": 0.0
       },
       {
@@ -608,9 +608,9 @@
         "sample_factor": 0.075,
         "configured_weight": 1.0,
         "effective_weight": 0.075,
-        "pool_share": 0.06410256410256411,
-        "overall_per_point": 0.016025641025641028,
-        "overall_contribution": 1.6025641025641029,
+        "pool_share": 0.06382978723404255,
+        "overall_per_point": 0.015957446808510637,
+        "overall_contribution": 1.5957446808510638,
         "overall_drag": 0.0
       },
       {
@@ -621,23 +621,23 @@
         "sample_factor": 0.075,
         "configured_weight": 2.0,
         "effective_weight": 0.15,
-        "pool_share": 0.12820512820512822,
-        "overall_per_point": 0.032051282051282055,
-        "overall_contribution": 3.2051282051282057,
+        "pool_share": 0.1276595744680851,
+        "overall_per_point": 0.031914893617021274,
+        "overall_contribution": 3.1914893617021276,
         "overall_drag": 0.0
       },
       {
         "name": "Test health",
         "pool": "mechanical",
-        "score": 1.6,
-        "checks": 178.0,
-        "sample_factor": 0.89,
+        "score": 2.1,
+        "checks": 179.0,
+        "sample_factor": 0.895,
         "configured_weight": 1.0,
-        "effective_weight": 0.89,
-        "pool_share": 0.7606837606837608,
-        "overall_per_point": 0.1901709401709402,
-        "overall_contribution": 0.3042735042735043,
-        "overall_drag": 18.712820512820517
+        "effective_weight": 0.895,
+        "pool_share": 0.7617021276595745,
+        "overall_per_point": 0.19042553191489361,
+        "overall_contribution": 0.3998936170212766,
+        "overall_drag": 18.642659574468087
       },
       {
         "name": "Duplication",
@@ -647,9 +647,9 @@
         "sample_factor": 0.02,
         "configured_weight": 1.0,
         "effective_weight": 0.02,
-        "pool_share": 0.017094017094017096,
-        "overall_per_point": 0.004273504273504274,
-        "overall_contribution": 0.4273504273504274,
+        "pool_share": 0.01702127659574468,
+        "overall_per_point": 0.00425531914893617,
+        "overall_contribution": 0.425531914893617,
         "overall_drag": 0.0
       },
       {
@@ -942,7 +942,7 @@
     "go": {
       "structural": 15,
       "flat_dirs": 7,
-      "test_coverage": 178,
+      "test_coverage": 179,
       "security": 15,
       "subjective_review": 20,
       "stale_wontfix": 0
@@ -986,7 +986,7 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-01T21:10:15+00:00"
+      "updated_at": "2026-04-01T21:19:32+00:00"
     }
   },
   "zone_distribution": {
@@ -995,7 +995,7 @@
   },
   "narrative": {
     "phase": "stagnation",
-    "headline": "Score plateaued at 6.3 for 5 scans. Abstraction fit (0.0%) is where the breakthrough is.",
+    "headline": "Score plateaued at 6.4 for 5 scans. Abstraction fit (0.0%) is where the breakthrough is.",
     "dimensions": {
       "lowest_dimensions": [
         {
@@ -1270,8 +1270,8 @@
     "risk_flags": [],
     "strict_target": {
       "target": 85.0,
-      "current": 6.3,
-      "gap": 78.7,
+      "current": 6.4,
+      "gap": 78.6,
       "state": "below",
       "warning": null
     },
@@ -1286,7 +1286,7 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 9,
+      "report_scores": 10,
       "feedback_nudge": 3,
       "stagnant_nudge": 25,
       "zone_classification": 3
@@ -1331,7 +1331,7 @@
   "plan": {
     "active": true,
     "focus": null,
-    "total_ordered": 20,
+    "total_ordered": 0,
     "total_skipped": 0,
     "plan_overrides_narrative": true
   }

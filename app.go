@@ -403,6 +403,24 @@ func (a *App) GetWorktrees(repoPath string) ([]domain.WorktreeInfo, error) {
 	return git.DetectWorktrees(repoPath)
 }
 
+// GetAgentLog returns the parsed log lines for an agent's latest session.
+func (a *App) GetAgentLog(repoPath string) []domain.LogLine {
+	if a.provider == nil || repoPath == "" {
+		return nil
+	}
+	sessionDir := a.provider.SessionDir(repoPath)
+	data := a.findLatestSession(sessionDir)
+	if data == nil {
+		return nil
+	}
+	// Return last 200 lines
+	lines := data.LogLines
+	if len(lines) > 200 {
+		lines = lines[len(lines)-200:]
+	}
+	return lines
+}
+
 // MarkRead marks a notification as read.
 func (a *App) MarkRead(agentID string) {
 	a.mu.Lock()

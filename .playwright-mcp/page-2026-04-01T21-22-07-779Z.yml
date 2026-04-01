@@ -1,0 +1,70 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: RUNNING
+      - button "mashed claude Agent claude started (claude) 15s" [ref=e8] [cursor=pointer]:
+        - generic [ref=e10]:
+          - generic [ref=e11]: mashed
+          - generic [ref=e12]: claude
+          - generic [ref=e13]: Agent claude started (claude)
+          - generic [ref=e14]: 15s
+      - button "claude Agent claude started (claude) 15s" [ref=e15] [cursor=pointer]:
+        - generic [ref=e17]:
+          - generic [ref=e18]: claude
+          - generic [ref=e19]: Agent claude started (claude)
+          - generic [ref=e20]: 15s
+      - button "esurfr claude-opus-4-6 Agent claude-opus-4-6 started (claude-opus-4-6) 15s" [ref=e21] [cursor=pointer]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: esurfr
+          - generic [ref=e25]: claude-opus-4-6
+          - generic [ref=e26]: Agent claude-opus-4-6 started (claude-opus-4-6)
+          - generic [ref=e27]: 15s
+      - button "mashed claude Agent claude started (claude) 15s" [ref=e28] [cursor=pointer]:
+        - generic [ref=e30]:
+          - generic [ref=e31]: mashed
+          - generic [ref=e32]: claude
+          - generic [ref=e33]: Agent claude started (claude)
+          - generic [ref=e34]: 15s
+      - button "terrain-app opus Agent opus started (opus) 15s" [ref=e35] [cursor=pointer]:
+        - generic [ref=e37]:
+          - generic [ref=e38]: terrain-app
+          - generic [ref=e39]: opus
+          - generic [ref=e40]: Agent opus started (opus)
+          - generic [ref=e41]: 15s
+      - button "terrain-app opus Agent opus started (opus) 15s" [ref=e42] [cursor=pointer]:
+        - generic [ref=e44]:
+          - generic [ref=e45]: terrain-app
+          - generic [ref=e46]: opus
+          - generic [ref=e47]: Agent opus started (opus)
+          - generic [ref=e48]: 15s
+      - button "surf-seer claude Agent claude started (claude) 15s" [ref=e49] [cursor=pointer]:
+        - generic [ref=e51]:
+          - generic [ref=e52]: surf-seer
+          - generic [ref=e53]: claude
+          - generic [ref=e54]: Agent claude started (claude)
+          - generic [ref=e55]: 15s
+      - button "esurfr claude Agent claude started (claude) 15s" [ref=e56] [cursor=pointer]:
+        - generic [ref=e58]:
+          - generic [ref=e59]: esurfr
+          - generic [ref=e60]: claude
+          - generic [ref=e61]: Agent claude started (claude)
+          - generic [ref=e62]: 15s
+      - button "esurfr claude Agent claude started (claude) 15s" [ref=e63] [cursor=pointer]:
+        - generic [ref=e65]:
+          - generic [ref=e66]: esurfr
+          - generic [ref=e67]: claude
+          - generic [ref=e68]: Agent claude started (claude)
+          - generic [ref=e69]: 15s
+    - generic [ref=e70]:
+      - generic [ref=e71]: 9 agents
+      - generic [ref=e72]: ·
+      - generic [ref=e73]: 5 repos
+      - generic [ref=e74]: ·
+      - generic [ref=e75]: 362.9M tokens
+      - generic [ref=e76]:
+        - generic [ref=e77]: j
+        - text: /
+        - generic [ref=e78]: k
+        - text: navigate ·
+        - generic [ref=e79]: Enter
+        - text: open

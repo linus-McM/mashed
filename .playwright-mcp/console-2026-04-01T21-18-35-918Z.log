@@ -2,3 +2,83 @@
 [      38ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
 [      39ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
 [      53ms] [LOG] GetDevDir returned: "/Users/linus/Development" @ http://localhost:34115/src/App.svelte:318
+[  139275ms] [LOG] GetDevDir returned: "/Users/linus/Development" @ http://localhost:34115/src/App.svelte?t=1775078455013:318
+[  139275ms] [LOG] GetDevDir returned: "/Users/linus/Development" @ http://localhost:34115/src/App.svelte?t=1775078455013:318
+[  140951ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  140952ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[  140952ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  140954ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  141454ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  141991ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  141992ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  141992ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  142011ms] [LOG] GetDevDir returned: "/Users/linus/Development" @ http://localhost:34115/src/App.svelte?t=1775078455013:318
+[  187131ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[  187131ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  187133ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  187133ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  187634ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  188134ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  188135ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  188634ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  188729ms] [ERROR] TypeError: Cannot read properties of null (reading 'send')
+    at nt (http://localhost:34115/wails/ipc.js:7:1275)
+    at window.WailsInvoke (http://localhost:34115/wails/ipc.js:7:1007)
+    at http://localhost:34115/wails/runtime.js:191:16
+    at new Promise (<anonymous>)
+    at Call (http://localhost:34115/wails/runtime.js:169:12)
+    at Object.dynamic [as GetAgentLog] (http://localhost:34115/wails/runtime.js:272:22)
+    at GetAgentLog (http://localhost:34115/wailsjs/go/main/App.js?t=1775078455013:6:52)
+    at pollLog (http://localhost:34115/src/components/Terminal.svelte?t=1775078478975:108:24) @ http://localhost:34115/wails/runtime.js:192
+[  189134ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  189136ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  189633ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  190134ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  190138ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  190634ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  190728ms] [ERROR] TypeError: Cannot read properties of null (reading 'send')
+    at nt (http://localhost:34115/wails/ipc.js:7:1275)
+    at window.WailsInvoke (http://localhost:34115/wails/ipc.js:7:1007)
+    at http://localhost:34115/wails/runtime.js:191:16
+    at new Promise (<anonymous>)
+    at Call (http://localhost:34115/wails/runtime.js:169:12)
+    at Object.dynamic [as GetAgentLog] (http://localhost:34115/wails/runtime.js:272:22)
+    at GetAgentLog (http://localhost:34115/wailsjs/go/main/App.js?t=1775078455013:6:52)
+    at pollLog (http://localhost:34115/src/components/Terminal.svelte?t=1775078478975:108:24) @ http://localhost:34115/wails/runtime.js:192
+[  191133ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  191140ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  191633ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  192133ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  192141ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  192633ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  192729ms] [ERROR] TypeError: Cannot read properties of null (reading 'send')
+    at nt (http://localhost:34115/wails/ipc.js:7:1275)
+    at window.WailsInvoke (http://localhost:34115/wails/ipc.js:7:1007)
+    at http://localhost:34115/wails/runtime.js:191:16
+    at new Promise (<anonymous>)
+    at Call (http://localhost:34115/wails/runtime.js:169:12)
+    at Object.dynamic [as GetAgentLog] (http://localhost:34115/wails/runtime.js:272:22)
+    at GetAgentLog (http://localhost:34115/wailsjs/go/main/App.js?t=1775078455013:6:52)
+    at pollLog (http://localhost:34115/src/components/Terminal.svelte?t=1775078478975:108:24) @ http://localhost:34115/wails/runtime.js:192
+[  193135ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  193144ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  193633ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  194134ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  194146ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  194633ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  194728ms] [ERROR] TypeError: Cannot read properties of null (reading 'send')
+    at nt (http://localhost:34115/wails/ipc.js:7:1275)
+    at window.WailsInvoke (http://localhost:34115/wails/ipc.js:7:1007)
+    at http://localhost:34115/wails/runtime.js:191:16
+    at new Promise (<anonymous>)
+    at Call (http://localhost:34115/wails/runtime.js:169:12)
+    at Object.dynamic [as GetAgentLog] (http://localhost:34115/wails/runtime.js:272:22)
+    at GetAgentLog (http://localhost:34115/wailsjs/go/main/App.js?t=1775078455013:6:52)
+    at pollLog (http://localhost:34115/src/components/Terminal.svelte?t=1775078478975:108:24) @ http://localhost:34115/wails/runtime.js:192
+[  195133ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  195148ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  195641ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  196190ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  196191ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  196191ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  196210ms] [LOG] GetDevDir returned: "/Users/linus/Development" @ http://localhost:34115/src/App.svelte:318
