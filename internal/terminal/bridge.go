@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 
 	"github.com/creack/pty"
@@ -73,7 +74,7 @@ func (b *Bridge) Start(ctx context.Context) error {
 	b.port = ln.Addr().(*net.TCPAddr).Port
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/ws", b.handleWS)
+	mux.HandleFunc("/ws/", b.handleWS)
 
 	b.server = &http.Server{Handler: mux}
 
@@ -134,9 +135,14 @@ func (b *Bridge) untrackConn(ws *websocket.Conn) {
 }
 
 func (b *Bridge) handleWS(w http.ResponseWriter, r *http.Request) {
-	paneTarget := r.URL.Query().Get("pane")
+	// Extract pane target from URL path: /ws/{target}
+	paneTarget := strings.TrimPrefix(r.URL.Path, "/ws/")
 	if paneTarget == "" {
-		http.Error(w, "missing pane query parameter", http.StatusBadRequest)
+		// Fall back to query parameter
+		paneTarget = r.URL.Query().Get("pane")
+	}
+	if paneTarget == "" {
+		http.Error(w, "missing pane target in URL path or query", http.StatusBadRequest)
 		return
 	}
 

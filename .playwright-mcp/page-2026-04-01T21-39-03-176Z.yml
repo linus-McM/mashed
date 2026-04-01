@@ -1,0 +1,177 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - generic [ref=e9]: esurfr
+          - generic [ref=e10]: ⎇ dev
+          - generic [ref=e11]: 3 agents · 6.3M
+        - button "● claude-opus-4-6 RUNNING Agent claude-opus-4-6 started (claude-opus-4-6) 2.1M 5m" [ref=e12] [cursor=pointer]:
+          - generic [ref=e14]:
+            - generic [ref=e15]: ●
+            - generic [ref=e16]: claude-opus-4-6
+            - generic [ref=e17]: RUNNING
+            - generic [ref=e18]: Agent claude-opus-4-6 started (claude-opus-4-6)
+            - generic [ref=e19]: 2.1M
+            - generic [ref=e20]: 5m
+        - button "● claude RUNNING Agent claude started (claude) 2.1M 5m" [ref=e21] [cursor=pointer]:
+          - generic [ref=e23]:
+            - generic [ref=e24]: ●
+            - generic [ref=e25]: claude
+            - generic [ref=e26]: RUNNING
+            - generic [ref=e27]: Agent claude started (claude)
+            - generic [ref=e28]: 2.1M
+            - generic [ref=e29]: 5m
+        - button "● claude RUNNING Agent claude started (claude) 2.1M 5m" [ref=e30] [cursor=pointer]:
+          - generic [ref=e32]:
+            - generic [ref=e33]: ●
+            - generic [ref=e34]: claude
+            - generic [ref=e35]: RUNNING
+            - generic [ref=e36]: Agent claude started (claude)
+            - generic [ref=e37]: 2.1M
+            - generic [ref=e38]: 5m
+        - button "+ New Session" [ref=e39] [cursor=pointer]:
+          - generic [ref=e40]: +
+          - text: New Session
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - generic [ref=e44]: mashed
+          - generic [ref=e45]: ⎇ main
+          - generic [ref=e46]: 8 agents · 1484.2M
+        - button "● claude RUNNING Agent claude started (claude) 177.3M 5m" [ref=e47] [cursor=pointer]:
+          - generic [ref=e49]:
+            - generic [ref=e50]: ●
+            - generic [ref=e51]: claude
+            - generic [ref=e52]: RUNNING
+            - generic [ref=e53]: Agent claude started (claude)
+            - generic [ref=e54]: 177.3M
+            - generic [ref=e55]: 5m
+        - button "● claude RUNNING Agent claude started (claude) 177.3M 5m" [ref=e56] [cursor=pointer]:
+          - generic [ref=e58]:
+            - generic [ref=e59]: ●
+            - generic [ref=e60]: claude
+            - generic [ref=e61]: RUNNING
+            - generic [ref=e62]: Agent claude started (claude)
+            - generic [ref=e63]: 177.3M
+            - generic [ref=e64]: 5m
+        - button "● claude-opus-4-6 RUNNING Agent claude-opus-4-6 started (claude-opus-4-6) 187.4M 58s" [ref=e65] [cursor=pointer]:
+          - generic [ref=e67]:
+            - generic [ref=e68]: ●
+            - generic [ref=e69]: claude-opus-4-6
+            - generic [ref=e70]: RUNNING
+            - generic [ref=e71]: Agent claude-opus-4-6 started (claude-opus-4-6)
+            - generic [ref=e72]: 187.4M
+            - generic [ref=e73]: 58s
+        - button "● claude-opus-4-6 RUNNING Agent claude-opus-4-6 started (claude-opus-4-6) 187.4M 57s" [ref=e74] [cursor=pointer]:
+          - generic [ref=e76]:
+            - generic [ref=e77]: ●
+            - generic [ref=e78]: claude-opus-4-6
+            - generic [ref=e79]: RUNNING
+            - generic [ref=e80]: Agent claude-opus-4-6 started (claude-opus-4-6)
+            - generic [ref=e81]: 187.4M
+            - generic [ref=e82]: 57s
+        - button "● claude RUNNING Agent claude started (claude) 187.4M 57s" [ref=e83] [cursor=pointer]:
+          - generic [ref=e85]:
+            - generic [ref=e86]: ●
+            - generic [ref=e87]: claude
+            - generic [ref=e88]: RUNNING
+            - generic [ref=e89]: Agent claude started (claude)
+            - generic [ref=e90]: 187.4M
+            - generic [ref=e91]: 57s
+        - button "● claude RUNNING Agent claude started (claude) 187.9M 56s" [ref=e92] [cursor=pointer]:
+          - generic [ref=e94]:
+            - generic [ref=e95]: ●
+            - generic [ref=e96]: claude
+            - generic [ref=e97]: RUNNING
+            - generic [ref=e98]: Agent claude started (claude)
+            - generic [ref=e99]: 187.9M
+            - generic [ref=e100]: 56s
+        - button "● claude RUNNING Agent claude started (claude) 189.5M 35s" [ref=e101] [cursor=pointer]:
+          - generic [ref=e103]:
+            - generic [ref=e104]: ●
+            - generic [ref=e105]: claude
+            - generic [ref=e106]: RUNNING
+            - generic [ref=e107]: Agent claude started (claude)
+            - generic [ref=e108]: 189.5M
+            - generic [ref=e109]: 35s
+        - button "● claude-opus-4-6 RUNNING Agent claude-opus-4-6 started (claude-opus-4-6) 190.0M 11s" [ref=e110] [cursor=pointer]:
+          - generic [ref=e112]:
+            - generic [ref=e113]: ●
+            - generic [ref=e114]: claude-opus-4-6
+            - generic [ref=e115]: RUNNING
+            - generic [ref=e116]: Agent claude-opus-4-6 started (claude-opus-4-6)
+            - generic [ref=e117]: 190.0M
+            - generic [ref=e118]: 11s
+        - button "+ New Session" [ref=e119] [cursor=pointer]:
+          - generic [ref=e120]: +
+          - text: New Session
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - generic [ref=e124]: surf-seer
+          - generic [ref=e125]: ⎇ preflight
+          - generic [ref=e126]: 1 agent · 942.8K
+        - button "● claude RUNNING Agent claude started (claude) 942.8K 5m" [ref=e127] [cursor=pointer]:
+          - generic [ref=e129]:
+            - generic [ref=e130]: ●
+            - generic [ref=e131]: claude
+            - generic [ref=e132]: RUNNING
+            - generic [ref=e133]: Agent claude started (claude)
+            - generic [ref=e134]: 942.8K
+            - generic [ref=e135]: 5m
+        - button "+ New Session" [ref=e136] [cursor=pointer]:
+          - generic [ref=e137]: +
+          - text: New Session
+      - generic [ref=e138]:
+        - generic [ref=e139]:
+          - generic [ref=e141]: terrain-app
+          - generic [ref=e142]: 2 agents · 39.2M
+        - button "● opus RUNNING Agent opus started (opus) 19.6M 5m" [ref=e143] [cursor=pointer]:
+          - generic [ref=e145]:
+            - generic [ref=e146]: ●
+            - generic [ref=e147]: opus
+            - generic [ref=e148]: RUNNING
+            - generic [ref=e149]: Agent opus started (opus)
+            - generic [ref=e150]: 19.6M
+            - generic [ref=e151]: 5m
+        - button "● opus RUNNING Agent opus started (opus) 19.6M 5m" [ref=e152] [cursor=pointer]:
+          - generic [ref=e154]:
+            - generic [ref=e155]: ●
+            - generic [ref=e156]: opus
+            - generic [ref=e157]: RUNNING
+            - generic [ref=e158]: Agent opus started (opus)
+            - generic [ref=e159]: 19.6M
+            - generic [ref=e160]: 5m
+        - button "+ New Session" [ref=e161] [cursor=pointer]:
+          - generic [ref=e162]: +
+          - text: New Session
+      - generic [ref=e163]:
+        - generic [ref=e164]:
+          - generic [ref=e166]: unknown
+          - generic [ref=e167]: 1 agent · 44.8K
+        - button "● claude RUNNING Agent claude started (claude) 44.8K 5m" [ref=e168] [cursor=pointer]:
+          - generic [ref=e170]:
+            - generic [ref=e171]: ●
+            - generic [ref=e172]: claude
+            - generic [ref=e173]: RUNNING
+            - generic [ref=e174]: Agent claude started (claude)
+            - generic [ref=e175]: 44.8K
+            - generic [ref=e176]: 5m
+        - button "+ New Session" [ref=e177] [cursor=pointer]:
+          - generic [ref=e178]: +
+          - text: New Session
+    - generic [ref=e179]:
+      - generic [ref=e180]: 15 agents
+      - generic [ref=e181]: ·
+      - generic [ref=e182]: 5 repos
+      - generic [ref=e183]: ·
+      - generic [ref=e184]: 1530.6M tokens
+      - generic [ref=e185]:
+        - generic [ref=e186]: j
+        - text: /
+        - generic [ref=e187]: k
+        - text: navigate ·
+        - generic [ref=e188]: Enter
+        - text: open ·
+        - button "⌘N Spawn Agent" [ref=e189] [cursor=pointer]:
+          - generic [ref=e190]: ⌘N
+          - text: Spawn Agent

@@ -1,0 +1,44 @@
+- main [ref=e3]:
+  - generic [ref=e137]:
+    - generic [ref=e138]:
+      - button "← Back" [ref=e139] [cursor=pointer]
+      - generic [ref=e140]: surf-seer
+      - generic [ref=e141]: /
+      - generic [ref=e142]: claude-opus-4-6
+      - generic [ref=e143]: RUNNING
+    - generic [ref=e144]:
+      - generic [ref=e145]:
+        - generic [ref=e146]:
+          - heading "Agent" [level=3] [ref=e147]
+          - generic [ref=e148]:
+            - generic [ref=e149]: Name
+            - generic [ref=e150]: claude-opus-4-6
+            - generic [ref=e151]: Repo
+            - generic [ref=e152]: surf-seer
+            - generic [ref=e153]: Branch
+            - generic [ref=e154]: preflight
+            - generic [ref=e155]: Model
+            - generic [ref=e156]: claude-opus-4-6
+            - generic [ref=e157]: Status
+            - generic [ref=e159]: RUNNING
+        - generic [ref=e160]:
+          - heading "Token Usage" [level=3] [ref=e161]
+          - generic [ref=e164]: 0 / 1.0M
+        - generic [ref=e165]:
+          - heading "Changed Files" [level=3] [ref=e166]
+          - generic [ref=e167]:
+            - generic [ref=e169]: + docs/APP_STORE_LISTINGS.md
+            - generic [ref=e171]: + justfile
+        - generic [ref=e172]:
+          - heading "Worktree" [level=3] [ref=e173]
+          - generic [ref=e174]:
+            - generic [ref=e175]: Branch
+            - generic [ref=e176]: preflight
+          - generic [ref=e177]:
+            - button "Merge" [ref=e178] [cursor=pointer]
+            - button "View Diff" [ref=e179] [cursor=pointer]
+            - button "Open Terminal" [ref=e180] [cursor=pointer]
+      - textbox "Terminal input" [ref=e186]
+    - generic [ref=e191]:
+      - generic [ref=e192]: Esc
+      - text: Back to feed
