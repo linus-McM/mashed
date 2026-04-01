@@ -20,6 +20,10 @@ export function MarkRead(arg1:string):Promise<void>;
 
 export function PickDirectory():Promise<string>;
 
+export function ReadFile(arg1:string):Promise<string>;
+
+export function ReadFileDiff(arg1:string,arg2:string):Promise<string>;
+
 export function SetDevDir(arg1:string):Promise<void>;
 
 export function SpawnAgent(arg1:string,arg2:string):Promise<string>;

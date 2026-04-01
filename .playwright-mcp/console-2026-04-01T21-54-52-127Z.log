@@ -1,0 +1,12 @@
+[      87ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[      91ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[      91ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[   15967ms] [LOG] drillDown called with: pid-15360 conductor-mashed-1775080005:0.0 @ http://localhost:34115/src/App.svelte?t=1775080292282:425
+[  146227ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  146232ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[  146233ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  146235ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  146731ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  147288ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  147291ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  147291ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6

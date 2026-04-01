@@ -479,6 +479,35 @@ func (a *App) ListRepoChoices() []map[string]string {
 	return choices
 }
 
+// ReadFile returns the contents of a file as a string.
+func (a *App) ReadFile(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("read file %s: %w", path, err)
+	}
+	// Cap at 1MB to avoid sending huge files to frontend
+	if len(data) > 1024*1024 {
+		return string(data[:1024*1024]) + "\n... (truncated at 1MB)", nil
+	}
+	return string(data), nil
+}
+
+// ReadFileDiff returns the git diff for a specific file.
+func (a *App) ReadFileDiff(repoPath, filePath string) (string, error) {
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "HEAD", "--", filePath)
+	out, err := cmd.Output()
+	if err != nil {
+		// Try without HEAD for untracked files
+		cmd2 := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--no-index", "/dev/null", filepath.Join(repoPath, filePath))
+		out2, _ := cmd2.Output()
+		if len(out2) > 0 {
+			return string(out2), nil
+		}
+		return "", fmt.Errorf("git diff %s: %w", filePath, err)
+	}
+	return string(out), nil
+}
+
 // MarkRead marks a notification as read.
 func (a *App) MarkRead(agentID string) {
 	a.mu.Lock()

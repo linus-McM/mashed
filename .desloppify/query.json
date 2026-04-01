@@ -986,7 +986,7 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-01T21:43:53+00:00"
+      "updated_at": "2026-04-01T21:53:33+00:00"
     }
   },
   "zone_distribution": {
@@ -1038,6 +1038,11 @@
         {
           "name": "File health",
           "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Test health",
+          "strict": 3.2,
           "stuck_scans": 5
         },
         {
@@ -1286,7 +1291,7 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 15,
+      "report_scores": 16,
       "feedback_nudge": 3,
       "stagnant_nudge": 25,
       "zone_classification": 3
@@ -1331,7 +1336,7 @@
   "plan": {
     "active": true,
     "focus": null,
-    "total_ordered": 20,
+    "total_ordered": 0,
     "total_skipped": 0,
     "plan_overrides_narrative": true
   }

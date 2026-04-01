@@ -38,6 +38,14 @@ export function PickDirectory() {
   return window['go']['main']['App']['PickDirectory']();
 }
 
+export function ReadFile(arg1) {
+  return window['go']['main']['App']['ReadFile'](arg1);
+}
+
+export function ReadFileDiff(arg1, arg2) {
+  return window['go']['main']['App']['ReadFileDiff'](arg1, arg2);
+}
+
 export function SetDevDir(arg1) {
   return window['go']['main']['App']['SetDevDir'](arg1);
 }
