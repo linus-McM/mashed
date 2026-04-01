@@ -1,42 +1,42 @@
 {
   "command": "scan",
-  "overall_score": 6.4,
-  "objective_score": 25.6,
-  "strict_score": 6.4,
-  "verified_strict_score": 25.6,
-  "prev_overall_score": 14.8,
-  "prev_objective_score": 59.3,
-  "prev_strict_score": 14.8,
-  "prev_verified_strict_score": 59.3,
+  "overall_score": 6.1,
+  "objective_score": 24.2,
+  "strict_score": 6.1,
+  "verified_strict_score": 24.2,
+  "prev_overall_score": 6.1,
+  "prev_objective_score": 24.2,
+  "prev_strict_score": 6.1,
+  "prev_verified_strict_score": 24.2,
   "profile": "full",
   "noise_budget": 10,
   "noise_global_budget": 0,
   "hidden_by_detector": {
-    "subjective_review": 10,
-    "test_coverage": 4
+    "test_coverage": 17,
+    "subjective_review": 10
   },
-  "hidden_total": 14,
+  "hidden_total": 27,
   "diff": {
-    "new": 12,
+    "new": 13,
     "auto_resolved": 0,
     "reopened": 0,
-    "total_current": 37,
+    "total_current": 36,
     "suspect_detectors": [],
     "chronic_reopeners": [],
     "skipped_other_lang": 0,
     "resolved_out_of_scope": 0,
     "ignored": 0,
     "ignore_patterns": 0,
-    "raw_issues": 37,
+    "raw_issues": 36,
     "suppressed_pct": 0.0
   },
   "stats": {
-    "total": 37,
+    "total": 50,
     "auto_resolved": 0,
     "deferred": 0,
     "false_positive": 0,
     "fixed": 0,
-    "open": 37,
+    "open": 50,
     "triaged_out": 0,
     "wontfix": 0,
     "by_tier": {
@@ -45,7 +45,7 @@
         "deferred": 0,
         "false_positive": 0,
         "fixed": 0,
-        "open": 1,
+        "open": 2,
         "triaged_out": 0,
         "wontfix": 0
       },
@@ -54,7 +54,7 @@
         "deferred": 0,
         "false_positive": 0,
         "fixed": 0,
-        "open": 13,
+        "open": 25,
         "triaged_out": 0,
         "wontfix": 0
       },
@@ -70,12 +70,12 @@
     }
   },
   "open_scope": {
-    "in_scope": 37,
+    "in_scope": 50,
     "out_of_scope": 0,
-    "global": 37
+    "global": 50
   },
   "warnings": [
-    "12 new issues with few resolutions \u2014 likely cascading.",
+    "13 new issues with few resolutions \u2014 likely cascading.",
     "Coverage reduced (golangci_lint): golangci-lint tooling unavailable (tool_not_found) Repercussion: Detector results may be under-reported for this scan. Fix: Install/fix the tool command and rerun scan."
   ],
   "dimension_scores": {
@@ -128,18 +128,18 @@
       }
     },
     "Test health": {
-      "score": 0.1,
-      "strict": 0.1,
-      "verified_strict_score": 0.1,
-      "checks": 163,
-      "failing": 14,
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 175,
+      "failing": 27,
       "tier": 4,
       "detectors": {
         "test_coverage": {
-          "potential": 163,
-          "pass_rate": 0.0007676267747342884,
-          "failing": 14,
-          "weighted_failures": 162.8748768357183
+          "potential": 175,
+          "pass_rate": 0.0,
+          "failing": 27,
+          "weighted_failures": 175.164347484627
         }
       }
     },
@@ -582,10 +582,10 @@
     }
   },
   "score_breakdown": {
-    "overall_score": 6.4,
+    "overall_score": 6.1,
     "mechanical_fraction": 0.25,
     "subjective_fraction": 0.75,
-    "mechanical_avg": 25.645205479452056,
+    "mechanical_avg": 24.242424242424242,
     "subjective_avg": 0.0,
     "entries": [
       {
@@ -596,9 +596,9 @@
         "sample_factor": 0.035,
         "configured_weight": 1.0,
         "effective_weight": 0.035,
-        "pool_share": 0.03196347031963471,
-        "overall_per_point": 0.007990867579908677,
-        "overall_contribution": 0.7990867579908677,
+        "pool_share": 0.030303030303030304,
+        "overall_per_point": 0.007575757575757576,
+        "overall_contribution": 0.7575757575757576,
         "overall_drag": 0.0
       },
       {
@@ -609,9 +609,9 @@
         "sample_factor": 0.075,
         "configured_weight": 1.0,
         "effective_weight": 0.075,
-        "pool_share": 0.0684931506849315,
-        "overall_per_point": 0.017123287671232876,
-        "overall_contribution": 1.7123287671232876,
+        "pool_share": 0.06493506493506493,
+        "overall_per_point": 0.016233766233766232,
+        "overall_contribution": 1.6233766233766231,
         "overall_drag": 0.0
       },
       {
@@ -622,23 +622,23 @@
         "sample_factor": 0.075,
         "configured_weight": 2.0,
         "effective_weight": 0.15,
-        "pool_share": 0.136986301369863,
-        "overall_per_point": 0.03424657534246575,
-        "overall_contribution": 3.4246575342465753,
+        "pool_share": 0.12987012987012986,
+        "overall_per_point": 0.032467532467532464,
+        "overall_contribution": 3.2467532467532463,
         "overall_drag": 0.0
       },
       {
         "name": "Test health",
         "pool": "mechanical",
-        "score": 0.1,
-        "checks": 163.0,
-        "sample_factor": 0.815,
+        "score": 0.0,
+        "checks": 175.0,
+        "sample_factor": 0.875,
         "configured_weight": 1.0,
-        "effective_weight": 0.815,
-        "pool_share": 0.7442922374429224,
-        "overall_per_point": 0.1860730593607306,
-        "overall_contribution": 0.01860730593607306,
-        "overall_drag": 18.58869863013699
+        "effective_weight": 0.875,
+        "pool_share": 0.7575757575757576,
+        "overall_per_point": 0.1893939393939394,
+        "overall_contribution": 0.0,
+        "overall_drag": 18.939393939393938
       },
       {
         "name": "Duplication",
@@ -648,9 +648,9 @@
         "sample_factor": 0.02,
         "configured_weight": 1.0,
         "effective_weight": 0.02,
-        "pool_share": 0.018264840182648404,
-        "overall_per_point": 0.004566210045662101,
-        "overall_contribution": 0.45662100456621013,
+        "pool_share": 0.017316017316017316,
+        "overall_per_point": 0.004329004329004329,
+        "overall_contribution": 0.4329004329004329,
         "overall_drag": 0.0
       },
       {
@@ -943,7 +943,7 @@
     "go": {
       "structural": 15,
       "flat_dirs": 7,
-      "test_coverage": 163,
+      "test_coverage": 175,
       "security": 15,
       "subjective_review": 20,
       "stale_wontfix": 0
@@ -987,17 +987,24 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-01T08:38:09+00:00"
+      "updated_at": "2026-04-01T20:36:38+00:00"
     }
   },
   "zone_distribution": {
-    "production": 15
+    "production": 15,
+    "test": 1
   },
   "narrative": {
-    "phase": "regression",
-    "headline": "Score shifted 8.4 pts \u2014 this is normal after structural changes. Rescan after your next fix to see the real trend.",
+    "phase": "stagnation",
+    "headline": "Score plateaued at 6.1 for 4 scans. Test health (0.0%) is where the breakthrough is.",
     "dimensions": {
       "lowest_dimensions": [
+        {
+          "name": "Test health",
+          "strict": 0.0,
+          "failing": 27,
+          "impact": 0.0
+        },
         {
           "name": "Abstraction fit",
           "strict": 0.0,
@@ -1013,25 +1020,143 @@
           "impact": 0.0,
           "subjective": true,
           "impact_description": "re-review to improve"
+        }
+      ],
+      "biggest_gap_dimensions": [],
+      "stagnant_dimensions": [
+        {
+          "name": "Code quality",
+          "strict": 100.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Security",
+          "strict": 100.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "File health",
+          "strict": 100.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Test health",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Abstraction fit",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "AI generated debt",
+          "strict": 0.0,
+          "stuck_scans": 4
         },
         {
           "name": "API coherence",
           "strict": 0.0,
-          "failing": 0,
-          "impact": 0.0,
-          "subjective": true,
-          "impact_description": "re-review to improve"
+          "stuck_scans": 4
+        },
+        {
+          "name": "Auth consistency",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Contracts",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Convention drift",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Cross-module arch",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Dep health",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Design coherence",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Error consistency",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "High elegance",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Stale migration",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Init coupling",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Logic clarity",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Low elegance",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Mid elegance",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Naming quality",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Structure nav",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Test strategy",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Type safety",
+          "strict": 0.0,
+          "stuck_scans": 4
+        },
+        {
+          "name": "Duplication",
+          "strict": 100.0,
+          "stuck_scans": 4
         }
-      ],
-      "biggest_gap_dimensions": [],
-      "stagnant_dimensions": []
+      ]
     },
     "actions": [
       {
         "type": "refactor",
         "detector": "test_coverage",
-        "count": 14,
-        "description": "14 test_coverage issues in 1 cluster(s) \u2014 run `desloppify next`",
+        "count": 27,
+        "description": "27 test_coverage issues in 1 cluster(s) \u2014 run `desloppify next`",
         "command": "desloppify next",
         "impact": 0.0,
         "dimension": "Test health",
@@ -1072,7 +1197,7 @@
     "strategy": {
       "fixer_leverage": {
         "auto_fixable_count": 0,
-        "total_count": 57,
+        "total_count": 70,
         "coverage": 0.0,
         "impact_ratio": 0.0,
         "recommendation": "none"
@@ -1107,7 +1232,7 @@
         }
       },
       "can_parallelize": false,
-      "hint": "Work through actions in priority order. Rescan after each fix to track progress."
+      "hint": "Try a different dimension to break the plateau."
     },
     "tools": {
       "fixers": [],
@@ -1138,9 +1263,9 @@
     "milestone": null,
     "primary_action": {
       "command": "desloppify next",
-      "description": "14 test_coverage issues in 1 cluster(s) \u2014 run `desloppify next`"
+      "description": "27 test_coverage issues in 1 cluster(s) \u2014 run `desloppify next`"
     },
-    "why_now": "Work through actions in priority order. Rescan after each fix to track progress.",
+    "why_now": "Try a different dimension to break the plateau.",
     "verification_step": {
       "command": "desloppify scan",
       "reason": "revalidate after changes"
@@ -1148,15 +1273,22 @@
     "risk_flags": [],
     "strict_target": {
       "target": 85.0,
-      "current": 6.4,
-      "gap": 78.6,
+      "current": 6.1,
+      "gap": 78.9,
       "state": "below",
       "warning": null
     },
     "reminders": [
       {
+        "type": "zone_classification",
+        "message": "1 of 16 files classified as non-production (1 test). Override with `desloppify zone set <file> production` if any are misclassified.",
+        "command": "desloppify zone show",
+        "priority": 2,
+        "severity": "medium"
+      },
+      {
         "type": "feedback_nudge",
-        "message": "If you notice patterns desloppify doesn't detect, false positives, or issues that seem off, file an issue at https://github.com/peteromalley/desloppify/issues \u2014 include the file and what you expected. It helps improve the tool.",
+        "message": "Score has plateaued \u2014 if you suspect desloppify is missing patterns or not capturing something it should, file an issue at https://github.com/peteromalley/desloppify/issues describing what you expected. Gaps in detection are a common cause of stagnation.",
         "command": null,
         "priority": 3,
         "severity": "low"
@@ -1171,8 +1303,10 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 2,
-      "feedback_nudge": 1
+      "report_scores": 4,
+      "feedback_nudge": 3,
+      "stagnant_nudge": 25,
+      "zone_classification": 1
     }
   },
   "config": {
