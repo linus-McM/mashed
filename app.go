@@ -91,13 +91,11 @@ func (a *App) startup(ctx context.Context) {
 		log.Printf("terminal bridge start failed: %v", err)
 	}
 
-	// Check for saved config
+	// Check for saved config — if dir exists, start scanning immediately.
+	// If not, frontend will detect empty GetDevDir() on mount and show setup.
 	cfg := loadConfig()
 	if cfg.DevDir != "" {
 		a.initScanning(cfg.DevDir)
-	} else {
-		// Tell frontend to show the directory picker
-		runtime.EventsEmit(a.ctx, "needs-setup", true)
 	}
 }
 

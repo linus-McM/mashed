@@ -19,9 +19,22 @@ opus:
 haiku:
     @claude --dangerously-skip-permissions --model "haiku"
 
-# Launch Claude Conductor dashboard
+# Launch Claude Conductor in dev mode (hot reload)
 dev:
-    bun run dev
+    PATH="$HOME/go/bin:$PATH" wails dev
+
+# Build and launch Claude Conductor
+run: build
+    open build/bin/conductor.app
+
+# Build Claude Conductor production binary
+build:
+    cd frontend && npm install && cd ..
+    PATH="$HOME/go/bin:$PATH" wails build
+
+# Run Go tests
+test:
+    go test ./internal/... -count=1
 
 
 repomixer:

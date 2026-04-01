@@ -15,18 +15,10 @@
     const dir = await GetDevDir();
     if (dir) {
       currentView = 'feed';
-      // Load existing notifications
       notifications = await GetNotifications();
-    }
-    // Otherwise wait for 'needs-setup' event from backend
-  });
-
-  // Backend tells us whether setup is needed
-  EventsOn('needs-setup', (needsSetup) => {
-    if (needsSetup && currentView === 'loading') {
+    } else {
+      // No directory configured, show setup
       currentView = 'setup';
-    } else if (!needsSetup && (currentView === 'setup' || currentView === 'loading')) {
-      currentView = 'feed';
     }
   });
 

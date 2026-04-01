@@ -1,9 +1,9 @@
 {
   "command": "scan",
-  "overall_score": 6.1,
-  "objective_score": 24.2,
-  "strict_score": 6.1,
-  "verified_strict_score": 24.2,
+  "overall_score": 6.3,
+  "objective_score": 25.1,
+  "strict_score": 6.3,
+  "verified_strict_score": 25.1,
   "prev_overall_score": 6.1,
   "prev_objective_score": 24.2,
   "prev_strict_score": 6.1,
@@ -127,16 +127,16 @@
       }
     },
     "Test health": {
-      "score": 0.0,
-      "strict": 0.0,
-      "verified_strict_score": 0.0,
-      "checks": 175,
+      "score": 1.6,
+      "strict": 1.6,
+      "verified_strict_score": 1.6,
+      "checks": 178,
       "failing": 27,
       "tier": 4,
       "detectors": {
         "test_coverage": {
-          "potential": 175,
-          "pass_rate": 0.0,
+          "potential": 178,
+          "pass_rate": 0.01593063210883707,
           "failing": 27,
           "weighted_failures": 175.164347484627
         }
@@ -581,10 +581,10 @@
     }
   },
   "score_breakdown": {
-    "overall_score": 6.1,
+    "overall_score": 6.3,
     "mechanical_fraction": 0.25,
     "subjective_fraction": 0.75,
-    "mechanical_avg": 24.242424242424242,
+    "mechanical_avg": 25.148717948717948,
     "subjective_avg": 0.0,
     "entries": [
       {
@@ -595,9 +595,9 @@
         "sample_factor": 0.035,
         "configured_weight": 1.0,
         "effective_weight": 0.035,
-        "pool_share": 0.030303030303030304,
-        "overall_per_point": 0.007575757575757576,
-        "overall_contribution": 0.7575757575757576,
+        "pool_share": 0.02991452991452992,
+        "overall_per_point": 0.00747863247863248,
+        "overall_contribution": 0.747863247863248,
         "overall_drag": 0.0
       },
       {
@@ -608,9 +608,9 @@
         "sample_factor": 0.075,
         "configured_weight": 1.0,
         "effective_weight": 0.075,
-        "pool_share": 0.06493506493506493,
-        "overall_per_point": 0.016233766233766232,
-        "overall_contribution": 1.6233766233766231,
+        "pool_share": 0.06410256410256411,
+        "overall_per_point": 0.016025641025641028,
+        "overall_contribution": 1.6025641025641029,
         "overall_drag": 0.0
       },
       {
@@ -621,23 +621,23 @@
         "sample_factor": 0.075,
         "configured_weight": 2.0,
         "effective_weight": 0.15,
-        "pool_share": 0.12987012987012986,
-        "overall_per_point": 0.032467532467532464,
-        "overall_contribution": 3.2467532467532463,
+        "pool_share": 0.12820512820512822,
+        "overall_per_point": 0.032051282051282055,
+        "overall_contribution": 3.2051282051282057,
         "overall_drag": 0.0
       },
       {
         "name": "Test health",
         "pool": "mechanical",
-        "score": 0.0,
-        "checks": 175.0,
-        "sample_factor": 0.875,
+        "score": 1.6,
+        "checks": 178.0,
+        "sample_factor": 0.89,
         "configured_weight": 1.0,
-        "effective_weight": 0.875,
-        "pool_share": 0.7575757575757576,
-        "overall_per_point": 0.1893939393939394,
-        "overall_contribution": 0.0,
-        "overall_drag": 18.939393939393938
+        "effective_weight": 0.89,
+        "pool_share": 0.7606837606837608,
+        "overall_per_point": 0.1901709401709402,
+        "overall_contribution": 0.3042735042735043,
+        "overall_drag": 18.712820512820517
       },
       {
         "name": "Duplication",
@@ -647,9 +647,9 @@
         "sample_factor": 0.02,
         "configured_weight": 1.0,
         "effective_weight": 0.02,
-        "pool_share": 0.017316017316017316,
-        "overall_per_point": 0.004329004329004329,
-        "overall_contribution": 0.4329004329004329,
+        "pool_share": 0.017094017094017096,
+        "overall_per_point": 0.004273504273504274,
+        "overall_contribution": 0.4273504273504274,
         "overall_drag": 0.0
       },
       {
@@ -942,7 +942,7 @@
     "go": {
       "structural": 15,
       "flat_dirs": 7,
-      "test_coverage": 175,
+      "test_coverage": 178,
       "security": 15,
       "subjective_review": 20,
       "stale_wontfix": 0
@@ -986,7 +986,7 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-01T20:43:43+00:00"
+      "updated_at": "2026-04-01T20:48:08+00:00"
     }
   },
   "zone_distribution": {
@@ -995,15 +995,9 @@
   },
   "narrative": {
     "phase": "stagnation",
-    "headline": "Score plateaued at 6.1 for 5 scans. Test health (0.0%) is where the breakthrough is.",
+    "headline": "Score plateaued at 6.3 for 5 scans. Abstraction fit (0.0%) is where the breakthrough is.",
     "dimensions": {
       "lowest_dimensions": [
-        {
-          "name": "Test health",
-          "strict": 0.0,
-          "failing": 27,
-          "impact": 0.0
-        },
         {
           "name": "Abstraction fit",
           "strict": 0.0,
@@ -1014,6 +1008,14 @@
         },
         {
           "name": "AI generated debt",
+          "strict": 0.0,
+          "failing": 0,
+          "impact": 0.0,
+          "subjective": true,
+          "impact_description": "re-review to improve"
+        },
+        {
+          "name": "API coherence",
           "strict": 0.0,
           "failing": 0,
           "impact": 0.0,
@@ -1036,11 +1038,6 @@
         {
           "name": "File health",
           "strict": 100.0,
-          "stuck_scans": 5
-        },
-        {
-          "name": "Test health",
-          "strict": 0.0,
           "stuck_scans": 5
         },
         {
@@ -1273,19 +1270,12 @@
     "risk_flags": [],
     "strict_target": {
       "target": 85.0,
-      "current": 6.1,
-      "gap": 78.9,
+      "current": 6.3,
+      "gap": 78.7,
       "state": "below",
       "warning": null
     },
     "reminders": [
-      {
-        "type": "zone_classification",
-        "message": "5 of 20 files classified as non-production (5 test). Override with `desloppify zone set <file> production` if any are misclassified.",
-        "command": "desloppify zone show",
-        "priority": 2,
-        "severity": "medium"
-      },
       {
         "type": "report_scores",
         "message": "ALWAYS share ALL scores with the user: overall, objective, and strict, plus every dimension score (lenient + strict), including subjective dimensions. The goal is to maximize strict scores.",
@@ -1296,7 +1286,7 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 6,
+      "report_scores": 7,
       "feedback_nudge": 3,
       "stagnant_nudge": 25,
       "zone_classification": 3
@@ -1341,7 +1331,7 @@
   "plan": {
     "active": true,
     "focus": null,
-    "total_ordered": 0,
+    "total_ordered": 20,
     "total_skipped": 0,
     "plan_overrides_narrative": true
   }
