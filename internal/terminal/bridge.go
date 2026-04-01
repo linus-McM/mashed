@@ -171,7 +171,7 @@ func (b *Bridge) servePane(ctx context.Context, ws *websocket.Conn, target strin
 	cmd := exec.CommandContext(ctx, "tmux", "attach-session", "-t", target)
 	cmd.Env = append(os.Environ(), "TERM=xterm-256color")
 
-	ptmx, err := pty.Start(cmd)
+	ptmx, err := pty.StartWithSize(cmd, &pty.Winsize{Cols: 200, Rows: 50})
 	if err != nil {
 		sendWSClose(ws, fmt.Errorf("pty start for %s: %w", target, err))
 		return

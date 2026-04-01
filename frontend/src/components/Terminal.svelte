@@ -122,6 +122,8 @@
 
         ws.onopen = () => {
           term.write('\x1b[32m● Connected to agent terminal\x1b[0m\r\n\r\n');
+          // Send initial resize so tmux knows the real terminal size
+          sendResize();
         };
 
         ws.onmessage = (evt) => {
@@ -138,6 +140,18 @@
         ws.onerror = () => {
           term.write('\r\n\x1b[31m● Connection error\x1b[0m\r\n');
         };
+
+        // Send resize event to bridge so tmux/pty knows the real terminal dimensions
+        function sendResize() {
+          if (ws && ws.readyState === WebSocket.OPEN && term.cols && term.rows) {
+            ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+          }
+        }
+
+        // Re-send resize whenever the terminal is re-fitted
+        term.onResize(({ cols, rows }) => {
+          sendResize();
+        });
 
         // Send keystrokes as binary (bridge expects BinaryMessage for pty input)
         const encoder = new TextEncoder();
