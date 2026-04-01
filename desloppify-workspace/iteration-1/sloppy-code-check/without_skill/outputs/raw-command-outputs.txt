@@ -1,0 +1,95 @@
+================================================================================
+RAW TERMINAL OUTPUTS FROM HEALTH CHECK
+================================================================================
+
+--- Command: ls -la (worktree root) ---
+total 120
+drwxr-xr-x@ 10 linus  staff    320 Apr  1 18:27 .
+drwxr-xr-x@  7 linus  staff    224 Apr  1 18:27 ..
+drwxr-xr-x@  3 linus  staff     96 Apr  1 18:27 .claude
+-rw-r--r--@  1 linus  staff     70 Apr  1 18:27 .git
+-rw-r--r--@  1 linus  staff    886 Apr  1 18:27 .gitignore
+-rw-r--r--@  1 linus  staff    112 Apr  1 18:27 .gitmodules
+-rw-r--r--@  1 linus  staff   2025 Apr  1 18:27 CLAUDE.md
+-rw-r--r--@  1 linus  staff  10653 Apr  1 18:27 DOCUMENTATION_SUMMARY.txt
+-rw-r--r--@  1 linus  staff  26491 Apr  1 18:27 SPECIFICATION.md
+-rw-r--r--@  1 linus  staff    640 Apr  1 18:27 justfile
+
+--- Command: find (source code files) ---
+No .go, .ts, .js, .py, .mod, package.json, go.sum, .toml, .yaml, .yml files found.
+Only artifact: /Users/linus/Development/mashed/.vite/deps_temp_c90be2f4/package.json
+
+--- Command: find (all non-hidden files in main repo) ---
+/Users/linus/Development/mashed/SPECIFICATION.md
+/Users/linus/Development/mashed/justfile
+/Users/linus/Development/mashed/docs/repomixer/desloppify/desloppify.xml
+/Users/linus/Development/mashed/docs/repomixer/wails/wails.xml
+/Users/linus/Development/mashed/.gitmodules
+/Users/linus/Development/mashed/DOCUMENTATION_SUMMARY.txt
+/Users/linus/Development/mashed/.gitignore
+/Users/linus/Development/mashed/.env
+/Users/linus/Development/mashed/CLAUDE.md
+
+--- Command: ls package.json go.mod ---
+NO_PACKAGE_JSON
+NO_GO_MOD
+
+--- Command: grep 'bun|npm|node|typescript' ---
+justfile:24:    bun run dev
+SPECIFICATION.md:547:Agent PIDs are not always direct children of tmux panes (shell -> node -> claude)
+
+--- Command: grep 'TODO|FIXME|HACK|XXX|TEMP|BROKEN' ---
+CLAUDE.md:49:- Bugs, errors, "why is this broken", 500 errors -> invoke investigate
+(no actual TODOs found)
+
+--- Command: grep TypeScript refs in DOCUMENTATION_SUMMARY.txt ---
+14:   Process Scanning (server/repos.ts:74-125)
+19:   JSONL Session Parsing (server/repos.ts:206-400)
+29:   State Assembly & DAG Construction (state/store.ts:85-163)
+99:     - conductor.ts (entry point, render loop)
+100:     - state/types.ts (domain models)
+101:     - state/store.ts (state assembly, API contracts)
+102:     - server/repos.ts (process scanning, JSONL parsing)
+103:     - server/repos-internals.ts (test exports)
+104:     - server/tmux.ts (WebSocket bridge)
+105:     - layout/draw.ts (primitives, colors)
+106:     - layout/text.ts (Pretext integration)
+109:     - input/hit.ts (click handling)
+
+--- Command: git log --oneline -5 ---
+a4bf1a3 chore: add gstack skill routing rules to CLAUDE.md
+f1a98ba Initial commit: project setup with gstack, clawteam skill, and specs
+
+--- Command: git status --short ---
+(clean -- no uncommitted changes in worktree)
+
+--- Command: wc -l (all files) ---
+     744 SPECIFICATION.md
+     258 DOCUMENTATION_SUMMARY.txt
+      57 CLAUDE.md
+      27 justfile
+      35 .gitignore
+       3 .gitmodules
+    1124 total
+
+--- Command: desloppify setup ---
+BLOCKED: python3 -m venv creation denied by sandbox permissions (5 attempts, all denied)
+Could not install desloppify[full] via pip.
+
+--- Command: ls -la (main repo) ---
+total 136
+drwxr-xr-x  15 linus  staff    480 Apr  1 13:57 .
+drwxr-xr-x@ 11 linus  staff    352 Apr  1 09:00 ..
+-rw-r--r--@  1 linus  staff   6148 Apr  1 18:27 .DS_Store
+drwxr-xr-x@  5 linus  staff    160 Apr  1 18:26 .claude
+-rw-r--r--@  1 linus  staff    176 Apr  1 13:57 .env
+drwxr-xr-x@ 17 linus  staff    544 Apr  1 18:27 .git
+-rw-r--r--@  1 linus  staff    962 Apr  1 13:57 .gitignore
+-rw-r--r--@  1 linus  staff    112 Apr  1 11:08 .gitmodules
+drwxr-xr-x@  4 linus  staff    128 Apr  1 13:57 .vite
+-rw-r--r--@  1 linus  staff   2025 Apr  1 11:17 CLAUDE.md
+-rw-r--r--@  1 linus  staff  10653 Apr  1 08:55 DOCUMENTATION_SUMMARY.txt
+-rw-r--r--@  1 linus  staff  26491 Apr  1 08:58 SPECIFICATION.md
+drwxr-xr-x@  4 linus  staff    128 Apr  1 18:26 desloppify-workspace
+drwxr-xr-x@  4 linus  staff    128 Apr  1 12:14 docs
+-rw-r--r--@  1 linus  staff    788 Apr  1 12:23 justfile

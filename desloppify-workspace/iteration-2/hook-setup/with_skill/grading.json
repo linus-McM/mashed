@@ -1,0 +1,12 @@
+{
+  "expectations": [
+    {"text": "A Python venv is created at .venv-desloppify/", "passed": true, "evidence": "Created .venv-desloppify/ with desloppify 0.9.14"},
+    {"text": "desloppify is installed in the venv", "passed": true, "evidence": "desloppify[full] v0.9.14 confirmed installed"},
+    {"text": "desloppify scan --path . is run", "passed": true, "evidence": "Ran scan, got objective 100/100, strict 0/100"},
+    {"text": "A git pre-commit hook is created or configured that invokes desloppify", "passed": true, "evidence": "Copied skill's pre-commit-hook.sh to .githooks/pre-commit, made executable"},
+    {"text": "git config core.hooksPath is set to point at the hooks directory", "passed": true, "evidence": "Ran git config core.hooksPath .githooks"},
+    {"text": "The hook script activates the venv before running desloppify", "passed": true, "evidence": "Hook contains source .venv-desloppify/bin/activate. Also tested by running bash .githooks/pre-commit directly."}
+  ],
+  "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0},
+  "timing": {"total_duration_seconds": 130.0, "total_tokens": 38847}
+}

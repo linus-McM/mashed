@@ -1,0 +1,53 @@
+================================================================================
+DESLOPPIFY NEXT - Priority Queue
+Date: 2026-04-01
+================================================================================
+
+Following desloppify's "next" philosophy: fix in priority order, don't skip ahead.
+
+QUEUE (ordered by impact):
+
+1. FIX phantom file references in DOCUMENTATION_SUMMARY.txt
+   Files: DOCUMENTATION_SUMMARY.txt
+   Action: Remove references to IMPLEMENTATION_CHECKLIST.md and SOURCE_GUIDE.md
+           on lines 77, 93, 197, 207, 237-238 (or create those files)
+   Effort: 5 minutes
+   Why first: Misleading references are the most confusing issue for any new
+              contributor. This is the fastest win.
+
+2. ADD provenance header to DOCUMENTATION_SUMMARY.txt
+   Files: DOCUMENTATION_SUMMARY.txt
+   Action: Add note at top: "NOTE: This file documents the original TypeScript
+           implementation. SPECIFICATION.md describes the Go/bubbletea port."
+   Effort: 2 minutes
+   Why: Eliminates confusion about why .ts files are referenced in a Go project.
+
+3. REMOVE shell artifact from DOCUMENTATION_SUMMARY.txt
+   Files: DOCUMENTATION_SUMMARY.txt, line 258
+   Action: Delete "cat /Users/linus/Development/mashed/DOCUMENTATION_SUMMARY.txt"
+   Effort: 1 minute
+
+4. ADD docs/ to .gitignore
+   Files: .gitignore
+   Action: Add "docs/" line, also proactively add ".venv-desloppify/" and
+           ".desloppify/" and "desloppify-workspace/"
+   Effort: 1 minute
+
+5. INIT gstack submodule
+   Command: git submodule update --init .claude/skills/gstack
+   Effort: 1 minute
+
+6. FIX justfile opus recipe
+   Files: justfile
+   Action: Either add --model "opus" flag or update comment to say "default model"
+   Effort: 1 minute
+
+7. CREATE go.mod and Phase 1 scaffolding (when ready to start building)
+   Files: go.mod, cmd/conductor/main.go, internal/domain/types.go
+   Effort: 2-4 hours
+   Why last: This is the big one. The spec is ready, the docs need cleanup first.
+
+================================================================================
+Total quick-fix effort: ~10 minutes for items 1-6
+Total to start building: 2-4 hours for item 7
+================================================================================

@@ -1,0 +1,185 @@
+{
+  "metadata": {
+    "skill_name": "desloppify",
+    "skill_path": "/Users/linus/Development/mashed/.claude/skills/desloppify",
+    "executor_model": "claude-opus-4-6",
+    "analyzer_model": "claude-opus-4-6",
+    "timestamp": "2026-04-01T13:00:00Z",
+    "evals_run": [1, 2, 3],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "setup-and-scan",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 2,
+        "failed": 4,
+        "total": 6,
+        "time_seconds": 260.4,
+        "tokens": 64322,
+        "tool_calls": 51,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "A Python venv is created at .venv-desloppify/", "passed": false, "evidence": "Sandbox blocked venv creation"},
+        {"text": "desloppify[full] is installed via pip in the venv", "passed": false, "evidence": "Sandbox blocked pip install"},
+        {"text": ".gitignore is updated to include .venv-desloppify/ and .desloppify/", "passed": true, "evidence": "Edit tool confirmed update"},
+        {"text": "desloppify scan --path . is run", "passed": false, "evidence": "CLI not installed; manual analysis performed"},
+        {"text": "The agent reports a health score or scan result to the user", "passed": true, "evidence": "Reported 18.0/100 strict score"},
+        {"text": "desloppify next is run to show what to fix first", "passed": false, "evidence": "Manual equivalent provided, not actual command"}
+      ],
+      "notes": ["Sandbox blocked venv/pip. Agent adapted with manual desloppify-style analysis."]
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "setup-and-scan",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 6,
+        "total": 6,
+        "time_seconds": 70.0,
+        "tokens": 40536,
+        "tool_calls": 20,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "A Python venv is created at .venv-desloppify/", "passed": false, "evidence": "Sandbox blocked"},
+        {"text": "desloppify[full] is installed via pip in the venv", "passed": false, "evidence": "Never reached"},
+        {"text": ".gitignore is updated to include .venv-desloppify/ and .desloppify/", "passed": false, "evidence": "Agent gave up entirely"},
+        {"text": "desloppify scan --path . is run", "passed": false, "evidence": "No fallback attempted"},
+        {"text": "The agent reports a health score or scan result to the user", "passed": false, "evidence": "Only reported that commands were blocked"},
+        {"text": "desloppify next is run to show what to fix first", "passed": false, "evidence": "No analysis provided"}
+      ],
+      "notes": ["Baseline gave up after sandbox blocked venv. No fallback analysis."]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "sloppy-code-check",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 344.3,
+        "tokens": 62532,
+        "tool_calls": 62,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The agent uses desloppify (not just generic lint/review) to scan", "passed": true, "evidence": "Followed desloppify methodology and dimensions"},
+        {"text": "A Python venv is created for desloppify", "passed": false, "evidence": "15 attempts blocked"},
+        {"text": "desloppify scan is run against the codebase", "passed": false, "evidence": "CLI not installed"},
+        {"text": "The agent communicates findings to the user in plain language", "passed": true, "evidence": "5 findings with severity and fix times"},
+        {"text": "The agent suggests concrete next steps for fixing issues", "passed": true, "evidence": "Priority-ordered fix queue"}
+      ],
+      "notes": ["15 install attempts. Strong manual fallback following desloppify dimensions."]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "sloppy-code-check",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 261.9,
+        "tokens": 55403,
+        "tool_calls": 44,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The agent uses desloppify (not just generic lint/review) to scan", "passed": false, "evidence": "Attempted desloppify install but fell back to generic analysis"},
+        {"text": "A Python venv is created for desloppify", "passed": false, "evidence": "Sandbox blocked"},
+        {"text": "desloppify scan is run against the codebase", "passed": false, "evidence": "CLI not installed"},
+        {"text": "The agent communicates findings to the user in plain language", "passed": true, "evidence": "7 findings with severity ratings"},
+        {"text": "The agent suggests concrete next steps for fixing issues", "passed": true, "evidence": "Top 3 fixes described"}
+      ],
+      "notes": ["Baseline tried desloppify (5 attempts) but used generic analysis framework."]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "hook-setup",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 2,
+        "failed": 4,
+        "total": 6,
+        "time_seconds": 404.2,
+        "tokens": 55834,
+        "tool_calls": 78,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "A Python venv is created at .venv-desloppify/", "passed": false, "evidence": "Sandbox blocked"},
+        {"text": "desloppify is installed in the venv", "passed": false, "evidence": "Venv never created"},
+        {"text": "desloppify scan --path . is run", "passed": false, "evidence": "CLI not installed"},
+        {"text": "A git pre-commit hook is created or configured that invokes desloppify", "passed": true, "evidence": "Created .githooks/pre-commit from skill template"},
+        {"text": "git config core.hooksPath is set to point at the hooks directory", "passed": false, "evidence": "Sandbox blocked git config"},
+        {"text": "The hook script activates the venv before running desloppify", "passed": true, "evidence": "Hook contains source .venv-desloppify/bin/activate"}
+      ],
+      "notes": ["Created setup-desloppify.sh and justfile recipe for manual completion."]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "hook-setup",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 2,
+        "failed": 4,
+        "total": 6,
+        "time_seconds": 357.6,
+        "tokens": 51943,
+        "tool_calls": 74,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "A Python venv is created at .venv-desloppify/", "passed": false, "evidence": "Sandbox blocked"},
+        {"text": "desloppify is installed in the venv", "passed": false, "evidence": "Venv never created"},
+        {"text": "desloppify scan --path . is run", "passed": false, "evidence": "CLI not installed"},
+        {"text": "A git pre-commit hook is created or configured that invokes desloppify", "passed": true, "evidence": "Found and copied skill's pre-commit-hook.sh"},
+        {"text": "git config core.hooksPath is set to point at the hooks directory", "passed": false, "evidence": "Sandbox blocked"},
+        {"text": "The hook script activates the venv before running desloppify", "passed": true, "evidence": "Hook copied from skill template has venv activation"}
+      ],
+      "notes": ["CONTAMINATED: Baseline read skill files from repo. Identical score to with_skill."]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 0.42, "stddev": 0.13, "min": 0.33, "max": 0.6},
+      "time_seconds": {"mean": 336.3, "stddev": 59.2, "min": 260.4, "max": 404.2},
+      "tokens": {"mean": 60896, "stddev": 3625, "min": 55834, "max": 64322}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.24, "stddev": 0.18, "min": 0.0, "max": 0.4},
+      "time_seconds": {"mean": 229.8, "stddev": 121.3, "min": 70.0, "max": 357.6},
+      "tokens": {"mean": 49294, "stddev": 6375, "min": 40536, "max": 55403}
+    },
+    "delta": {
+      "pass_rate": "+0.18",
+      "time_seconds": "+106.5",
+      "tokens": "+11602"
+    }
+  },
+  "notes": [
+    "SANDBOX LIMITATION: Worktree isolation blocks python3 -m venv, pip install, chmod, and git config. 10 of 17 total assertions are untestable in current setup.",
+    "BASELINE CONTAMINATION (Eval 3): Baseline agents can discover skill files in the repo at .claude/skills/desloppify/. Eval 3 baseline copied the hook template directly, producing identical results to with-skill.",
+    "STRONGEST DIFFERENTIATION (Eval 1): With-skill adapted by performing desloppify-style manual analysis and reporting a score. Baseline gave up entirely (0% vs 33%).",
+    "METHODOLOGY SIGNAL (Eval 2): With-skill followed desloppify's dimension framework; baseline used generic analysis. This is the clearest skill value signal despite sandbox limitations.",
+    "With-skill agents used ~24% more tokens and ~46% more time on average, reflecting more thorough analysis and multiple install retry attempts."
+  ]
+}

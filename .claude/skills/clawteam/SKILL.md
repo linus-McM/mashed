@@ -1,5 +1,5 @@
 ---
-name: ClawTeam Multi-Agent Coordination
+name: clawteam
 description: >
   This skill should be used when the user asks to "create a team", "spawn agents",
   "assign tasks", "coordinate multiple agents", "check team status", "view kanban board",
@@ -279,6 +279,13 @@ invoke them. Include the skill slash command in the agent's task description or 
 | `/golang-popular-libraries` | Choosing production-ready libraries, comparing alternatives |
 | `/golang-stay-updated` | Go news, communities, learning resources |
 
+#### Wails Desktop Application
+| Skill | Use When |
+|-------|----------|
+| `/wails` | Building Wails apps: project setup, wails.json config, runtime API (window, dialog, events, menu, clipboard, screen), binding Go methods to frontend, frameless windows, building for production, cross-platform builds, NSIS installers, Mac App Store, asset servers |
+
+When agents work on Wails projects, they should use `/wails` alongside the relevant Go skills. The Wails skill covers the full Wails framework: Go backend bindings, Svelte/React/Vue frontend integration, event system, window management, build tooling, and platform-specific distribution. Pair it with `/golang-concurrency` for goroutine-heavy backends, `/golang-error-handling` for Go-to-frontend error propagation, and `/golang-testing` for backend unit tests.
+
 ### Example: Spawning a Go Development Team
 
 ```bash
@@ -315,15 +322,60 @@ clawteam inbox send go-svc architect \
 Use /golang-naming conventions for all exported identifiers."
 ```
 
+### Example: Spawning a Wails Desktop App Team
+
+```bash
+# Create a Wails desktop app team
+clawteam team spawn-team conductor -d "Wails desktop app development" -n leader
+
+# Backend agent — Go scanner, parser, WebSocket server
+clawteam spawn --team conductor --agent-name backend \
+  --task "Implement the Go backend: process scanner, JSONL parser, notification engine, \
+and WebSocket terminal bridge. Use /wails for Wails bindings and event system, \
+/golang-concurrency for goroutine management, /golang-error-handling for error patterns, \
+and /golang-testing for table-driven tests."
+
+# Frontend agent — Svelte UI components
+clawteam spawn --team conductor --agent-name frontend \
+  --task "Build the Svelte frontend: NotificationFeed view, AgentDetail view, Terminal \
+component with xterm.js, SparkLine, DiffView, StatusBadge. Use /wails for Wails runtime \
+bindings and event subscriptions. Follow the DESIGN.md for colors, typography, and spacing."
+
+# Terminal bridge agent — pty + WebSocket integration
+clawteam spawn --team conductor --agent-name terminal \
+  --task "Implement the terminal bridge: WebSocket server with creack/pty, tmux pane \
+discovery, PID-to-pane mapping. Use /wails for passing the WebSocket port to the frontend \
+via bindings, /golang-concurrency for goroutine-per-connection lifecycle, \
+and /golang-safety for pty cleanup on disconnect."
+
+# Test agent — full coverage
+clawteam spawn --team conductor --agent-name tester \
+  --task "Write tests for all 28 codepaths: scanner, JSONL parser, notification engine, \
+terminal bridge, git operations. Use /golang-testing for table-driven tests with fixtures, \
+/golang-stretchr-testify for assertions, and /golang-benchmark for WebSocket throughput."
+
+# Send Wails-specific guidance
+clawteam inbox send conductor backend \
+  "Use /wails for the application lifecycle setup. Bind scanner and notification functions \
+to the frontend via wails.Bind(). Use Wails events (runtime.EventsEmit) for pushing \
+notification updates to the frontend. The WebSocket server runs separately on localhost."
+
+clawteam inbox send conductor frontend \
+  "Use /wails for the frontend runtime bindings. Import from '@wailsapp/runtime' for \
+EventsOn, EventsEmit. xterm.js connects to the Go WebSocket server on a port passed \
+via Wails binding. Use the canvas renderer for xterm.js, NOT WebGL (WebKit compat)."
+```
+
 ### Skill Selection Guidelines for Leaders
 
 When assigning Go tasks, the leader agent should:
 
 1. **Match skills to task scope** — Include 2-4 relevant skill references per task. Don't overload agents with all skills.
 2. **Pair implementation with quality skills** — Every coding task should reference at least one of: `/golang-testing`, `/golang-lint`, `/golang-safety`, or `/golang-security`.
-3. **Use samber skills when the project uses samber libraries** — Check `go.mod` for `github.com/samber/*` imports before recommending samber-specific skills.
-4. **Reference `/golang-code-style` and `/golang-naming` for consistency** — Especially when multiple agents write code that must integrate.
-5. **Include `/golang-modernize`** when working on existing codebases to ensure agents use current Go idioms.
+3. **Use `/wails` for any Wails desktop app work** — Backend agents need it for bindings and events. Frontend agents need it for runtime API imports. Always pair with relevant Go skills.
+4. **Use samber skills when the project uses samber libraries** — Check `go.mod` for `github.com/samber/*` imports before recommending samber-specific skills.
+5. **Reference `/golang-code-style` and `/golang-naming` for consistency** — Especially when multiple agents write code that must integrate.
+6. **Include `/golang-modernize`** when working on existing codebases to ensure agents use current Go idioms.
 
 ## Additional Resources
 

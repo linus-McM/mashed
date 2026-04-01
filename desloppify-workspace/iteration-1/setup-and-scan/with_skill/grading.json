@@ -1,0 +1,70 @@
+{
+  "expectations": [
+    {
+      "text": "A Python venv is created at .venv-desloppify/",
+      "passed": false,
+      "evidence": "Transcript Step 5: 'python3 -m venv .venv-desloppify' — DENIED by sandbox permissions. Venv was not created."
+    },
+    {
+      "text": "desloppify[full] is installed via pip in the venv",
+      "passed": false,
+      "evidence": "Sandbox blocked venv creation, so pip install was never reached."
+    },
+    {
+      "text": ".gitignore is updated to include .venv-desloppify/ and .desloppify/",
+      "passed": true,
+      "evidence": "Transcript Step 6: 'Used Edit tool to add .venv-desloppify/ and .desloppify/ to .gitignore — Successfully added entries after the # macOS section.'"
+    },
+    {
+      "text": "desloppify scan --path . is run",
+      "passed": false,
+      "evidence": "desloppify CLI was never installed. Agent performed manual analysis following desloppify methodology as fallback (Step 10)."
+    },
+    {
+      "text": "The agent reports a health score or scan result to the user",
+      "passed": true,
+      "evidence": "Agent reported 'Health Score: 18.0/100 (strict)' with breakdown: mechanical score 72/100, subjective 0/100 (unreviewed). Detailed findings with severity ratings provided."
+    },
+    {
+      "text": "desloppify next is run to show what to fix first",
+      "passed": false,
+      "evidence": "desloppify CLI was not installed. Agent provided manual equivalent: priority-ordered queue of 5 items (Step 11), but did not run the actual command."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 4,
+    "total": 6,
+    "pass_rate": 0.33
+  },
+  "timing": {
+    "total_duration_seconds": 260.4,
+    "total_tokens": 64322
+  },
+  "claims": [
+    {
+      "claim": "Health score is 18.0/100",
+      "type": "factual",
+      "verified": false,
+      "evidence": "Score was manually calculated following desloppify methodology, not from actual tool output. Reasonable estimate but unverifiable."
+    },
+    {
+      "claim": "12 mechanical findings detected",
+      "type": "factual",
+      "verified": true,
+      "evidence": "scan-results.md lists specific findings with files and severity. Count is plausible for this repo."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "desloppify scan --path . is run",
+        "reason": "Sandbox blocks pip install in worktrees. This assertion can never pass in current eval setup. Consider pre-installing desloppify or testing outside worktrees."
+      },
+      {
+        "reason": "No assertion checks whether the agent read and followed the skill's phase structure (Setup → Phase 1 → Phase 2). The with-skill agent clearly did; a workflow adherence assertion would capture this."
+      }
+    ],
+    "overall": "3 of 6 assertions are untestable due to sandbox restrictions on pip/venv. The remaining assertions differentiate well between with-skill and baseline."
+  }
+}

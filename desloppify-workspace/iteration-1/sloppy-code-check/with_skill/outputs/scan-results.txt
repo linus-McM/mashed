@@ -1,0 +1,159 @@
+================================================================================
+DESLOPPIFY SCAN RESULTS (Manual Fallback)
+Date: 2026-04-01
+Codebase: mashed (Claude Conductor - Go TUI)
+================================================================================
+
+NOTE: desloppify could not be installed due to permission restrictions.
+This scan was performed manually following desloppify's detection dimensions:
+mechanical (dead code, duplication, complexity, naming, security) and
+subjective (abstractions, error handling, module boundaries, clarity).
+
+================================================================================
+CODEBASE INVENTORY
+================================================================================
+
+Files in repo:
+  .gitignore              (886 bytes)  - Git ignore rules
+  .gitmodules             (112 bytes)  - Submodule config for gstack
+  CLAUDE.md               (2025 bytes) - Agent instructions
+  DOCUMENTATION_SUMMARY.txt (10653 bytes) - Documentation summary
+  SPECIFICATION.md        (26491 bytes) - Full Go TUI specification
+  justfile                (640 bytes)  - Task runner recipes
+  .claude/skills/clawteam/SKILL.md     - Clawteam skill definition
+  .claude/skills/clawteam/references/  - Clawteam reference docs
+  .claude/skills/gstack/               - Empty submodule dir
+
+Total source code files: 0 (spec-only project, no Go or TS code)
+Total documentation files: 6
+
+================================================================================
+FINDINGS BY CATEGORY
+================================================================================
+
+--- SEVERITY: HIGH ---
+
+[H1] PHANTOM FILES: Documentation references non-existent files
+  File: DOCUMENTATION_SUMMARY.txt
+  Issue: References IMPLEMENTATION_CHECKLIST.md (280 lines) and SOURCE_GUIDE.md
+         (602 lines) as existing files, but neither exists in the repository.
+  Lines: 77, 93, 197, 207, 237-238
+  Impact: Misleading for any developer using these docs to navigate the codebase.
+  Fix: Either create these files from the content described, or remove/update
+       the references in DOCUMENTATION_SUMMARY.txt.
+
+[H2] SPECIFICATION LANGUAGE MISMATCH
+  File: DOCUMENTATION_SUMMARY.txt vs SPECIFICATION.md
+  Issue: DOCUMENTATION_SUMMARY.txt references TypeScript source files
+         (server/repos.ts:74-125, state/store.ts:85-163, conductor.ts,
+         layout/draw.ts, etc.) while SPECIFICATION.md describes a Go/bubbletea
+         implementation. The summary appears to document the original TS app
+         being ported FROM, but the spec describes the Go app being ported TO.
+  Impact: Confusion about which is the source of truth. A developer might try
+          to find .ts files that don't exist, or misunderstand the target platform.
+  Fix: Clearly label DOCUMENTATION_SUMMARY.txt as documenting the ORIGINAL
+       TypeScript implementation, and note that SPECIFICATION.md is the Go port spec.
+
+[H3] NO SOURCE CODE EXISTS
+  Issue: The specification describes 20+ Go source files across cmd/, internal/tui/,
+         internal/scanner/, internal/tmux/, and internal/domain/ directories. None
+         of these files exist. There is no go.mod, no go.sum, no .go files.
+  Impact: The project is entirely in planning/spec phase. Phase 1 of the
+         implementation checklist (project scaffolding) has not started.
+  Fix: Begin implementation starting with Phase 1: go.mod, domain/types.go,
+       cmd/conductor/main.go.
+
+--- SEVERITY: MEDIUM ---
+
+[M1] JUSTFILE RECIPE INCONSISTENCY
+  File: justfile
+  Issue: The "opus" recipe uses default model (--dangerously-skip-permissions
+         without --model flag) which is identical to "c_session". The comment
+         says "Start Claude with Opus model" but doesn't actually specify opus.
+  Fix: Add --model "opus" to the opus recipe, or document that default IS opus.
+
+[M2] JUSTFILE REPOMIXER USES EXTERNAL REPO
+  File: justfile, line 28
+  Issue: repomix command references https://github.com/peteromallet/desloppify
+         and outputs to ./docs/desloppify.xml. The docs/ directory shows as
+         untracked in git status (per initial status snapshot), suggesting this
+         was run but docs/ was never committed or gitignored.
+  Fix: Either add docs/ to .gitignore, commit docs/, or remove the recipe
+       if it was a one-time operation.
+
+[M3] EMPTY GSTACK SUBMODULE
+  File: .claude/skills/gstack/ (empty directory)
+  Issue: The .gitmodules file references .claude/skills/gstack as a submodule
+         pointing to https://github.com/garrytan/gstack.git, but the directory
+         is empty (not initialized).
+  Fix: Run "git submodule update --init" to initialize the submodule.
+
+[M4] .GITIGNORE ONLY COVERS GSTACK SKILL SYMLINKS
+  File: .gitignore
+  Issue: The .gitignore only covers .DS_Store and gstack-generated skill symlinks.
+         Missing common entries for a Go project: vendor/, *.exe, binary output,
+         .venv-desloppify/, .desloppify/, etc.
+  Fix: Add Go-specific ignores once source code is created. Add .venv-desloppify/
+       and .desloppify/ proactively.
+
+--- SEVERITY: LOW ---
+
+[L1] DOCUMENTATION_SUMMARY.TXT INCLUDES SHELL ARTIFACTS
+  File: DOCUMENTATION_SUMMARY.txt, line 258
+  Issue: Contains "cat /Users/linus/Development/mashed/DOCUMENTATION_SUMMARY.txt"
+         at the end -- this is a shell command artifact that got captured in the
+         file output, likely from a cat command that echoed the path.
+  Fix: Remove line 258.
+
+[L2] SPECIFICATION CHECKLIST ALL UNCHECKED
+  File: SPECIFICATION.md, lines 696-740
+  Issue: All 30 implementation checklist items are unchecked ([ ]). This is
+         accurate (no code exists) but the checklist lives inside the spec rather
+         than as a separate trackable file.
+  Fix: Consider extracting to a separate file (like the referenced but missing
+       IMPLEMENTATION_CHECKLIST.md) for easier tracking.
+
+================================================================================
+SCORE ESTIMATE (desloppify dimensions)
+================================================================================
+
+Mechanical (25% weight):
+  Dead code:        N/A (no source code)
+  Duplication:      5/10 - Some overlap between SPEC and DOC_SUMMARY
+  Complexity:       N/A (no source code)
+  Naming:           N/A (no source code)
+  Security:         7/10 - No secrets detected, submodule URL is public
+
+Subjective (75% weight):
+  Clarity:          4/10 - Phantom file references, language mismatch confusion
+  Module boundaries: N/A (no source code)
+  Error handling:   N/A (no source code)
+  Abstractions:     7/10 - Spec is well-structured with clear architecture
+
+Overall estimated health: 45/100 (documentation-only codebase)
+Primary issue: spec/doc hygiene, not code quality (code doesn't exist yet)
+
+================================================================================
+WHAT TO FIX FIRST (priority order)
+================================================================================
+
+1. [H1] Create or remove phantom file references
+   → Fastest win, removes confusion for anyone reading DOCUMENTATION_SUMMARY.txt
+
+2. [H2] Label the TS→Go relationship clearly
+   → Add a header to DOCUMENTATION_SUMMARY.txt: "This documents the ORIGINAL
+     TypeScript implementation. See SPECIFICATION.md for the Go port target."
+
+3. [L1] Remove shell artifact from DOCUMENTATION_SUMMARY.txt line 258
+
+4. [M2] Add docs/ to .gitignore or commit it
+
+5. [M3] Initialize the gstack submodule
+
+6. [M1] Fix justfile opus recipe
+
+7. [H3] Start building -- create go.mod and Phase 1 scaffolding
+
+================================================================================
+END OF SCAN
+================================================================================

@@ -1,0 +1,1492 @@
+{
+  "version": 3,
+  "created": "2026-04-01T08:11:42+00:00",
+  "last_scan": "2026-04-01T08:11:44+00:00",
+  "scan_count": 1,
+  "overall_score": 14.8,
+  "objective_score": 59.3,
+  "strict_score": 14.8,
+  "verified_strict_score": 59.3,
+  "stats": {
+    "total": 25,
+    "auto_resolved": 0,
+    "deferred": 0,
+    "false_positive": 0,
+    "fixed": 0,
+    "open": 25,
+    "triaged_out": 0,
+    "wontfix": 0,
+    "by_tier": {
+      "3": {
+        "auto_resolved": 0,
+        "deferred": 0,
+        "false_positive": 0,
+        "fixed": 0,
+        "open": 2,
+        "triaged_out": 0,
+        "wontfix": 0
+      },
+      "4": {
+        "auto_resolved": 0,
+        "deferred": 0,
+        "false_positive": 0,
+        "fixed": 0,
+        "open": 23,
+        "triaged_out": 0,
+        "wontfix": 0
+      }
+    }
+  },
+  "work_items": {
+    "test_coverage::main.go": {
+      "id": "test_coverage::main.go",
+      "detector": "test_coverage",
+      "file": "main.go",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (36 LOC, 0 importers) \u2014 no test files found",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 36,
+        "importer_count": 0,
+        "loc_weight": 6.0
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "mechanical_defect",
+      "issue_kind": "mechanical_defect",
+      "origin": "scan",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::app.go": {
+      "id": "test_coverage::app.go",
+      "detector": "test_coverage",
+      "file": "app.go",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (27 LOC, 0 importers) \u2014 no test files found",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 27,
+        "importer_count": 0,
+        "loc_weight": 5.196152422706632
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "mechanical_defect",
+      "issue_kind": "mechanical_defect",
+      "origin": "scan",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::abstraction_fitness": {
+      "id": "subjective_review::.::abstraction_fitness",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Abstraction fit \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "abstraction_fitness"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::ai_generated_debt": {
+      "id": "subjective_review::.::ai_generated_debt",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "AI generated debt \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "ai_generated_debt"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::api_surface_coherence": {
+      "id": "subjective_review::.::api_surface_coherence",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "API coherence \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "api_surface_coherence"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::authorization_consistency": {
+      "id": "subjective_review::.::authorization_consistency",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Auth consistency \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "authorization_consistency"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::contract_coherence": {
+      "id": "subjective_review::.::contract_coherence",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Contracts \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "contract_coherence"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::convention_outlier": {
+      "id": "subjective_review::.::convention_outlier",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Convention drift \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "convention_outlier"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::cross_module_architecture": {
+      "id": "subjective_review::.::cross_module_architecture",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Cross-module arch \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "cross_module_architecture"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::dependency_health": {
+      "id": "subjective_review::.::dependency_health",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Dep health \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "dependency_health"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::design_coherence": {
+      "id": "subjective_review::.::design_coherence",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Design coherence \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "design_coherence"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::error_consistency": {
+      "id": "subjective_review::.::error_consistency",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Error consistency \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "error_consistency"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::high_level_elegance": {
+      "id": "subjective_review::.::high_level_elegance",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "High elegance \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "high_level_elegance"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::incomplete_migration": {
+      "id": "subjective_review::.::incomplete_migration",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Stale migration \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "incomplete_migration"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::initialization_coupling": {
+      "id": "subjective_review::.::initialization_coupling",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Init coupling \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "initialization_coupling"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::logic_clarity": {
+      "id": "subjective_review::.::logic_clarity",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Logic clarity \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "logic_clarity"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::low_level_elegance": {
+      "id": "subjective_review::.::low_level_elegance",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Low elegance \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "low_level_elegance"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::mid_level_elegance": {
+      "id": "subjective_review::.::mid_level_elegance",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Mid elegance \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "mid_level_elegance"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::naming_quality": {
+      "id": "subjective_review::.::naming_quality",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Naming quality \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "naming_quality"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::package_organization": {
+      "id": "subjective_review::.::package_organization",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Structure nav \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "package_organization"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::test_strategy": {
+      "id": "subjective_review::.::test_strategy",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Test strategy \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "test_strategy"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::type_safety": {
+      "id": "subjective_review::.::type_safety",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Type safety \u2014 no assessment on record, run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unassessed",
+        "dimension": "type_safety"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "assessment_request",
+      "issue_kind": "assessment_request",
+      "origin": "synthetic_task",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "stale_exclude::.venv-desloppify::.venv-desloppify": {
+      "id": "stale_exclude::.venv-desloppify::.venv-desloppify",
+      "detector": "stale_exclude",
+      "file": ".venv-desloppify",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Excluded directory '.venv-desloppify' has 0 references from scanned code \u2014 may be stale",
+      "detail": {
+        "directory": ".venv-desloppify",
+        "references": 0
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "mechanical_defect",
+      "issue_kind": "mechanical_defect",
+      "origin": "scan",
+      "lang": "go",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "stale_exclude::desloppify-workspace::desloppify-workspace": {
+      "id": "stale_exclude::desloppify-workspace::desloppify-workspace",
+      "detector": "stale_exclude",
+      "file": "desloppify-workspace",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Excluded directory 'desloppify-workspace' has 0 references from scanned code \u2014 may be stale",
+      "detail": {
+        "directory": "desloppify-workspace",
+        "references": 0
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "mechanical_defect",
+      "issue_kind": "mechanical_defect",
+      "origin": "scan",
+      "lang": "go",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "stale_exclude::docs::docs": {
+      "id": "stale_exclude::docs::docs",
+      "detector": "stale_exclude",
+      "file": "docs",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Excluded directory 'docs' has 0 references from scanned code \u2014 may be stale",
+      "detail": {
+        "directory": "docs",
+        "references": 0
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-01T08:11:44+00:00",
+      "last_seen": "2026-04-01T08:11:44+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "mechanical_defect",
+      "issue_kind": "mechanical_defect",
+      "origin": "scan",
+      "lang": "go",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    }
+  },
+  "scan_coverage": {
+    "go": {
+      "status": "reduced",
+      "confidence": 0.0,
+      "detectors": {
+        "golangci_lint": {
+          "detector": "golangci_lint",
+          "status": "reduced",
+          "confidence": 0.0,
+          "summary": "golangci-lint tooling unavailable (tool_not_found)",
+          "impact": "Detector results may be under-reported for this scan.",
+          "remediation": "Install/fix the tool command and rerun scan.",
+          "tool": "golangci-lint",
+          "reason": "tool_not_found"
+        },
+        "security": {
+          "detector": "security",
+          "status": "full",
+          "confidence": 1.0,
+          "summary": "Security coverage complete for enabled detectors.",
+          "impact": "",
+          "remediation": "",
+          "tool": "",
+          "reason": ""
+        }
+      },
+      "warnings": [
+        {
+          "detector": "golangci_lint",
+          "status": "reduced",
+          "confidence": 0.0,
+          "summary": "golangci-lint tooling unavailable (tool_not_found)",
+          "impact": "Detector results may be under-reported for this scan.",
+          "remediation": "Install/fix the tool command and rerun scan.",
+          "tool": "golangci-lint",
+          "reason": "tool_not_found"
+        }
+      ],
+      "updated_at": "2026-04-01T08:11:44+00:00"
+    }
+  },
+  "score_confidence": {
+    "status": "reduced",
+    "confidence": 0.0,
+    "detectors": [
+      {
+        "detector": "golangci_lint",
+        "status": "reduced",
+        "confidence": 0.0,
+        "summary": "golangci-lint tooling unavailable (tool_not_found)",
+        "impact": "Detector results may be under-reported for this scan.",
+        "remediation": "Install/fix the tool command and rerun scan.",
+        "tool": "golangci-lint",
+        "reason": "tool_not_found"
+      }
+    ],
+    "dimensions": []
+  },
+  "scan_metadata": {
+    "source": "scan"
+  },
+  "subjective_integrity": {
+    "status": "pass",
+    "target_score": 85.0,
+    "matched_count": 0,
+    "matched_dimensions": [],
+    "reset_dimensions": []
+  },
+  "subjective_assessments": {},
+  "scan_history": [
+    {
+      "timestamp": "2026-04-01T08:11:44+00:00",
+      "lang": "go",
+      "strict_score": 14.8,
+      "verified_strict_score": 59.3,
+      "objective_score": 59.3,
+      "overall_score": 14.8,
+      "open": 25,
+      "diff_new": 25,
+      "diff_resolved": 0,
+      "ignored": 0,
+      "raw_issues": 25,
+      "suppressed_pct": 0.0,
+      "ignore_patterns": 0,
+      "subjective_integrity": {
+        "status": "pass",
+        "matched_count": 0,
+        "reset_count": 0,
+        "target_score": 85.0
+      },
+      "score_confidence": {
+        "status": "reduced",
+        "confidence": 0.0,
+        "detector_count": 1,
+        "dimension_count": 0
+      },
+      "dimension_scores": {
+        "Code quality": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Security": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "File health": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Duplication": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Test health": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Abstraction fit": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "AI generated debt": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "API coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Auth consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Contracts": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Convention drift": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Cross-module arch": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Dep health": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Design coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Error consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "High elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Stale migration": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Init coupling": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Logic clarity": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Low elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Mid elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Naming quality": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Structure nav": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Test strategy": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Type safety": {
+          "score": 0.0,
+          "strict": 0.0
+        }
+      }
+    }
+  ],
+  "review_cache": {
+    "detectors": {
+      "boilerplate": {
+        "version": 1,
+        "fingerprint": "6588e1dc97cd5f88d21cb0bb82dc400799ff0eca",
+        "entries": [
+          {
+            "id": "7c071816a779c56f",
+            "distinct_files": 2,
+            "window_size": 24,
+            "locations": [
+              {
+                "file": "desloppify-workspace/iteration-2/setup-and-scan/with_skill/outputs/transcript.md",
+                "line": 129
+              },
+              {
+                "file": "desloppify-workspace/iteration-2/setup-and-scan/without_skill/outputs/transcript.md",
+                "line": 89
+              }
+            ],
+            "sample": [
+              "ions account for 75% of the overall score.",
+              "- The repo currently contains only a spec (SPECIFICATION.md), a justfile, and documentation \u2014 no Go or TypeScript source code has been written yet. This explains the clean mechanical score.",
+              "",
+              "### Dimension Scorecard (all unassessed)"
+            ]
+          }
+        ]
+      },
+      "security": {
+        "version": 1,
+        "fingerprint": "5b768d305f8743065d9f0f6ac8dac01f5a1cea49",
+        "entries": [],
+        "files_scanned": 0,
+        "coverage": null
+      },
+      "dupes": {
+        "version": 1,
+        "threshold": 0.9,
+        "functions": {
+          "/Users/linus/Development/mashed/app.go:NewApp:14:16": {
+            "body_hash": "8da96e137a47",
+            "loc": 3
+          },
+          "/Users/linus/Development/mashed/app.go:startup:20:22": {
+            "body_hash": "b6275c565786",
+            "loc": 3
+          },
+          "/Users/linus/Development/mashed/app.go:Greet:25:27": {
+            "body_hash": "c99c5812ccbd",
+            "loc": 3
+          },
+          "/Users/linus/Development/mashed/main.go:main:14:36": {
+            "body_hash": "7f9fcc103c23",
+            "loc": 23
+          }
+        },
+        "near_pairs": []
+      }
+    }
+  },
+  "lang_capabilities": {
+    "go": {
+      "fixers": [],
+      "typecheck_cmd": "go vet ./..."
+    }
+  },
+  "zone_distribution": {
+    "production": 3
+  },
+  "tool_hash": "ab097af7227e",
+  "scan_path": ".",
+  "scan_completeness": {
+    "go": "full"
+  },
+  "potentials": {
+    "go": {
+      "structural": 3,
+      "flat_dirs": 3,
+      "test_coverage": 11,
+      "security": 3,
+      "subjective_review": 20,
+      "boilerplate_duplication": 0,
+      "dupes": 4,
+      "stale_wontfix": 0
+    }
+  },
+  "codebase_metrics": {
+    "go": {
+      "total_files": 3,
+      "total_loc": 267,
+      "total_directories": 2
+    }
+  },
+  "dimension_scores": {
+    "Code quality": {
+      "score": 100.0,
+      "strict": 100.0,
+      "verified_strict_score": 100.0,
+      "checks": 3,
+      "failing": 0,
+      "tier": 3,
+      "detectors": {
+        "flat_dirs": {
+          "potential": 3,
+          "pass_rate": 1.0,
+          "failing": 0,
+          "weighted_failures": 0.0
+        }
+      }
+    },
+    "Security": {
+      "score": 100.0,
+      "strict": 100.0,
+      "verified_strict_score": 100.0,
+      "checks": 3,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "security": {
+          "potential": 3,
+          "pass_rate": 1.0,
+          "failing": 0,
+          "weighted_failures": 0.0
+        }
+      }
+    },
+    "File health": {
+      "score": 100.0,
+      "strict": 100.0,
+      "verified_strict_score": 100.0,
+      "checks": 3,
+      "failing": 0,
+      "tier": 3,
+      "detectors": {
+        "structural": {
+          "potential": 3,
+          "pass_rate": 1.0,
+          "failing": 0,
+          "weighted_failures": 0.0
+        }
+      }
+    },
+    "Duplication": {
+      "score": 100.0,
+      "strict": 100.0,
+      "verified_strict_score": 100.0,
+      "checks": 4,
+      "failing": 0,
+      "tier": 3,
+      "detectors": {
+        "dupes": {
+          "potential": 4,
+          "pass_rate": 1.0,
+          "failing": 0,
+          "weighted_failures": 0.0
+        }
+      }
+    },
+    "Test health": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 11,
+      "failing": 2,
+      "tier": 4,
+      "detectors": {
+        "test_coverage": {
+          "potential": 11,
+          "pass_rate": 0.0,
+          "failing": 2,
+          "weighted_failures": 11.196152422706632
+        }
+      }
+    },
+    "Abstraction fit": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "abstraction_fitness",
+          "configured_weight": 8.0,
+          "components": []
+        }
+      }
+    },
+    "AI generated debt": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "ai_generated_debt",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "API coherence": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "api_surface_coherence",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Auth consistency": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "authorization_consistency",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Contracts": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "contract_coherence",
+          "configured_weight": 12.0,
+          "components": []
+        }
+      }
+    },
+    "Convention drift": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "convention_outlier",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Cross-module arch": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "cross_module_architecture",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Dep health": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "dependency_health",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Design coherence": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "design_coherence",
+          "configured_weight": 10.0,
+          "components": []
+        }
+      }
+    },
+    "Error consistency": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "error_consistency",
+          "configured_weight": 3.0,
+          "components": []
+        }
+      }
+    },
+    "High elegance": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "high_level_elegance",
+          "configured_weight": 22.0,
+          "components": []
+        }
+      }
+    },
+    "Stale migration": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "incomplete_migration",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Init coupling": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "initialization_coupling",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Logic clarity": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "logic_clarity",
+          "configured_weight": 6.0,
+          "components": []
+        }
+      }
+    },
+    "Low elegance": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "low_level_elegance",
+          "configured_weight": 12.0,
+          "components": []
+        }
+      }
+    },
+    "Mid elegance": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "mid_level_elegance",
+          "configured_weight": 22.0,
+          "components": []
+        }
+      }
+    },
+    "Naming quality": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "naming_quality",
+          "configured_weight": 2.0,
+          "components": []
+        }
+      }
+    },
+    "Structure nav": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "package_organization",
+          "configured_weight": 5.0,
+          "components": []
+        }
+      }
+    },
+    "Test strategy": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "test_strategy",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Type safety": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "type_safety",
+          "configured_weight": 12.0,
+          "components": []
+        }
+      }
+    }
+  },
+  "reminder_history": {
+    "report_scores": 1
+  }
+}

@@ -1,0 +1,4 @@
+PENDING - Run manually after venv creation:
+  source .venv-desloppify/bin/activate
+  pip install --upgrade "desloppify[full]"
+Agent was unable to execute pip commands due to permission restrictions.

@@ -1,0 +1,46 @@
+{
+  "skill_name": "desloppify",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up desloppify on this repo and run an initial scan. This is a Go/TypeScript project, not Python — desloppify is just a tool. Give me the health score and what to fix first.",
+      "expected_output": "Agent creates .venv-desloppify, installs desloppify[full], updates .gitignore, runs desloppify scan, shows the score and next items",
+      "files": [],
+      "expectations": [
+        "A Python venv is created at .venv-desloppify/",
+        "desloppify[full] is installed via pip in the venv",
+        ".gitignore is updated to include .venv-desloppify/ and .desloppify/",
+        "desloppify scan --path . is run",
+        "The agent reports a health score or scan result to the user",
+        "desloppify next is run to show what to fix first"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "this codebase is getting sloppy, can you run something to check the health and tell me what to fix first?",
+      "expected_output": "Agent recognizes this as a desloppify use case, sets up and scans without being explicitly told the tool name, reports findings",
+      "files": [],
+      "expectations": [
+        "The agent uses desloppify (not just generic lint/review) to scan",
+        "A Python venv is created for desloppify",
+        "desloppify scan is run against the codebase",
+        "The agent communicates findings to the user in plain language",
+        "The agent suggests concrete next steps for fixing issues"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want desloppify set up so it automatically checks code quality on every commit. Set up the venv, run an initial scan, and configure the git hook so it scans before each commit.",
+      "expected_output": "Agent sets up venv, installs, scans, AND creates a git pre-commit hook that runs desloppify",
+      "files": [],
+      "expectations": [
+        "A Python venv is created at .venv-desloppify/",
+        "desloppify is installed in the venv",
+        "desloppify scan --path . is run",
+        "A git pre-commit hook is created or configured that invokes desloppify",
+        "git config core.hooksPath is set to point at the hooks directory",
+        "The hook script activates the venv before running desloppify"
+      ]
+    }
+  ]
+}

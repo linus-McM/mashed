@@ -1,0 +1,11 @@
+{
+  "expectations": [
+    {"text": "The agent uses desloppify (not just generic lint/review) to scan", "passed": true, "evidence": "Installed desloppify, ran desloppify scan --path ., used its scoring framework"},
+    {"text": "A Python venv is created for desloppify", "passed": true, "evidence": "Created .venv-desloppify/ with desloppify 0.9.14"},
+    {"text": "desloppify scan is run against the codebase", "passed": true, "evidence": "Ran desloppify scan --path . — objective 100, strict 0"},
+    {"text": "The agent communicates findings to the user in plain language", "passed": true, "evidence": "Explained scores clearly, noted no source code to scan, described subjective dimensions"},
+    {"text": "The agent suggests concrete next steps for fixing issues", "passed": true, "evidence": "Suggested: write source code, then rescan. Pre-commit hook installed for ongoing monitoring."}
+  ],
+  "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0},
+  "timing": {"total_duration_seconds": 214.5, "total_tokens": 52773}
+}

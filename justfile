@@ -25,4 +25,5 @@ dev:
 
 
 repomixer:
-    repomix --remote https://github.com/peteromallet/desloppify -o ./docs/desloppify.xml --style xml
+    repomix --remote https://github.com/peteromallet/desloppify --compress -o ./docs/repomixer/desloppify/desloppify.xml --style xml
+    repomix --remote https://github.com/wailsapp/wails  --compress -o ./docs/repomixer/wails/wails.xml --style xml 
