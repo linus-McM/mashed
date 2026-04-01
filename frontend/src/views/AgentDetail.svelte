@@ -6,23 +6,20 @@
 
   const dispatch = createEventDispatcher();
 
-  /** @type {import('../types').NotificationEvent} */
-  export let event;
+  /** @type {any} Agent notification object from feed */
+  export let agent;
 
-  /** @type {import('../types').Agent|null} */
-  let agent = null;
-
-  /** @type {import('../types').DiffFileStat[]} */
+  /** @type {any[]} Changed files list */
   let changedFiles = [];
 
-  /** @type {import('../types').WorktreeInfo|null} */
+  /** @type {any|null} Worktree info */
   let worktree = null;
 
   /** @type {number[]} Token burn ring buffer */
   let tokenBurn = [];
 
-  $: tokenPct = agent ? Math.min((agent.tokensUsed / agent.tokensMax) * 100, 100) : 0;
-  $: tokenLabel = agent ? formatTokens(agent.tokensUsed) + ' / ' + formatTokens(agent.tokensMax) : '';
+  $: tokenPct = agent ? Math.min(((agent.tokensUsed || 0) / (agent.tokensMax || 1)) * 100, 100) : 0;
+  $: tokenLabel = agent ? formatTokens(agent.tokensUsed || 0) + ' / ' + formatTokens(agent.tokensMax || 0) : '';
 
   function formatTokens(n) {
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
@@ -38,27 +35,20 @@
   }
 
   onMount(() => {
-    // Subscribe to agent-specific updates
-    EventsOn('agent:update', (data) => {
-      if (data.id === event.agentId) {
-        agent = data;
-      }
-    });
-
     EventsOn('agent:diff', (data) => {
-      if (data.agentId === event.agentId) {
+      if (data.agentId === agent?.agentId) {
         changedFiles = data.files || [];
       }
     });
 
     EventsOn('agent:worktree', (data) => {
-      if (data.agentId === event.agentId) {
+      if (data.agentId === agent?.agentId) {
         worktree = data;
       }
     });
 
     EventsOn('agent:tokenburn', (data) => {
-      if (data.agentId === event.agentId) {
+      if (data.agentId === agent?.agentId) {
         tokenBurn = data.history || [];
       }
     });
@@ -67,7 +57,6 @@
   });
 
   onDestroy(() => {
-    EventsOff('agent:update');
     EventsOff('agent:diff');
     EventsOff('agent:worktree');
     EventsOff('agent:tokenburn');
@@ -78,11 +67,11 @@
 <div class="detail">
   <!-- Header -->
   <div class="header">
-    <button class="back-btn" on:click={() => dispatch('back')}>← Back</button>
-    <span class="header-repo">{event.repoName}</span>
+    <button class="back-btn" on:click={() => dispatch('back')}>&#8592; Back</button>
+    <span class="header-repo">{agent.repoName}</span>
     <span class="header-sep">/</span>
-    <span class="header-agent">{event.agentName}</span>
-    <StatusBadge status={event.eventType} />
+    <span class="header-agent">{agent.agentName}</span>
+    <StatusBadge status={agent.eventType} />
   </div>
 
   <div class="split">
@@ -93,15 +82,15 @@
         <h3 class="section-title">Agent</h3>
         <div class="info-grid">
           <span class="info-label">Name</span>
-          <span class="info-value">{agent?.name || event.agentName}</span>
+          <span class="info-value">{agent.agentName}</span>
           <span class="info-label">Repo</span>
-          <span class="info-value mono">{event.repoName}</span>
+          <span class="info-value mono">{agent.repoName}</span>
           <span class="info-label">Branch</span>
-          <span class="info-value mono">{event.repoBranch || '—'}</span>
+          <span class="info-value mono">{agent.repoBranch || '---'}</span>
           <span class="info-label">Model</span>
-          <span class="info-value mono">{agent?.model || '—'}</span>
+          <span class="info-value mono">{agent.model || '---'}</span>
           <span class="info-label">Status</span>
-          <span class="info-value"><StatusBadge status={event.eventType} /></span>
+          <span class="info-value"><StatusBadge status={agent.eventType} size="sm" /></span>
         </div>
       </section>
 
@@ -145,7 +134,7 @@
 
       <!-- Worktree -->
       {#if worktree}
-        <section class="info-section">
+        <section class="info-section worktree-section">
           <h3 class="section-title">Worktree</h3>
           <div class="worktree-info">
             <span class="info-label">Branch</span>
@@ -162,11 +151,16 @@
 
     <!-- Right panel: terminal placeholder -->
     <div class="panel-right">
-      <div class="terminal-placeholder">
-        <!-- Terminal component will be added by terminal-agent -->
+      <div id="terminal-container" class="terminal-placeholder">
+        <!-- Terminal component will be added later -->
         <div class="placeholder-text">Terminal output will appear here</div>
       </div>
     </div>
+  </div>
+
+  <!-- Bottom bar: keyboard hints -->
+  <div class="bottom-bar">
+    <kbd>Esc</kbd> Back to feed
   </div>
 </div>
 
@@ -178,7 +172,7 @@
     background: var(--bg-deepest);
   }
 
-  /* ── Header ── */
+  /* Header */
   .header {
     display: flex;
     align-items: center;
@@ -201,7 +195,7 @@
   }
 
   .back-btn:hover {
-    color: var(--accent);
+    color: var(--accent-green);
   }
 
   .header-repo {
@@ -219,7 +213,7 @@
     color: var(--text-dim);
   }
 
-  /* ── Split layout ── */
+  /* Split layout */
   .split {
     flex: 1;
     display: flex;
@@ -227,7 +221,7 @@
   }
 
   .panel-left {
-    width: 360px;
+    width: 300px;
     flex-shrink: 0;
     overflow-y: auto;
     border-right: 1px solid var(--border-subtle);
@@ -240,7 +234,7 @@
     flex-direction: column;
   }
 
-  /* ── Info sections ── */
+  /* Info sections */
   .info-section {
     margin-bottom: var(--sp-xl);
   }
@@ -275,7 +269,7 @@
     font-family: var(--font-mono);
   }
 
-  /* ── Token bar ── */
+  /* Token bar */
   .token-bar-container {
     display: flex;
     align-items: center;
@@ -292,7 +286,7 @@
 
   .token-bar-fill {
     height: 100%;
-    background: var(--teal);
+    background: var(--accent-teal);
     border-radius: 3px;
     transition: width var(--duration-medium) var(--ease-move);
   }
@@ -310,7 +304,7 @@
     margin-top: var(--sp-sm);
   }
 
-  /* ── Changed files ── */
+  /* Changed files */
   .file-list {
     display: flex;
     flex-direction: column;
@@ -340,24 +334,21 @@
     font-size: var(--text-label);
   }
 
-  .stat-add {
-    color: var(--status-needs-response);
-  }
-
-  .stat-remove {
-    color: var(--status-error);
-  }
-
-  .stat-new {
-    color: var(--status-completed);
-  }
+  .stat-add { color: var(--accent-green); }
+  .stat-remove { color: var(--accent-red); }
+  .stat-new { color: var(--accent-blue); }
 
   .no-data {
     font-size: var(--text-body);
     color: var(--text-muted);
   }
 
-  /* ── Worktree ── */
+  /* Worktree */
+  .worktree-section {
+    border-top: 1px solid var(--border-subtle);
+    padding-top: var(--sp-lg);
+  }
+
   .worktree-info {
     display: flex;
     gap: var(--sp-sm);
@@ -373,7 +364,7 @@
   .action-link {
     background: none;
     border: none;
-    color: var(--teal);
+    color: var(--accent-teal);
     font-family: var(--font-ui);
     font-size: var(--text-body);
     cursor: pointer;
@@ -382,16 +373,17 @@
   }
 
   .action-link:hover {
-    color: var(--accent);
+    color: var(--accent-green);
   }
 
-  /* ── Terminal placeholder ── */
+  /* Terminal placeholder */
   .terminal-placeholder {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--bg-deepest);
+    border-radius: 0;
     font-family: var(--font-terminal);
     font-size: var(--text-body);
   }
@@ -399,5 +391,29 @@
   .placeholder-text {
     color: var(--text-muted);
     user-select: none;
+  }
+
+  /* Bottom bar */
+  .bottom-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    padding: var(--sp-xs) var(--sp-lg);
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+    font-size: var(--text-label);
+    color: var(--text-muted);
+    user-select: none;
+  }
+
+  .bottom-bar :global(kbd) {
+    display: inline-block;
+    padding: 0 4px;
+    background: var(--bg-active);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
   }
 </style>

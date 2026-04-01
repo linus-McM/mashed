@@ -1,15 +1,16 @@
 <script>
-  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
+  import { createEventDispatcher } from 'svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
+  import SparkLine from '../components/SparkLine.svelte';
 
   const dispatch = createEventDispatcher();
 
-  /** @type {import('../types').NotificationEvent[]} */
-  let events = [];
+  /** @type {any[]} Notifications passed from App.svelte */
+  export let notifications = [];
+
   let selectedIndex = 0;
 
-  // Group order matches priority: 0=needs_response, 1=error, 2=completed, 3=running, 4=started
+  // Group order: NEEDS RESPONSE (green), ERRORS (red), COMPLETED (blue), RUNNING (amber)
   const groupOrder = ['needs_response', 'error', 'completed', 'running', 'started'];
   const groupLabels = {
     needs_response: 'NEEDS RESPONSE',
@@ -23,14 +24,14 @@
     .map(type => ({
       type,
       label: groupLabels[type],
-      items: events.filter(e => e.eventType === type),
+      items: notifications.filter(e => e.eventType === type),
     }))
     .filter(g => g.items.length > 0);
 
   $: flatEvents = grouped.flatMap(g => g.items);
-  $: totalAgents = new Set(events.map(e => e.agentId)).size;
-  $: totalRepos = new Set(events.map(e => e.repoName)).size;
-  $: totalTokens = events.reduce((sum, e) => sum + (e.tokensUsed || 0), 0);
+  $: totalAgents = new Set(notifications.map(e => e.agentId)).size;
+  $: totalRepos = new Set(notifications.map(e => e.repoName)).size;
+  $: totalTokens = notifications.reduce((sum, e) => sum + (e.tokensUsed || 0), 0);
 
   function formatTokens(n) {
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
@@ -74,36 +75,9 @@
     selectedIndex = idx;
     dispatch('select', ev);
   }
-
-  onMount(() => {
-    // Listen for notification events from Go backend
-    EventsOn('notification:new', (event) => {
-      events = [event, ...events.filter(e => e.id !== event.id)];
-    });
-
-    EventsOn('notification:update', (event) => {
-      events = events.map(e => e.id === event.id ? event : e);
-    });
-
-    EventsOn('notification:remove', (eventId) => {
-      events = events.filter(e => e.id !== eventId);
-    });
-
-    EventsOn('notification:batch', (batch) => {
-      events = batch;
-    });
-
-    window.addEventListener('keydown', handleKeydown);
-  });
-
-  onDestroy(() => {
-    EventsOff('notification:new');
-    EventsOff('notification:update');
-    EventsOff('notification:remove');
-    EventsOff('notification:batch');
-    window.removeEventListener('keydown', handleKeydown);
-  });
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <div class="feed">
   <div class="feed-scroll">
@@ -117,12 +91,18 @@
             class:selected={globalIdx === selectedIndex}
             data-index={globalIdx}
             on:click={() => handleClick(event, globalIdx)}
+            on:keydown={(e) => { if (e.key === 'Enter') handleClick(event, globalIdx); }}
+            role="button"
+            tabindex="0"
           >
             <div class="accent-stripe" style="background: {statusColor(event.eventType)}" />
             <div class="row-content">
               <span class="repo mono">{event.repoName}</span>
               <span class="agent">{event.agentName}</span>
               <span class="summary">{event.summary}</span>
+              {#if event.tokenBurn && event.tokenBurn.length > 0}
+                <SparkLine data={event.tokenBurn} />
+              {/if}
               <span class="elapsed mono">{formatElapsed(event.timestamp)}</span>
             </div>
           </div>
@@ -130,9 +110,9 @@
       </div>
     {/each}
 
-    {#if events.length === 0}
+    {#if notifications.length === 0}
       <div class="empty">
-        <div class="empty-icon">◇</div>
+        <div class="empty-icon">&#9671;</div>
         <div class="empty-text">No active agents</div>
         <div class="empty-sub">Start a Claude Code session to see events here</div>
       </div>
@@ -141,24 +121,27 @@
 
   <div class="status-bar">
     <span>{totalAgents} agent{totalAgents !== 1 ? 's' : ''}</span>
-    <span class="sep">·</span>
+    <span class="sep">&middot;</span>
     <span>{totalRepos} repo{totalRepos !== 1 ? 's' : ''}</span>
-    <span class="sep">·</span>
+    <span class="sep">&middot;</span>
     <span class="mono">{formatTokens(totalTokens)} tokens</span>
+    <span class="keys">
+      <kbd>j</kbd>/<kbd>k</kbd> navigate &middot; <kbd>Enter</kbd> open
+    </span>
   </div>
 </div>
 
 <script context="module">
   const statusColors = {
-    running:        '#f0a500',
-    error:          '#e84545',
-    completed:      '#3d9eff',
-    needs_response: '#00e57a',
-    started:        '#9d6fff',
+    running:        'var(--accent-amber)',
+    error:          'var(--accent-red)',
+    completed:      'var(--accent-blue)',
+    needs_response: 'var(--accent-green)',
+    started:        'var(--accent-purple)',
   };
 
   function statusColor(type) {
-    return statusColors[type] || '#4a5a6a';
+    return statusColors[type] || 'var(--text-dim)';
   }
 </script>
 
@@ -176,7 +159,7 @@
     padding: var(--sp-sm) 0;
   }
 
-  /* ── Group ── */
+  /* Group */
   .group {
     margin-bottom: var(--sp-sm);
   }
@@ -190,7 +173,7 @@
     user-select: none;
   }
 
-  /* ── Row ── */
+  /* Row */
   .row {
     display: flex;
     align-items: stretch;
@@ -249,7 +232,7 @@
     flex-shrink: 0;
   }
 
-  /* ── Empty state ── */
+  /* Empty state */
   .empty {
     display: flex;
     flex-direction: column;
@@ -276,7 +259,7 @@
     color: var(--text-muted);
   }
 
-  /* ── Status bar ── */
+  /* Status bar */
   .status-bar {
     display: flex;
     align-items: center;
@@ -291,5 +274,22 @@
 
   .sep {
     color: var(--text-muted);
+  }
+
+  .keys {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: var(--text-label);
+  }
+
+  .keys :global(kbd) {
+    display: inline-block;
+    padding: 0 4px;
+    background: var(--bg-active);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
   }
 </style>

@@ -1,50 +1,60 @@
 {
   "command": "scan",
-  "overall_score": 14.8,
-  "objective_score": 59.3,
-  "strict_score": 14.8,
-  "verified_strict_score": 59.3,
-  "prev_overall_score": 0.0,
-  "prev_objective_score": 0.0,
-  "prev_strict_score": 0.0,
-  "prev_verified_strict_score": 0.0,
+  "overall_score": 6.4,
+  "objective_score": 25.6,
+  "strict_score": 6.4,
+  "verified_strict_score": 25.6,
+  "prev_overall_score": 14.8,
+  "prev_objective_score": 59.3,
+  "prev_strict_score": 14.8,
+  "prev_verified_strict_score": 59.3,
   "profile": "full",
   "noise_budget": 10,
   "noise_global_budget": 0,
   "hidden_by_detector": {
-    "subjective_review": 10
+    "subjective_review": 10,
+    "test_coverage": 4
   },
-  "hidden_total": 10,
+  "hidden_total": 14,
   "diff": {
-    "new": 25,
+    "new": 12,
     "auto_resolved": 0,
     "reopened": 0,
-    "total_current": 25,
+    "total_current": 37,
     "suspect_detectors": [],
     "chronic_reopeners": [],
     "skipped_other_lang": 0,
     "resolved_out_of_scope": 0,
     "ignored": 0,
     "ignore_patterns": 0,
-    "raw_issues": 25,
+    "raw_issues": 37,
     "suppressed_pct": 0.0
   },
   "stats": {
-    "total": 25,
+    "total": 37,
     "auto_resolved": 0,
     "deferred": 0,
     "false_positive": 0,
     "fixed": 0,
-    "open": 25,
+    "open": 37,
     "triaged_out": 0,
     "wontfix": 0,
     "by_tier": {
+      "2": {
+        "auto_resolved": 0,
+        "deferred": 0,
+        "false_positive": 0,
+        "fixed": 0,
+        "open": 1,
+        "triaged_out": 0,
+        "wontfix": 0
+      },
       "3": {
         "auto_resolved": 0,
         "deferred": 0,
         "false_positive": 0,
         "fixed": 0,
-        "open": 2,
+        "open": 13,
         "triaged_out": 0,
         "wontfix": 0
       },
@@ -60,12 +70,12 @@
     }
   },
   "open_scope": {
-    "in_scope": 25,
+    "in_scope": 37,
     "out_of_scope": 0,
-    "global": 25
+    "global": 37
   },
   "warnings": [
-    "25 new issues with few resolutions \u2014 likely cascading.",
+    "12 new issues with few resolutions \u2014 likely cascading.",
     "Coverage reduced (golangci_lint): golangci-lint tooling unavailable (tool_not_found) Repercussion: Detector results may be under-reported for this scan. Fix: Install/fix the tool command and rerun scan."
   ],
   "dimension_scores": {
@@ -73,12 +83,12 @@
       "score": 100.0,
       "strict": 100.0,
       "verified_strict_score": 100.0,
-      "checks": 3,
+      "checks": 7,
       "failing": 0,
       "tier": 3,
       "detectors": {
         "flat_dirs": {
-          "potential": 3,
+          "potential": 7,
           "pass_rate": 1.0,
           "failing": 0,
           "weighted_failures": 0.0
@@ -89,12 +99,12 @@
       "score": 100.0,
       "strict": 100.0,
       "verified_strict_score": 100.0,
-      "checks": 3,
+      "checks": 15,
       "failing": 0,
       "tier": 4,
       "detectors": {
         "security": {
-          "potential": 3,
+          "potential": 15,
           "pass_rate": 1.0,
           "failing": 0,
           "weighted_failures": 0.0
@@ -105,28 +115,12 @@
       "score": 100.0,
       "strict": 100.0,
       "verified_strict_score": 100.0,
-      "checks": 3,
+      "checks": 15,
       "failing": 0,
       "tier": 3,
       "detectors": {
         "structural": {
-          "potential": 3,
-          "pass_rate": 1.0,
-          "failing": 0,
-          "weighted_failures": 0.0
-        }
-      }
-    },
-    "Duplication": {
-      "score": 100.0,
-      "strict": 100.0,
-      "verified_strict_score": 100.0,
-      "checks": 4,
-      "failing": 0,
-      "tier": 3,
-      "detectors": {
-        "dupes": {
-          "potential": 4,
+          "potential": 15,
           "pass_rate": 1.0,
           "failing": 0,
           "weighted_failures": 0.0
@@ -134,18 +128,18 @@
       }
     },
     "Test health": {
-      "score": 0.0,
-      "strict": 0.0,
-      "verified_strict_score": 0.0,
-      "checks": 11,
-      "failing": 2,
+      "score": 0.1,
+      "strict": 0.1,
+      "verified_strict_score": 0.1,
+      "checks": 163,
+      "failing": 14,
       "tier": 4,
       "detectors": {
         "test_coverage": {
-          "potential": 11,
-          "pass_rate": 0.0,
-          "failing": 2,
-          "weighted_failures": 11.196152422706632
+          "potential": 163,
+          "pass_rate": 0.0007676267747342884,
+          "failing": 14,
+          "weighted_failures": 162.8748768357183
         }
       }
     },
@@ -568,53 +562,83 @@
           "components": []
         }
       }
+    },
+    "Duplication": {
+      "score": 100.0,
+      "strict": 100.0,
+      "verified_strict_score": 100.0,
+      "checks": 4,
+      "failing": 0,
+      "tier": 3,
+      "detectors": {
+        "dupes": {
+          "potential": 4,
+          "pass_rate": 1.0,
+          "failing": 0,
+          "weighted_failures": 0.0
+        }
+      },
+      "carried_forward": true
     }
   },
   "score_breakdown": {
-    "overall_score": 14.8,
+    "overall_score": 6.4,
     "mechanical_fraction": 0.25,
     "subjective_fraction": 0.75,
-    "mechanical_avg": 59.25925925925925,
+    "mechanical_avg": 25.645205479452056,
     "subjective_avg": 0.0,
     "entries": [
       {
         "name": "Code quality",
         "pool": "mechanical",
         "score": 100.0,
-        "checks": 3.0,
-        "sample_factor": 0.015,
+        "checks": 7.0,
+        "sample_factor": 0.035,
         "configured_weight": 1.0,
-        "effective_weight": 0.015,
-        "pool_share": 0.1111111111111111,
-        "overall_per_point": 0.027777777777777776,
-        "overall_contribution": 2.7777777777777777,
+        "effective_weight": 0.035,
+        "pool_share": 0.03196347031963471,
+        "overall_per_point": 0.007990867579908677,
+        "overall_contribution": 0.7990867579908677,
         "overall_drag": 0.0
       },
       {
         "name": "Security",
         "pool": "mechanical",
         "score": 100.0,
-        "checks": 3.0,
-        "sample_factor": 0.015,
+        "checks": 15.0,
+        "sample_factor": 0.075,
         "configured_weight": 1.0,
-        "effective_weight": 0.015,
-        "pool_share": 0.1111111111111111,
-        "overall_per_point": 0.027777777777777776,
-        "overall_contribution": 2.7777777777777777,
+        "effective_weight": 0.075,
+        "pool_share": 0.0684931506849315,
+        "overall_per_point": 0.017123287671232876,
+        "overall_contribution": 1.7123287671232876,
         "overall_drag": 0.0
       },
       {
         "name": "File health",
         "pool": "mechanical",
         "score": 100.0,
-        "checks": 3.0,
-        "sample_factor": 0.015,
+        "checks": 15.0,
+        "sample_factor": 0.075,
         "configured_weight": 2.0,
-        "effective_weight": 0.03,
-        "pool_share": 0.2222222222222222,
-        "overall_per_point": 0.05555555555555555,
-        "overall_contribution": 5.555555555555555,
+        "effective_weight": 0.15,
+        "pool_share": 0.136986301369863,
+        "overall_per_point": 0.03424657534246575,
+        "overall_contribution": 3.4246575342465753,
         "overall_drag": 0.0
+      },
+      {
+        "name": "Test health",
+        "pool": "mechanical",
+        "score": 0.1,
+        "checks": 163.0,
+        "sample_factor": 0.815,
+        "configured_weight": 1.0,
+        "effective_weight": 0.815,
+        "pool_share": 0.7442922374429224,
+        "overall_per_point": 0.1860730593607306,
+        "overall_contribution": 0.01860730593607306,
+        "overall_drag": 18.58869863013699
       },
       {
         "name": "Duplication",
@@ -624,23 +648,10 @@
         "sample_factor": 0.02,
         "configured_weight": 1.0,
         "effective_weight": 0.02,
-        "pool_share": 0.14814814814814814,
-        "overall_per_point": 0.037037037037037035,
-        "overall_contribution": 3.7037037037037033,
+        "pool_share": 0.018264840182648404,
+        "overall_per_point": 0.004566210045662101,
+        "overall_contribution": 0.45662100456621013,
         "overall_drag": 0.0
-      },
-      {
-        "name": "Test health",
-        "pool": "mechanical",
-        "score": 0.0,
-        "checks": 11.0,
-        "sample_factor": 0.055,
-        "configured_weight": 1.0,
-        "effective_weight": 0.055,
-        "pool_share": 0.4074074074074074,
-        "overall_per_point": 0.10185185185185185,
-        "overall_contribution": 0.0,
-        "overall_drag": 10.185185185185185
       },
       {
         "name": "Abstraction fit",
@@ -930,13 +941,11 @@
   },
   "potentials": {
     "go": {
-      "structural": 3,
-      "flat_dirs": 3,
-      "test_coverage": 11,
-      "security": 3,
+      "structural": 15,
+      "flat_dirs": 7,
+      "test_coverage": 163,
+      "security": 15,
       "subjective_review": 20,
-      "boilerplate_duplication": 0,
-      "dupes": 4,
       "stale_wontfix": 0
     }
   },
@@ -978,23 +987,17 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-01T08:11:44+00:00"
+      "updated_at": "2026-04-01T08:38:09+00:00"
     }
   },
   "zone_distribution": {
-    "production": 3
+    "production": 15
   },
   "narrative": {
-    "phase": "first_scan",
-    "headline": "First scan complete. 25 open issues across 3 dimensions.",
+    "phase": "regression",
+    "headline": "Score shifted 8.4 pts \u2014 this is normal after structural changes. Rescan after your next fix to see the real trend.",
     "dimensions": {
       "lowest_dimensions": [
-        {
-          "name": "Test health",
-          "strict": 0.0,
-          "failing": 2,
-          "impact": 0.0
-        },
         {
           "name": "Abstraction fit",
           "strict": 0.0,
@@ -1010,6 +1013,14 @@
           "impact": 0.0,
           "subjective": true,
           "impact_description": "re-review to improve"
+        },
+        {
+          "name": "API coherence",
+          "strict": 0.0,
+          "failing": 0,
+          "impact": 0.0,
+          "subjective": true,
+          "impact_description": "re-review to improve"
         }
       ],
       "biggest_gap_dimensions": [],
@@ -1019,8 +1030,8 @@
       {
         "type": "refactor",
         "detector": "test_coverage",
-        "count": 2,
-        "description": "2 test_coverage issues in 1 cluster(s) \u2014 run `desloppify next`",
+        "count": 14,
+        "description": "14 test_coverage issues in 1 cluster(s) \u2014 run `desloppify next`",
         "command": "desloppify next",
         "impact": 0.0,
         "dimension": "Test health",
@@ -1061,7 +1072,7 @@
     "strategy": {
       "fixer_leverage": {
         "auto_fixable_count": 0,
-        "total_count": 45,
+        "total_count": 57,
         "coverage": 0.0,
         "impact_ratio": 0.0,
         "recommendation": "none"
@@ -1089,7 +1100,7 @@
           "actions": [
             1
           ],
-          "file_count": 2,
+          "file_count": 14,
           "total_impact": 0.0,
           "automation": "manual",
           "run_first": false
@@ -1127,7 +1138,7 @@
     "milestone": null,
     "primary_action": {
       "command": "desloppify next",
-      "description": "2 test_coverage issues in 1 cluster(s) \u2014 run `desloppify next`"
+      "description": "14 test_coverage issues in 1 cluster(s) \u2014 run `desloppify next`"
     },
     "why_now": "Work through actions in priority order. Rescan after each fix to track progress.",
     "verification_step": {
@@ -1137,12 +1148,19 @@
     "risk_flags": [],
     "strict_target": {
       "target": 85.0,
-      "current": 14.8,
-      "gap": 70.2,
+      "current": 6.4,
+      "gap": 78.6,
       "state": "below",
       "warning": null
     },
     "reminders": [
+      {
+        "type": "feedback_nudge",
+        "message": "If you notice patterns desloppify doesn't detect, false positives, or issues that seem off, file an issue at https://github.com/peteromalley/desloppify/issues \u2014 include the file and what you expected. It helps improve the tool.",
+        "command": null,
+        "priority": 3,
+        "severity": "low"
+      },
       {
         "type": "report_scores",
         "message": "ALWAYS share ALL scores with the user: overall, objective, and strict, plus every dimension score (lenient + strict), including subjective dimensions. The goal is to maximize strict scores.",
@@ -1153,7 +1171,8 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 1
+      "report_scores": 2,
+      "feedback_nudge": 1
     }
   },
   "config": {
@@ -1195,7 +1214,7 @@
   "plan": {
     "active": true,
     "focus": null,
-    "total_ordered": 20,
+    "total_ordered": 0,
     "total_skipped": 0,
     "plan_overrides_narrative": true
   }
