@@ -1,9 +1,12 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { SpawnAgent } from '../../wailsjs/go/main/App.js';
   import StatusBadge from '../components/StatusBadge.svelte';
   import SparkLine from '../components/SparkLine.svelte';
 
   const dispatch = createEventDispatcher();
+
+  let spawningRepo = null; // repo path currently spawning
 
   /** @type {any[]} Notifications passed from App.svelte */
   export let notifications = [];
@@ -105,6 +108,32 @@
     return hrs + 'h ' + (mins % 60) + 'm';
   }
 
+  async function spawnInRepo(repo) {
+    if (spawningRepo) return;
+    spawningRepo = repo.path;
+    try {
+      const target = await SpawnAgent(repo.path, 'claude-opus-4-6');
+      // Navigate to the new agent
+      dispatch('select', {
+        agentId: `spawned-${Date.now()}`,
+        agentName: 'claude-opus-4-6',
+        model: 'claude-opus-4-6',
+        repoName: repo.name,
+        repoPath: repo.path,
+        repoBranch: repo.branch,
+        eventType: 'running',
+        tmuxTarget: target,
+        tokensUsed: 0,
+        tokensMax: 1000000,
+        summary: `New session in ${repo.name}`,
+      });
+    } catch (e) {
+      console.error('Spawn failed:', e);
+    } finally {
+      spawningRepo = null;
+    }
+  }
+
   function handleClick(evt) {
     selectedId = evt.agentId;
     dispatch('select', evt);
@@ -202,6 +231,18 @@
             {/each}
           {/if}
         {/each}
+
+        <!-- New Session button per repo -->
+        {#if repo.path}
+          <button
+            class="new-session-btn"
+            on:click|stopPropagation={() => spawnInRepo(repo)}
+            disabled={spawningRepo === repo.path}
+          >
+            <span class="new-session-icon">+</span>
+            {spawningRepo === repo.path ? 'Spawning...' : 'New Session'}
+          </button>
+        {/if}
       </div>
     {/each}
 
@@ -502,4 +543,35 @@
   }
 
   .spawn-btn:hover { opacity: 0.8; }
+
+  .new-session-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 20px 6px 20px;
+    background: none;
+    border: none;
+    border-top: 1px dashed var(--border-subtle);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 100ms ease-out;
+  }
+
+  .new-session-btn:hover {
+    color: var(--accent-green);
+    background: rgba(0, 229, 122, 0.04);
+  }
+
+  .new-session-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .new-session-icon {
+    font-size: 14px;
+    font-weight: 300;
+  }
 </style>

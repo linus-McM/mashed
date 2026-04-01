@@ -4,10 +4,10 @@
   "objective_score": 26.1,
   "strict_score": 6.5,
   "verified_strict_score": 26.1,
-  "prev_overall_score": 6.4,
-  "prev_objective_score": 25.4,
-  "prev_strict_score": 6.4,
-  "prev_verified_strict_score": 25.4,
+  "prev_overall_score": 6.5,
+  "prev_objective_score": 26.1,
+  "prev_strict_score": 6.5,
+  "prev_verified_strict_score": 26.1,
   "profile": "full",
   "noise_budget": 10,
   "noise_global_budget": 0,
@@ -17,7 +17,7 @@
   },
   "hidden_total": 28,
   "diff": {
-    "new": 1,
+    "new": 0,
     "auto_resolved": 0,
     "reopened": 0,
     "total_current": 32,
@@ -986,7 +986,7 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-01T21:31:54+00:00"
+      "updated_at": "2026-04-01T21:34:19+00:00"
     }
   },
   "zone_distribution": {
@@ -1286,7 +1286,7 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 12,
+      "report_scores": 13,
       "feedback_nudge": 3,
       "stagnant_nudge": 25,
       "zone_classification": 3
@@ -1331,7 +1331,7 @@
   "plan": {
     "active": true,
     "focus": null,
-    "total_ordered": 0,
+    "total_ordered": 20,
     "total_skipped": 0,
     "plan_overrides_narrative": true
   }
