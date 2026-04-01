@@ -17,17 +17,17 @@
   },
   "hidden_total": 27,
   "diff": {
-    "new": 13,
+    "new": 0,
     "auto_resolved": 0,
     "reopened": 0,
-    "total_current": 36,
+    "total_current": 32,
     "suspect_detectors": [],
     "chronic_reopeners": [],
     "skipped_other_lang": 0,
     "resolved_out_of_scope": 0,
     "ignored": 0,
     "ignore_patterns": 0,
-    "raw_issues": 36,
+    "raw_issues": 32,
     "suppressed_pct": 0.0
   },
   "stats": {
@@ -75,7 +75,6 @@
     "global": 50
   },
   "warnings": [
-    "13 new issues with few resolutions \u2014 likely cascading.",
     "Coverage reduced (golangci_lint): golangci-lint tooling unavailable (tool_not_found) Repercussion: Detector results may be under-reported for this scan. Fix: Install/fix the tool command and rerun scan."
   ],
   "dimension_scores": {
@@ -987,16 +986,16 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-01T20:36:38+00:00"
+      "updated_at": "2026-04-01T20:38:08+00:00"
     }
   },
   "zone_distribution": {
     "production": 15,
-    "test": 1
+    "test": 5
   },
   "narrative": {
     "phase": "stagnation",
-    "headline": "Score plateaued at 6.1 for 4 scans. Test health (0.0%) is where the breakthrough is.",
+    "headline": "Score plateaued at 6.1 for 5 scans. Test health (0.0%) is where the breakthrough is.",
     "dimensions": {
       "lowest_dimensions": [
         {
@@ -1027,127 +1026,127 @@
         {
           "name": "Code quality",
           "strict": 100.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Security",
           "strict": 100.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "File health",
           "strict": 100.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Test health",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Abstraction fit",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "AI generated debt",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "API coherence",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Auth consistency",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Contracts",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Convention drift",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Cross-module arch",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Dep health",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Design coherence",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Error consistency",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "High elegance",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Stale migration",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Init coupling",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Logic clarity",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Low elegance",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Mid elegance",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Naming quality",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Structure nav",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Test strategy",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Type safety",
           "strict": 0.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         },
         {
           "name": "Duplication",
           "strict": 100.0,
-          "stuck_scans": 4
+          "stuck_scans": 5
         }
       ]
     },
@@ -1156,15 +1155,16 @@
         "type": "refactor",
         "detector": "test_coverage",
         "count": 27,
-        "description": "27 test_coverage issues in 1 cluster(s) \u2014 run `desloppify next`",
+        "description": "27 test_coverage issues in 2 cluster(s) \u2014 run `desloppify next`",
         "command": "desloppify next",
         "impact": 0.0,
         "dimension": "Test health",
         "priority": 1,
         "clusters": [
-          "auto/test_coverage-untested_module"
+          "auto/test_coverage-untested_module",
+          "auto/test_coverage-untested_critical"
         ],
-        "cluster_count": 1,
+        "cluster_count": 2,
         "lane": "test_coverage"
       },
       {
@@ -1263,7 +1263,7 @@
     "milestone": null,
     "primary_action": {
       "command": "desloppify next",
-      "description": "27 test_coverage issues in 1 cluster(s) \u2014 run `desloppify next`"
+      "description": "27 test_coverage issues in 2 cluster(s) \u2014 run `desloppify next`"
     },
     "why_now": "Try a different dimension to break the plateau.",
     "verification_step": {
@@ -1281,17 +1281,10 @@
     "reminders": [
       {
         "type": "zone_classification",
-        "message": "1 of 16 files classified as non-production (1 test). Override with `desloppify zone set <file> production` if any are misclassified.",
+        "message": "5 of 20 files classified as non-production (5 test). Override with `desloppify zone set <file> production` if any are misclassified.",
         "command": "desloppify zone show",
         "priority": 2,
         "severity": "medium"
-      },
-      {
-        "type": "feedback_nudge",
-        "message": "Score has plateaued \u2014 if you suspect desloppify is missing patterns or not capturing something it should, file an issue at https://github.com/peteromalley/desloppify/issues describing what you expected. Gaps in detection are a common cause of stagnation.",
-        "command": null,
-        "priority": 3,
-        "severity": "low"
       },
       {
         "type": "report_scores",
@@ -1303,10 +1296,10 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 4,
+      "report_scores": 5,
       "feedback_nudge": 3,
       "stagnant_nudge": 25,
-      "zone_classification": 1
+      "zone_classification": 2
     }
   },
   "config": {
@@ -1348,7 +1341,7 @@
   "plan": {
     "active": true,
     "focus": null,
-    "total_ordered": 0,
+    "total_ordered": 20,
     "total_skipped": 0,
     "plan_overrides_narrative": true
   }
