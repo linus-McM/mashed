@@ -2,3 +2,20 @@
 [      32ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
 [      32ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
 [      49ms] [LOG] GetDevDir returned: "/Users/linus/Development" @ http://localhost:34115/src/App.svelte:318
+[  192122ms] [WARNING] Failed to get scoped diff: git diff-stat on /: exit status 129 @ http://localhost:34115/src/views/AgentDetail.svelte:655
+[  192137ms] [WARNING] Failed to get worktrees: git worktree-list on /: exit status 128 @ http://localhost:34115/src/views/AgentDetail.svelte:666
+[  445681ms] [LOG] GetDevDir returned: "/Users/linus/Development" @ http://localhost:34115/src/App.svelte?t=1775078973236:318
+[  445681ms] [LOG] GetDevDir returned: "/Users/linus/Development" @ http://localhost:34115/src/App.svelte?t=1775078973236:318
+[  447110ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[  447111ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  447113ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  447113ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  447615ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  448156ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  448157ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  448157ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  448172ms] [LOG] GetDevDir returned: "/Users/linus/Development" @ http://localhost:34115/src/App.svelte?t=1775078973236:318
+[  585642ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[  585642ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  585643ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error during WebSocket handshake: net::ERR_CONNECTION_RESET @ http://localhost:34115/wails/ipc.js:6
+[  585643ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0

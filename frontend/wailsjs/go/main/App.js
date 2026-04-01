@@ -26,6 +26,10 @@ export function GetWorktrees(arg1) {
   return window['go']['main']['App']['GetWorktrees'](arg1);
 }
 
+export function ListRepoChoices() {
+  return window['go']['main']['App']['ListRepoChoices']();
+}
+
 export function MarkRead(arg1) {
   return window['go']['main']['App']['MarkRead'](arg1);
 }
@@ -36,4 +40,8 @@ export function PickDirectory() {
 
 export function SetDevDir(arg1) {
   return window['go']['main']['App']['SetDevDir'](arg1);
+}
+
+export function SpawnAgent(arg1, arg2) {
+  return window['go']['main']['App']['SpawnAgent'](arg1, arg2);
 }

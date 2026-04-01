@@ -126,7 +126,10 @@
     <span class="sep">&middot;</span>
     <span class="mono">{formatTokens(totalTokens)} tokens</span>
     <span class="keys">
-      <kbd>j</kbd>/<kbd>k</kbd> navigate &middot; <kbd>Enter</kbd> open
+      <kbd>j</kbd>/<kbd>k</kbd> navigate &middot; <kbd>Enter</kbd> open &middot;
+      <button class="spawn-btn" on:click={() => dispatch('spawn')}>
+        <kbd>&#8984;N</kbd> Spawn Agent
+      </button>
     </span>
   </div>
 </div>
@@ -291,5 +294,22 @@
     font-family: var(--font-mono);
     font-size: 10px;
     color: var(--text-dim);
+  }
+
+  .spawn-btn {
+    background: none;
+    border: none;
+    color: var(--accent-green);
+    font-family: var(--font-ui);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .spawn-btn:hover {
+    opacity: 0.8;
   }
 </style>

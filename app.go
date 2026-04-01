@@ -10,6 +10,7 @@ import (
 
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"conductor/internal/agent"
@@ -419,6 +420,63 @@ func (a *App) GetAgentLog(repoPath string) []domain.LogLine {
 		lines = lines[len(lines)-200:]
 	}
 	return lines
+}
+
+// SpawnAgent starts a new Claude session in a tmux pane for the given repo.
+// Returns the tmux pane target string for the terminal bridge.
+func (a *App) SpawnAgent(repoPath string, model string) (string, error) {
+	if repoPath == "" {
+		return "", fmt.Errorf("empty repo path")
+	}
+	if model == "" {
+		model = "claude-opus-4-6"
+	}
+
+	// Derive a session name from the repo
+	repoName := repoNameFromDir(repoPath)
+	sessionName := fmt.Sprintf("conductor-%s-%d", repoName, time.Now().Unix())
+
+	// Build the claude command
+	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s", model)
+
+	// Ensure tmux server is running, create session with claude inside it
+	tmuxCmd := exec.CommandContext(a.ctx, "tmux", "new-session", "-d",
+		"-s", sessionName,
+		"-c", repoPath,
+		cmd,
+	)
+	if out, err := tmuxCmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("tmux new-session failed: %w (%s)", err, string(out))
+	}
+
+	// The pane target is sessionName:0.0 (first window, first pane)
+	target := fmt.Sprintf("%s:0.0", sessionName)
+
+	// Invalidate pane cache so discovery picks it up immediately
+	a.panes.InvalidateCache()
+
+	log.Printf("spawned agent in tmux session %s at %s", sessionName, repoPath)
+	return target, nil
+}
+
+// ListRepoChoices returns the repos available for spawning agents.
+func (a *App) ListRepoChoices() []map[string]string {
+	if a.repoScanner == nil {
+		return nil
+	}
+	repos, err := a.repoScanner.ScanRepos(nil)
+	if err != nil {
+		return nil
+	}
+	choices := make([]map[string]string, 0, len(repos))
+	for _, r := range repos {
+		choices = append(choices, map[string]string{
+			"name":   r.Name,
+			"path":   r.Path,
+			"branch": r.Branch,
+		})
+	}
+	return choices
 }
 
 // MarkRead marks a notification as read.

@@ -14,8 +14,12 @@ export function GetTerminalPort():Promise<number>;
 
 export function GetWorktrees(arg1:string):Promise<Array<domain.WorktreeInfo>>;
 
+export function ListRepoChoices():Promise<Array<Record<string, string>>>;
+
 export function MarkRead(arg1:string):Promise<void>;
 
 export function PickDirectory():Promise<string>;
 
 export function SetDevDir(arg1:string):Promise<void>;
+
+export function SpawnAgent(arg1:string,arg2:string):Promise<string>;

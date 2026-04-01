@@ -5,15 +5,16 @@
   import Setup from './views/Setup.svelte';
   import NotificationFeed from './views/NotificationFeed.svelte';
   import AgentDetail from './views/AgentDetail.svelte';
+  import SpawnAgent from './views/SpawnAgent.svelte';
 
   let currentView = 'loading'; // 'loading' | 'setup' | 'feed' | 'detail'
   let selectedAgent = null;
   let notifications = [];
+  let showSpawnModal = false;
 
   onMount(async () => {
     try {
       const dir = await GetDevDir();
-      console.log('GetDevDir returned:', JSON.stringify(dir));
       if (dir && dir.length > 0) {
         currentView = 'feed';
         notifications = await GetNotifications();
@@ -21,12 +22,10 @@
         currentView = 'setup';
       }
     } catch (e) {
-      console.error('GetDevDir failed:', e);
       currentView = 'setup';
     }
   });
 
-  // Live notification updates
   EventsOn('agent:notification', (event) => {
     const idx = notifications.findIndex(n => n.agentId === event.agentId);
     if (idx >= 0) {
@@ -51,8 +50,39 @@
     selectedAgent = null;
   }
 
+  function onSpawned(e) {
+    showSpawnModal = false;
+    // Navigate to the new agent's detail view
+    const { target, repo, model } = e.detail;
+    selectedAgent = {
+      agentId: `spawned-${Date.now()}`,
+      agentName: model,
+      model: model,
+      repoName: repo.name,
+      repoPath: repo.path,
+      repoBranch: repo.branch,
+      eventType: 'running',
+      tmuxTarget: target,
+      tokensUsed: 0,
+      tokensMax: model.includes('opus') ? 1000000 : 200000,
+      summary: `Spawned in ${repo.name}`,
+    };
+    currentView = 'detail';
+  }
+
   function handleKeydown(e) {
-    if (e.key === 'Escape' && currentView === 'detail') goBack();
+    if (e.key === 'Escape') {
+      if (showSpawnModal) {
+        showSpawnModal = false;
+      } else if (currentView === 'detail') {
+        goBack();
+      }
+    }
+    // Ctrl+N or Cmd+N to spawn
+    if ((e.ctrlKey || e.metaKey) && e.key === 'n' && currentView === 'feed') {
+      e.preventDefault();
+      showSpawnModal = true;
+    }
   }
 </script>
 
@@ -66,9 +96,20 @@
   {:else if currentView === 'setup'}
     <Setup on:ready={onSetupReady} />
   {:else if currentView === 'feed'}
-    <NotificationFeed {notifications} on:select={(e) => drillDown(e.detail)} />
+    <NotificationFeed
+      {notifications}
+      on:select={(e) => drillDown(e.detail)}
+      on:spawn={() => showSpawnModal = true}
+    />
   {:else}
     <AgentDetail agent={selectedAgent} on:back={goBack} />
+  {/if}
+
+  {#if showSpawnModal}
+    <SpawnAgent
+      on:spawned={onSpawned}
+      on:cancel={() => showSpawnModal = false}
+    />
   {/if}
 </main>
 
