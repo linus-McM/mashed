@@ -5,9 +5,9 @@
   "strict_score": 7.3,
   "verified_strict_score": 29.4,
   "prev_overall_score": 7.3,
-  "prev_objective_score": 29.1,
+  "prev_objective_score": 29.4,
   "prev_strict_score": 7.3,
-  "prev_verified_strict_score": 29.1,
+  "prev_verified_strict_score": 29.4,
   "profile": "full",
   "noise_budget": 10,
   "noise_global_budget": 0,
@@ -17,7 +17,7 @@
   },
   "hidden_total": 29,
   "diff": {
-    "new": 1,
+    "new": 0,
     "auto_resolved": 0,
     "reopened": 0,
     "total_current": 35,
@@ -993,7 +993,7 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-02T06:24:38+00:00"
+      "updated_at": "2026-04-02T06:25:10+00:00"
     }
   },
   "zone_distribution": {
@@ -1040,6 +1040,11 @@
         {
           "name": "File health",
           "strict": 95.6,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Test health",
+          "strict": 8.9,
           "stuck_scans": 5
         },
         {
@@ -1320,7 +1325,7 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 28,
+      "report_scores": 29,
       "feedback_nudge": 3,
       "stagnant_nudge": 25,
       "zone_classification": 3
@@ -1365,7 +1370,7 @@
   "plan": {
     "active": true,
     "focus": null,
-    "total_ordered": 0,
+    "total_ordered": 20,
     "total_skipped": 0,
     "plan_overrides_narrative": true
   }
