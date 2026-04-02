@@ -16,6 +16,7 @@ import (
 
 	"conductor/internal/agent"
 	"conductor/internal/domain"
+	"conductor/internal/explain"
 	"conductor/internal/git"
 	"conductor/internal/scanner"
 	"conductor/internal/terminal"
@@ -32,6 +33,7 @@ type App struct {
 	engine      *agent.NotificationEngine
 	bridge      *terminal.Bridge
 	panes       *terminal.PaneDiscovery
+	explainer   *explain.Explainer
 	mu          sync.Mutex
 
 	devDir        string // root directory to scan for repos
@@ -92,6 +94,9 @@ func (a *App) startup(ctx context.Context) {
 	if err := a.bridge.Start(a.ctx); err != nil {
 		log.Printf("terminal bridge start failed: %v", err)
 	}
+
+	// Initialize the diff explainer (uses ANTHROPIC_API_KEY from env)
+	a.explainer = explain.New()
 
 	// Check for saved config — if dir exists, start scanning immediately.
 	// If not, frontend will detect empty GetDevDir() on mount and show setup.
@@ -665,6 +670,19 @@ func (a *App) ReadFileDiff(repoPath, filePath string) (string, error) {
 	return string(out), nil
 }
 
+// ReadFileAtHead returns the content of a file at the HEAD commit.
+func (a *App) ReadFileAtHead(repoPath, filePath string) (string, error) {
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "show", "HEAD:"+filePath)
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("git show HEAD:%s: %w", filePath, err)
+	}
+	if len(out) > 1024*1024 {
+		return string(out[:1024*1024]) + "\n... (truncated at 1MB)", nil
+	}
+	return string(out), nil
+}
+
 // KillAgent terminates an agent process and removes it from tracking.
 func (a *App) KillAgent(agentID string, pid int) error {
 	if pid > 0 {
@@ -1037,4 +1055,15 @@ Start by running: gh pr diff %s`, prNumber, prNumber)
 	target := fmt.Sprintf("%s:0.0", sessionName)
 	a.panes.InvalidateCache()
 	return target, nil
+}
+
+// ExplainDiffHunk returns an AI-generated explanation of why a diff hunk was changed.
+func (a *App) ExplainDiffHunk(repoPath, filePath, hunkText string) (string, error) {
+	return a.explainer.Explain(a.ctx, repoPath, filePath, hunkText)
+}
+
+// IsExplainAvailable returns true if the claude CLI is on PATH.
+func (a *App) IsExplainAvailable() bool {
+	_, err := exec.LookPath("claude")
+	return err == nil
 }

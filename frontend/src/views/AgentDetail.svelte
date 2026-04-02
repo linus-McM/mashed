@@ -1,10 +1,12 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { GetScopedDiff, GetWorktrees, ListRepoFiles } from '../../wailsjs/go/main/App.js';
-  import { ArrowLeft, GitBranch, GripVertical } from 'lucide-svelte';
+  import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, SpawnPRReview } from '../../wailsjs/go/main/App.js';
+  import { ArrowLeft, GitBranch, GripVertical, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus } from 'lucide-svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
   import Terminal from '../components/Terminal.svelte';
-  import CodeEditor from '../components/CodeEditor.svelte';
+  import MonacoEditor from '../components/MonacoEditor.svelte';
+  import FileTree from '../components/FileTree.svelte';
+  import BranchModal from './BranchModal.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -76,6 +78,33 @@
     return String(n);
   }
 
+  // Git action state
+  let gitAction = null; // 'commit' | 'push' | 'pr' | 'review' | null
+  let gitResult = null;
+  let gitError = null;
+  let showBranchModal = false;
+
+  async function runGitAction(actionName, fn) {
+    if (!agent?.repoPath) return;
+    gitAction = actionName;
+    gitResult = null;
+    gitError = null;
+    try {
+      const result = await fn(agent.repoPath);
+      gitResult = result || 'Done';
+      // Refresh changed files
+      try {
+        const diff = await GetScopedDiff(agent.repoPath);
+        if (diff && diff.files) changedFiles = diff.files;
+      } catch {}
+    } catch (err) {
+      gitError = err?.message || String(err);
+    }
+    gitAction = null;
+    // Clear result/error after 5s
+    setTimeout(() => { gitResult = null; gitError = null; }, 5000);
+  }
+
   $: filteredAllFiles = allFilesSearch
     ? allFiles.filter(f => f.toLowerCase().includes(allFilesSearch.toLowerCase()))
     : allFiles;
@@ -85,6 +114,7 @@
       selectedFile = null; // toggle off
     } else {
       selectedFile = file;
+      fileStripWidth = 350;
     }
   }
 
@@ -93,6 +123,7 @@
       selectedFile = null;
     } else {
       selectedFile = { path: filePath, isBinary: false };
+      fileStripWidth = 350;
     }
   }
 
@@ -226,31 +257,37 @@
           {/if}
         </div>
       {:else}
-        <div class="file-search">
-          <input
-            type="text"
-            placeholder="Filter files..."
-            bind:value={allFilesSearch}
-            class="file-search-input"
-          />
-        </div>
-        <div class="file-strip-list">
-          {#each filteredAllFiles as filePath}
-            <button
-              class="file-item"
-              class:active={selectedFile?.path === filePath}
-              on:click={() => selectAllFile(filePath)}
-              title={filePath}
-            >
-              <span class="file-name">{filePath.split('/').pop()}</span>
-              <span class="file-dir">{filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : ''}</span>
-            </button>
-          {/each}
-          {#if filteredAllFiles.length === 0}
-            <div class="file-strip-empty">No files found</div>
-          {/if}
-        </div>
+        <FileTree
+          files={allFiles}
+          selectedPath={selectedFile?.path || ''}
+          changedPaths={new Set(changedFiles.map(f => f.path))}
+          on:select={e => selectAllFile(e.detail.path)}
+        />
       {/if}
+
+      <!-- Git actions -->
+      <div class="git-actions">
+        {#if gitResult}
+          <div class="git-status git-success">{gitResult}</div>
+        {:else if gitError}
+          <div class="git-status git-error">{gitError}</div>
+        {/if}
+        <button class="git-btn" disabled={!!gitAction} on:click={() => showBranchModal = true}>
+          <GitBranchPlus size={14} /> Branch
+        </button>
+        <button class="git-btn" class:git-hot={changedFiles.length > 0} disabled={!!gitAction} on:click={() => runGitAction('commit', GitCommit)}>
+          <GitCommitIcon size={14} /> {gitAction === 'commit' ? 'Committing...' : 'Commit'}
+        </button>
+        <button class="git-btn" disabled={!!gitAction} on:click={() => runGitAction('push', GitCommitAndPush)}>
+          <Upload size={14} /> {gitAction === 'push' ? 'Pushing...' : 'Push'}
+        </button>
+        <button class="git-btn" class:git-hot={changedFiles.length > 0} disabled={!!gitAction} on:click={() => runGitAction('pr', GitCommitPushAndPR)}>
+          <GitPullRequest size={14} /> {gitAction === 'pr' ? 'Creating...' : 'PR'}
+        </button>
+        <button class="git-btn" disabled={!!gitAction} on:click={() => runGitAction('review', SpawnPRReview)}>
+          <ShieldAlert size={14} /> {gitAction === 'review' ? 'Reviewing...' : 'Review'}
+        </button>
+      </div>
 
       {#if worktree}
         <div class="worktree-mini">
@@ -270,7 +307,7 @@
     <!-- Code editor (visible when file selected) -->
     {#if selectedFile}
       <div class="editor-pane" style="flex: 0 0 {editorFraction * 100}%">
-        <CodeEditor
+        <MonacoEditor
           filePath={selectedFile.path}
           repoPath={agent.repoPath}
           mode={selectedFile.isBinary ? 'source' : (fileTab === 'all' ? 'source' : 'diff')}
@@ -290,6 +327,14 @@
     {/if}
   </div>
 </div>
+
+{#if showBranchModal}
+  <BranchModal
+    repoPath={agent.repoPath}
+    repoBranch={agent.repoBranch || 'main'}
+    on:close={() => showBranchModal = false}
+  />
+{/if}
 
 <style>
   .detail {
@@ -573,6 +618,70 @@
   .file-stat .added { color: var(--accent-green); }
   .file-stat .removed { color: var(--accent-red); margin-left: 2px; }
   .file-stat.binary { color: var(--text-muted); font-style: italic; }
+
+  /* Git actions */
+  .git-actions {
+    padding: 6px 8px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .git-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 5px 8px;
+    background: none;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    font-family: var(--font-ui);
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .git-btn:hover:not(:disabled) {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border-color: var(--text-muted);
+  }
+
+  .git-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .git-btn.git-hot {
+    color: #39ff14;
+    border-color: rgba(57, 255, 20, 0.3);
+    text-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
+  }
+
+  .git-btn.git-hot:hover:not(:disabled) {
+    color: #39ff14;
+    border-color: #39ff14;
+    background: rgba(57, 255, 20, 0.08);
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.6);
+  }
+
+  .git-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 6px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .git-success { color: var(--accent-green); background: rgba(0, 229, 122, 0.08); }
+  .git-error { color: var(--accent-red); background: rgba(232, 69, 69, 0.08); }
 
   .worktree-mini {
     padding: 6px 8px;

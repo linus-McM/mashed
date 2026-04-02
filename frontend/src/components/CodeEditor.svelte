@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { ReadFile, ReadFileDiff, WriteFile } from '../../wailsjs/go/main/App.js';
+  import { ReadFile, ReadFileDiff, WriteFile, ExplainDiffHunk, IsExplainAvailable } from '../../wailsjs/go/main/App.js';
 
   export let filePath = '';
   export let repoPath = '';
@@ -16,11 +16,22 @@
   let saveTimer = null;
   let statusTimer = null;
   let isEditing = false;
+  let tooltipVisible = false;
+  let tooltipX = 0;
+  let tooltipY = 0;
+  let tooltipText = '';
+  let tooltipLoading = false;
+  let tooltipError = '';
+  let hoverTimer = null;
+  let explainAvailable = false;
+  let explainCache = new Map();
 
   $: if (filePath && repoPath) loadFile(filePath, repoPath, mode);
   $: fullPath = filePath.startsWith('/') ? filePath : repoPath + '/' + filePath;
 
   async function loadFile(fp, rp, m) {
+    dismissTooltip();
+    explainCache = new Map();
     loading = true;
     error = '';
     content = '';
@@ -122,7 +133,82 @@
     return '';
   }
 
+  $: hunks = (mode === 'diff' && content.startsWith('diff ')) ? parseHunks(content) : [];
+
+  function parseHunks(text) {
+    const lines = text.split('\n');
+    const result = [];
+    let current = null;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith('@@')) {
+        if (current) result.push(current);
+        current = { startLine: i, endLine: i, text: lines[i] + '\n' };
+      } else if (current) {
+        current.endLine = i;
+        current.text += lines[i] + '\n';
+      }
+    }
+    if (current) result.push(current);
+    return result;
+  }
+
+  function getHunkForLine(lineIndex) {
+    return hunks.find(h => lineIndex >= h.startLine && lineIndex <= h.endLine);
+  }
+
+  function handleDiffLineEnter(e, lineIndex) {
+    if (!explainAvailable) return;
+    const line = content.split('\n')[lineIndex];
+    const type = isDiffLine(line);
+    if (type !== 'added' && type !== 'removed') return;
+    const hunk = getHunkForLine(lineIndex);
+    if (!hunk) return;
+    if (hoverTimer) clearTimeout(hoverTimer);
+    hoverTimer = setTimeout(async () => {
+      const hunkKey = hunk.startLine + ':' + hunk.endLine;
+      const rect = e.target.getBoundingClientRect();
+      tooltipX = rect.left + 60;
+      tooltipY = rect.top;
+      tooltipVisible = true;
+      if (explainCache.has(hunkKey)) {
+        tooltipText = explainCache.get(hunkKey);
+        tooltipLoading = false;
+        tooltipError = '';
+        return;
+      }
+      tooltipLoading = true;
+      tooltipText = '';
+      tooltipError = '';
+      try {
+        const explanation = await ExplainDiffHunk(repoPath, filePath, hunk.text);
+        explainCache.set(hunkKey, explanation);
+        tooltipText = explanation;
+      } catch (err) {
+        console.error('ExplainDiffHunk error:', err);
+        tooltipError = typeof err === 'string' ? err : (err?.message || 'Failed to explain');
+      } finally {
+        tooltipLoading = false;
+      }
+    }, 400);
+  }
+
+  function handleDiffLineLeave() {
+    if (hoverTimer) clearTimeout(hoverTimer);
+  }
+
+  function dismissTooltip() {
+    tooltipVisible = false;
+    tooltipText = '';
+    tooltipError = '';
+    tooltipLoading = false;
+  }
+
+  onMount(async () => {
+    try { explainAvailable = await IsExplainAvailable(); } catch {}
+  });
+
   onDestroy(() => {
+    if (hoverTimer) clearTimeout(hoverTimer);
     if (saveTimer) clearTimeout(saveTimer);
     if (statusTimer) clearTimeout(statusTimer);
   });
@@ -146,13 +232,13 @@
     </div>
   </div>
 
-  <div class="editor-content">
+  <div class="editor-content" on:scroll={dismissTooltip}>
     {#if loading}
       <div class="loading">Loading...</div>
     {:else if error}
       <div class="error">{error}</div>
     {:else if mode === 'diff' && content.startsWith('diff ')}
-      <pre class="code diff">{#each content.split('\n') as line, i}<span class="line {isDiffLine(line)}"><span class="line-num">{i + 1}</span>{line}
+      <pre class="code diff">{#each content.split('\n') as line, i}<span class="line {isDiffLine(line)}" class:hoverable={explainAvailable && (isDiffLine(line) === 'added' || isDiffLine(line) === 'removed')} on:mouseenter={(e) => handleDiffLineEnter(e, i)} on:mouseleave={handleDiffLineLeave}><span class="line-num">{i + 1}</span>{line}
 </span>{/each}</pre>
     {:else if editable && isEditing}
       <textarea
@@ -174,6 +260,18 @@
 </span>{/each}</code></pre>
     {/if}
   </div>
+  {#if tooltipVisible}
+    <div class="explain-tooltip" style="left: {tooltipX}px; top: {tooltipY}px;">
+      <button class="tooltip-close" on:click={dismissTooltip}>&times;</button>
+      {#if tooltipLoading}
+        <span class="tooltip-loading">Thinking...</span>
+      {:else if tooltipError}
+        <span class="tooltip-error">{tooltipError}</span>
+      {:else}
+        <span class="tooltip-text">{tooltipText}</span>
+      {/if}
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -336,4 +434,40 @@
   }
 
   .error { color: var(--accent-red); }
+
+  .line.hoverable { cursor: help; }
+  .explain-tooltip {
+    position: fixed;
+    transform: translateY(-100%);
+    max-width: 400px;
+    padding: 8px 12px;
+    padding-right: 28px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--text-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    animation: fadeIn 0.15s ease-out;
+    pointer-events: auto;
+  }
+  .tooltip-close {
+    position: absolute; top: 4px; right: 4px;
+    width: 20px; height: 20px;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none;
+    color: var(--text-muted); cursor: pointer;
+    font-size: 14px; padding: 0;
+    border-radius: var(--radius-sm);
+  }
+  .tooltip-close:hover { color: var(--text-primary); background: var(--bg-active); }
+  .tooltip-loading { color: var(--text-dim); font-style: italic; }
+  .tooltip-error { color: var(--accent-red); }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-100%) translateY(4px); }
+    to { opacity: 1; transform: translateY(-100%); }
+  }
 </style>
