@@ -1,19 +1,19 @@
 {
   "version": 3,
   "created": "2026-04-01T08:11:42+00:00",
-  "last_scan": "2026-04-02T03:08:51+00:00",
-  "scan_count": 27,
+  "last_scan": "2026-04-02T06:24:38+00:00",
+  "scan_count": 28,
   "overall_score": 7.3,
-  "objective_score": 29.1,
+  "objective_score": 29.4,
   "strict_score": 7.3,
-  "verified_strict_score": 29.1,
+  "verified_strict_score": 29.4,
   "stats": {
-    "total": 53,
+    "total": 54,
     "auto_resolved": 0,
     "deferred": 0,
     "false_positive": 0,
     "fixed": 0,
-    "open": 53,
+    "open": 54,
     "triaged_out": 0,
     "wontfix": 0,
     "by_tier": {
@@ -31,7 +31,7 @@
         "deferred": 0,
         "false_positive": 0,
         "fixed": 0,
-        "open": 27,
+        "open": 28,
         "triaged_out": 0,
         "wontfix": 0
       },
@@ -117,7 +117,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -143,7 +143,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -169,7 +169,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -195,7 +195,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -221,7 +221,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -247,7 +247,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -273,7 +273,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -299,7 +299,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -325,7 +325,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -351,7 +351,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -377,7 +377,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -403,7 +403,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -429,7 +429,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -455,7 +455,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -481,7 +481,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -507,7 +507,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -533,7 +533,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -559,7 +559,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -585,7 +585,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -611,7 +611,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "assessment_request",
@@ -637,7 +637,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -662,7 +662,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -687,7 +687,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T08:11:44+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1136,7 +1136,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T20:36:38+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1164,7 +1164,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T20:36:38+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1192,7 +1192,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T20:36:38+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1220,7 +1220,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T20:36:38+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1276,7 +1276,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T20:36:38+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1304,7 +1304,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T20:36:38+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1332,7 +1332,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T20:36:38+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1360,7 +1360,7 @@
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T20:36:38+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1406,18 +1406,18 @@
       "file": "app.go",
       "tier": 2,
       "confidence": "high",
-      "summary": "Untested critical module (1040 LOC, 0 importers) \u2014 high blast radius",
+      "summary": "Untested critical module (1069 LOC, 0 importers) \u2014 high blast radius",
       "detail": {
         "kind": "untested_critical",
-        "loc": 1040,
+        "loc": 1069,
         "importer_count": 0,
-        "loc_weight": 32.2490309931942,
-        "complexity_score": 121
+        "loc_weight": 32.69556544854363,
+        "complexity_score": 124
       },
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T21:31:54+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1435,19 +1435,19 @@
       "file": "app.go",
       "tier": 3,
       "confidence": "medium",
-      "summary": "Large file: large (1040 LOC) / complexity score 121",
+      "summary": "Large file: large (1069 LOC) / complexity score 124",
       "detail": {
-        "loc": 1040,
-        "complexity_score": 121,
+        "loc": 1069,
+        "complexity_score": 124,
         "complexity_signals": [
-          "119 if/else branches",
+          "122 if/else branches",
           "42 for loops"
         ]
       },
       "status": "open",
       "note": null,
       "first_seen": "2026-04-01T22:07:20+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1465,25 +1465,53 @@
       "file": "app.go",
       "tier": 3,
       "confidence": "medium",
-      "summary": "16 disconnected function clusters (42 functions) \u2014 likely mixed responsibilities",
+      "summary": "19 disconnected function clusters (45 functions) \u2014 likely mixed responsibilities",
       "detail": {
-        "cluster_count": 16,
-        "family": "findSessionByID, GitCommitPushAndPR, GetAgentLog, KillAgent",
+        "cluster_count": 19,
+        "family": "consumeEngineEvents, GitCommit, GetAgentLog, KillAgent",
         "families": [
-          "findSessionByID",
-          "GitCommitPushAndPR",
+          "consumeEngineEvents",
+          "GitCommit",
           "GetAgentLog",
           "KillAgent",
+          "IsExplainAvailable",
           "GitListBranches",
-          "GetScopedDiff",
-          "RepoStatus",
-          "GetWorktrees"
+          "GetNotifications",
+          "ListRepoChoices"
         ]
       },
       "status": "open",
       "note": null,
       "first_seen": "2026-04-02T01:26:43+00:00",
-      "last_seen": "2026-04-02T03:08:51+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "work_item_kind": "mechanical_defect",
+      "issue_kind": "mechanical_defect",
+      "origin": "scan",
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::internal/explain/explain.go::untested_module": {
+      "id": "test_coverage::internal/explain/explain.go::untested_module",
+      "detector": "test_coverage",
+      "file": "internal/explain/explain.go",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (80 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 80,
+        "importer_count": 0,
+        "loc_weight": 8.94427190999916
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-04-02T06:24:38+00:00",
+      "last_seen": "2026-04-02T06:24:38+00:00",
       "resolved_at": null,
       "reopen_count": 0,
       "work_item_kind": "mechanical_defect",
@@ -1534,7 +1562,7 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-02T03:08:51+00:00"
+      "updated_at": "2026-04-02T06:24:38+00:00"
     }
   },
   "score_confidence": {
@@ -1566,135 +1594,6 @@
   },
   "subjective_assessments": {},
   "scan_history": [
-    {
-      "timestamp": "2026-04-01T21:05:26+00:00",
-      "lang": "go",
-      "strict_score": 6.3,
-      "verified_strict_score": 25.1,
-      "objective_score": 25.1,
-      "overall_score": 6.3,
-      "open": 50,
-      "diff_new": 0,
-      "diff_resolved": 0,
-      "ignored": 0,
-      "raw_issues": 32,
-      "suppressed_pct": 0.0,
-      "ignore_patterns": 0,
-      "subjective_integrity": {
-        "status": "pass",
-        "matched_count": 0,
-        "reset_count": 0,
-        "target_score": 85.0
-      },
-      "score_confidence": {
-        "status": "reduced",
-        "confidence": 0.0,
-        "detector_count": 1,
-        "dimension_count": 0
-      },
-      "dimension_scores": {
-        "Code quality": {
-          "score": 100.0,
-          "strict": 100.0
-        },
-        "Security": {
-          "score": 100.0,
-          "strict": 100.0
-        },
-        "File health": {
-          "score": 100.0,
-          "strict": 100.0
-        },
-        "Test health": {
-          "score": 1.6,
-          "strict": 1.6
-        },
-        "Abstraction fit": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "AI generated debt": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "API coherence": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Auth consistency": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Contracts": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Convention drift": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Cross-module arch": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Dep health": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Design coherence": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Error consistency": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "High elegance": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Stale migration": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Init coupling": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Logic clarity": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Low elegance": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Mid elegance": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Naming quality": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Structure nav": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Test strategy": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Type safety": {
-          "score": 0.0,
-          "strict": 0.0
-        },
-        "Duplication": {
-          "score": 100.0,
-          "strict": 100.0
-        }
-      }
-    },
     {
       "timestamp": "2026-04-01T21:10:15+00:00",
       "lang": "go",
@@ -4145,6 +4044,135 @@
           "strict": 100.0
         }
       }
+    },
+    {
+      "timestamp": "2026-04-02T06:24:38+00:00",
+      "lang": "go",
+      "strict_score": 7.3,
+      "verified_strict_score": 29.4,
+      "objective_score": 29.4,
+      "overall_score": 7.3,
+      "open": 54,
+      "diff_new": 1,
+      "diff_resolved": 0,
+      "ignored": 0,
+      "raw_issues": 35,
+      "suppressed_pct": 0.0,
+      "ignore_patterns": 0,
+      "subjective_integrity": {
+        "status": "pass",
+        "matched_count": 0,
+        "reset_count": 0,
+        "target_score": 85.0
+      },
+      "score_confidence": {
+        "status": "reduced",
+        "confidence": 0.0,
+        "detector_count": 1,
+        "dimension_count": 0
+      },
+      "dimension_scores": {
+        "Code quality": {
+          "score": 92.2,
+          "strict": 92.2
+        },
+        "Security": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "File health": {
+          "score": 95.6,
+          "strict": 95.6
+        },
+        "Test health": {
+          "score": 8.9,
+          "strict": 8.9
+        },
+        "Abstraction fit": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "AI generated debt": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "API coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Auth consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Contracts": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Convention drift": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Cross-module arch": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Dep health": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Design coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Error consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "High elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Stale migration": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Init coupling": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Logic clarity": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Low elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Mid elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Naming quality": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Structure nav": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Test strategy": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Type safety": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Duplication": {
+          "score": 100.0,
+          "strict": 100.0
+        }
+      }
     }
   ],
   "review_cache": {
@@ -4178,7 +4206,7 @@
       },
       "security": {
         "version": 1,
-        "fingerprint": "c26496dabd7a64596c23380d9f065f5b06ec5ba7",
+        "fingerprint": "54cd6d8188c0c7be4aff7abe4b9fb964f20facb3",
         "entries": [],
         "files_scanned": 0,
         "coverage": null
@@ -4215,7 +4243,7 @@
     }
   },
   "zone_distribution": {
-    "production": 15,
+    "production": 16,
     "test": 5
   },
   "tool_hash": "ab097af7227e",
@@ -4225,33 +4253,33 @@
   },
   "potentials": {
     "go": {
-      "structural": 15,
-      "flat_dirs": 7,
+      "structural": 16,
+      "flat_dirs": 8,
       "responsibility_cohesion": 1,
-      "test_coverage": 193,
-      "security": 15,
+      "test_coverage": 202,
+      "security": 16,
       "subjective_review": 20,
       "stale_wontfix": 0
     }
   },
   "codebase_metrics": {
     "go": {
-      "total_files": 20,
-      "total_loc": 4373,
-      "total_directories": 6
+      "total_files": 21,
+      "total_loc": 4482,
+      "total_directories": 7
     }
   },
   "dimension_scores": {
     "Code quality": {
-      "score": 91.2,
-      "strict": 91.2,
-      "verified_strict_score": 91.2,
-      "checks": 8,
+      "score": 92.2,
+      "strict": 92.2,
+      "verified_strict_score": 92.2,
+      "checks": 9,
       "failing": 1,
       "tier": 3,
       "detectors": {
         "flat_dirs": {
-          "potential": 7,
+          "potential": 8,
           "pass_rate": 1.0,
           "failing": 0,
           "weighted_failures": 0.0
@@ -4268,12 +4296,12 @@
       "score": 100.0,
       "strict": 100.0,
       "verified_strict_score": 100.0,
-      "checks": 15,
+      "checks": 16,
       "failing": 0,
       "tier": 4,
       "detectors": {
         "security": {
-          "potential": 15,
+          "potential": 16,
           "pass_rate": 1.0,
           "failing": 0,
           "weighted_failures": 0.0
@@ -4281,34 +4309,34 @@
       }
     },
     "File health": {
-      "score": 95.3,
-      "strict": 95.3,
-      "verified_strict_score": 95.3,
-      "checks": 15,
+      "score": 95.6,
+      "strict": 95.6,
+      "verified_strict_score": 95.6,
+      "checks": 16,
       "failing": 1,
       "tier": 3,
       "detectors": {
         "structural": {
-          "potential": 15,
-          "pass_rate": 0.9533333333333334,
+          "potential": 16,
+          "pass_rate": 0.95625,
           "failing": 1,
           "weighted_failures": 0.7
         }
       }
     },
     "Test health": {
-      "score": 9.2,
-      "strict": 9.2,
-      "verified_strict_score": 9.2,
-      "checks": 193,
-      "failing": 28,
+      "score": 8.9,
+      "strict": 8.9,
+      "verified_strict_score": 8.9,
+      "checks": 202,
+      "failing": 29,
       "tier": 4,
       "detectors": {
         "test_coverage": {
-          "potential": 193,
-          "pass_rate": 0.09241270733353886,
-          "failing": 28,
-          "weighted_failures": 175.164347484627
+          "potential": 202,
+          "pass_rate": 0.088571191115712,
+          "failing": 29,
+          "weighted_failures": 184.10861939462617
         }
       }
     },
@@ -4751,7 +4779,7 @@
     }
   },
   "reminder_history": {
-    "report_scores": 27,
+    "report_scores": 28,
     "feedback_nudge": 3,
     "stagnant_nudge": 25,
     "zone_classification": 3

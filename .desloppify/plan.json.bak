@@ -1,8 +1,29 @@
 {
   "version": 8,
   "created": "2026-04-01T07:46:22+00:00",
-  "updated": "2026-04-02T03:07:08+00:00",
-  "queue_order": [],
+  "updated": "2026-04-02T03:08:51+00:00",
+  "queue_order": [
+    "subjective::abstraction_fitness",
+    "subjective::ai_generated_debt",
+    "subjective::api_surface_coherence",
+    "subjective::authorization_consistency",
+    "subjective::contract_coherence",
+    "subjective::convention_outlier",
+    "subjective::cross_module_architecture",
+    "subjective::dependency_health",
+    "subjective::design_coherence",
+    "subjective::error_consistency",
+    "subjective::high_level_elegance",
+    "subjective::incomplete_migration",
+    "subjective::initialization_coupling",
+    "subjective::logic_clarity",
+    "subjective::low_level_elegance",
+    "subjective::mid_level_elegance",
+    "subjective::naming_quality",
+    "subjective::package_organization",
+    "subjective::test_strategy",
+    "subjective::type_safety"
+  ],
   "deferred": [],
   "skipped": {},
   "active_cluster": null,
@@ -11,307 +32,307 @@
       "issue_id": "subjective::abstraction_fitness",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::ai_generated_debt": {
       "issue_id": "subjective::ai_generated_debt",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::api_surface_coherence": {
       "issue_id": "subjective::api_surface_coherence",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::authorization_consistency": {
       "issue_id": "subjective::authorization_consistency",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::contract_coherence": {
       "issue_id": "subjective::contract_coherence",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::convention_outlier": {
       "issue_id": "subjective::convention_outlier",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::cross_module_architecture": {
       "issue_id": "subjective::cross_module_architecture",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::dependency_health": {
       "issue_id": "subjective::dependency_health",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::design_coherence": {
       "issue_id": "subjective::design_coherence",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::error_consistency": {
       "issue_id": "subjective::error_consistency",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::high_level_elegance": {
       "issue_id": "subjective::high_level_elegance",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::incomplete_migration": {
       "issue_id": "subjective::incomplete_migration",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::initialization_coupling": {
       "issue_id": "subjective::initialization_coupling",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::logic_clarity": {
       "issue_id": "subjective::logic_clarity",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::low_level_elegance": {
       "issue_id": "subjective::low_level_elegance",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::mid_level_elegance": {
       "issue_id": "subjective::mid_level_elegance",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::naming_quality": {
       "issue_id": "subjective::naming_quality",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::package_organization": {
       "issue_id": "subjective::package_organization",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::test_strategy": {
       "issue_id": "subjective::test_strategy",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "subjective::type_safety": {
       "issue_id": "subjective::type_safety",
       "created_at": "2026-04-01T07:46:22+00:00",
       "cluster": "auto/initial-review",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::main.go": {
       "issue_id": "test_coverage::main.go",
       "created_at": "2026-04-01T08:11:44+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::app.go": {
       "issue_id": "test_coverage::app.go",
       "created_at": "2026-04-01T08:11:44+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "stale_exclude::.venv-desloppify::.venv-desloppify": {
       "issue_id": "stale_exclude::.venv-desloppify::.venv-desloppify",
       "created_at": "2026-04-01T08:11:44+00:00",
       "cluster": "auto/stale_exclude",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "stale_exclude::desloppify-workspace::desloppify-workspace": {
       "issue_id": "stale_exclude::desloppify-workspace::desloppify-workspace",
       "created_at": "2026-04-01T08:11:44+00:00",
       "cluster": "auto/stale_exclude",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "stale_exclude::docs::docs": {
       "issue_id": "stale_exclude::docs::docs",
       "created_at": "2026-04-01T08:11:44+00:00",
       "cluster": "auto/stale_exclude",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/scanner/processes.go": {
       "issue_id": "test_coverage::internal/scanner/processes.go",
       "created_at": "2026-04-01T20:34:39+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/terminal/bridge.go": {
       "issue_id": "test_coverage::internal/terminal/bridge.go",
       "created_at": "2026-04-01T20:34:39+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/agent/engine.go": {
       "issue_id": "test_coverage::internal/agent/engine.go",
       "created_at": "2026-04-01T20:34:39+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/terminal/panes.go": {
       "issue_id": "test_coverage::internal/terminal/panes.go",
       "created_at": "2026-04-01T20:34:39+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/scanner/repos.go": {
       "issue_id": "test_coverage::internal/scanner/repos.go",
       "created_at": "2026-04-01T20:34:39+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/git/diff.go": {
       "issue_id": "test_coverage::internal/git/diff.go",
       "created_at": "2026-04-01T20:34:39+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/scanner/watcher.go": {
       "issue_id": "test_coverage::internal/scanner/watcher.go",
       "created_at": "2026-04-01T20:34:39+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/git/worktree.go": {
       "issue_id": "test_coverage::internal/git/worktree.go",
       "created_at": "2026-04-01T20:34:39+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/scanner/claude.go": {
       "issue_id": "test_coverage::internal/scanner/claude.go",
       "created_at": "2026-04-01T20:34:39+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/scanner/errors.go": {
       "issue_id": "test_coverage::internal/scanner/errors.go",
       "created_at": "2026-04-01T20:34:39+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/git/errors.go": {
       "issue_id": "test_coverage::internal/git/errors.go",
       "created_at": "2026-04-01T20:34:39+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/agent/engine.go::untested_module": {
       "issue_id": "test_coverage::internal/agent/engine.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/git/worktree.go::untested_module": {
       "issue_id": "test_coverage::internal/git/worktree.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/scanner/claude.go::untested_module": {
       "issue_id": "test_coverage::internal/scanner/claude.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/terminal/bridge.go::untested_module": {
       "issue_id": "test_coverage::internal/terminal/bridge.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::main.go::untested_module": {
       "issue_id": "test_coverage::main.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/scanner/errors.go::untested_module": {
       "issue_id": "test_coverage::internal/scanner/errors.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::app.go::untested_module": {
       "issue_id": "test_coverage::app.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/terminal/panes.go::untested_module": {
       "issue_id": "test_coverage::internal/terminal/panes.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/scanner/repos.go::untested_module": {
       "issue_id": "test_coverage::internal/scanner/repos.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/scanner/watcher.go::untested_module": {
       "issue_id": "test_coverage::internal/scanner/watcher.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/git/errors.go::untested_module": {
       "issue_id": "test_coverage::internal/git/errors.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/git/diff.go::untested_module": {
       "issue_id": "test_coverage::internal/git/diff.go::untested_module",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_module",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/scanner/sessions.go": {
       "issue_id": "test_coverage::internal/scanner/sessions.go",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_critical",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::internal/scanner/sessions.go::untested_critical": {
       "issue_id": "test_coverage::internal/scanner/sessions.go::untested_critical",
       "created_at": "2026-04-01T20:38:08+00:00",
       "cluster": "auto/test_coverage-untested_critical",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     },
     "test_coverage::app.go::untested_critical": {
       "issue_id": "test_coverage::app.go::untested_critical",
       "created_at": "2026-04-01T21:34:19+00:00",
       "cluster": "auto/test_coverage-untested_critical",
-      "updated_at": "2026-04-02T02:58:24+00:00"
+      "updated_at": "2026-04-02T03:08:51+00:00"
     }
   },
   "clusters": {
@@ -429,7 +450,12 @@
   },
   "superseded": {},
   "promoted_ids": [],
-  "plan_start_scores": {},
+  "plan_start_scores": {
+    "strict": 7.3,
+    "overall": 7.3,
+    "objective": 29.1,
+    "verified": 29.1
+  },
   "refresh_state": {
     "_subjective_migration_pruned": true,
     "lifecycle_phase": "plan",
@@ -1266,11 +1292,31 @@
       "detail": {
         "scan_count": 26
       }
+    },
+    {
+      "timestamp": "2026-04-02T03:08:51+00:00",
+      "action": "sync_subjective",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "changes": true
+      }
+    },
+    {
+      "timestamp": "2026-04-02T03:08:51+00:00",
+      "action": "seed_start_scores",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {}
     }
   ],
   "epic_triage_meta": {},
   "commit_log": [],
   "uncommitted_issues": [],
   "commit_tracking_branch": null,
-  "scan_count_at_plan_start": 25
+  "scan_count_at_plan_start": 27
 }
