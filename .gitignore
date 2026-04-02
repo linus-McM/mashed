@@ -7,7 +7,7 @@ frontend/dist
 images/*
 .DS_Store
 *.log
-*.env
+.env
 *.pem
 *.key
 *.crt
