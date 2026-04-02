@@ -86,6 +86,10 @@ export function SpawnAgent(arg1, arg2) {
   return window['go']['main']['App']['SpawnAgent'](arg1, arg2);
 }
 
+export function SpawnAgentWithCommand(arg1, arg2) {
+  return window['go']['main']['App']['SpawnAgentWithCommand'](arg1, arg2);
+}
+
 export function SpawnPRReview(arg1) {
   return window['go']['main']['App']['SpawnPRReview'](arg1);
 }

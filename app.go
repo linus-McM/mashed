@@ -201,10 +201,13 @@ func (a *App) doScan() {
 			status = a.inferStatus(sessionData)
 		}
 
-		// Look up tmux pane target
+		// Look up tmux pane target — skip agents without a tmux session
 		var tmuxTarget string
 		if pane, err := a.panes.FindPaneForPID(s.PID); err == nil && pane != nil {
 			tmuxTarget = pane.Target()
+		}
+		if tmuxTarget == "" {
+			continue
 		}
 
 		var logLines []domain.LogLine
@@ -503,6 +506,32 @@ func (a *App) SpawnAgent(repoPath string, model string) (string, error) {
 	a.panes.InvalidateCache()
 
 	log.Printf("spawned agent in tmux session %s at %s", sessionName, repoPath)
+	return target, nil
+}
+
+// SpawnAgentWithCommand starts a Claude session using a fully built CLI command.
+// Returns the tmux pane target string.
+func (a *App) SpawnAgentWithCommand(repoPath, command string) (string, error) {
+	if repoPath == "" || command == "" {
+		return "", fmt.Errorf("repo path and command are required")
+	}
+
+	repoName := repoNameFromDir(repoPath)
+	sessionName := fmt.Sprintf("mashed-%s-%d", repoName, time.Now().Unix())
+
+	tmuxCmd := exec.CommandContext(a.ctx, "tmux", "new-session", "-d",
+		"-s", sessionName,
+		"-c", repoPath,
+		command,
+	)
+	if out, err := tmuxCmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("tmux new-session failed: %w (%s)", err, string(out))
+	}
+
+	target := fmt.Sprintf("%s:0.0", sessionName)
+	a.panes.InvalidateCache()
+
+	log.Printf("spawned agent with command in tmux session %s at %s", sessionName, repoPath)
 	return target, nil
 }
 

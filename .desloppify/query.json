@@ -4,10 +4,10 @@
   "objective_score": 28.5,
   "strict_score": 7.1,
   "verified_strict_score": 28.5,
-  "prev_overall_score": 6.5,
-  "prev_objective_score": 25.8,
-  "prev_strict_score": 6.5,
-  "prev_verified_strict_score": 25.8,
+  "prev_overall_score": 7.1,
+  "prev_objective_score": 28.5,
+  "prev_strict_score": 7.1,
+  "prev_verified_strict_score": 28.5,
   "profile": "full",
   "noise_budget": 10,
   "noise_global_budget": 0,
@@ -17,7 +17,7 @@
   },
   "hidden_total": 28,
   "diff": {
-    "new": 1,
+    "new": 0,
     "auto_resolved": 0,
     "reopened": 0,
     "total_current": 34,
@@ -993,7 +993,7 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-02T01:26:43+00:00"
+      "updated_at": "2026-04-02T01:32:20+00:00"
     }
   },
   "zone_distribution": {
@@ -1001,8 +1001,8 @@
     "test": 5
   },
   "narrative": {
-    "phase": "middle_grind",
-    "headline": "53 issues open. Abstraction fit (0.0%) needs attention \u2014 run `desloppify next` to start.",
+    "phase": "stagnation",
+    "headline": "Score plateaued at 7.1 for 5 scans. Abstraction fit (0.0%) is where the breakthrough is.",
     "dimensions": {
       "lowest_dimensions": [
         {
@@ -1263,7 +1263,7 @@
         }
       },
       "can_parallelize": false,
-      "hint": "Work through actions in priority order. Rescan after each fix to track progress."
+      "hint": "Try a different dimension to break the plateau."
     },
     "tools": {
       "fixers": [],
@@ -1296,7 +1296,7 @@
       "command": "desloppify show structural --status open",
       "description": "1 structural work items \u2014 review large files \u2014 split only when responsibilities are clearly separable"
     },
-    "why_now": "Work through actions in priority order. Rescan after each fix to track progress.",
+    "why_now": "Try a different dimension to break the plateau.",
     "verification_step": {
       "command": "desloppify scan",
       "reason": "revalidate after changes"
@@ -1320,7 +1320,7 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 21,
+      "report_scores": 23,
       "feedback_nudge": 3,
       "stagnant_nudge": 25,
       "zone_classification": 3

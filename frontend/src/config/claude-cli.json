@@ -1,0 +1,38 @@
+{
+  "models": [
+    { "value": "claude-opus-4-6", "label": "Opus 4.6", "context": "1M", "default": true },
+    { "value": "claude-sonnet-4-6", "label": "Sonnet 4.6", "context": "200K" },
+    { "value": "claude-haiku-4-5", "label": "Haiku 4.5", "context": "200K" }
+  ],
+  "permissionModes": [
+    { "value": "default", "label": "Default", "description": "Prompts for risky actions" },
+    { "value": "plan", "label": "Plan", "description": "Read-only, suggests changes" },
+    { "value": "bypassPermissions", "label": "Bypass All", "description": "Skip all permission prompts", "default": true }
+  ],
+  "effortLevels": [
+    { "value": "low", "label": "Low", "description": "Fast, less thorough" },
+    { "value": "medium", "label": "Medium", "description": "Balanced" },
+    { "value": "high", "label": "High", "description": "Thorough, slower", "default": true }
+  ],
+  "outputFormats": [
+    { "value": "text", "label": "Text", "default": true },
+    { "value": "json", "label": "JSON" },
+    { "value": "stream-json", "label": "Stream JSON" }
+  ],
+  "toggleFlags": [
+    { "flag": "--verbose", "label": "Verbose", "description": "Show detailed output", "default": false },
+    { "flag": "--no-chrome", "label": "No Chrome", "description": "Disable Chrome integration", "default": false },
+    { "flag": "--no-session-persistence", "label": "No Persistence", "description": "Don't save session to disk", "default": false }
+  ],
+  "textFields": [
+    { "flag": "--name", "label": "Session Name", "placeholder": "my-session", "default": "" },
+    { "flag": "--max-turns", "label": "Max Turns", "placeholder": "e.g. 50", "type": "number", "default": "" },
+    { "flag": "--append-system-prompt", "label": "Append System Prompt", "placeholder": "Extra instructions...", "multiline": true, "default": "" },
+    { "flag": "--allowedTools", "label": "Allowed Tools", "placeholder": "Edit,Bash(git *)", "default": "" },
+    { "flag": "--disallowedTools", "label": "Disallowed Tools", "placeholder": "Bash(rm *)", "default": "" },
+    { "flag": "--mcp-config", "label": "MCP Config Path", "placeholder": "/path/to/mcp.json", "default": "" }
+  ],
+  "alwaysOn": [
+    "--dangerously-skip-permissions"
+  ]
+}

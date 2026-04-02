@@ -1,11 +1,12 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { createEventDispatcher } from 'svelte';
-  import { SpawnAgent, SpawnTerminal, KillAgent, GitCommit, GitCommitAndPush, GitCommitPushAndPR, SpawnPRReview, RepoStatus } from '../../wailsjs/go/main/App.js';
+  import { SpawnAgent, SpawnAgentWithCommand, SpawnTerminal, KillAgent, GitCommit, GitCommitAndPush, GitCommitPushAndPR, SpawnPRReview, RepoStatus } from '../../wailsjs/go/main/App.js';
   import { EventsOn } from '../../wailsjs/runtime/runtime.js';
-  import { GripVertical, GitBranch, Trash2, Plus, Hexagon, Circle, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, TerminalSquare } from 'lucide-svelte';
+  import { GripVertical, GitBranch, Trash2, Plus, Hexagon, Circle, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, TerminalSquare, ChevronRight, ChevronDown } from 'lucide-svelte';
   import BranchModal from './BranchModal.svelte';
   import SwitchBranchModal from './SwitchBranchModal.svelte';
+  import NewSessionModal from './NewSessionModal.svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
   import SparkLine from '../components/SparkLine.svelte';
 
@@ -15,6 +16,14 @@
 
   /** @type {any[]} Notifications passed from App.svelte */
   export let notifications = [];
+
+  // All scanned repos from backend (includes repos with no active agents)
+  let allRepos = [];
+  EventsOn('repos', (repos) => {
+    if (repos && repos.length > 0) {
+      allRepos = repos;
+    }
+  });
 
   let selectedId = null;
   let colorPickerRepo = null; // repo name with open color picker
@@ -106,8 +115,8 @@
     dragOverRepo = null;
   }
 
-  // Group: repo → agents → sub-agents
-  $: repoGroups = buildRepoTree(notifications);
+  // Group: repo → agents → sub-agents, merged with all scanned repos
+  $: repoGroups = buildRepoTree(notifications, allRepos);
 
   // Apply manual order on top of the default sort
   $: orderedRepos = applyRepoOrder(repoGroups, repoOrder);
@@ -135,8 +144,21 @@
   $: totalRepos = orderedRepos.length;
   $: totalTokens = notifications.reduce((sum, e) => sum + (e.tokensUsed || 0), 0);
 
-  function buildRepoTree(events) {
+  function buildRepoTree(events, scannedRepos) {
     const repoMap = new Map();
+
+    // Seed with all scanned repos so they always show a panel
+    for (const r of (scannedRepos || [])) {
+      if (!repoMap.has(r.name)) {
+        repoMap.set(r.name, {
+          name: r.name,
+          path: r.path,
+          branch: r.branch,
+          agents: [],
+          worstStatus: 'idle',
+        });
+      }
+    }
 
     for (const evt of events) {
       const repoKey = evt.repoName || 'unknown';
@@ -223,25 +245,32 @@
     return hrs + 'h ' + (mins % 60) + 'm';
   }
 
-  async function spawnInRepo(repo) {
-    if (spawningRepo) return;
-    spawningRepo = repo.path;
+  // New Session modal state
+  let sessionModalRepo = null; // { path, name, branch } or null
+
+  function openSessionModal(repo) {
+    sessionModalRepo = { path: repo.path, name: repo.name, branch: repo.branch };
+  }
+
+  async function onSessionSpawn(e) {
+    const { command, model, repoPath } = e.detail;
+    sessionModalRepo = null;
+    spawningRepo = repoPath;
     try {
-      console.log('Spawning in repo:', repo.path);
-      const target = await SpawnAgent(repo.path, 'claude-opus-4-6');
-      console.log('SpawnAgent returned target:', target);
+      const target = await SpawnAgentWithCommand(repoPath, command);
+      const repoName = repoNameFromDir(repoPath);
       const agent = {
         agentId: `spawned-${Date.now()}`,
-        agentName: 'claude-opus-4-6',
-        model: 'claude-opus-4-6',
-        repoName: repo.name,
-        repoPath: repo.path,
-        repoBranch: repo.branch,
+        agentName: model,
+        model: model,
+        repoName: repoName,
+        repoPath: repoPath,
+        repoBranch: '',
         eventType: 'running',
         tmuxTarget: target,
         tokensUsed: 0,
-        tokensMax: 1000000,
-        summary: `New session in ${repo.name}`,
+        tokensMax: model.includes('opus') ? 1000000 : 200000,
+        summary: `New session in ${repoName}`,
       };
       dispatch('notify', agent);
       dispatch('select', agent);
@@ -250,6 +279,12 @@
     } finally {
       spawningRepo = null;
     }
+  }
+
+  function repoNameFromDir(dir) {
+    if (!dir) return 'unknown';
+    const parts = dir.split('/');
+    return parts[parts.length - 1] || 'unknown';
   }
 
   let spawningTerminal = null;
@@ -367,6 +402,41 @@
     return (repoStatuses[path]?.openPRs || 0) > 0;
   }
 
+  // Collapsed state per repo name
+  let collapsedRepos = new Set();
+
+  function toggleCollapse(name) {
+    if (collapsedRepos.has(name)) {
+      collapsedRepos.delete(name);
+    } else {
+      collapsedRepos.add(name);
+    }
+    collapsedRepos = collapsedRepos;
+  }
+
+  function isCollapsed(repo) {
+    // Explicitly toggled takes priority
+    if (collapsedRepos.has(repo.name)) return true;
+    // Auto-collapse if no agents and never explicitly opened
+    if (repo.agents.length === 0 && !expandedRepos.has(repo.name)) return true;
+    return false;
+  }
+
+  // Track repos the user has explicitly expanded (so empty repos stay open after expand)
+  let expandedRepos = new Set();
+
+  function handleHeaderClick(repo) {
+    if (isCollapsed(repo)) {
+      collapsedRepos.delete(repo.name);
+      expandedRepos.add(repo.name);
+    } else {
+      collapsedRepos.add(repo.name);
+      expandedRepos.delete(repo.name);
+    }
+    collapsedRepos = collapsedRepos;
+    expandedRepos = expandedRepos;
+  }
+
   // Branch modal state
   let branchModalRepo = null; // { path, branch } or null
   let switchModalRepo = null; // { path, branch, color } or null
@@ -446,9 +516,10 @@
         class:drag-over={dragOverRepo === repo.name}
         style="border-color: {getRepoColor(repo.name)}"
       >
-        <!-- Repo header (draggable) -->
+        <!-- Repo header (draggable, dblclick to toggle) -->
         <div
           class="repo-header"
+          class:collapsed={isCollapsed(repo)}
           draggable="true"
           on:dragstart={(e) => onDragStart(e, repo.name)}
           on:dragover={(e) => onDragOver(e, repo.name)}
@@ -456,6 +527,13 @@
           on:drop={(e) => onDrop(e, repo.name)}
           on:dragend={onDragEnd}
         >
+          <button class="collapse-btn" on:click|stopPropagation={() => handleHeaderClick(repo)}>
+            {#if isCollapsed(repo)}
+              <ChevronRight size={14} />
+            {:else}
+              <ChevronDown size={14} />
+            {/if}
+          </button>
           <span class="drag-handle" style="color: {getRepoColor(repo.name) !== '#1e2530' ? getRepoColor(repo.name) : ''}"><GripVertical size={14} /></span>
           <span class="repo-name">{repo.name}</span>
           {#if repo.branch}
@@ -486,6 +564,7 @@
           </div>
         </div>
 
+        {#if !isCollapsed(repo)}
         <div class="repo-body">
           <!-- Left: Agents (75%) -->
           <div class="repo-agents">
@@ -630,7 +709,7 @@
             <button
               class="new-session-btn"
               style="color: {getRepoColor(repo.name) !== '#1e2530' ? getRepoColor(repo.name) : ''}"
-              on:click|stopPropagation={() => spawnInRepo(repo)}
+              on:click|stopPropagation={() => openSessionModal(repo)}
               disabled={spawningRepo === repo.path}
             >
               <span class="new-session-icon"><Plus size={14} /></span>
@@ -647,10 +726,11 @@
             </button>
           </div>
         {/if}
+        {/if}
       </div>
     {/each}
 
-    {#if notifications.length === 0}
+    {#if orderedRepos.length === 0}
       <div class="empty">
         <div class="empty-icon"><Hexagon size={40} /></div>
         <div class="empty-text">No active agents</div>
@@ -680,6 +760,15 @@
     repoBranch={branchModalRepo.branch}
     on:created={onBranchCreated}
     on:cancel={() => branchModalRepo = null}
+  />
+{/if}
+
+{#if sessionModalRepo}
+  <NewSessionModal
+    repoPath={sessionModalRepo.path}
+    repoName={sessionModalRepo.name}
+    on:spawn={onSessionSpawn}
+    on:cancel={() => sessionModalRepo = null}
   />
 {/if}
 
@@ -715,7 +804,9 @@
   .feed {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    height: 0;
+    min-height: 0;
     background: var(--bg-deepest);
   }
 
@@ -750,6 +841,24 @@
   }
 
   .repo-header:active { cursor: grabbing; }
+
+  .repo-header.collapsed {
+    border-bottom: none;
+  }
+
+  .collapse-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    transition: color 100ms ease;
+  }
+
+  .collapse-btn:hover { color: var(--text-dim); }
 
   .drag-handle {
     color: var(--text-muted);
