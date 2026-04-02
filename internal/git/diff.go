@@ -27,7 +27,49 @@ func ScopedDiff(dir string) (*domain.ScopedDiff, error) {
 	}
 	files = append(files, untrackedFiles...)
 
+	// 3. Filter out gitignored paths (tracked files that now match .gitignore).
+	files = filterIgnored(dir, files)
+
 	return &domain.ScopedDiff{Files: files}, nil
+}
+
+// filterIgnored removes files whose paths match .gitignore rules.
+// Uses `git check-ignore` to test paths against the repo's ignore rules.
+func filterIgnored(dir string, files []domain.DiffFileStat) []domain.DiffFileStat {
+	if len(files) == 0 {
+		return files
+	}
+
+	// Build a list of paths to check.
+	paths := make([]string, len(files))
+	for i, f := range files {
+		paths[i] = f.Path
+	}
+
+	// git check-ignore returns ignored paths (one per line), exit 1 if none match.
+	cmd := exec.Command("git", "-C", dir, "check-ignore", "--stdin")
+	cmd.Stdin = strings.NewReader(strings.Join(paths, "\n"))
+	out, _ := cmd.Output() // exit 1 is normal when no paths are ignored
+
+	if len(out) == 0 {
+		return files
+	}
+
+	ignored := make(map[string]bool)
+	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+		p := strings.TrimSpace(line)
+		if p != "" {
+			ignored[p] = true
+		}
+	}
+
+	filtered := make([]domain.DiffFileStat, 0, len(files))
+	for _, f := range files {
+		if !ignored[f.Path] {
+			filtered = append(filtered, f)
+		}
+	}
+	return filtered
 }
 
 // parseDiffStat runs `git diff --stat HEAD` and parses each line.
