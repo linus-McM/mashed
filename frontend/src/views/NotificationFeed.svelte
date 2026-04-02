@@ -243,7 +243,7 @@
         tokensMax: 1000000,
         summary: `New session in ${repo.name}`,
       };
-      console.log('Dispatching select with agent:', JSON.stringify(agent));
+      dispatch('notify', agent);
       dispatch('select', agent);
     } catch (e) {
       console.error('Spawn failed:', e);
@@ -273,8 +273,8 @@
         summary: 'Shell session',
         priority: 10,
       };
-      // Add to notifications so it shows in the repo panel
-      notifications = [...notifications, termSession];
+      // Tell parent to add to its notification list so it persists
+      dispatch('notify', termSession);
       dispatch('select', termSession);
     } catch (e) {
       console.error('Terminal spawn failed:', e);

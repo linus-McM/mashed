@@ -42,6 +42,16 @@
     currentView = 'feed';
   }
 
+  function addNotification(event) {
+    const n = event.detail;
+    const idx = notifications.findIndex(x => x.agentId === n.agentId);
+    if (idx >= 0) {
+      notifications[idx] = n;
+    } else {
+      notifications = [...notifications, n];
+    }
+  }
+
   function drillDown(agent) {
     console.log('drillDown called with:', agent?.agentId, agent?.tmuxTarget);
     selectedAgent = agent;
@@ -103,6 +113,7 @@
     <NotificationFeed
       {notifications}
       on:select={(e) => drillDown(e.detail)}
+      on:notify={addNotification}
       on:spawn={() => showSpawnModal = true}
     />
   {:else}

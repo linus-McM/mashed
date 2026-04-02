@@ -16,3 +16,10 @@
 [  379246ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
 [  389012ms] [LOG] drillDown called with: pid-84041  @ http://localhost:34115/src/App.svelte?t=1775093018645:450
 [  405014ms] [LOG] drillDown called with: term-1775093047702 term-mashed-1775093047:0.0 @ http://localhost:34115/src/App.svelte?t=1775093018645:450
+[  588574ms] [LOG] drillDown called with: pid-63054  @ http://localhost:34115/src/App.svelte?t=1775093196671:462
+[  626993ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  626993ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  626993ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  635213ms] [LOG] drillDown called with: term-1775093277901 term-esurfr-1775093277:0.0 @ http://localhost:34115/src/App.svelte?t=1775093241759:462
+[  650540ms] [LOG] drillDown called with: term-1775093277901 term-esurfr-1775093277:0.0 @ http://localhost:34115/src/App.svelte?t=1775093241759:462
+[  657680ms] [LOG] drillDown called with: term-1775093277901 term-esurfr-1775093277:0.0 @ http://localhost:34115/src/App.svelte?t=1775093241759:462
