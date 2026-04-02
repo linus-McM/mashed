@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { GetScopedDiff, GetWorktrees } from '../../wailsjs/go/main/App.js';
-  import { ArrowLeft, GitBranch } from 'lucide-svelte';
+  import { GetScopedDiff, GetWorktrees, ListRepoFiles } from '../../wailsjs/go/main/App.js';
+  import { ArrowLeft, GitBranch, GripVertical } from 'lucide-svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
   import Terminal from '../components/Terminal.svelte';
   import CodeEditor from '../components/CodeEditor.svelte';
@@ -11,8 +11,61 @@
   export let agent;
 
   let changedFiles = [];
+  let allFiles = []; // all repo files for the "All" tab
   let worktree = null;
   let selectedFile = null; // when set, shows code editor on right
+  let fileTab = 'changed'; // 'changed' or 'all'
+  let allFilesSearch = ''; // search filter for all files tab
+
+  // Resizable pane widths
+  let workspaceEl;
+  let fileStripWidth = 180;
+  let editorFraction = 0.5; // fraction of remaining space for editor
+  let dragging = null; // 'file-strip' or 'editor'
+
+  function onMouseDown(pane) {
+    return (e) => {
+      e.preventDefault();
+      dragging = pane;
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    };
+  }
+
+  function onMouseMove(e) {
+    if (!dragging || !workspaceEl) return;
+    const rect = workspaceEl.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const totalW = rect.width;
+
+    if (dragging === 'file-strip') {
+      // Dragging the handle between terminal and file strip
+      // file strip starts at x and goes to either editor or right edge
+      if (selectedFile) {
+        const editorW = totalW * editorFraction;
+        const newStripW = totalW - x - editorW;
+        fileStripWidth = Math.max(120, Math.min(350, newStripW));
+      } else {
+        const newStripW = totalW - x;
+        fileStripWidth = Math.max(120, Math.min(350, newStripW));
+      }
+    } else if (dragging === 'editor') {
+      // Dragging the handle between file strip and editor
+      const editorW = totalW - x;
+      const availableForEditor = totalW - fileStripWidth;
+      editorFraction = Math.max(0.2, Math.min(0.8, editorW / totalW));
+    }
+  }
+
+  function onMouseUp() {
+    dragging = null;
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
 
   $: tokenPct = agent ? Math.min(((agent.tokensUsed || 0) / (agent.tokensMax || 1)) * 100, 100) : 0;
   $: tokenLabel = agent ? formatTokens(agent.tokensUsed || 0) + ' / ' + formatTokens(agent.tokensMax || 0) : '';
@@ -23,11 +76,23 @@
     return String(n);
   }
 
+  $: filteredAllFiles = allFilesSearch
+    ? allFiles.filter(f => f.toLowerCase().includes(allFilesSearch.toLowerCase()))
+    : allFiles;
+
   function selectFile(file) {
     if (selectedFile?.path === file.path) {
       selectedFile = null; // toggle off
     } else {
       selectedFile = file;
+    }
+  }
+
+  function selectAllFile(filePath) {
+    if (selectedFile?.path === filePath) {
+      selectedFile = null;
+    } else {
+      selectedFile = { path: filePath, isBinary: false };
     }
   }
 
@@ -60,6 +125,13 @@
       } catch (e) {
         console.warn('Failed to get worktrees:', e);
       }
+
+      try {
+        const files = await ListRepoFiles(agent.repoPath);
+        if (files) allFiles = files;
+      } catch (e) {
+        console.warn('Failed to list repo files:', e);
+      }
     }
   });
 
@@ -90,39 +162,96 @@
   </div>
 
   <!-- Main workspace -->
-  <div class="workspace">
-    <!-- Left half: Terminal (always visible) -->
-    <div class="terminal-pane" class:half={selectedFile}>
+  <div class="workspace" bind:this={workspaceEl}>
+    <!-- Terminal pane -->
+    <div
+      class="terminal-pane"
+      style={selectedFile ? `flex: 0 0 calc(100% - ${fileStripWidth}px - ${editorFraction * 100}%)` : `flex: 1 1 0; width: 0`}
+    >
       <Terminal paneTarget={agent?.tmuxTarget || ''} repoPath={agent?.repoPath || ''} />
     </div>
 
-    <!-- File list strip (between terminal and editor) -->
-    <div class="file-strip" class:visible={changedFiles.length > 0}>
+    <!-- Resize handle: terminal | file strip -->
+    <div class="resize-handle" on:mousedown={onMouseDown('file-strip')}>
+      <div class="resize-grip"><GripVertical size={10} /></div>
+    </div>
+
+    <!-- File list strip -->
+    <div class="file-strip visible" style="width: {fileStripWidth}px">
       <div class="file-strip-header">
-        <span class="file-strip-title">FILES</span>
-        <span class="file-strip-count">{changedFiles.length}</span>
-      </div>
-      <div class="file-strip-list">
-        {#each changedFiles as file}
+        <div class="file-tabs">
           <button
-            class="file-item"
-            class:active={selectedFile?.path === file.path}
-            class:binary={file.isBinary}
-            on:click={() => selectFile(file)}
-            title={file.path}
+            class="file-tab"
+            class:active={fileTab === 'changed'}
+            on:click={() => fileTab = 'changed'}
           >
-            <span class="file-name">{file.path.split('/').pop()}</span>
-            {#if file.isBinary}
-              <span class="file-stat binary">bin</span>
-            {:else}
-              <span class="file-stat">
-                {#if file.added > 0}<span class="added">+{file.added}</span>{/if}
-                {#if file.removed > 0}<span class="removed">-{file.removed}</span>{/if}
-              </span>
+            Changed
+            {#if changedFiles.length > 0}
+              <span class="file-tab-count">{changedFiles.length}</span>
             {/if}
           </button>
-        {/each}
+          <button
+            class="file-tab"
+            class:active={fileTab === 'all'}
+            on:click={() => fileTab = 'all'}
+          >
+            All Files
+          </button>
+        </div>
       </div>
+
+      {#if fileTab === 'changed'}
+        <div class="file-strip-list">
+          {#each changedFiles as file}
+            <button
+              class="file-item"
+              class:active={selectedFile?.path === file.path}
+              class:binary={file.isBinary}
+              on:click={() => selectFile(file)}
+              title={file.path}
+            >
+              <span class="file-name">{file.path.split('/').pop()}</span>
+              {#if file.isBinary}
+                <span class="file-stat binary">bin</span>
+              {:else}
+                <span class="file-stat">
+                  {#if file.added > 0}<span class="added">+{file.added}</span>{/if}
+                  {#if file.removed > 0}<span class="removed">-{file.removed}</span>{/if}
+                </span>
+              {/if}
+            </button>
+          {/each}
+          {#if changedFiles.length === 0}
+            <div class="file-strip-empty">No changes</div>
+          {/if}
+        </div>
+      {:else}
+        <div class="file-search">
+          <input
+            type="text"
+            placeholder="Filter files..."
+            bind:value={allFilesSearch}
+            class="file-search-input"
+          />
+        </div>
+        <div class="file-strip-list">
+          {#each filteredAllFiles as filePath}
+            <button
+              class="file-item"
+              class:active={selectedFile?.path === filePath}
+              on:click={() => selectAllFile(filePath)}
+              title={filePath}
+            >
+              <span class="file-name">{filePath.split('/').pop()}</span>
+              <span class="file-dir">{filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : ''}</span>
+            </button>
+          {/each}
+          {#if filteredAllFiles.length === 0}
+            <div class="file-strip-empty">No files found</div>
+          {/if}
+        </div>
+      {/if}
+
       {#if worktree}
         <div class="worktree-mini">
           <span class="worktree-label">WT</span>
@@ -131,13 +260,21 @@
       {/if}
     </div>
 
-    <!-- Right half: Code editor (visible when file selected) -->
+    <!-- Resize handle: file strip | editor -->
     {#if selectedFile}
-      <div class="editor-pane">
+      <div class="resize-handle" on:mousedown={onMouseDown('editor')}>
+        <div class="resize-grip"><GripVertical size={10} /></div>
+      </div>
+    {/if}
+
+    <!-- Code editor (visible when file selected) -->
+    {#if selectedFile}
+      <div class="editor-pane" style="flex: 0 0 {editorFraction * 100}%">
         <CodeEditor
           filePath={selectedFile.path}
           repoPath={agent.repoPath}
-          mode={selectedFile.isBinary ? 'source' : 'diff'}
+          mode={selectedFile.isBinary ? 'source' : (fileTab === 'all' ? 'source' : 'diff')}
+          editable={!selectedFile.isBinary}
         />
       </div>
     {/if}
@@ -254,54 +391,139 @@
   }
 
   .terminal-pane {
-    flex: 1 1 0;
     display: flex;
     flex-direction: column;
-    min-width: 0;
-    width: 0; /* critical: prevents flex item from overflowing */
+    min-width: 100px;
     overflow: hidden;
   }
 
-  .terminal-pane.half {
-    flex: 0 0 calc(50% - 90px);
-    width: calc(50% - 90px);
+  /* Resize handle */
+  .resize-handle {
+    width: 6px;
+    flex-shrink: 0;
+    cursor: col-resize;
+    background: var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 100ms ease;
+    position: relative;
+    z-index: 2;
+  }
+
+  .resize-handle:hover, .resize-handle:active {
+    background: var(--accent-green);
+  }
+
+  .resize-grip {
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 100ms ease;
+  }
+
+  .resize-handle:hover .resize-grip {
+    opacity: 1;
+    color: var(--bg-deepest);
   }
 
   /* File strip */
   .file-strip {
-    width: 0;
     flex-shrink: 0;
     overflow: hidden;
-    border-left: 1px solid var(--border-subtle);
     background: var(--bg-surface);
     display: flex;
     flex-direction: column;
-    transition: width 150ms ease-out;
-  }
-
-  .file-strip.visible {
-    width: 180px;
+    min-width: 120px;
   }
 
   .file-strip-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 6px 8px;
+    padding: 0;
     border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
   }
 
-  .file-strip-title {
+  .file-tabs {
+    display: flex;
+    width: 100%;
+  }
+
+  .file-tab {
+    flex: 1;
+    padding: 6px 8px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
     font-size: 10px;
     font-weight: 600;
-    color: var(--text-dim);
-    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    font-family: var(--font-ui);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
   }
 
-  .file-strip-count {
+  .file-tab:hover { color: var(--text-dim); }
+
+  .file-tab.active {
+    color: var(--accent-green);
+    border-bottom-color: var(--accent-green);
+  }
+
+  .file-tab-count {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 9px;
+    background: var(--bg-active);
+    padding: 0 4px;
+    border-radius: 8px;
+    color: var(--accent-green);
+  }
+
+  .file-search {
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+
+  .file-search-input {
+    width: 100%;
+    padding: 3px 6px;
+    background: var(--bg-deepest);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    outline: none;
+  }
+
+  .file-search-input:focus {
+    border-color: var(--accent-green);
+  }
+
+  .file-search-input::placeholder {
     color: var(--text-muted);
+  }
+
+  .file-strip-empty {
+    padding: 12px 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .file-dir {
+    font-size: 9px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 1;
+    min-width: 0;
   }
 
   .file-strip-list {
@@ -373,11 +595,10 @@
 
   /* Editor pane */
   .editor-pane {
-    flex: 0 0 calc(50% - 90px);
     display: flex;
     flex-direction: column;
-    border-left: 1px solid var(--border-subtle);
-    min-width: 0;
+    min-width: 150px;
+    overflow: hidden;
   }
 
   /* Bottom bar */

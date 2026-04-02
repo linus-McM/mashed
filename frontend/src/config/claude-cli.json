@@ -6,8 +6,10 @@
   ],
   "permissionModes": [
     { "value": "default", "label": "Default", "description": "Prompts for risky actions" },
+    { "value": "acceptEdits", "label": "Accept Edits", "description": "Auto-approve edits, prompt for commands" },
     { "value": "plan", "label": "Plan", "description": "Read-only, suggests changes" },
-    { "value": "bypassPermissions", "label": "Bypass All", "description": "Skip all permission prompts", "default": true }
+    { "value": "auto", "label": "Auto", "description": "Auto-approve most actions" },
+    { "value": "dontAsk", "label": "Don't Ask", "description": "Skip all permission prompts", "default": true }
   ],
   "effortLevels": [
     { "value": "low", "label": "Low", "description": "Fast, less thorough" },
@@ -21,18 +23,21 @@
   ],
   "toggleFlags": [
     { "flag": "--verbose", "label": "Verbose", "description": "Show detailed output", "default": false },
+    { "flag": "--debug", "label": "Debug", "description": "Enable debug logging", "default": false },
+    { "flag": "--worktree", "label": "Worktree", "description": "Run in isolated git worktree", "default": false },
     { "flag": "--no-chrome", "label": "No Chrome", "description": "Disable Chrome integration", "default": false },
     { "flag": "--no-session-persistence", "label": "No Persistence", "description": "Don't save session to disk", "default": false }
   ],
+  "conditionalFlags": [
+    { "flag": "--agent", "label": "Agent", "description": "Use a custom agent for this session", "placeholder": "my-custom-agent", "default": false },
+    { "flag": "--agent-teams", "label": "Agent Teams", "description": "Enable experimental agent teams (SendMessage, TeamCreate, TeamDelete)", "placeholder": "team-name", "default": false }
+  ],
   "textFields": [
     { "flag": "--name", "label": "Session Name", "placeholder": "my-session", "default": "" },
-    { "flag": "--max-turns", "label": "Max Turns", "placeholder": "e.g. 50", "type": "number", "default": "" },
+    { "flag": "--max-turns", "label": "Max Turns", "placeholder": "e.g. 50", "default": "" },
     { "flag": "--append-system-prompt", "label": "Append System Prompt", "placeholder": "Extra instructions...", "multiline": true, "default": "" },
     { "flag": "--allowedTools", "label": "Allowed Tools", "placeholder": "Edit,Bash(git *)", "default": "" },
     { "flag": "--disallowedTools", "label": "Disallowed Tools", "placeholder": "Bash(rm *)", "default": "" },
     { "flag": "--mcp-config", "label": "MCP Config Path", "placeholder": "/path/to/mcp.json", "default": "" }
-  ],
-  "alwaysOn": [
-    "--dangerously-skip-permissions"
   ]
 }

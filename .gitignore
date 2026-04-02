@@ -50,3 +50,4 @@ images/*
 *.csv
 *.dat
 *.backup
+console-**.log

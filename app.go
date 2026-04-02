@@ -163,6 +163,9 @@ func (a *App) doScan() {
 		repoBranch[r.Path] = r.Branch
 	}
 
+	// Track claimed session files so two agents in the same repo don't share one
+	claimedSessions := make(map[string]bool) // sessionDir/sessionID -> true
+
 	for _, s := range sessions {
 		dir, err := a.provider.GetWorkingDir(s.PID)
 		if err != nil {
@@ -180,9 +183,12 @@ func (a *App) doScan() {
 		var sessionData *domain.SessionData
 		if s.SessionID != "" {
 			sessionData = a.findSessionByID(sessionDir, s.SessionID)
+			if sessionData != nil {
+				claimedSessions[sessionDir+"/"+s.SessionID] = true
+			}
 		}
 		if sessionData == nil {
-			sessionData = a.findLatestSession(sessionDir)
+			sessionData = a.findUnclaimed(sessionDir, claimedSessions)
 		}
 
 		var tokensUsed int64
@@ -290,6 +296,56 @@ func (a *App) consumeEngineEvents() {
 			a.mu.Unlock()
 		}
 	}
+}
+
+// findUnclaimed finds the most recent session file that hasn't been claimed by another agent.
+func (a *App) findUnclaimed(sessionDir string, claimed map[string]bool) *domain.SessionData {
+	entries, err := os.ReadDir(sessionDir)
+	if err != nil {
+		return nil
+	}
+
+	// Collect all .jsonl files sorted by mod time descending
+	type fileEntry struct {
+		path string
+		key  string
+		mod  time.Time
+	}
+	var files []fileEntry
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".jsonl" {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		sid := strings.TrimSuffix(entry.Name(), ".jsonl")
+		files = append(files, fileEntry{
+			path: filepath.Join(sessionDir, entry.Name()),
+			key:  sessionDir + "/" + sid,
+			mod:  info.ModTime(),
+		})
+	}
+
+	// Sort newest first
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].mod.After(files[j].mod)
+	})
+
+	// Return the first unclaimed file
+	for _, f := range files {
+		if claimed[f.key] {
+			continue
+		}
+		data, err := a.provider.ParseSession(f.path)
+		if err != nil {
+			continue
+		}
+		claimed[f.key] = true
+		return data
+	}
+	return nil
 }
 
 // findSessionByID parses a specific session file by its ID.
@@ -910,6 +966,37 @@ Keep it factual based on the diff.
 	}
 
 	return strings.TrimSpace(string(ghOut)), nil
+}
+
+// ListRepoFiles returns all tracked (and untracked non-ignored) files in a repo.
+func (a *App) ListRepoFiles(repoPath string) ([]string, error) {
+	if repoPath == "" {
+		return nil, fmt.Errorf("empty repo path")
+	}
+	// git ls-files returns tracked files; --others --exclude-standard adds untracked non-ignored
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "ls-files", "--cached", "--others", "--exclude-standard")
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("git ls-files: %w", err)
+	}
+	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+	var files []string
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			files = append(files, line)
+		}
+	}
+	sort.Strings(files)
+	return files, nil
+}
+
+// WriteFile writes content to a file on disk.
+func (a *App) WriteFile(path, content string) error {
+	if path == "" {
+		return fmt.Errorf("empty file path")
+	}
+	return os.WriteFile(path, []byte(content), 0644)
 }
 
 // SpawnPRReview spawns a Claude agent to do an adversarial review of the latest PR.

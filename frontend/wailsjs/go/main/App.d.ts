@@ -30,6 +30,8 @@ export function KillAgent(arg1:string,arg2:number):Promise<void>;
 
 export function ListRepoChoices():Promise<Array<Record<string, string>>>;
 
+export function ListRepoFiles(arg1:string):Promise<Array<string>>;
+
 export function MarkRead(arg1:string):Promise<void>;
 
 export function PickDirectory():Promise<string>;
@@ -49,3 +51,5 @@ export function SpawnAgentWithCommand(arg1:string,arg2:string):Promise<string>;
 export function SpawnPRReview(arg1:string):Promise<string>;
 
 export function SpawnTerminal(arg1:string):Promise<string>;
+
+export function WriteFile(arg1:string,arg2:string):Promise<void>;

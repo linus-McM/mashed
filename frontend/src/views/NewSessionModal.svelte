@@ -20,6 +20,14 @@
     toggles[t.flag] = t.default || false;
   }
 
+  // Conditional flags (toggle + text value)
+  let conditionalEnabled = {};
+  let conditionalValues = {};
+  for (const c of (cliConfig.conditionalFlags || [])) {
+    conditionalEnabled[c.flag] = c.default || false;
+    conditionalValues[c.flag] = '';
+  }
+
   // Text fields
   let textValues = {};
   for (const f of cliConfig.textFields) {
@@ -28,26 +36,28 @@
 
   $: command = buildCommand();
 
+  $: isOpus = model.includes('opus');
+
   function buildCommand() {
     const parts = ['claude'];
 
     parts.push('--model', model);
 
-    // Permission — bypassPermissions uses --dangerously-skip-permissions
-    if (permissionMode === 'bypassPermissions') {
+    // Permission mode
+    if (permissionMode === 'dontAsk') {
       parts.push('--dangerously-skip-permissions');
     } else if (permissionMode !== 'default') {
       parts.push('--permission-mode', permissionMode);
     }
 
-    parts.push('--effort', effort);
+    // Effort only for Opus
+    if (isOpus) {
+      parts.push('--effort', effort);
+    }
 
     if (outputFormat !== 'text') {
       parts.push('--output-format', outputFormat);
     }
-
-    // Always-on flags
-    // (--dangerously-skip-permissions handled above via permission mode)
 
     // Toggle flags
     for (const t of cliConfig.toggleFlags) {
@@ -56,12 +66,23 @@
       }
     }
 
+    // Conditional flags (enabled + optional value)
+    for (const c of (cliConfig.conditionalFlags || [])) {
+      if (conditionalEnabled[c.flag]) {
+        const val = (conditionalValues[c.flag] || '').trim();
+        if (val) {
+          parts.push(c.flag, val);
+        } else {
+          parts.push(c.flag);
+        }
+      }
+    }
+
     // Text fields
     for (const f of cliConfig.textFields) {
       const val = (textValues[f.flag] || '').trim();
       if (val) {
         if (f.flag === '--allowedTools' || f.flag === '--disallowedTools') {
-          // Split by comma and quote each
           for (const tool of val.split(',').map(s => s.trim()).filter(Boolean)) {
             parts.push(f.flag, `"${tool}"`);
           }
@@ -130,7 +151,8 @@
       </div>
     </div>
 
-    <!-- Effort -->
+    <!-- Effort (Opus only) -->
+    {#if isOpus}
     <div class="field">
       <label>Effort</label>
       <div class="radio-row">
@@ -146,6 +168,7 @@
         {/each}
       </div>
     </div>
+    {/if}
 
     <!-- Output Format -->
     <div class="field">
@@ -175,6 +198,24 @@
         {/each}
       </div>
     </div>
+
+    <!-- Conditional flags (toggle + text input) -->
+    {#each (cliConfig.conditionalFlags || []) as c}
+      <div class="field">
+        <label class="toggle-item" title={c.description}>
+          <input type="checkbox" bind:checked={conditionalEnabled[c.flag]} />
+          <span>{c.label}</span>
+        </label>
+        {#if conditionalEnabled[c.flag]}
+          <input
+            class="text-input conditional-input"
+            type="text"
+            placeholder={c.placeholder}
+            bind:value={conditionalValues[c.flag]}
+          />
+        {/if}
+      </div>
+    {/each}
 
     <!-- Text fields -->
     {#each cliConfig.textFields as f}
@@ -354,6 +395,10 @@
 
   .text-input::placeholder {
     color: var(--text-muted);
+  }
+
+  .conditional-input {
+    margin-top: 6px;
   }
 
   .command-preview {

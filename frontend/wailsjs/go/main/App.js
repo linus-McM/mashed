@@ -58,6 +58,10 @@ export function ListRepoChoices() {
   return window['go']['main']['App']['ListRepoChoices']();
 }
 
+export function ListRepoFiles(arg1) {
+  return window['go']['main']['App']['ListRepoFiles'](arg1);
+}
+
 export function MarkRead(arg1) {
   return window['go']['main']['App']['MarkRead'](arg1);
 }
@@ -96,4 +100,8 @@ export function SpawnPRReview(arg1) {
 
 export function SpawnTerminal(arg1) {
   return window['go']['main']['App']['SpawnTerminal'](arg1);
+}
+
+export function WriteFile(arg1, arg2) {
+  return window['go']['main']['App']['WriteFile'](arg1, arg2);
 }
