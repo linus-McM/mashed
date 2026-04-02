@@ -7,3 +7,295 @@
 [  132496ms] [LOG] SpawnAgent returned target: conductor-mashed-1775085254:0.0 @ http://localhost:34115/src/views/NotificationFeed.svelte?t=1775083936597:1331
 [  132496ms] [LOG] Dispatching select with agent: {"agentId":"spawned-1775085254144","agentName":"claude-opus-4-6","model":"claude-opus-4-6","repoName":"mashed","repoPath":"/Users/linus/Development/mashed","repoBranch":"main","eventType":"running","tmuxTarget":"conductor-mashed-1775085254:0.0","tokensUsed":0,"tokensMax":1000000,"summary":"New session in mashed"} @ http://localhost:34115/src/views/NotificationFeed.svelte?t=1775083936597:1347
 [  132496ms] [LOG] drillDown called with: spawned-1775085254144 conductor-mashed-1775085254:0.0 @ http://localhost:34115/src/App.svelte?t=1775083937538:425
+[ 1094701ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 1094702ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 1094707ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 1094708ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 1095205ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 1095803ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1095814ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 1095814ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1102613ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 1102620ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 1102621ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 1102624ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 1103118ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 1103675ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1103676ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 1103676ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1121890ms] [LOG] drillDown called with: pid-41319  @ http://localhost:34115/src/App.svelte?t=1775086222199:425
+[ 1127546ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1127549ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 1127549ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1130336ms] [LOG] drillDown called with: pid-5983  @ http://localhost:34115/src/App.svelte?t=1775086222199:425
+[ 1141764ms] [LOG] drillDown called with: pid-41319  @ http://localhost:34115/src/App.svelte?t=1775086222199:425
+[ 1145840ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1145841ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 1145841ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1154170ms] [LOG] drillDown called with: pid-164  @ http://localhost:34115/src/App.svelte?t=1775086222199:425
+[ 1160238ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1160239ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 1160239ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1164985ms] [LOG] drillDown called with: pid-41319  @ http://localhost:34115/src/App.svelte?t=1775086222199:425
+[ 1798140ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1798141ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 1798141ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1800017ms] [LOG] drillDown called with: pid-5983  @ http://localhost:34115/src/App.svelte?t=1775086806243:436
+[ 1803515ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1803516ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 1803516ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 1811101ms] [LOG] drillDown called with: pid-41319  @ http://localhost:34115/src/App.svelte?t=1775086806243:436
+[ 2152707ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 2152708ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2152711ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2152711ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error during WebSocket handshake: net::ERR_CONNECTION_RESET @ http://localhost:34115/wails/ipc.js:6
+[ 2153211ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2153766ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2153766ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2153766ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2256628ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 2256628ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2256630ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error during WebSocket handshake: net::ERR_CONNECTION_RESET @ http://localhost:34115/wails/ipc.js:6
+[ 2256630ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2257131ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2257672ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2257674ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2257674ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2266995ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2266996ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 2266997ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error during WebSocket handshake: net::ERR_CONNECTION_RESET @ http://localhost:34115/wails/ipc.js:6
+[ 2266998ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2267498ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2268037ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2268038ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2268038ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2273189ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2273190ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 2273190ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error during WebSocket handshake: net::ERR_CONNECTION_RESET @ http://localhost:34115/wails/ipc.js:6
+[ 2273191ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2273691ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2274228ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2274229ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2274229ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2277423ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2277425ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 2277425ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2277426ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2277927ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2278524ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2278526ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2278526ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2296208ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 2296209ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2296211ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error during WebSocket handshake: net::ERR_CONNECTION_RESET @ http://localhost:34115/wails/ipc.js:6
+[ 2296211ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2296711ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2297252ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2297253ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2297253ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2402958ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 2402959ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2402961ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:34115/:0
+[ 2402961ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error during WebSocket handshake: net::ERR_CONNECTION_RESET @ http://localhost:34115/wails/ipc.js:6
+[ 2403462ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2404004ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2404004ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2404004ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2528848ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2528849ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2528849ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2694833ms] [LOG] drillDown called with: pid-5983  @ http://localhost:34115/src/App.svelte?t=1775087706946:450
+[ 2731143ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed:  @ http://localhost:34115/wails/ipc.js:6
+[ 2731143ms] [ERROR] WebSocket connection to 'ws://localhost:34115/' failed:  @ http://localhost:34115/@vite/client:243
+[ 2731144ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2731148ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 2731236ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2731647ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2732147ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2732151ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2732647ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2733148ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2733153ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2733651ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2734155ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2734155ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2734655ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2735158ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2735173ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2735699ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2736159ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2736272ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2736911ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2737161ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2737599ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2738163ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2738183ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2739165ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2740168ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2740559ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2741171ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2742174ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2742836ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2743177ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2744179ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2745181ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2745430ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2746184ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2747186ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2748189ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2749192ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2749500ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2750194ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2751197ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2752285ms] [WARNING] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: WebSocket is closed before the connection is established. @ http://localhost:34115/wails/ipc.js:6
+[ 2752361ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2752690ms] [LOG] Queueing: C{"name":"main.App.GetDevDir","args":[],"callbackID":"main.App.GetDevDir-2734230268"} @ http://localhost:34115/wails/ipc.js:6
+[ 2756704ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2756704ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2756705ms] [LOG] sending queued message: C{"name":"main.App.GetDevDir","args":[],"callbackID":"main.App.GetDevDir-2734230268"} @ http://localhost:34115/wails/ipc.js:6
+[ 2831112ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2831120ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 2831120ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error during WebSocket handshake: net::ERR_CONNECTION_RESET @ http://localhost:34115/wails/ipc.js:6
+[ 2831122ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2831618ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2832124ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2832135ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2832628ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2833127ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2833131ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2833629ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2834131ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2834151ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2834624ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2835133ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2835191ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2835678ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2836136ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2836136ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2836727ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2837137ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2837181ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2837682ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2838139ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2838306ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2838859ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2839141ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2839241ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2839950ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2840143ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2840584ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2840875ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2841145ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2841893ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2842147ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2843149ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2843342ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2844151ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2844160ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2845152ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2845330ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2846155ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 2846519ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 2847185ms] [WARNING] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: WebSocket is closed before the connection is established. @ http://localhost:34115/wails/ipc.js:6
+[ 2847245ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2848948ms] [LOG] Queueing: C{"name":"main.App.GetDevDir","args":[],"callbackID":"main.App.GetDevDir-3654402225"} @ http://localhost:34115/wails/ipc.js:6
+[ 2849683ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2849683ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2849684ms] [LOG] sending queued message: C{"name":"main.App.GetDevDir","args":[],"callbackID":"main.App.GetDevDir-3654402225"} @ http://localhost:34115/wails/ipc.js:6
+[ 2964098ms] [ERROR] [HMR][Svelte] Failed to rerender <NotificationFeed> @ http://localhost:34115/node_modules/svelte-hmr/runtime/proxy.js?v=7ab5d1b3:14
+[ 2964098ms] [ERROR] ReferenceError: X is not defined
+    at create_each_block_1 (http://localhost:34115/src/views/NotificationFeed.svelte?t=1775088085559:587:2)
+    at create_each_block (http://localhost:34115/src/views/NotificationFeed.svelte?t=1775088085559:916:20)
+    at create_fragment (http://localhost:34115/src/views/NotificationFeed.svelte?t=1775088085559:1309:43)
+    at init (http://localhost:34115/node_modules/.vite/deps/chunk-2SWUXKJS.js?v=7ab5d1b3:1888:35)
+    at new NotificationFeed (http://localhost:34115/src/views/NotificationFeed.svelte?t=1775088085559:2051:3)
+    at createComponent (http://localhost:34115/node_modules/svelte-hmr/runtime/svelte-hooks.js?v=7ab5d1b3:206:20)
+    at targetCmp.$replace (http://localhost:34115/node_modules/svelte-hmr/runtime/svelte-hooks.js?v=7ab5d1b3:269:15)
+    at refreshComponent (http://localhost:34115/node_modules/svelte-hmr/runtime/proxy.js?v=7ab5d1b3:171:15)
+    at ProxyAdapterDom.rerender (http://localhost:34115/node_modules/svelte-hmr/runtime/proxy-adapter-dom.js?v=7ab5d1b3:77:5)
+    at http://localhost:34115/node_modules/svelte-hmr/runtime/proxy.js?v=7ab5d1b3:408:9 @ http://localhost:34115/node_modules/svelte-hmr/runtime/proxy.js?v=7ab5d1b3:18
+[ 2967808ms] [LOG] [HMR:Svelte] Reload @ http://localhost:34115/node_modules/svelte-hmr/runtime/hot-api.js?v=7ab5d1b3:7
+[ 2967884ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2967935ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 2967935ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 2975154ms] [LOG] drillDown called with: pid-67126 conductor-mashed-1775085254:0.0 @ http://localhost:34115/src/App.svelte?t=1775088089412:450
+[ 3332409ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 3332411ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 3332411ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 3332412ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 3332911ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 3333450ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 3333451ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 3333451ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4200374ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 4200375ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4200377ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error during WebSocket handshake: net::ERR_CONNECTION_RESET @ http://localhost:34115/wails/ipc.js:6
+[ 4200377ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 4200877ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4201416ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4201417ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4201417ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4206909ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 4206910ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4206911ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 4206911ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 4207412ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4207951ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4207952ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4207952ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4212108ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 4212108ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4212110ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 4212110ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 4212611ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4213150ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4213150ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4213150ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4220795ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4220800ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 4220801ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 4220801ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 4221298ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4221853ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4221854ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4221854ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4229330ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 4229330ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4229333ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 4229333ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 4229834ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4230378ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4230379ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4230379ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4235864ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 4235864ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4235866ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 4235866ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 4236366ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4236908ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4236910ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4236910ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4243935ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 4243935ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4243936ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 4243967ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 4244437ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4244997ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4244998ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4244998ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4282470ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 4282470ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4282472ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[ 4282472ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[ 4282973ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4283528ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4283529ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4283529ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4295924ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[ 4295924ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4295926ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:34115/:0
+[ 4295926ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error during WebSocket handshake: net::ERR_CONNECTION_RESET @ http://localhost:34115/wails/ipc.js:6
+[ 4296427ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4296973ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[ 4296975ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[ 4296975ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6

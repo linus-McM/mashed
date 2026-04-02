@@ -93,5 +93,11 @@ body {
 .text-muted { color: var(--text-muted); }
 .text-accent { color: var(--accent-green); }
 
+/* Lucide icons */
+.lucide-icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
 /* Wails frameless window drag region */
 .wails-drag { --wails-draggable: drag; }

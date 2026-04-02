@@ -74,19 +74,20 @@ func TestDeduplication_SameStateTwice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Second: running -> running (should NOT emit)
+	// Second: running -> running, summary changes from "Starting session..." to "Running..."
+	// This emits because the summary text changed.
 	if err := engine.ProcessAgentUpdate(agent, "repo", "main"); err != nil {
 		t.Fatal(err)
 	}
 
-	// Third: running -> running again (should NOT emit)
+	// Third: running -> running, same summary "Running..." — should NOT emit
 	if err := engine.ProcessAgentUpdate(agent, "repo", "main"); err != nil {
 		t.Fatal(err)
 	}
 
 	events := drainEvents(t, engine, 100*time.Millisecond)
-	if len(events) != 1 {
-		t.Errorf("got %d events, want 1 (deduplication should suppress repeats)", len(events))
+	if len(events) != 2 {
+		t.Errorf("got %d events, want 2 (first=started, second=summary change, third=deduped)", len(events))
 	}
 }
 
@@ -149,9 +150,11 @@ func TestPriorityOrdering(t *testing.T) {
 	}{
 		{"needs_response is 0", domain.EventNeedsResponse, 0},
 		{"error is 1", domain.EventError, 1},
-		{"completed is 2", domain.EventCompleted, 2},
-		{"running is 3", domain.EventRunning, 3},
-		{"started is 4", domain.EventStarted, 4},
+		{"running is 2", domain.EventRunning, 2},
+		{"finished is 3", domain.EventType("finished"), 3},
+		{"open is 4", domain.EventType("open"), 4},
+		{"completed is 5", domain.EventCompleted, 5},
+		{"started is 6", domain.EventStarted, 6},
 	}
 
 	for _, tt := range tests {
@@ -163,7 +166,7 @@ func TestPriorityOrdering(t *testing.T) {
 		})
 	}
 
-	// Verify relative ordering: needs_response < error < completed < running < started
+	// Verify relative ordering: each priority strictly increasing
 	for i := 1; i < len(tests); i++ {
 		prev := priorityFor(tests[i-1].evtType)
 		curr := priorityFor(tests[i].evtType)
@@ -177,11 +180,11 @@ func TestPriorityOrdering(t *testing.T) {
 func TestSortByPriority(t *testing.T) {
 	now := time.Now()
 	events := []domain.NotificationEvent{
-		{EventType: domain.EventRunning, Priority: 3, Timestamp: now},
+		{EventType: domain.EventRunning, Priority: 2, Timestamp: now},
 		{EventType: domain.EventError, Priority: 1, Timestamp: now.Add(-1 * time.Second)},
-		{EventType: domain.EventCompleted, Priority: 2, Timestamp: now},
+		{EventType: domain.EventCompleted, Priority: 5, Timestamp: now},
 		{EventType: domain.EventNeedsResponse, Priority: 0, Timestamp: now},
-		{EventType: domain.EventStarted, Priority: 4, Timestamp: now},
+		{EventType: domain.EventStarted, Priority: 6, Timestamp: now},
 	}
 
 	sorted := SortByPriority(events)
@@ -189,8 +192,8 @@ func TestSortByPriority(t *testing.T) {
 	wantOrder := []domain.EventType{
 		domain.EventNeedsResponse,
 		domain.EventError,
-		domain.EventCompleted,
 		domain.EventRunning,
+		domain.EventCompleted,
 		domain.EventStarted,
 	}
 

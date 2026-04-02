@@ -76,6 +76,7 @@
         background: '#07080a',
         foreground: '#c8d4e0',
         cursor: '#00e57a',
+        cursorAccent: '#07080a',
         selectionBackground: '#2a3340',
         black: '#07080a',
         red: '#e84545',
@@ -88,6 +89,7 @@
       },
       cursorBlink: true,
       cursorStyle: 'block',
+      cursorInactiveStyle: 'outline',
       scrollback: 5000,
       disableStdin: !paneTarget, // Read-only when showing log view
     });
@@ -106,8 +108,10 @@
 
     term.open(terminalEl);
     fitAddon.fit();
-    // Focus the terminal so it receives keyboard input
+    // Focus the terminal so it receives keyboard input and shows the cursor
     term.focus();
+    // Re-focus after a short delay to ensure WebView has settled
+    setTimeout(() => term.focus(), 100);
 
     const resizeObserver = new ResizeObserver(() => fitAddon.fit());
     resizeObserver.observe(terminalEl);
@@ -121,9 +125,10 @@
         ws.binaryType = 'arraybuffer';
 
         ws.onopen = () => {
-          term.write('\x1b[32m● Connected to agent terminal\x1b[0m\r\n\r\n');
           // Send initial resize so tmux knows the real terminal size
           sendResize();
+          // Clear any stale rendering from the initial 1x1 pty
+          term.clear();
         };
 
         ws.onmessage = (evt) => {
@@ -134,11 +139,11 @@
         };
 
         ws.onclose = () => {
-          term.write('\r\n\x1b[33m● Disconnected\x1b[0m\r\n');
+          term.write('\r\n\x1b[33m[disconnected]\x1b[0m\r\n');
         };
 
         ws.onerror = () => {
-          term.write('\r\n\x1b[31m● Connection error\x1b[0m\r\n');
+          term.write('\r\n\x1b[31m[connection error]\x1b[0m\r\n');
         };
 
         // Send resize event to bridge so tmux/pty knows the real terminal dimensions
@@ -163,8 +168,6 @@
       }
     } else if (repoPath) {
       // Live log view — poll JSONL session data
-      term.write('\x1b[90m● Live agent activity log\x1b[0m\r\n');
-      term.write('\x1b[90m  Streaming from session JSONL...\x1b[0m\r\n\r\n');
 
       // Initial load
       await pollLog();
@@ -172,7 +175,7 @@
       // Poll every 2 seconds for new log lines
       logPollInterval = setInterval(pollLog, 2000);
     } else {
-      term.write('\x1b[90mNo agent session data available.\x1b[0m\r\n');
+      term.write('\x1b[90m[no session data]\x1b[0m\r\n');
     }
   });
 

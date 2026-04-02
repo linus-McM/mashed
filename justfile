@@ -19,15 +19,15 @@ opus:
 haiku:
     @claude --dangerously-skip-permissions --model "haiku"
 
-# Launch Claude Conductor in dev mode (hot reload)
+# Launch Mashed in dev mode (hot reload)
 dev:
     PATH="$HOME/go/bin:$PATH" wails dev
 
-# Build and launch Claude Conductor
+# Build and launch Mashed
 run: build
     open build/bin/conductor.app
 
-# Build Claude Conductor production binary
+# Build Mashed production binary
 build:
     cd frontend && npm install && cd ..
     PATH="$HOME/go/bin:$PATH" wails build

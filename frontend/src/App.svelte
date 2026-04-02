@@ -6,6 +6,8 @@
   import NotificationFeed from './views/NotificationFeed.svelte';
   import AgentDetail from './views/AgentDetail.svelte';
   import SpawnAgent from './views/SpawnAgent.svelte';
+  import { Hexagon } from 'lucide-svelte';
+  import TitleBar from './components/TitleBar.svelte';
 
   let currentView = 'loading'; // 'loading' | 'setup' | 'feed' | 'detail'
   let selectedAgent = null;
@@ -90,9 +92,10 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <main>
+  <TitleBar />
   {#if currentView === 'loading'}
     <div class="loading">
-      <div class="loading-icon">⬡</div>
+      <div class="loading-icon"><Hexagon size={48} /></div>
     </div>
   {:else if currentView === 'setup'}
     <Setup on:ready={onSetupReady} />
@@ -118,6 +121,8 @@
   main {
     width: 100vw;
     height: 100vh;
+    display: flex;
+    flex-direction: column;
     background: var(--bg-deepest);
   }
 

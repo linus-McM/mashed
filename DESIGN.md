@@ -1,4 +1,4 @@
-# Design System — Claude Conductor
+# Design System — Mashed
 
 ## Product Context
 - **What this is:** Notification-first IDE for multi-agent development

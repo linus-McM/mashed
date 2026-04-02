@@ -171,7 +171,9 @@ func (b *Bridge) servePane(ctx context.Context, ws *websocket.Conn, target strin
 	cmd := exec.CommandContext(ctx, "tmux", "attach-session", "-t", target)
 	cmd.Env = append(os.Environ(), "TERM=xterm-256color")
 
-	ptmx, err := pty.StartWithSize(cmd, &pty.Winsize{Cols: 200, Rows: 50})
+	// Start with 1x1 — the frontend will send the real size immediately on connect.
+	// This prevents tmux from rendering a full frame at the wrong dimensions.
+	ptmx, err := pty.StartWithSize(cmd, &pty.Winsize{Cols: 1, Rows: 1})
 	if err != nil {
 		sendWSClose(ws, fmt.Errorf("pty start for %s: %w", target, err))
 		return

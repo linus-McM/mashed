@@ -1,0 +1,18 @@
+[       2ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[       3ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[       3ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[     104ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:34115/favicon.ico:0
+[  269872ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  269873ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  269873ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  272738ms] [LOG] drillDown called with: term-1775092915426 term-mashed-1775092915:0.0 @ http://localhost:34115/src/App.svelte?t=1775092838614:450
+[  378201ms] [LOG] [vite] server connection lost. polling for restart... @ http://localhost:34115/@vite/client:260
+[  378201ms] [LOG] %c wails dev %c Disconnected from backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  378205ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/:0
+[  378205ms] [ERROR] WebSocket connection to 'ws://localhost:34115/wails/ipc' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:34115/wails/ipc.js:6
+[  378705ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  379243ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  379246ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
+[  379246ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
+[  389012ms] [LOG] drillDown called with: pid-84041  @ http://localhost:34115/src/App.svelte?t=1775093018645:450
+[  405014ms] [LOG] drillDown called with: term-1775093047702 term-mashed-1775093047:0.0 @ http://localhost:34115/src/App.svelte?t=1775093018645:450

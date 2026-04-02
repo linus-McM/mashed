@@ -1,4 +1,4 @@
-// Package domain defines all domain types for Claude Conductor.
+// Package domain defines all domain types for Mashed.
 package domain
 
 import (
@@ -10,11 +10,14 @@ import (
 type AgentStatus string
 
 const (
-	StatusRunning AgentStatus = "running"
-	StatusBlocked AgentStatus = "blocked"
-	StatusError   AgentStatus = "error"
-	StatusQueued  AgentStatus = "queued"
-	StatusDone    AgentStatus = "done"
+	StatusRunning  AgentStatus = "running"  // actively processing (tool calls, generating)
+	StatusOpen     AgentStatus = "open"     // idle — Claude spoke last, not waiting for user
+	StatusFinished AgentStatus = "finished" // task complete, awaiting next instruction
+	StatusWaiting  AgentStatus = "waiting"  // actively waiting for user response (AskUserQuestion)
+	StatusBlocked  AgentStatus = "blocked"  // legacy — maps to waiting
+	StatusError    AgentStatus = "error"
+	StatusQueued   AgentStatus = "queued"
+	StatusDone     AgentStatus = "done"
 )
 
 // LogKind categorizes log line types for display styling.
@@ -92,6 +95,9 @@ type SessionData struct {
 	CacheCreateTokens int64          `json:"cacheCreateTokens"`
 	LogLines          []LogLine      `json:"logLines"`
 	SubAgents         []SubAgentInfo `json:"subAgents"`
+	LastMessageType   string         `json:"lastMessageType"`   // "assistant" or "user"
+	LastToolName      string         `json:"lastToolName"`      // last tool_use name (e.g. "AskUserQuestion")
+	HasPendingToolUse bool           `json:"hasPendingToolUse"` // assistant ended with tool_use awaiting result
 }
 
 // SubAgentInfo tracks a sub-agent spawned via the Agent tool.

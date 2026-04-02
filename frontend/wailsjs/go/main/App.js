@@ -26,6 +26,34 @@ export function GetWorktrees(arg1) {
   return window['go']['main']['App']['GetWorktrees'](arg1);
 }
 
+export function GitCommit(arg1) {
+  return window['go']['main']['App']['GitCommit'](arg1);
+}
+
+export function GitCommitAndPush(arg1) {
+  return window['go']['main']['App']['GitCommitAndPush'](arg1);
+}
+
+export function GitCommitPushAndPR(arg1) {
+  return window['go']['main']['App']['GitCommitPushAndPR'](arg1);
+}
+
+export function GitCreateBranch(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['GitCreateBranch'](arg1, arg2, arg3, arg4);
+}
+
+export function GitListBranches(arg1) {
+  return window['go']['main']['App']['GitListBranches'](arg1);
+}
+
+export function GitSwitchBranch(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GitSwitchBranch'](arg1, arg2, arg3);
+}
+
+export function KillAgent(arg1, arg2) {
+  return window['go']['main']['App']['KillAgent'](arg1, arg2);
+}
+
 export function ListRepoChoices() {
   return window['go']['main']['App']['ListRepoChoices']();
 }
@@ -46,10 +74,22 @@ export function ReadFileDiff(arg1, arg2) {
   return window['go']['main']['App']['ReadFileDiff'](arg1, arg2);
 }
 
+export function RepoStatus(arg1) {
+  return window['go']['main']['App']['RepoStatus'](arg1);
+}
+
 export function SetDevDir(arg1) {
   return window['go']['main']['App']['SetDevDir'](arg1);
 }
 
 export function SpawnAgent(arg1, arg2) {
   return window['go']['main']['App']['SpawnAgent'](arg1, arg2);
+}
+
+export function SpawnPRReview(arg1) {
+  return window['go']['main']['App']['SpawnPRReview'](arg1);
+}
+
+export function SpawnTerminal(arg1) {
+  return window['go']['main']['App']['SpawnTerminal'](arg1);
 }

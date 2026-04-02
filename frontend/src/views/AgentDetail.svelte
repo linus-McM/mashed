@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { GetScopedDiff, GetWorktrees } from '../../wailsjs/go/main/App.js';
+  import { ArrowLeft, GitBranch } from 'lucide-svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
   import Terminal from '../components/Terminal.svelte';
   import CodeEditor from '../components/CodeEditor.svelte';
@@ -70,13 +71,13 @@
 <div class="detail">
   <!-- Compact header bar -->
   <div class="header">
-    <button class="back-btn" on:click={() => dispatch('back')}>&#8592; Back</button>
+    <button class="back-btn" on:click={() => dispatch('back')}><ArrowLeft size={14} /> Back</button>
     <span class="header-repo">{agent.repoName}</span>
     <span class="header-sep">/</span>
     <span class="header-agent">{agent.model || agent.agentName}</span>
     <StatusBadge status={agent.eventType} size="sm" />
     {#if agent.repoBranch}
-      <span class="header-branch">⎇ {agent.repoBranch}</span>
+      <span class="header-branch"><GitBranch size={12} /> {agent.repoBranch}</span>
     {/if}
     <div class="header-right">
       <div class="token-mini">
@@ -175,15 +176,19 @@
   .back-btn {
     background: none;
     border: none;
-    color: var(--text-dim);
+    color: #39ff14;
     font-family: var(--font-ui);
     font-size: 13px;
     cursor: pointer;
     padding: 2px 6px;
     border-radius: var(--radius-sm);
+    text-shadow: 0 0 6px rgba(57, 255, 20, 0.6);
   }
 
-  .back-btn:hover { color: var(--accent-green); }
+  .back-btn:hover {
+    color: #39ff14;
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.9), 0 0 20px rgba(57, 255, 20, 0.4);
+  }
 
   .header-repo {
     font-weight: 600;

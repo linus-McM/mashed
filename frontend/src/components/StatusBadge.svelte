@@ -3,23 +3,31 @@
   export let size = 'md'; // 'sm' or 'md'
 
   const colors = {
-    running: 'var(--accent-amber)',
+    running: '#39ff14',
+    open: '#00c4b3',
+    finished: 'var(--accent-amber)',
+    needs_response: 'var(--accent-red)',
+    waiting: 'var(--accent-red)',
     error: 'var(--accent-red)',
     completed: 'var(--accent-blue)',
-    needs_response: 'var(--accent-green)',
     started: 'var(--accent-purple)',
-    blocked: 'var(--accent-amber)',
+    blocked: 'var(--accent-red)',
     done: 'var(--accent-blue)',
+    terminal: 'var(--text-dim)',
   };
 
   const labels = {
     running: 'RUNNING',
+    open: 'OPEN',
+    finished: 'FINISHED',
+    needs_response: 'WAITING',
+    waiting: 'WAITING',
     error: 'ERROR',
     completed: 'DONE',
-    needs_response: 'NEEDS RESPONSE',
     started: 'STARTED',
-    blocked: 'BLOCKED',
+    blocked: 'WAITING',
     done: 'DONE',
+    terminal: 'TERMINAL',
   };
 </script>
 

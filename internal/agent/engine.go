@@ -38,8 +38,9 @@ func (e *EngineError) Unwrap() error { return e.Err }
 
 // agentState tracks the last known state of an agent for deduplication.
 type agentState struct {
-	status    domain.AgentStatus
-	lastEvent time.Time
+	status      domain.AgentStatus
+	lastSummary string
+	lastEvent   time.Time
 }
 
 // NotificationEngine manages agent state transitions and emits notification events.
@@ -77,20 +78,26 @@ func (e *NotificationEngine) ProcessAgentUpdate(agent domain.Agent, repoName, re
 
 	newStatus := agent.Status
 	eventType := statusToEventType(newStatus)
+	newSummary := buildSummary(agent, true) // pre-compute to check for changes
 
 	e.mu.Lock()
 	prev, existed := e.states[agent.ID]
 
-	// Only emit on state TRANSITIONS — skip if same status
-	if existed && prev.status == newStatus {
+	// Skip if both status and summary are unchanged
+	if existed && prev.status == newStatus && prev.lastSummary == newSummary {
 		e.mu.Unlock()
 		return nil
 	}
 
+	if !existed {
+		newSummary = buildSummary(agent, false)
+	}
+
 	now := time.Now()
 	e.states[agent.ID] = &agentState{
-		status:    newStatus,
-		lastEvent: now,
+		status:      newStatus,
+		lastSummary: newSummary,
+		lastEvent:   now,
 	}
 	e.mu.Unlock()
 
@@ -102,7 +109,7 @@ func (e *NotificationEngine) ProcessAgentUpdate(agent domain.Agent, repoName, re
 		RepoName:   repoName,
 		RepoBranch: repoBranch,
 		EventType:  eventType,
-		Summary:    buildSummary(agent, existed),
+		Summary:    newSummary,
 		Timestamp:  now,
 		Priority:   priorityFor(eventType),
 		TokensUsed: agent.TokensUsed,
@@ -169,21 +176,25 @@ func (e *NotificationEngine) GetAgentStatus(agentID string) (domain.AgentStatus,
 }
 
 // priorityFor maps event types to priority numbers.
-// 0=needs-response, 1=error, 2=completed, 3=running, 4=started.
+// 0=needs-response/waiting, 1=error, 2=running, 3=finished, 4=open, 5=completed, 6=started.
 func priorityFor(et domain.EventType) int {
 	switch et {
 	case domain.EventNeedsResponse:
 		return 0
 	case domain.EventError:
 		return 1
-	case domain.EventCompleted:
-		return 2
 	case domain.EventRunning:
+		return 2
+	case domain.EventType("finished"):
 		return 3
-	case domain.EventStarted:
+	case domain.EventType("open"):
 		return 4
-	default:
+	case domain.EventCompleted:
 		return 5
+	case domain.EventStarted:
+		return 6
+	default:
+		return 7
 	}
 }
 
@@ -191,6 +202,12 @@ func statusToEventType(status domain.AgentStatus) domain.EventType {
 	switch status {
 	case domain.StatusRunning:
 		return domain.EventRunning
+	case domain.StatusOpen:
+		return domain.EventType("open")
+	case domain.StatusFinished:
+		return domain.EventType("finished")
+	case domain.StatusWaiting:
+		return domain.EventNeedsResponse
 	case domain.StatusBlocked:
 		return domain.EventNeedsResponse
 	case domain.StatusError:
@@ -205,21 +222,42 @@ func statusToEventType(status domain.AgentStatus) domain.EventType {
 }
 
 func buildSummary(agent domain.Agent, wasTracked bool) string {
+	// Use the last log line as the activity summary when available
+	if activity := lastActivity(agent.LogLines); activity != "" {
+		return activity
+	}
+
 	if !wasTracked {
-		return fmt.Sprintf("Agent %s started (%s)", agent.Name, agent.Model)
+		return "Starting session..."
 	}
 
 	switch agent.Status {
 	case domain.StatusDone:
-		tokens := agent.TokensUsed / (1000 * 1000)
-		return fmt.Sprintf("Agent %s completed (%dM tokens)", agent.Name, tokens)
+		return "Session complete"
 	case domain.StatusError:
-		return fmt.Sprintf("Agent %s encountered an error", agent.Name)
+		return "Error encountered"
 	case domain.StatusBlocked:
-		return fmt.Sprintf("Agent %s needs your response", agent.Name)
+		return "Waiting for response"
 	case domain.StatusRunning:
-		return fmt.Sprintf("Agent %s resumed", agent.Name)
+		return "Running..."
 	default:
-		return fmt.Sprintf("Agent %s: %s", agent.Name, agent.Status)
+		return string(agent.Status)
 	}
+}
+
+// lastActivity returns a short human-readable description from the most recent log line.
+func lastActivity(lines []domain.LogLine) string {
+	if len(lines) == 0 {
+		return ""
+	}
+	last := lines[len(lines)-1]
+	text := last.Text
+	if text == "" {
+		return ""
+	}
+	// Truncate to a short statement for the feed row
+	if len(text) > 80 {
+		text = text[:77] + "..."
+	}
+	return text
 }

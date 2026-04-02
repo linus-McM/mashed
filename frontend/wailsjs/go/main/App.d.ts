@@ -14,6 +14,20 @@ export function GetTerminalPort():Promise<number>;
 
 export function GetWorktrees(arg1:string):Promise<Array<domain.WorktreeInfo>>;
 
+export function GitCommit(arg1:string):Promise<string>;
+
+export function GitCommitAndPush(arg1:string):Promise<string>;
+
+export function GitCommitPushAndPR(arg1:string):Promise<string>;
+
+export function GitCreateBranch(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<void>;
+
+export function GitListBranches(arg1:string):Promise<Array<Record<string, any>>>;
+
+export function GitSwitchBranch(arg1:string,arg2:string,arg3:boolean):Promise<void>;
+
+export function KillAgent(arg1:string,arg2:number):Promise<void>;
+
 export function ListRepoChoices():Promise<Array<Record<string, string>>>;
 
 export function MarkRead(arg1:string):Promise<void>;
@@ -24,6 +38,12 @@ export function ReadFile(arg1:string):Promise<string>;
 
 export function ReadFileDiff(arg1:string,arg2:string):Promise<string>;
 
+export function RepoStatus(arg1:string):Promise<Record<string, any>>;
+
 export function SetDevDir(arg1:string):Promise<void>;
 
 export function SpawnAgent(arg1:string,arg2:string):Promise<string>;
+
+export function SpawnPRReview(arg1:string):Promise<string>;
+
+export function SpawnTerminal(arg1:string):Promise<string>;

@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { Hexagon } from 'lucide-svelte';
   import { PickDirectory, SetDevDir } from '../../wailsjs/go/main/App.js';
 
   const dispatch = createEventDispatcher();
@@ -42,10 +43,10 @@
 
 <div class="setup">
   <div class="setup-card">
-    <div class="icon">⬡</div>
-    <h1>Claude Conductor</h1>
+    <div class="icon"><Hexagon size={48} /></div>
+    <h1>Mashed</h1>
     <p class="subtitle">Choose the directory where your projects live.</p>
-    <p class="hint">Conductor will scan for git repos and running Claude sessions in this directory.</p>
+    <p class="hint">Mashed will scan for git repos and running Claude sessions in this directory.</p>
 
     <div class="dir-picker">
       <button class="browse-btn" on:click={browse}>

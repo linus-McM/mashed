@@ -1,4 +1,4 @@
-# Claude Conductor — Go TUI Specification
+# Mashed — Go TUI Specification
 
 > Multi-repository Claude agent orchestration dashboard.
 > A terminal-native tool for monitoring and interacting with Claude Code sessions across `~/Development` repos, with live tmux pane embedding and sub-agent drill-down.
@@ -9,7 +9,7 @@
 
 ### What It Does
 
-Claude Conductor is a TUI dashboard that:
+Mashed is a TUI dashboard that:
 
 1. **Discovers** all git repos under `~/Development` and detects running Claude Code CLI sessions via process inspection
 2. **Displays** repos in a navigable grid showing agent status, token usage, and activity sparklines
@@ -515,7 +515,7 @@ Full-screen detail for a single agent:
 
 ### Chrome (`tui/chrome.go`)
 
-- **Header**: `⬡ CLAUDE CONDUCTOR` centered, clock right-aligned
+- **Header**: `⬡ MASHED` centered, clock right-aligned
 - **Breadcrumb**: `repos › repo-name › agent-name` with navigation
 - **Status bar**: mode badge (REPOS/WORKFLOW/AGENT), keyboard hints, `N agents running` with pulse
 

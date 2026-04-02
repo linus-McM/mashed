@@ -210,8 +210,11 @@ func parseJSONLLine(line []byte, data *domain.SessionData, subAgents map[string]
 
 	switch msg.Type {
 	case "assistant":
+		data.LastMessageType = "assistant"
 		return parseAssistantMessage(msg.Message, data, subAgents)
 	case "user":
+		data.LastMessageType = "user"
+		data.HasPendingToolUse = false // user responded, tool use resolved
 		return parseUserMessage(msg.Message, subAgents)
 	}
 	return nil
@@ -231,6 +234,9 @@ func parseAssistantMessage(raw json.RawMessage, data *domain.SessionData, subAge
 	data.TotalTokens += am.Usage.InputTokens + am.Usage.OutputTokens +
 		am.Usage.CacheReadTokens + am.Usage.CacheCreationTokens
 
+	data.HasPendingToolUse = false
+	data.LastToolName = ""
+
 	for _, rawBlock := range am.Content {
 		var block contentBlock
 		if err := json.Unmarshal(rawBlock, &block); err != nil {
@@ -240,6 +246,8 @@ func parseAssistantMessage(raw json.RawMessage, data *domain.SessionData, subAge
 		switch block.Type {
 		case "tool_use":
 			data.LogLines = append(data.LogLines, toolUseToLogLine(block))
+			data.HasPendingToolUse = true
+			data.LastToolName = block.Name
 
 			if block.Name == "Agent" {
 				info := parseAgentToolInput(block)
