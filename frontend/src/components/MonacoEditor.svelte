@@ -1,7 +1,8 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { ReadFile, ReadFileAtHead, WriteFile, ExplainDiffHunk, IsExplainAvailable } from '../../wailsjs/go/main/App.js';
-  import { defineTheme, EDITOR_FONT } from '../lib/monacoTheme.js';
+  import { defineAllThemes, EDITOR_FONT } from '../lib/monacoTheme.js';
+  import { currentThemeId } from '../lib/stores/theme.js';
   import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
   import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
   import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
@@ -72,7 +73,7 @@
 
   function getEditorOptions() {
     return {
-      theme: 'conductor-dark',
+      theme: $currentThemeId,
       fontFamily: EDITOR_FONT,
       fontSize: 13,
       lineHeight: 1.5 * 13,
@@ -403,7 +404,7 @@
 
       monacoModule = await import('monaco-editor');
       if (!themeRegistered) {
-        defineTheme(monacoModule);
+        defineAllThemes(monacoModule);
         themeRegistered = true;
       }
       // The reactive block ($: if (filePath && repoPath && monacoModule)) will
@@ -424,6 +425,11 @@
     }
     destroyEditor();
   });
+
+  // Live theme switching — Monaco supports global setTheme
+  $: if (monacoModule && $currentThemeId) {
+    monacoModule.editor.setTheme($currentThemeId);
+  }
 </script>
 
 <div class="editor">

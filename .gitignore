@@ -1,6 +1,6 @@
 .claude*
-.desloppify
-.desloppify/*
+.desloppify/
+scorecard.png
 build/bin
 node_modules
 frontend/dist

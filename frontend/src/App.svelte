@@ -1,20 +1,28 @@
 <script>
   import { onMount } from 'svelte';
   import { EventsOn } from '../wailsjs/runtime/runtime.js';
-  import { GetNotifications, GetDevDir } from '../wailsjs/go/main/App.js';
+  import { GetNotifications, GetDevDir, GetConfig } from '../wailsjs/go/main/App.js';
   import Setup from './views/Setup.svelte';
   import NotificationFeed from './views/NotificationFeed.svelte';
   import AgentDetail from './views/AgentDetail.svelte';
   import SpawnAgent from './views/SpawnAgent.svelte';
+  import Settings from './views/Settings.svelte';
   import { Hexagon } from 'lucide-svelte';
   import TitleBar from './components/TitleBar.svelte';
+  import { applyTheme } from './lib/stores/theme.js';
 
-  let currentView = 'loading'; // 'loading' | 'setup' | 'feed' | 'detail'
+  let currentView = 'loading'; // 'loading' | 'setup' | 'feed' | 'detail' | 'settings'
   let selectedAgent = null;
   let notifications = [];
   let showSpawnModal = false;
 
   onMount(async () => {
+    // Load persisted theme before rendering content
+    try {
+      const cfg = await GetConfig();
+      if (cfg.theme) applyTheme(cfg.theme);
+    } catch {}
+
     try {
       const dir = await GetDevDir();
       if (dir && dir.length > 0) {
@@ -83,11 +91,15 @@
     currentView = 'detail';
   }
 
+  function openSettings() {
+    currentView = 'settings';
+  }
+
   function handleKeydown(e) {
     if (e.key === 'Escape') {
       if (showSpawnModal) {
         showSpawnModal = false;
-      } else if (currentView === 'detail') {
+      } else if (currentView === 'detail' || currentView === 'settings') {
         goBack();
       }
     }
@@ -102,7 +114,7 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <main>
-  <TitleBar />
+  <TitleBar on:open-settings={openSettings} />
   {#if currentView === 'loading'}
     <div class="loading">
       <div class="loading-icon"><Hexagon size={48} /></div>
@@ -116,6 +128,8 @@
       on:notify={addNotification}
       on:spawn={() => showSpawnModal = true}
     />
+  {:else if currentView === 'settings'}
+    <Settings on:back={goBack} />
   {:else}
     <AgentDetail agent={selectedAgent} on:back={goBack} />
   {/if}

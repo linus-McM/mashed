@@ -179,3 +179,24 @@ export namespace domain {
 
 }
 
+export namespace main {
+	
+	export class conductorConfig {
+	    devDir: string;
+	    theme?: string;
+	    vscodiumExtPath?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new conductorConfig(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.devDir = source["devDir"];
+	        this.theme = source["theme"];
+	        this.vscodiumExtPath = source["vscodiumExtPath"];
+	    }
+	}
+
+}
+

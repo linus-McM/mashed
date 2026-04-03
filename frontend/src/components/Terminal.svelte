@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { GetTerminalPort, GetAgentLog } from '../../wailsjs/go/main/App.js';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
+  import { currentTheme } from '../lib/stores/theme.js';
 
   export let paneTarget = '';
   export let repoPath = '';
@@ -73,21 +74,7 @@
     term = new Terminal({
       fontFamily: "'JetBrains Mono', monospace",
       fontSize: 13,
-      theme: {
-        background: '#07080a',
-        foreground: '#c8d4e0',
-        cursor: '#00e57a',
-        cursorAccent: '#07080a',
-        selectionBackground: '#2a3340',
-        black: '#07080a',
-        red: '#e84545',
-        green: '#00e57a',
-        yellow: '#f0a500',
-        blue: '#3d9eff',
-        magenta: '#9d6fff',
-        cyan: '#00c4b3',
-        white: '#c8d4e0',
-      },
+      theme: $currentTheme.xterm,
       cursorBlink: true,
       cursorStyle: 'block',
       cursorInactiveStyle: 'outline',
@@ -189,6 +176,11 @@
     if (logPollInterval) clearInterval(logPollInterval);
     if (term) term.dispose();
   });
+
+  // Live theme switching — xterm supports setting theme via options
+  $: if (term && $currentTheme) {
+    term.options.theme = $currentTheme.xterm;
+  }
 </script>
 
 <div

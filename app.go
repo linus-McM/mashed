@@ -42,7 +42,9 @@ type App struct {
 
 // conductorConfig persists user settings between launches.
 type conductorConfig struct {
-	DevDir string `json:"devDir"`
+	DevDir          string `json:"devDir"`
+	Theme           string `json:"theme,omitempty"`
+	VSCodiumExtPath string `json:"vscodiumExtPath,omitempty"`
 }
 
 // configPath returns the path to the conductor config file.
@@ -521,8 +523,10 @@ func (a *App) SetDevDir(dir string) error {
 		return fmt.Errorf("path is not a directory: %s", dir)
 	}
 
-	// Persist
-	if err := saveConfig(conductorConfig{DevDir: dir}); err != nil {
+	// Persist (load-modify-save to preserve Theme/VSCodiumExtPath)
+	cfg := loadConfig()
+	cfg.DevDir = dir
+	if err := saveConfig(cfg); err != nil {
 		log.Printf("failed to save config: %v", err)
 	}
 
@@ -533,6 +537,25 @@ func (a *App) SetDevDir(dir string) error {
 // GetDevDir returns the current development directory.
 func (a *App) GetDevDir() string {
 	return a.devDir
+}
+
+// GetConfig returns the full persisted config for the frontend.
+func (a *App) GetConfig() conductorConfig {
+	return loadConfig()
+}
+
+// SetTheme persists the selected theme ID to config.
+func (a *App) SetTheme(id string) error {
+	cfg := loadConfig()
+	cfg.Theme = id
+	return saveConfig(cfg)
+}
+
+// SetVSCodiumExtPath persists the VSCodium extension path to config.
+func (a *App) SetVSCodiumExtPath(path string) error {
+	cfg := loadConfig()
+	cfg.VSCodiumExtPath = path
+	return saveConfig(cfg)
 }
 
 // GetNotifications returns the current notification list sorted by priority.

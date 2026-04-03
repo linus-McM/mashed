@@ -10,6 +10,10 @@ export function GetAgentLog(arg1) {
   return window['go']['main']['App']['GetAgentLog'](arg1);
 }
 
+export function GetConfig() {
+  return window['go']['main']['App']['GetConfig']();
+}
+
 export function GetDevDir() {
   return window['go']['main']['App']['GetDevDir']();
 }
@@ -104,6 +108,14 @@ export function RepoStatus(arg1) {
 
 export function SetDevDir(arg1) {
   return window['go']['main']['App']['SetDevDir'](arg1);
+}
+
+export function SetTheme(arg1) {
+  return window['go']['main']['App']['SetTheme'](arg1);
+}
+
+export function SetVSCodiumExtPath(arg1) {
+  return window['go']['main']['App']['SetVSCodiumExtPath'](arg1);
 }
 
 export function SpawnAgent(arg1, arg2) {

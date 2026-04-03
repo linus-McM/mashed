@@ -4,6 +4,7 @@ import (
 	"embed"
 
 	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
@@ -14,6 +15,10 @@ var assets embed.FS
 
 func main() {
 	app := NewApp()
+
+	// Hidden native menu — enables Cmd+C/V/X in the frameless window
+	appMenu := menu.NewMenu()
+	appMenu.Append(menu.EditMenu())
 
 	err := wails.Run(&options.App{
 		Title:            "Mashed",
@@ -26,6 +31,7 @@ func main() {
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
+		Menu:             appMenu,
 		// Design system: --bg-deepest #07080a
 		BackgroundColour: &options.RGBA{R: 7, G: 8, B: 10, A: 255},
 		OnStartup:        app.startup,
