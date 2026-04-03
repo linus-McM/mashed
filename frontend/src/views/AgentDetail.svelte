@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, SpawnPRReview } from '../../wailsjs/go/main/App.js';
+  import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, SpawnPRReview } from '../../wailsjs/go/main/App.js';
+  import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
   import { ArrowLeft, GitBranch, GripVertical, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus } from 'lucide-svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
   import Terminal from '../components/Terminal.svelte';
@@ -106,6 +107,56 @@
     setTimeout(() => { gitResult = null; gitError = null; }, 5000);
   }
 
+  // Streaming commit panel
+  let commitPanel = null; // { lines[], error, explanation, done }
+
+  function startStreamingCommit() {
+    if (!agent?.repoPath) return;
+    commitPanel = { lines: [], error: null, explanation: null, done: false };
+    gitAction = 'commit';
+    gitResult = null;
+    gitError = null;
+    GitCommitStreaming(agent.repoPath);
+  }
+
+  function closeCommitPanel() {
+    commitPanel = null;
+  }
+
+  let commitEventCancel;
+
+  function setupCommitListener() {
+    commitEventCancel = EventsOn('git:commit:progress', (evt) => {
+      if (evt.repoPath !== agent?.repoPath) return;
+      if (!commitPanel) {
+        commitPanel = { lines: [], error: null, explanation: null, done: false };
+      }
+
+      if (evt.step && !evt.error) {
+        commitPanel.lines = [...commitPanel.lines, { step: evt.step, output: evt.output || '' }];
+      }
+      if (evt.error) {
+        commitPanel.error = evt.error;
+        commitPanel.explanation = evt.explanation || null;
+      }
+      commitPanel.done = !!evt.done;
+      commitPanel = commitPanel; // trigger reactivity
+
+      if (evt.done) {
+        gitAction = null;
+        if (!evt.error) {
+          gitResult = evt.output || 'Done';
+          // Refresh changed files
+          GetScopedDiff(agent.repoPath).then(diff => {
+            if (diff && diff.files) changedFiles = diff.files;
+          }).catch(() => {});
+        } else {
+          gitError = evt.error;
+        }
+      }
+    });
+  }
+
   $: filteredAllFiles = allFilesSearch
     ? allFiles.filter(f => f.toLowerCase().includes(allFilesSearch.toLowerCase()))
     : allFiles;
@@ -142,6 +193,7 @@
 
   onMount(async () => {
     window.addEventListener('keydown', handleKeydown);
+    setupCommitListener();
 
     if (agent?.repoPath) {
       try {
@@ -169,6 +221,7 @@
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeydown);
+    if (commitEventCancel) commitEventCancel();
   });
 </script>
 
@@ -303,15 +356,17 @@
 
       <!-- Git actions -->
       <div class="git-actions">
-        {#if gitResult}
-          <div class="git-status git-success">{gitResult}</div>
-        {:else if gitError}
-          <div class="git-status git-error">{gitError}</div>
+        {#if !commitPanel}
+          {#if gitResult}
+            <div class="git-status git-success">{gitResult}</div>
+          {:else if gitError}
+            <div class="git-status git-error">{gitError}</div>
+          {/if}
         {/if}
         <button class="git-btn" disabled={!!gitAction} on:click={() => showBranchModal = true}>
           <GitBranchPlus size={14} /> Branch
         </button>
-        <button class="git-btn" class:git-hot={changedFiles.length > 0} disabled={!!gitAction} on:click={() => runGitAction('commit', GitCommit)}>
+        <button class="git-btn" class:git-hot={changedFiles.length > 0} disabled={!!gitAction} on:click={() => startStreamingCommit()}>
           <GitCommitIcon size={14} /> {gitAction === 'commit' ? 'Committing...' : 'Commit'}
         </button>
         <button class="git-btn" disabled={!!gitAction} on:click={() => runGitAction('push', GitCommitAndPush)}>
@@ -352,6 +407,53 @@
       </div>
     {/if}
   </div>
+
+  <!-- Full-width commit output panel -->
+  {#if commitPanel}
+    <div class="ws-commit-panel">
+      <div class="ws-commit-header">
+        <span class="ws-commit-title">
+          {#if commitPanel.done && !commitPanel.error}
+            Committed
+          {:else if commitPanel.error}
+            Commit Failed
+          {:else}
+            Committing...
+          {/if}
+        </span>
+        {#if commitPanel.done}
+          <button class="ws-commit-close" on:click={() => closeCommitPanel()}>×</button>
+        {/if}
+      </div>
+      <div class="ws-commit-body">
+        {#each commitPanel.lines as line}
+          <div class="ws-commit-line">
+            <span class="ws-commit-step">{line.step}</span>
+            {#if line.output}
+              <pre class="ws-commit-output">{line.output}</pre>
+            {/if}
+          </div>
+        {/each}
+        {#if !commitPanel.done && !commitPanel.error}
+          <div class="ws-commit-line ws-commit-active">
+            <span class="ws-commit-spinner" />
+          </div>
+        {/if}
+      </div>
+      {#if commitPanel.error}
+        <div class="ws-commit-error-section">
+          <div class="ws-commit-error-label">Error</div>
+          <pre class="ws-commit-error-text">{commitPanel.error}</pre>
+          {#if commitPanel.explanation}
+            <div class="ws-commit-explain-label">Why this happened</div>
+            <div class="ws-commit-explain-text">{commitPanel.explanation}</div>
+          {:else if !commitPanel.done}
+            <div class="ws-commit-explain-loading">Analyzing failure...</div>
+          {/if}
+        </div>
+      {/if}
+    </div>
+  {/if}
 
   <!-- Bottom bar -->
   <div class="bottom-bar">
@@ -853,4 +955,155 @@
   .sub-log-line.log-err { color: var(--accent-red); }
   .sub-log-line.log-dim { color: var(--text-muted); }
   .sub-log-line.log-system { color: var(--accent-purple); }
+
+  /* Full-width commit output panel — between workspace and bottom bar */
+  .ws-commit-panel {
+    border-top: 2px solid var(--accent-green);
+    background: var(--bg-deepest);
+    display: flex;
+    flex-direction: column;
+    max-height: 240px;
+    overflow: hidden;
+    flex-shrink: 0;
+    width: 100%;
+  }
+
+  .ws-commit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+
+  .ws-commit-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+
+  .ws-commit-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+  }
+
+  .ws-commit-close:hover { color: var(--text-primary); }
+
+  .ws-commit-body {
+    padding: 4px 8px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .ws-commit-line {
+    padding: 1px 0;
+  }
+
+  .ws-commit-step {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent-green);
+  }
+
+  .ws-commit-output {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    margin: 2px 0 3px 0;
+    padding: 3px 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--radius-sm);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 50px;
+    overflow-y: auto;
+  }
+
+  .ws-commit-active {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ws-commit-spinner {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border: 1.5px solid var(--accent-green);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: ws-commit-spin 0.6s linear infinite;
+  }
+
+  @keyframes ws-commit-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .ws-commit-error-section {
+    border-top: 1px solid rgba(232, 69, 69, 0.2);
+    padding: 4px 8px;
+    background: rgba(232, 69, 69, 0.04);
+    flex-shrink: 0;
+  }
+
+  .ws-commit-error-label {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 600;
+    color: var(--accent-red);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 3px;
+  }
+
+  .ws-commit-error-text {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent-red);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0 0 6px 0;
+    padding: 3px 6px;
+    background: rgba(232, 69, 69, 0.06);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(232, 69, 69, 0.15);
+    max-height: 50px;
+    overflow-y: auto;
+  }
+
+  .ws-commit-explain-label {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 600;
+    color: var(--accent-amber);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 3px;
+  }
+
+  .ws-commit-explain-text {
+    font-size: 10px;
+    color: var(--text-primary);
+    line-height: 1.4;
+    padding: 4px 6px;
+    background: rgba(240, 165, 0, 0.06);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(240, 165, 0, 0.15);
+  }
+
+  .ws-commit-explain-loading {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
 </style>
