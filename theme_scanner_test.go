@@ -1,6 +1,7 @@
 package main
 
 import (
+	"archive/zip"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -67,6 +68,34 @@ func createMockExtension(t *testing.T, extDir, extName string, themes []mockThem
 		if err := os.WriteFile(thPath, []byte(themeContent), 0644); err != nil {
 			t.Fatalf("write theme file: %v", err)
 		}
+	}
+}
+
+// --- Helper: create a mock .vsix (zip archive) ---
+
+// createMockVSIX creates a .vsix zip file in dir with the given name.
+// files maps zip-internal paths (e.g. "extension/package.json") to their content.
+func createMockVSIX(t *testing.T, dir, name string, files map[string]string) {
+	t.Helper()
+	vsixPath := filepath.Join(dir, name)
+	f, err := os.Create(vsixPath)
+	if err != nil {
+		t.Fatalf("create vsix %s: %v", vsixPath, err)
+	}
+	defer f.Close()
+
+	zw := zip.NewWriter(f)
+	for path, content := range files {
+		w, err := zw.Create(path)
+		if err != nil {
+			t.Fatalf("create zip entry %s: %v", path, err)
+		}
+		if _, err := w.Write([]byte(content)); err != nil {
+			t.Fatalf("write zip entry %s: %v", path, err)
+		}
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatalf("close zip writer: %v", err)
 	}
 }
 
@@ -192,28 +221,41 @@ func TestStripJSONC_ResultIsValidJSON(t *testing.T) {
 func TestListVSCodiumThemes_HappyPath(t *testing.T) {
 	extDir := t.TempDir()
 
-	createMockExtension(t, extDir, "dracula-theme.theme-dracula-2.24.3", []mockTheme{
-		{Label: "Dracula", Path: "theme/dracula.json", UITheme: "vs-dark"},
+	createMockVSIX(t, extDir, "dracula-theme.theme-dracula-2.24.3.vsix", map[string]string{
+		"extension/package.json": `{
+			"name": "theme-dracula",
+			"contributes": {
+				"themes": [
+					{"label": "Dracula", "uiTheme": "vs-dark", "path": "./theme/dracula.json"}
+				]
+			}
+		}`,
+		"extension/theme/dracula.json": `{"name":"Dracula","type":"dark","colors":{"editor.background":"#282a36"}}`,
 	})
-	createMockExtension(t, extDir, "github.github-vscode-theme-6.3.5", []mockTheme{
-		{Label: "GitHub Dark", Path: "themes/dark.json", UITheme: "vs-dark"},
-		{Label: "GitHub Light", Path: "themes/light.json", UITheme: "vs"},
+	createMockVSIX(t, extDir, "github.github-vscode-theme-6.3.5.vsix", map[string]string{
+		"extension/package.json": `{
+			"name": "github-vscode-theme",
+			"contributes": {
+				"themes": [
+					{"label": "GitHub Dark", "uiTheme": "vs-dark", "path": "./themes/dark.json"},
+					{"label": "GitHub Light", "uiTheme": "vs", "path": "./themes/light.json"}
+				]
+			}
+		}`,
+		"extension/themes/dark.json":  `{"name":"GitHub Dark","type":"dark","colors":{}}`,
+		"extension/themes/light.json": `{"name":"GitHub Light","type":"light","colors":{}}`,
 	})
 
 	app := &App{}
-	// Set up config with the temp extension path
-	origCfgPath := configPath()
 	cfg := loadConfig()
 	cfg.VSCodiumExtPath = extDir
 	if err := saveConfig(cfg); err != nil {
 		t.Fatalf("save config: %v", err)
 	}
 	defer func() {
-		// Restore original config
 		cfg := loadConfig()
 		cfg.VSCodiumExtPath = ""
 		_ = saveConfig(cfg)
-		_ = origCfgPath // keep reference for clarity
 	}()
 
 	themes, err := app.ListVSCodiumThemes()
@@ -233,41 +275,36 @@ func TestListVSCodiumThemes_HappyPath(t *testing.T) {
 		}
 	}
 
-	// Verify ThemePath is absolute
+	// Verify ThemePath contains ::vsix:: separator
 	for _, th := range themes {
-		if !filepath.IsAbs(th.ThemePath) {
-			t.Errorf("ThemePath %q is not absolute", th.ThemePath)
+		if !strings.Contains(th.ThemePath, vsixSeparator) {
+			t.Errorf("ThemePath %q does not contain %q", th.ThemePath, vsixSeparator)
 		}
+	}
+
+	// Verify ExtensionID is filename minus .vsix extension
+	if themes[0].ExtensionID != "dracula-theme.theme-dracula-2.24.3" {
+		t.Errorf("ExtensionID = %q, want %q", themes[0].ExtensionID, "dracula-theme.theme-dracula-2.24.3")
 	}
 }
 
 func TestListVSCodiumThemes_FiltersTmTheme(t *testing.T) {
 	extDir := t.TempDir()
 
-	createMockExtension(t, extDir, "mixed-ext", []mockTheme{
-		{Label: "JSON Theme", Path: "themes/good.json", UITheme: "vs-dark"},
+	// Single vsix with both a .tmTheme path and a .json path
+	createMockVSIX(t, extDir, "mixed-ext.vsix", map[string]string{
+		"extension/package.json": `{
+			"name": "mixed-ext",
+			"contributes": {
+				"themes": [
+					{"label": "JSON Theme", "uiTheme": "vs-dark", "path": "./themes/good.json"},
+					{"label": "TM Theme", "uiTheme": "vs-dark", "path": "./themes/old.tmTheme"}
+				]
+			}
+		}`,
+		"extension/themes/good.json":   `{"name":"JSON Theme","type":"dark","colors":{}}`,
+		"extension/themes/old.tmTheme": `<plist></plist>`,
 	})
-
-	// Manually add a .tmTheme entry to package.json
-	dir := filepath.Join(extDir, "tm-ext")
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	pkg := `{
-		"name": "tm-ext",
-		"contributes": {
-			"themes": [
-				{"label": "TM Theme", "uiTheme": "vs-dark", "path": "./themes/old.tmTheme"}
-			]
-		}
-	}`
-	if err := os.WriteFile(filepath.Join(dir, "package.json"), []byte(pkg), 0644); err != nil {
-		t.Fatal(err)
-	}
-	// Create the .tmTheme file
-	thPath := filepath.Join(dir, "themes")
-	os.MkdirAll(thPath, 0755)
-	os.WriteFile(filepath.Join(thPath, "old.tmTheme"), []byte("<plist></plist>"), 0644)
 
 	cfg := loadConfig()
 	cfg.VSCodiumExtPath = extDir
@@ -322,15 +359,23 @@ func TestListVSCodiumThemes_NotConfigured(t *testing.T) {
 func TestListVSCodiumThemes_CorruptPackageJSON(t *testing.T) {
 	extDir := t.TempDir()
 
-	// Create a valid extension
-	createMockExtension(t, extDir, "good-ext", []mockTheme{
-		{Label: "Good Theme", Path: "theme.json", UITheme: "vs-dark"},
+	// Create a valid vsix
+	createMockVSIX(t, extDir, "good-ext.vsix", map[string]string{
+		"extension/package.json": `{
+			"name": "good-ext",
+			"contributes": {
+				"themes": [
+					{"label": "Good Theme", "uiTheme": "vs-dark", "path": "./theme.json"}
+				]
+			}
+		}`,
+		"extension/theme.json": `{"name":"Good Theme","type":"dark","colors":{}}`,
 	})
 
-	// Create an extension with corrupt package.json
-	badDir := filepath.Join(extDir, "bad-ext")
-	os.MkdirAll(badDir, 0755)
-	os.WriteFile(filepath.Join(badDir, "package.json"), []byte("not json{{{"), 0644)
+	// Create a corrupt vsix (valid zip, but package.json is invalid JSON)
+	createMockVSIX(t, extDir, "bad-ext.vsix", map[string]string{
+		"extension/package.json": `not json{{{`,
+	})
 
 	cfg := loadConfig()
 	cfg.VSCodiumExtPath = extDir
@@ -747,6 +792,373 @@ func TestReadThemeFile_IncludeDepthLimit(t *testing.T) {
 	}
 }
 
+// --- Test: ReadThemeFile from VSIX ---
+
+func TestReadThemeFile_VSIX_HappyPath(t *testing.T) {
+	extDir := t.TempDir()
+
+	createMockVSIX(t, extDir, "test-ext.vsix", map[string]string{
+		"extension/package.json":      `{"name":"test-ext","contributes":{"themes":[{"label":"Test","uiTheme":"vs-dark","path":"./themes/test.json"}]}}`,
+		"extension/themes/test.json": `{"name":"Test Theme","type":"dark","colors":{"editor.background":"#000"}}`,
+	})
+
+	cfg := loadConfig()
+	cfg.VSCodiumExtPath = extDir
+	saveConfig(cfg)
+	defer func() {
+		cfg := loadConfig()
+		cfg.VSCodiumExtPath = ""
+		saveConfig(cfg)
+	}()
+
+	app := &App{}
+	themePath := makeVSIXThemePath(filepath.Join(extDir, "test-ext.vsix"), "extension/themes/test.json")
+	result, err := app.ReadThemeFile(themePath)
+	if err != nil {
+		t.Fatalf("ReadThemeFile error: %v", err)
+	}
+
+	var parsed map[string]interface{}
+	if err := json.Unmarshal([]byte(result), &parsed); err != nil {
+		t.Fatalf("result is not valid JSON: %v\n%s", err, result)
+	}
+	if parsed["name"] != "Test Theme" {
+		t.Errorf("name = %v, want %q", parsed["name"], "Test Theme")
+	}
+}
+
+func TestReadThemeFile_VSIX_JSONCStripped(t *testing.T) {
+	extDir := t.TempDir()
+
+	jsoncContent := `{
+  // This is a comment
+  "name": "Commented Theme",
+  "colors": {
+    "editor.background": "#282a36" /* inline comment */
+  }
+}`
+	createMockVSIX(t, extDir, "jsonc-ext.vsix", map[string]string{
+		"extension/package.json":       `{"name":"jsonc-ext"}`,
+		"extension/themes/theme.json": jsoncContent,
+	})
+
+	cfg := loadConfig()
+	cfg.VSCodiumExtPath = extDir
+	saveConfig(cfg)
+	defer func() {
+		cfg := loadConfig()
+		cfg.VSCodiumExtPath = ""
+		saveConfig(cfg)
+	}()
+
+	app := &App{}
+	themePath := makeVSIXThemePath(filepath.Join(extDir, "jsonc-ext.vsix"), "extension/themes/theme.json")
+	result, err := app.ReadThemeFile(themePath)
+	if err != nil {
+		t.Fatalf("ReadThemeFile error: %v", err)
+	}
+
+	var parsed map[string]interface{}
+	if err := json.Unmarshal([]byte(result), &parsed); err != nil {
+		t.Fatalf("result should be valid JSON after JSONC stripping: %v\n%s", err, result)
+	}
+	if parsed["name"] != "Commented Theme" {
+		t.Errorf("name = %v, want %q", parsed["name"], "Commented Theme")
+	}
+}
+
+func TestReadThemeFile_VSIX_IncludeResolution(t *testing.T) {
+	extDir := t.TempDir()
+
+	baseTheme := `{
+  "name": "Base",
+  "colors": {
+    "editor.background": "#000",
+    "editor.foreground": "#fff"
+  },
+  "tokenColors": [
+    {"scope": "comment", "settings": {"foreground": "#666"}}
+  ]
+}`
+	childTheme := `{
+  "name": "Child",
+  "include": "./base.json",
+  "colors": {
+    "editor.background": "#111"
+  },
+  "tokenColors": [
+    {"scope": "keyword", "settings": {"foreground": "#f00"}}
+  ]
+}`
+	createMockVSIX(t, extDir, "include-ext.vsix", map[string]string{
+		"extension/package.json":     `{"name":"include-ext"}`,
+		"extension/themes/base.json":  baseTheme,
+		"extension/themes/child.json": childTheme,
+	})
+
+	cfg := loadConfig()
+	cfg.VSCodiumExtPath = extDir
+	saveConfig(cfg)
+	defer func() {
+		cfg := loadConfig()
+		cfg.VSCodiumExtPath = ""
+		saveConfig(cfg)
+	}()
+
+	app := &App{}
+	themePath := makeVSIXThemePath(filepath.Join(extDir, "include-ext.vsix"), "extension/themes/child.json")
+	result, err := app.ReadThemeFile(themePath)
+	if err != nil {
+		t.Fatalf("ReadThemeFile error: %v", err)
+	}
+
+	var parsed struct {
+		Name        string                   `json:"name"`
+		Colors      map[string]string        `json:"colors"`
+		TokenColors []map[string]interface{} `json:"tokenColors"`
+	}
+	if err := json.Unmarshal([]byte(result), &parsed); err != nil {
+		t.Fatalf("result not valid JSON: %v\n%s", err, result)
+	}
+
+	// Child overrides editor.background
+	if parsed.Colors["editor.background"] != "#111" {
+		t.Errorf("editor.background = %q, want #111", parsed.Colors["editor.background"])
+	}
+	// Inherits editor.foreground from base
+	if parsed.Colors["editor.foreground"] != "#fff" {
+		t.Errorf("editor.foreground = %q, want #fff", parsed.Colors["editor.foreground"])
+	}
+	// Name should be child's name
+	if parsed.Name != "Child" {
+		t.Errorf("name = %q, want Child", parsed.Name)
+	}
+	// TokenColors: base prepended before child
+	if len(parsed.TokenColors) != 2 {
+		t.Fatalf("tokenColors length = %d, want 2", len(parsed.TokenColors))
+	}
+}
+
+func TestReadThemeFile_VSIX_IncludeMultiLevel(t *testing.T) {
+	extDir := t.TempDir()
+
+	grandparent := `{"name": "GP", "colors": {"a": "1", "b": "2", "c": "3"}}`
+	parent := `{"name": "P", "include": "./grandparent.json", "colors": {"b": "22"}}`
+	child := `{"name": "C", "include": "./parent.json", "colors": {"c": "333"}}`
+
+	createMockVSIX(t, extDir, "multi-ext.vsix", map[string]string{
+		"extension/package.json":            `{"name":"multi-ext"}`,
+		"extension/themes/grandparent.json": grandparent,
+		"extension/themes/parent.json":      parent,
+		"extension/themes/child.json":       child,
+	})
+
+	cfg := loadConfig()
+	cfg.VSCodiumExtPath = extDir
+	saveConfig(cfg)
+	defer func() {
+		cfg := loadConfig()
+		cfg.VSCodiumExtPath = ""
+		saveConfig(cfg)
+	}()
+
+	app := &App{}
+	themePath := makeVSIXThemePath(filepath.Join(extDir, "multi-ext.vsix"), "extension/themes/child.json")
+	result, err := app.ReadThemeFile(themePath)
+	if err != nil {
+		t.Fatalf("ReadThemeFile error: %v", err)
+	}
+
+	var parsed struct {
+		Colors map[string]string `json:"colors"`
+	}
+	json.Unmarshal([]byte(result), &parsed)
+
+	if parsed.Colors["a"] != "1" {
+		t.Errorf("a = %q, want 1 (from grandparent)", parsed.Colors["a"])
+	}
+	if parsed.Colors["b"] != "22" {
+		t.Errorf("b = %q, want 22 (from parent override)", parsed.Colors["b"])
+	}
+	if parsed.Colors["c"] != "333" {
+		t.Errorf("c = %q, want 333 (from child override)", parsed.Colors["c"])
+	}
+}
+
+func TestReadThemeFile_VSIX_IncludeDepthLimit(t *testing.T) {
+	extDir := t.TempDir()
+
+	// Create a chain of 7 includes inside a single vsix (exceeds depth limit of 5)
+	files := map[string]string{
+		"extension/package.json": `{"name":"deep-ext"}`,
+	}
+	for i := 0; i < 7; i++ {
+		name := fmt.Sprintf("extension/themes/level%d.json", i)
+		var content string
+		if i < 6 {
+			next := fmt.Sprintf("./level%d.json", i+1)
+			content = fmt.Sprintf(`{"name": "level%d", "include": %q, "colors": {"l%d": "v%d"}}`, i, next, i, i)
+		} else {
+			content = fmt.Sprintf(`{"name": "level%d", "colors": {"l%d": "v%d"}}`, i, i, i)
+		}
+		files[name] = content
+	}
+	createMockVSIX(t, extDir, "deep-ext.vsix", files)
+
+	cfg := loadConfig()
+	cfg.VSCodiumExtPath = extDir
+	saveConfig(cfg)
+	defer func() {
+		cfg := loadConfig()
+		cfg.VSCodiumExtPath = ""
+		saveConfig(cfg)
+	}()
+
+	app := &App{}
+	themePath := makeVSIXThemePath(filepath.Join(extDir, "deep-ext.vsix"), "extension/themes/level0.json")
+	// Reading level0 should work but stop resolving at depth 5
+	result, err := app.ReadThemeFile(themePath)
+	if err != nil {
+		t.Fatalf("ReadThemeFile error: %v", err)
+	}
+
+	var parsed struct {
+		Colors map[string]string `json:"colors"`
+	}
+	json.Unmarshal([]byte(result), &parsed)
+
+	// level0 color should be present (it's the top level)
+	if parsed.Colors["l0"] != "v0" {
+		t.Errorf("l0 = %q, want v0", parsed.Colors["l0"])
+	}
+	// level5 should be present (depth 5 is the last resolved)
+	if parsed.Colors["l5"] != "v5" {
+		t.Errorf("l5 should be present (depth 5 is the last resolved)")
+	}
+}
+
+func TestReadThemeFile_VSIX_PathTraversal(t *testing.T) {
+	// Create a vsix file outside the extensions directory
+	outsideDir := t.TempDir()
+	extDir := t.TempDir()
+
+	createMockVSIX(t, outsideDir, "evil.vsix", map[string]string{
+		"extension/package.json":     `{"name":"evil"}`,
+		"extension/themes/evil.json": `{"name":"Evil","colors":{}}`,
+	})
+
+	cfg := loadConfig()
+	cfg.VSCodiumExtPath = extDir
+	saveConfig(cfg)
+	defer func() {
+		cfg := loadConfig()
+		cfg.VSCodiumExtPath = ""
+		saveConfig(cfg)
+	}()
+
+	app := &App{}
+	themePath := makeVSIXThemePath(filepath.Join(outsideDir, "evil.vsix"), "extension/themes/evil.json")
+	_, err := app.ReadThemeFile(themePath)
+	if err == nil {
+		t.Fatal("expected error for vsix path outside extensions directory")
+	}
+	if !strings.Contains(err.Error(), "outside extensions directory") {
+		t.Errorf("error = %q, want to contain 'outside extensions directory'", err.Error())
+	}
+}
+
+func TestReadThemeFile_VSIX_SizeLimit(t *testing.T) {
+	extDir := t.TempDir()
+
+	// Create a theme file inside vsix that's > 512KB
+	bigContent := strings.Repeat(" ", 600*1024)
+	createMockVSIX(t, extDir, "big-ext.vsix", map[string]string{
+		"extension/package.json":      `{"name":"big-ext"}`,
+		"extension/themes/big.json": bigContent,
+	})
+
+	cfg := loadConfig()
+	cfg.VSCodiumExtPath = extDir
+	saveConfig(cfg)
+	defer func() {
+		cfg := loadConfig()
+		cfg.VSCodiumExtPath = ""
+		saveConfig(cfg)
+	}()
+
+	app := &App{}
+	themePath := makeVSIXThemePath(filepath.Join(extDir, "big-ext.vsix"), "extension/themes/big.json")
+	_, err := app.ReadThemeFile(themePath)
+	if err == nil {
+		t.Fatal("expected error for oversized file inside vsix")
+	}
+	if !strings.Contains(err.Error(), "too large") {
+		t.Errorf("error = %q, want to contain 'too large'", err.Error())
+	}
+}
+
+func TestReadThemeFile_VSIX_FileNotFound(t *testing.T) {
+	extDir := t.TempDir()
+
+	createMockVSIX(t, extDir, "sparse-ext.vsix", map[string]string{
+		"extension/package.json": `{"name":"sparse-ext"}`,
+	})
+
+	cfg := loadConfig()
+	cfg.VSCodiumExtPath = extDir
+	saveConfig(cfg)
+	defer func() {
+		cfg := loadConfig()
+		cfg.VSCodiumExtPath = ""
+		saveConfig(cfg)
+	}()
+
+	app := &App{}
+	themePath := makeVSIXThemePath(filepath.Join(extDir, "sparse-ext.vsix"), "extension/themes/missing.json")
+	_, err := app.ReadThemeFile(themePath)
+	if err == nil {
+		t.Fatal("expected error for missing file inside vsix")
+	}
+	if !strings.Contains(err.Error(), "not found") {
+		t.Errorf("error = %q, want to contain 'not found'", err.Error())
+	}
+}
+
+func TestReadThemeFile_VSIX_BackwardCompat(t *testing.T) {
+	// Verify that a regular filesystem path (no ::vsix::) still works
+	// via the existing readThemeFileWithDepth code path
+	extDir := t.TempDir()
+	themeDir := filepath.Join(extDir, "compat-ext")
+	os.MkdirAll(themeDir, 0755)
+
+	themeContent := `{"name":"Compat Theme","type":"dark","colors":{"editor.background":"#000"}}`
+	themeFile := filepath.Join(themeDir, "theme.json")
+	os.WriteFile(themeFile, []byte(themeContent), 0644)
+
+	cfg := loadConfig()
+	cfg.VSCodiumExtPath = extDir
+	saveConfig(cfg)
+	defer func() {
+		cfg := loadConfig()
+		cfg.VSCodiumExtPath = ""
+		saveConfig(cfg)
+	}()
+
+	app := &App{}
+	result, err := app.ReadThemeFile(themeFile)
+	if err != nil {
+		t.Fatalf("ReadThemeFile error: %v", err)
+	}
+
+	var parsed map[string]interface{}
+	if err := json.Unmarshal([]byte(result), &parsed); err != nil {
+		t.Fatalf("result is not valid JSON: %v\n%s", err, result)
+	}
+	if parsed["name"] != "Compat Theme" {
+		t.Errorf("name = %v, want %q", parsed["name"], "Compat Theme")
+	}
+}
+
 // --- Test: Tilde expansion ---
 
 func TestTildeExpansion(t *testing.T) {
@@ -925,8 +1337,16 @@ func TestListVSCodiumThemes_InaccessibleDirectory(t *testing.T) {
 func TestListVSCodiumThemes_ExtensionID(t *testing.T) {
 	extDir := t.TempDir()
 
-	createMockExtension(t, extDir, "publisher.extension-name-1.2.3", []mockTheme{
-		{Label: "My Theme", Path: "theme.json", UITheme: "vs-dark"},
+	createMockVSIX(t, extDir, "publisher.extension-name-1.2.3.vsix", map[string]string{
+		"extension/package.json": `{
+			"name": "extension-name",
+			"contributes": {
+				"themes": [
+					{"label": "My Theme", "uiTheme": "vs-dark", "path": "./theme.json"}
+				]
+			}
+		}`,
+		"extension/theme.json": `{"name":"My Theme","type":"dark","colors":{}}`,
 	})
 
 	cfg := loadConfig()
@@ -946,6 +1366,7 @@ func TestListVSCodiumThemes_ExtensionID(t *testing.T) {
 	if len(themes) != 1 {
 		t.Fatalf("got %d themes, want 1", len(themes))
 	}
+	// ExtensionID should be the vsix filename minus the .vsix extension
 	if themes[0].ExtensionID != "publisher.extension-name-1.2.3" {
 		t.Errorf("ExtensionID = %q, want %q", themes[0].ExtensionID, "publisher.extension-name-1.2.3")
 	}

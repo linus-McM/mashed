@@ -51,3 +51,4 @@ images/*
 *.dat
 *.backup
 console-**.log
+nanobanana-output

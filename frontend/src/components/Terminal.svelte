@@ -3,6 +3,7 @@
   import { GetTerminalPort, GetAgentLog } from '../../wailsjs/go/main/App.js';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
   import { currentTheme } from '../lib/stores/theme.js';
+  import { currentMonoFont, currentFontSize } from '../lib/stores/font.js';
 
   export let paneTarget = '';
   export let repoPath = '';
@@ -72,8 +73,8 @@
     const { FitAddon } = await import('@xterm/addon-fit');
 
     term = new Terminal({
-      fontFamily: "'JetBrains Mono', monospace",
-      fontSize: 13,
+      fontFamily: $currentMonoFont,
+      fontSize: $currentFontSize,
       theme: $currentTheme.xterm,
       cursorBlink: true,
       cursorStyle: 'block',
@@ -180,6 +181,14 @@
   // Live theme switching — xterm supports setting theme via options
   $: if (term && $currentTheme) {
     term.options.theme = $currentTheme.xterm;
+  }
+
+  // Live font switching
+  $: if (term && $currentMonoFont) {
+    term.options.fontFamily = $currentMonoFont;
+  }
+  $: if (term && $currentFontSize) {
+    term.options.fontSize = $currentFontSize;
   }
 </script>
 

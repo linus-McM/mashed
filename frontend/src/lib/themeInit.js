@@ -22,8 +22,12 @@ let activatingPath = null;
  * @returns {string} the extension directory name
  */
 function extractExtensionId(themePath) {
+  if (themePath.includes('::vsix::')) {
+    const vsixPart = themePath.split('::vsix::')[0];
+    const filename = vsixPart.split('/').pop();
+    return filename.replace(/\.vsix$/i, '');
+  }
   const parts = themePath.split('/');
-  // The extension dir is typically the grandparent directory of the theme file
   if (parts.length >= 3) {
     return parts[parts.length - 3];
   }
@@ -38,7 +42,12 @@ function extractExtensionId(themePath) {
  * @param {string} extensionId - extension directory name
  * @returns {string} unique theme ID
  */
-function makeThemeId(themePath, extensionId) {
+export function makeThemeId(themePath, extensionId) {
+  if (themePath.includes('::vsix::')) {
+    const internalPath = themePath.split('::vsix::')[1];
+    const filename = internalPath.split('/').pop().replace('.json', '');
+    return 'imported-' + extensionId + '-' + filename;
+  }
   const filename = themePath.split('/').pop().replace('.json', '');
   return 'imported-' + extensionId + '-' + filename;
 }

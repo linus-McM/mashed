@@ -1,14 +1,85 @@
 package main
 
 import (
+	"archive/zip"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 )
+
+const vsixSeparator = "::vsix::"
+
+// isVSIXThemePath returns true if the theme path encodes a file inside a .vsix archive.
+func isVSIXThemePath(p string) bool {
+	return strings.Contains(p, vsixSeparator)
+}
+
+// parseVSIXThemePath splits a VSIX-encoded theme path into the .vsix file path
+// and the zip-internal path.
+func parseVSIXThemePath(p string) (vsixPath, internalPath string, ok bool) {
+	parts := strings.SplitN(p, vsixSeparator, 2)
+	if len(parts) != 2 {
+		return "", "", false
+	}
+	return parts[0], parts[1], true
+}
+
+// makeVSIXThemePath encodes a .vsix file path and zip-internal path into a single string.
+func makeVSIXThemePath(vsixPath, internalPath string) string {
+	return vsixPath + vsixSeparator + internalPath
+}
+
+// readFileFromZip reads a named file from a zip archive, enforcing a 512KB size limit.
+func readFileFromZip(zr *zip.ReadCloser, name string) ([]byte, error) {
+	for _, f := range zr.File {
+		if f.Name == name {
+			if f.UncompressedSize64 > 512*1024 {
+				return nil, fmt.Errorf("file too large (%d bytes, max 512KB)", f.UncompressedSize64)
+			}
+			rc, err := f.Open()
+			if err != nil {
+				return nil, err
+			}
+			defer rc.Close()
+			return io.ReadAll(rc)
+		}
+	}
+	return nil, fmt.Errorf("file %q not found in archive", name)
+}
+
+// mergeThemes merges a base theme into a child theme. Base colors go underneath
+// (child wins on conflict), base tokenColors are prepended, and name/type are
+// inherited from base if the child's are empty.
+func mergeThemes(child, base *rawTheme) {
+	if base.Colors != nil {
+		if child.Colors == nil {
+			child.Colors = make(map[string]string)
+		}
+		for k, v := range base.Colors {
+			if _, exists := child.Colors[k]; !exists {
+				child.Colors[k] = v
+			}
+		}
+	}
+	if len(base.TokenColors) > 0 {
+		merged := make([]json.RawMessage, 0, len(base.TokenColors)+len(child.TokenColors))
+		merged = append(merged, base.TokenColors...)
+		merged = append(merged, child.TokenColors...)
+		child.TokenColors = merged
+	}
+	if child.Name == "" {
+		child.Name = base.Name
+	}
+	if child.Type == "" {
+		child.Type = base.Type
+	}
+}
 
 // expandTilde expands ~ or ~/ prefix to the user's home directory.
 // It does NOT expand ~otheruser paths.
@@ -158,34 +229,47 @@ func (a *App) ListVSCodiumThemes() ([]VSCodeThemeEntry, error) {
 	var themes []VSCodeThemeEntry
 
 	for _, entry := range entries {
-		if !entry.IsDir() {
+		if entry.IsDir() {
+			continue
+		}
+		if !strings.HasSuffix(strings.ToLower(entry.Name()), ".vsix") {
 			continue
 		}
 
-		pkgPath := filepath.Join(extDir, entry.Name(), "package.json")
-		data, err := os.ReadFile(pkgPath)
+		vsixPath := filepath.Join(extDir, entry.Name())
+		extensionID := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+
+		zr, err := zip.OpenReader(vsixPath)
 		if err != nil {
-			continue // skip extensions without package.json
+			log.Printf("skipping corrupt vsix %s: %v", entry.Name(), err)
+			continue
+		}
+
+		pkgData, err := readFileFromZip(zr, "extension/package.json")
+		zr.Close()
+		if err != nil {
+			continue // no package.json, skip
 		}
 
 		var pkg packageJSON
-		if err := json.Unmarshal(data, &pkg); err != nil {
-			continue // skip corrupt package.json
+		if err := json.Unmarshal(pkgData, &pkg); err != nil {
+			continue // corrupt package.json
 		}
 
 		for _, t := range pkg.Contributes.Themes {
-			// H-7 fix: skip non-JSON theme files (e.g., .tmTheme)
 			if !strings.HasSuffix(strings.ToLower(t.Path), ".json") {
 				continue
 			}
 
-			// Resolve the theme path relative to the extension directory
-			themePath := filepath.Join(extDir, entry.Name(), t.Path)
-			themePath = filepath.Clean(themePath)
+			// Normalize: "./themes/dark.json" -> "extension/themes/dark.json"
+			internalPath := strings.TrimPrefix(t.Path, "./")
+			internalPath = "extension/" + internalPath
+
+			themePath := makeVSIXThemePath(vsixPath, internalPath)
 
 			themes = append(themes, VSCodeThemeEntry{
 				Label:       t.Label,
-				ExtensionID: entry.Name(),
+				ExtensionID: extensionID,
 				ThemePath:   themePath,
 				UITheme:     t.UITheme,
 			})
@@ -219,6 +303,14 @@ func (a *App) ReadThemeFile(themePath string) (string, error) {
 		return "", fmt.Errorf("VSCodium extension path not configured")
 	}
 	extDir = expandTilde(extDir)
+
+	if isVSIXThemePath(themePath) {
+		vsixPath, internalPath, ok := parseVSIXThemePath(themePath)
+		if !ok {
+			return "", fmt.Errorf("invalid vsix theme path: %s", themePath)
+		}
+		return a.readThemeFromVSIX(vsixPath, internalPath, extDir, 0)
+	}
 
 	return a.readThemeFileWithDepth(themePath, extDir, 0)
 }
@@ -277,37 +369,10 @@ func (a *App) readThemeFileWithDepth(themePath, extDir string, depth int) (strin
 		baseJSON, err := a.readThemeFileWithDepth(includePath, extDir, depth+1)
 		if err != nil {
 			log.Printf("failed to resolve include %q: %v", theme.Include, err)
-			// Return the theme without includes on failure
 		} else {
 			var baseTheme rawTheme
 			if err := json.Unmarshal([]byte(baseJSON), &baseTheme); err == nil {
-				// Merge: base colors underneath current
-				if baseTheme.Colors != nil {
-					if theme.Colors == nil {
-						theme.Colors = make(map[string]string)
-					}
-					for k, v := range baseTheme.Colors {
-						if _, exists := theme.Colors[k]; !exists {
-							theme.Colors[k] = v
-						}
-					}
-				}
-
-				// Prepend base tokenColors before current
-				if len(baseTheme.TokenColors) > 0 {
-					merged := make([]json.RawMessage, 0, len(baseTheme.TokenColors)+len(theme.TokenColors))
-					merged = append(merged, baseTheme.TokenColors...)
-					merged = append(merged, theme.TokenColors...)
-					theme.TokenColors = merged
-				}
-
-				// Inherit name/type from base if not set
-				if theme.Name == "" {
-					theme.Name = baseTheme.Name
-				}
-				if theme.Type == "" {
-					theme.Type = baseTheme.Type
-				}
+				mergeThemes(&theme, &baseTheme)
 			}
 		}
 	}
@@ -316,6 +381,72 @@ func (a *App) readThemeFileWithDepth(themePath, extDir string, depth int) (strin
 	theme.Include = ""
 
 	// Re-serialize as clean JSON
+	result, err := json.Marshal(theme)
+	if err != nil {
+		return string(clean), nil
+	}
+	return string(result), nil
+}
+
+// readThemeFromVSIX reads a theme file from inside a .vsix zip archive,
+// strips JSONC comments, resolves include directives within the zip, and
+// returns clean JSON.
+func (a *App) readThemeFromVSIX(vsixPath, internalPath, extDir string, depth int) (string, error) {
+	if depth > 5 {
+		log.Printf("theme include depth limit reached (>5) for %s in %s", internalPath, vsixPath)
+		return "", fmt.Errorf("include depth limit exceeded")
+	}
+
+	// Security: verify vsix is inside the extensions directory
+	absVsix, err := filepath.EvalSymlinks(vsixPath)
+	if err != nil {
+		return "", fmt.Errorf("resolving vsix path: %w", err)
+	}
+	absExt, err := filepath.EvalSymlinks(extDir)
+	if err != nil {
+		return "", fmt.Errorf("resolving extensions path: %w", err)
+	}
+	if !strings.HasPrefix(absVsix, absExt+string(os.PathSeparator)) {
+		return "", fmt.Errorf("vsix path outside extensions directory")
+	}
+
+	zr, err := zip.OpenReader(absVsix)
+	if err != nil {
+		return "", fmt.Errorf("opening vsix: %w", err)
+	}
+	defer zr.Close()
+
+	data, err := readFileFromZip(zr, internalPath)
+	if err != nil {
+		return "", fmt.Errorf("reading %s from vsix: %w", internalPath, err)
+	}
+
+	clean := stripJSONC(data)
+
+	var theme rawTheme
+	if err := json.Unmarshal(clean, &theme); err != nil {
+		return string(clean), nil
+	}
+
+	if theme.Include != "" {
+		// Resolve relative to the current file's directory within the zip.
+		// Use path (not filepath) since zip entries use forward slashes.
+		includeDir := path.Dir(internalPath)
+		includePath := path.Join(includeDir, theme.Include)
+		includePath = path.Clean(includePath)
+
+		baseJSON, err := a.readThemeFromVSIX(vsixPath, includePath, extDir, depth+1)
+		if err != nil {
+			log.Printf("failed to resolve include %q in vsix: %v", theme.Include, err)
+		} else {
+			var baseTheme rawTheme
+			if err := json.Unmarshal([]byte(baseJSON), &baseTheme); err == nil {
+				mergeThemes(&theme, &baseTheme)
+			}
+		}
+	}
+
+	theme.Include = ""
 	result, err := json.Marshal(theme)
 	if err != nil {
 		return string(clean), nil

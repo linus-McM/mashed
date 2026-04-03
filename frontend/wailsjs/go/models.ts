@@ -181,6 +181,73 @@ export namespace domain {
 
 export namespace main {
 	
+	export class LocalFontFile {
+	    fileName: string;
+	    weight: string;
+	    style: string;
+	    format: string;
+	    base64: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LocalFontFile(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.fileName = source["fileName"];
+	        this.weight = source["weight"];
+	        this.style = source["style"];
+	        this.format = source["format"];
+	        this.base64 = source["base64"];
+	    }
+	}
+	export class LocalFontFamily {
+	    family: string;
+	    files: LocalFontFile[];
+	
+	    static createFrom(source: any = {}) {
+	        return new LocalFontFamily(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.family = source["family"];
+	        this.files = this.convertValues(source["files"], LocalFontFile);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class NerdFontEntry {
+	    family: string;
+	    filePath: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NerdFontEntry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.family = source["family"];
+	        this.filePath = source["filePath"];
+	    }
+	}
 	export class VSCodeThemeEntry {
 	    label: string;
 	    extensionId: string;
@@ -204,6 +271,8 @@ export namespace main {
 	    theme?: string;
 	    vscodiumExtPath?: string;
 	    importedTheme?: string;
+	    monoFont?: string;
+	    fontSize?: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new conductorConfig(source);
@@ -215,6 +284,8 @@ export namespace main {
 	        this.theme = source["theme"];
 	        this.vscodiumExtPath = source["vscodiumExtPath"];
 	        this.importedTheme = source["importedTheme"];
+	        this.monoFont = source["monoFont"];
+	        this.fontSize = source["fontSize"];
 	    }
 	}
 

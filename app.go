@@ -54,6 +54,8 @@ type conductorConfig struct {
 	Theme           string `json:"theme,omitempty"`
 	VSCodiumExtPath string `json:"vscodiumExtPath,omitempty"`
 	ImportedTheme   string `json:"importedTheme,omitempty"`
+	MonoFont        string `json:"monoFont,omitempty"`
+	FontSize        int    `json:"fontSize,omitempty"`
 }
 
 // configPath returns the path to the conductor config file.
@@ -108,6 +110,9 @@ func (a *App) startup(ctx context.Context) {
 
 	// Initialize the diff explainer (uses ANTHROPIC_API_KEY from env)
 	a.explainer = explain.New()
+
+	// Ensure local fonts directory exists
+	ensureFontsDir()
 
 	// Check for saved config — if dir exists, start scanning immediately.
 	// If not, frontend will detect empty GetDevDir() on mount and show setup.
@@ -572,6 +577,24 @@ func (a *App) SetVSCodiumExtPath(path string) error {
 	defer a.mu.Unlock()
 	cfg := loadConfig()
 	cfg.VSCodiumExtPath = path
+	return saveConfig(cfg)
+}
+
+// SetMonoFont persists the selected mono font family to config.
+func (a *App) SetMonoFont(fontFamily string) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	cfg := loadConfig()
+	cfg.MonoFont = fontFamily
+	return saveConfig(cfg)
+}
+
+// SetFontSize persists the selected font size to config.
+func (a *App) SetFontSize(size int) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	cfg := loadConfig()
+	cfg.FontSize = size
 	return saveConfig(cfg)
 }
 

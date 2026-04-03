@@ -1,7 +1,8 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { ReadFile, ReadFileAtHead, WriteFile, ExplainDiffHunk, IsExplainAvailable } from '../../wailsjs/go/main/App.js';
-  import { defineAllThemes, EDITOR_FONT } from '../lib/monacoTheme.js';
+  import { defineAllThemes, getEditorFont } from '../lib/monacoTheme.js';
+  import { currentMonoFont, currentFontSize } from '../lib/stores/font.js';
   import { allThemes, currentThemeId, builtInThemeIds } from '../lib/stores/theme.js';
   import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
   import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
@@ -75,8 +76,8 @@
   function getEditorOptions() {
     return {
       theme: $currentThemeId,
-      fontFamily: EDITOR_FONT,
-      fontSize: 13,
+      fontFamily: getEditorFont(),
+      fontSize: $currentFontSize,
       lineHeight: 1.5 * 13,
       minimap: { enabled: false },
       scrollBeyondLastLine: false,
@@ -442,6 +443,14 @@
       }
     }
     monacoModule.editor.setTheme($currentThemeId);
+  }
+
+  // Live font switching
+  $: if (editor && $currentMonoFont) {
+    editor.updateOptions({ fontFamily: $currentMonoFont });
+  }
+  $: if (editor && $currentFontSize) {
+    editor.updateOptions({ fontSize: $currentFontSize });
   }
 </script>
 

@@ -18,6 +18,10 @@ export function GetDevDir() {
   return window['go']['main']['App']['GetDevDir']();
 }
 
+export function GetFontsDir() {
+  return window['go']['main']['App']['GetFontsDir']();
+}
+
 export function GetNotifications() {
   return window['go']['main']['App']['GetNotifications']();
 }
@@ -70,6 +74,14 @@ export function KillAgent(arg1, arg2) {
   return window['go']['main']['App']['KillAgent'](arg1, arg2);
 }
 
+export function ListLocalFonts() {
+  return window['go']['main']['App']['ListLocalFonts']();
+}
+
+export function ListNerdFonts() {
+  return window['go']['main']['App']['ListNerdFonts']();
+}
+
 export function ListRepoChoices() {
   return window['go']['main']['App']['ListRepoChoices']();
 }
@@ -84,6 +96,10 @@ export function ListVSCodiumThemes() {
 
 export function MarkRead(arg1) {
   return window['go']['main']['App']['MarkRead'](arg1);
+}
+
+export function OpenFontsDir() {
+  return window['go']['main']['App']['OpenFontsDir']();
 }
 
 export function PickDirectory() {
@@ -118,8 +134,16 @@ export function SetDevDir(arg1) {
   return window['go']['main']['App']['SetDevDir'](arg1);
 }
 
+export function SetFontSize(arg1) {
+  return window['go']['main']['App']['SetFontSize'](arg1);
+}
+
 export function SetImportedTheme(arg1) {
   return window['go']['main']['App']['SetImportedTheme'](arg1);
+}
+
+export function SetMonoFont(arg1) {
+  return window['go']['main']['App']['SetMonoFont'](arg1);
 }
 
 export function SetTheme(arg1) {

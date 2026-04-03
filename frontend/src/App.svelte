@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { EventsOn } from '../wailsjs/runtime/runtime.js';
-  import { GetNotifications, GetDevDir, GetConfig } from '../wailsjs/go/main/App.js';
+  import { GetNotifications, GetDevDir, GetConfig, ListLocalFonts } from '../wailsjs/go/main/App.js';
   import Setup from './views/Setup.svelte';
   import NotificationFeed from './views/NotificationFeed.svelte';
   import AgentDetail from './views/AgentDetail.svelte';
@@ -11,6 +11,7 @@
   import TitleBar from './components/TitleBar.svelte';
   import { applyTheme } from './lib/stores/theme.js';
   import { restoreImportedThemeFromConfig } from './lib/themeInit.js';
+  import { applyFont, registerLocalFonts } from './lib/stores/font.js';
 
   let currentView = 'loading'; // 'loading' | 'setup' | 'feed' | 'detail' | 'settings'
   let selectedAgent = null;
@@ -27,6 +28,11 @@
       } else if (cfg.theme) {
         applyTheme(cfg.theme);
       }
+      // Register local fonts (@font-face) before applying selection
+      const localFonts = await ListLocalFonts();
+      registerLocalFonts(localFonts);
+      // Font store is the single source of truth — always initialize it
+      applyFont(cfg.monoFont || '', cfg.fontSize || 0);
     } catch {}
 
     try {

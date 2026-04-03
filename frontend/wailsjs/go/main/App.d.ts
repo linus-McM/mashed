@@ -11,6 +11,8 @@ export function GetConfig():Promise<main.conductorConfig>;
 
 export function GetDevDir():Promise<string>;
 
+export function GetFontsDir():Promise<string>;
+
 export function GetNotifications():Promise<Array<domain.NotificationEvent>>;
 
 export function GetScopedDiff(arg1:string):Promise<domain.ScopedDiff>;
@@ -37,6 +39,10 @@ export function IsExplainAvailable():Promise<boolean>;
 
 export function KillAgent(arg1:string,arg2:number):Promise<void>;
 
+export function ListLocalFonts():Promise<Array<main.LocalFontFamily>>;
+
+export function ListNerdFonts():Promise<Array<main.NerdFontEntry>>;
+
 export function ListRepoChoices():Promise<Array<Record<string, string>>>;
 
 export function ListRepoFiles(arg1:string):Promise<Array<string>>;
@@ -44,6 +50,8 @@ export function ListRepoFiles(arg1:string):Promise<Array<string>>;
 export function ListVSCodiumThemes():Promise<Array<main.VSCodeThemeEntry>>;
 
 export function MarkRead(arg1:string):Promise<void>;
+
+export function OpenFontsDir():Promise<void>;
 
 export function PickDirectory():Promise<string>;
 
@@ -61,7 +69,11 @@ export function RepoStatus(arg1:string):Promise<Record<string, any>>;
 
 export function SetDevDir(arg1:string):Promise<void>;
 
+export function SetFontSize(arg1:number):Promise<void>;
+
 export function SetImportedTheme(arg1:string):Promise<void>;
+
+export function SetMonoFont(arg1:string):Promise<void>;
 
 export function SetTheme(arg1:string):Promise<void>;
 
