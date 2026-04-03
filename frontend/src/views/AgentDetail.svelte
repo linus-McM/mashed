@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, SpawnPRReview } from '../../wailsjs/go/main/App.js';
+  import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, SpawnPRReview, RepoMtimes } from '../../wailsjs/go/main/App.js';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
   import { ArrowLeft, GitBranch, GripVertical, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus } from 'lucide-svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
@@ -94,11 +94,8 @@
     try {
       const result = await fn(agent.repoPath);
       gitResult = result || 'Done';
-      // Refresh changed files
-      try {
-        const diff = await GetScopedDiff(agent.repoPath);
-        if (diff && diff.files) changedFiles = diff.files;
-      } catch {}
+      refreshChangedFiles();
+      refreshAllFiles();
     } catch (err) {
       gitError = err?.message || String(err);
     }
@@ -146,10 +143,8 @@
         gitAction = null;
         if (!evt.error) {
           gitResult = evt.output || 'Done';
-          // Refresh changed files
-          GetScopedDiff(agent.repoPath).then(diff => {
-            if (diff && diff.files) changedFiles = diff.files;
-          }).catch(() => {});
+          refreshChangedFiles();
+          refreshAllFiles();
           // Auto-close panel after success
           setTimeout(() => { commitPanel = null; }, 1500);
         } else {
@@ -193,17 +188,58 @@
     }
   }
 
+  // Mtime-based file change detection
+  let lastIndexMtime = 0;
+  let lastRootMtime = 0;
+  let mtimeInterval;
+
+  async function refreshChangedFiles() {
+    if (!agent?.repoPath) return;
+    try {
+      const diff = await GetScopedDiff(agent.repoPath);
+      if (diff && diff.files) changedFiles = diff.files;
+    } catch {}
+  }
+
+  async function refreshAllFiles() {
+    if (!agent?.repoPath) return;
+    try {
+      const files = await ListRepoFiles(agent.repoPath);
+      if (files) allFiles = files;
+    } catch {}
+  }
+
+  async function checkMtimes() {
+    if (!agent?.repoPath) return;
+    try {
+      const mt = await RepoMtimes(agent.repoPath);
+      if (!mt) return;
+
+      const indexChanged = mt.index !== lastIndexMtime && lastIndexMtime !== 0;
+      const rootChanged = mt.root !== lastRootMtime && lastRootMtime !== 0;
+
+      lastIndexMtime = mt.index;
+      lastRootMtime = mt.root;
+
+      if (indexChanged) {
+        // Stage/commit/checkout — refresh both tabs
+        refreshChangedFiles();
+        refreshAllFiles();
+      } else if (rootChanged) {
+        // Unstaged edits — refresh changed tab only
+        refreshChangedFiles();
+      }
+    } catch {}
+  }
+
   onMount(async () => {
     window.addEventListener('keydown', handleKeydown);
     setupCommitListener();
 
     if (agent?.repoPath) {
-      try {
-        const diff = await GetScopedDiff(agent.repoPath);
-        if (diff && diff.files) changedFiles = diff.files;
-      } catch (e) {
-        console.warn('Failed to get scoped diff:', e);
-      }
+      // Initial loads
+      refreshChangedFiles();
+      refreshAllFiles();
 
       try {
         const wts = await GetWorktrees(agent.repoPath);
@@ -212,18 +248,22 @@
         console.warn('Failed to get worktrees:', e);
       }
 
+      // Seed mtimes then start polling
       try {
-        const files = await ListRepoFiles(agent.repoPath);
-        if (files) allFiles = files;
-      } catch (e) {
-        console.warn('Failed to list repo files:', e);
-      }
+        const mt = await RepoMtimes(agent.repoPath);
+        if (mt) {
+          lastIndexMtime = mt.index;
+          lastRootMtime = mt.root;
+        }
+      } catch {}
+      mtimeInterval = setInterval(checkMtimes, 5000);
     }
   });
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeydown);
     if (commitEventCancel) commitEventCancel();
+    if (mtimeInterval) clearInterval(mtimeInterval);
   });
 </script>
 

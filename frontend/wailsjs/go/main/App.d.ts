@@ -48,6 +48,8 @@ export function ReadFileAtHead(arg1:string,arg2:string):Promise<string>;
 
 export function ReadFileDiff(arg1:string,arg2:string):Promise<string>;
 
+export function RepoMtimes(arg1:string):Promise<Record<string, number>>;
+
 export function RepoStatus(arg1:string):Promise<Record<string, any>>;
 
 export function SetDevDir(arg1:string):Promise<void>;

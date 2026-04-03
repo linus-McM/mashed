@@ -94,6 +94,10 @@ export function ReadFileDiff(arg1, arg2) {
   return window['go']['main']['App']['ReadFileDiff'](arg1, arg2);
 }
 
+export function RepoMtimes(arg1) {
+  return window['go']['main']['App']['RepoMtimes'](arg1);
+}
+
 export function RepoStatus(arg1) {
   return window['go']['main']['App']['RepoStatus'](arg1);
 }

@@ -559,6 +559,26 @@ func (a *App) GetWorktrees(repoPath string) ([]domain.WorktreeInfo, error) {
 	return git.DetectWorktrees(repoPath)
 }
 
+// RepoMtimes returns the modification times of .git/index and the repo root directory.
+// The frontend polls this cheaply to detect when a full refresh is needed.
+func (a *App) RepoMtimes(repoPath string) (map[string]int64, error) {
+	if repoPath == "" {
+		return nil, fmt.Errorf("empty repo path")
+	}
+	result := map[string]int64{"index": 0, "root": 0}
+
+	indexPath := filepath.Join(repoPath, ".git", "index")
+	if fi, err := os.Stat(indexPath); err == nil {
+		result["index"] = fi.ModTime().UnixMilli()
+	}
+
+	if fi, err := os.Stat(repoPath); err == nil {
+		result["root"] = fi.ModTime().UnixMilli()
+	}
+
+	return result, nil
+}
+
 // GetAgentLog returns the parsed log lines for an agent's latest session.
 func (a *App) GetAgentLog(repoPath string) []domain.LogLine {
 	if a.provider == nil || repoPath == "" {
