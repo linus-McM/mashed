@@ -78,6 +78,10 @@ export function ListRepoFiles(arg1) {
   return window['go']['main']['App']['ListRepoFiles'](arg1);
 }
 
+export function ListVSCodiumThemes() {
+  return window['go']['main']['App']['ListVSCodiumThemes']();
+}
+
 export function MarkRead(arg1) {
   return window['go']['main']['App']['MarkRead'](arg1);
 }
@@ -98,6 +102,10 @@ export function ReadFileDiff(arg1, arg2) {
   return window['go']['main']['App']['ReadFileDiff'](arg1, arg2);
 }
 
+export function ReadThemeFile(arg1) {
+  return window['go']['main']['App']['ReadThemeFile'](arg1);
+}
+
 export function RepoMtimes(arg1) {
   return window['go']['main']['App']['RepoMtimes'](arg1);
 }
@@ -108,6 +116,10 @@ export function RepoStatus(arg1) {
 
 export function SetDevDir(arg1) {
   return window['go']['main']['App']['SetDevDir'](arg1);
+}
+
+export function SetImportedTheme(arg1) {
+  return window['go']['main']['App']['SetImportedTheme'](arg1);
 }
 
 export function SetTheme(arg1) {

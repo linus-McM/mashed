@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { ReadFile, ReadFileAtHead, WriteFile, ExplainDiffHunk, IsExplainAvailable } from '../../wailsjs/go/main/App.js';
   import { defineAllThemes, EDITOR_FONT } from '../lib/monacoTheme.js';
-  import { currentThemeId } from '../lib/stores/theme.js';
+  import { allThemes, currentThemeId, builtInThemeIds } from '../lib/stores/theme.js';
   import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
   import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
   import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
@@ -36,6 +36,7 @@
   let error = '';
   let monacoModule = null;
   let themeRegistered = false;
+  let registeredThemeIds = new Set();
 
   // Hover-to-explain state
   let explainAvailable = false;
@@ -405,6 +406,9 @@
       monacoModule = await import('monaco-editor');
       if (!themeRegistered) {
         defineAllThemes(monacoModule);
+        for (const id of builtInThemeIds) {
+          registeredThemeIds.add(id);
+        }
         themeRegistered = true;
       }
       // The reactive block ($: if (filePath && repoPath && monacoModule)) will
@@ -426,8 +430,17 @@
     destroyEditor();
   });
 
-  // Live theme switching — Monaco supports global setTheme
+  // Live theme switching — register imported themes on demand, then activate
   $: if (monacoModule && $currentThemeId) {
+    const theme = $allThemes[$currentThemeId];
+    if (theme && theme.monaco && !registeredThemeIds.has($currentThemeId)) {
+      try {
+        monacoModule.editor.defineTheme($currentThemeId, theme.monaco);
+        registeredThemeIds.add($currentThemeId);
+      } catch (e) {
+        console.error('Failed to define Monaco theme:', e);
+      }
+    }
     monacoModule.editor.setTheme($currentThemeId);
   }
 </script>

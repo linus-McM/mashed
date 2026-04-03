@@ -10,6 +10,7 @@
   import { Hexagon } from 'lucide-svelte';
   import TitleBar from './components/TitleBar.svelte';
   import { applyTheme } from './lib/stores/theme.js';
+  import { restoreImportedThemeFromConfig } from './lib/themeInit.js';
 
   let currentView = 'loading'; // 'loading' | 'setup' | 'feed' | 'detail' | 'settings'
   let selectedAgent = null;
@@ -20,7 +21,12 @@
     // Load persisted theme before rendering content
     try {
       const cfg = await GetConfig();
-      if (cfg.theme) applyTheme(cfg.theme);
+      if (cfg.importedTheme) {
+        // Restore imported VSCodium theme (C-5 fix: survives app restarts)
+        await restoreImportedThemeFromConfig(cfg);
+      } else if (cfg.theme) {
+        applyTheme(cfg.theme);
+      }
     } catch {}
 
     try {

@@ -40,11 +40,20 @@ type App struct {
 	notifications []domain.NotificationEvent
 }
 
+// VSCodeThemeEntry represents a single color theme found in a VSCodium extension.
+type VSCodeThemeEntry struct {
+	Label       string `json:"label"`
+	ExtensionID string `json:"extensionId"`
+	ThemePath   string `json:"themePath"`
+	UITheme     string `json:"uiTheme"`
+}
+
 // conductorConfig persists user settings between launches.
 type conductorConfig struct {
 	DevDir          string `json:"devDir"`
 	Theme           string `json:"theme,omitempty"`
 	VSCodiumExtPath string `json:"vscodiumExtPath,omitempty"`
+	ImportedTheme   string `json:"importedTheme,omitempty"`
 }
 
 // configPath returns the path to the conductor config file.
@@ -524,10 +533,14 @@ func (a *App) SetDevDir(dir string) error {
 	}
 
 	// Persist (load-modify-save to preserve Theme/VSCodiumExtPath)
+	a.mu.Lock()
 	cfg := loadConfig()
 	cfg.DevDir = dir
 	if err := saveConfig(cfg); err != nil {
+		a.mu.Unlock()
 		log.Printf("failed to save config: %v", err)
+	} else {
+		a.mu.Unlock()
 	}
 
 	a.initScanning(dir)
@@ -546,6 +559,8 @@ func (a *App) GetConfig() conductorConfig {
 
 // SetTheme persists the selected theme ID to config.
 func (a *App) SetTheme(id string) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	cfg := loadConfig()
 	cfg.Theme = id
 	return saveConfig(cfg)
@@ -553,6 +568,8 @@ func (a *App) SetTheme(id string) error {
 
 // SetVSCodiumExtPath persists the VSCodium extension path to config.
 func (a *App) SetVSCodiumExtPath(path string) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	cfg := loadConfig()
 	cfg.VSCodiumExtPath = path
 	return saveConfig(cfg)

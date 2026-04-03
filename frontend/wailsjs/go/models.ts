@@ -181,10 +181,29 @@ export namespace domain {
 
 export namespace main {
 	
+	export class VSCodeThemeEntry {
+	    label: string;
+	    extensionId: string;
+	    themePath: string;
+	    uiTheme: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new VSCodeThemeEntry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.label = source["label"];
+	        this.extensionId = source["extensionId"];
+	        this.themePath = source["themePath"];
+	        this.uiTheme = source["uiTheme"];
+	    }
+	}
 	export class conductorConfig {
 	    devDir: string;
 	    theme?: string;
 	    vscodiumExtPath?: string;
+	    importedTheme?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new conductorConfig(source);
@@ -195,6 +214,7 @@ export namespace main {
 	        this.devDir = source["devDir"];
 	        this.theme = source["theme"];
 	        this.vscodiumExtPath = source["vscodiumExtPath"];
+	        this.importedTheme = source["importedTheme"];
 	    }
 	}
 

@@ -2,7 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { Quit, WindowMinimise, WindowToggleMaximise } from '../../wailsjs/runtime/runtime.js';
   import { Settings, Palette } from 'lucide-svelte';
-  import { themes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
+  import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
   import { SetTheme } from '../../wailsjs/go/main/App.js';
 
   const dispatch = createEventDispatcher();
@@ -47,8 +47,8 @@
       </button>
       {#if showThemePicker}
         <div class="theme-popover" on:click|stopPropagation>
-          {#each themeIds as id}
-            {@const theme = themes[id]}
+          {#each $themeIds as id}
+            {@const theme = $allThemes[id]}
             <button
               class="theme-card"
               class:active={$currentThemeId === id}

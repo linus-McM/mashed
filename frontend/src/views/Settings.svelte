@@ -1,24 +1,64 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
   import { ArrowLeft } from 'lucide-svelte';
-  import { themes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
-  import { GetConfig, SetTheme, SetVSCodiumExtPath, PickDirectory } from '../../wailsjs/go/main/App.js';
+  import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
+  import { GetConfig, SetTheme, SetImportedTheme, SetVSCodiumExtPath, PickDirectory, ListVSCodiumThemes } from '../../wailsjs/go/main/App.js';
+  import { activateImportedTheme, convertedCache } from '../lib/themeInit.js';
 
   const dispatch = createEventDispatcher();
 
   let vscodiumPath = '';
   let saveStatus = '';
+  let vscodiumThemes = [];
+  let loadingThemes = false;
+  let themeLoadError = '';
+  let activatingThemePath = '';
 
   onMount(async () => {
     try {
       const cfg = await GetConfig();
       vscodiumPath = cfg.vscodiumExtPath || '';
+      if (vscodiumPath) {
+        await scanThemes();
+      }
     } catch {}
   });
 
   async function selectTheme(id) {
     applyTheme(id);
-    try { await SetTheme(id); } catch {}
+    try {
+      await SetTheme(id);
+      // AC-4: selecting a built-in theme clears the imported theme from config
+      await SetImportedTheme('');
+    } catch {}
+  }
+
+  async function scanThemes() {
+    loadingThemes = true;
+    themeLoadError = '';
+    try {
+      vscodiumThemes = await ListVSCodiumThemes();
+    } catch (err) {
+      themeLoadError = err?.message || 'Failed to scan themes';
+      vscodiumThemes = [];
+    } finally {
+      loadingThemes = false;
+    }
+  }
+
+  async function handleImportedThemeClick(entry) {
+    activatingThemePath = entry.themePath;
+    try {
+      await activateImportedTheme(entry.themePath, entry.extensionId);
+    } catch (err) {
+      themeLoadError = 'Failed to activate theme: ' + (err?.message || 'unknown error');
+    } finally {
+      activatingThemePath = '';
+    }
+  }
+
+  function isDarkTheme(uiTheme) {
+    return uiTheme !== 'vs' && uiTheme !== 'vs-light';
   }
 
   async function browseVSCodium() {
@@ -28,6 +68,8 @@
         vscodiumPath = dir;
         await SetVSCodiumExtPath(dir);
         flashSave();
+        // AC-7: re-scan themes after path change
+        await scanThemes();
       }
     } catch {}
   }
@@ -64,8 +106,8 @@
     <section class="settings-section">
       <h2 class="section-title">Theme</h2>
       <div class="theme-grid">
-        {#each themeIds as id}
-          {@const theme = themes[id]}
+        {#each $themeIds as id}
+          {@const theme = $allThemes[id]}
           <button
             class="theme-option"
             class:active={$currentThemeId === id}
@@ -108,6 +150,54 @@
         <span class="save-status">{saveStatus}</span>
       {/if}
     </section>
+
+    <!-- Imported Themes section -->
+    {#if loadingThemes}
+      <section class="settings-section">
+        <h2 class="section-title">Imported Themes</h2>
+        <p class="section-desc loading-text">Scanning themes...</p>
+      </section>
+    {:else if themeLoadError}
+      <section class="settings-section">
+        <h2 class="section-title">Imported Themes</h2>
+        <p class="section-desc error-text">{themeLoadError}</p>
+      </section>
+    {:else if vscodiumThemes.length > 0}
+      <section class="settings-section">
+        <h2 class="section-title">Imported Themes</h2>
+        <p class="section-desc">Click a theme to activate it. Themes are loaded from your VSCodium extensions.</p>
+        <div class="theme-list">
+          {#each vscodiumThemes as entry}
+            {@const themeId = 'imported-' + entry.extensionId + '-' + entry.themePath.split('/').pop().replace('.json', '')}
+            {@const cached = convertedCache[entry.themePath]}
+            <button
+              class="imported-theme-btn"
+              class:active={$currentThemeId === themeId}
+              disabled={activatingThemePath === entry.themePath}
+              on:click={() => handleImportedThemeClick(entry)}
+            >
+              {#if cached}
+                <div class="theme-preview mini" style="background: {cached.theme.css['--bg-deepest']}; border-color: {cached.theme.css['--border-subtle']}">
+                  <div class="preview-line" style="background: {cached.theme.css['--accent-green']}; width: 40%"></div>
+                  <div class="preview-line" style="background: {cached.theme.css['--text-dim']}; width: 65%"></div>
+                  <div class="preview-line" style="background: {cached.theme.css['--accent-purple']}; width: 30%"></div>
+                </div>
+              {:else}
+                <span class="theme-badge" class:dark={isDarkTheme(entry.uiTheme)} class:light={!isDarkTheme(entry.uiTheme)}>
+                  {isDarkTheme(entry.uiTheme) ? 'D' : 'L'}
+                </span>
+              {/if}
+              <span class="imported-theme-label">
+                {entry.label}
+                {#if activatingThemePath === entry.themePath}
+                  <span class="activating-indicator">...</span>
+                {/if}
+              </span>
+            </button>
+          {/each}
+        </div>
+      </section>
+    {/if}
   </div>
 
   <div class="settings-footer">
@@ -301,6 +391,105 @@
     font-family: var(--font-mono);
     font-size: 10px;
     color: var(--accent-green);
+  }
+
+  /* Imported themes */
+  .theme-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  .imported-theme-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    padding: 6px 10px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    text-align: left;
+    transition: all 100ms ease;
+  }
+
+  .imported-theme-btn:hover {
+    background: var(--bg-elevated);
+    border-color: var(--border-subtle);
+  }
+
+  .imported-theme-btn.active {
+    background: var(--bg-active);
+    border-color: var(--accent-green);
+  }
+
+  .imported-theme-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .theme-badge {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .theme-badge.dark {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border: 1px solid #313244;
+  }
+
+  .theme-badge.light {
+    background: #eff1f5;
+    color: #4c4f69;
+    border: 1px solid #ccd0da;
+  }
+
+  .theme-preview.mini {
+    width: 32px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    border: 1px solid;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 3px 4px;
+    flex-shrink: 0;
+  }
+
+  .theme-preview.mini .preview-line {
+    height: 2px;
+    border-radius: 1px;
+  }
+
+  .imported-theme-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+  }
+
+  .loading-text {
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .error-text {
+    color: var(--accent-red);
+  }
+
+  .activating-indicator {
+    color: var(--text-muted);
   }
 
   /* Footer */

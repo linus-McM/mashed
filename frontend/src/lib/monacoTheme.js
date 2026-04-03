@@ -6,4 +6,8 @@ export function defineAllThemes(monaco) {
   }
 }
 
+export function defineImportedTheme(monaco, id, monacoThemeData) {
+    monaco.editor.defineTheme(id, monacoThemeData);
+}
+
 export const EDITOR_FONT = "'Geist Mono', 'JetBrains Mono', monospace";

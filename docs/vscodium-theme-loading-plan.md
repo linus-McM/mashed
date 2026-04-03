@@ -1324,3 +1324,55 @@ Each phase can be built and tested independently. Phase 1 can be verified by cal
 | `frontend/src/components/MonacoEditor.svelte` | Modify | React to dynamically registered themes |
 | `frontend/src/lib/shikiSetup.js` | New (C only) | Shiki initialization and Monaco wiring |
 | `frontend/package.json` | Modify (B1/C) | Add `monaco-vscode-textmate-theme-converter` or `shiki` + `@shikijs/monaco` |
+| `frontend/src/components/TitleBar.svelte` | Modify | Update to use `$themeIds` store and `$allThemes` instead of static arrays |
+| `frontend/src/App.svelte` | Modify | Add imported theme restoration on startup |
+
+---
+
+## Addendum: Review Fixes (from adversarial review 2026-04-03)
+
+The following issues were identified during spec review and MUST be addressed during implementation. See `docs/vscodium-theme-loading-review.md` for the full review.
+
+### Critical Fixes (non-negotiable)
+
+**Fix 1: Path traversal via symlinks (C-1)**
+`ReadThemeFile` must use `filepath.EvalSymlinks` instead of `filepath.Abs`, and append `os.PathSeparator` to the prefix check to prevent `/ext-other/` matching `/ext/`. All `os.UserHomeDir()` errors must be checked, not discarded.
+
+**Fix 2: TitleBar.svelte breakage (C-2)**
+The store refactor changes `themeIds` from a plain array to a Svelte derived store. TitleBar.svelte must be updated to use `$themeIds` and `$allThemes` instead of the static `themes` and `themeIds` exports. Add TitleBar.svelte to the file changes list.
+
+**Fix 3: JSONC theme files (C-3)**
+Many VSCode themes use JSONC format (JSON with `//` comments and trailing commas). Strip comments in the Go backend before returning the string — add a JSONC-stripping pass in `ReadThemeFile` (or `ReadThemeFileResolved`). This avoids adding a frontend dependency.
+
+**Fix 4: Size check before read (C-4)**
+Move the 512KB size check to use `os.Stat` BEFORE `os.ReadFile` to prevent memory exhaustion from large files.
+
+**Fix 5: Imported theme startup restore (C-5)**
+Move imported theme restoration logic from Settings.svelte `onMount` to App.svelte (or a shared `initThemeFromConfig()` in `stores/theme.js`). Without this, imported themes reset on every app restart.
+
+### High-Priority Fixes
+
+**Fix 6: Wire ReadThemeFileResolved (H-1)**
+Either merge include resolution into `ReadThemeFile` directly, or update `activateImportedTheme` in Phase 4 to call `ReadThemeFileResolved` instead of `ReadThemeFile`.
+
+**Fix 7: Config race condition (H-2)**
+Add mutex protection around all config load-modify-save operations to prevent concurrent Wails calls from clobbering each other.
+
+**Fix 8: Tilde expansion (H-3)**
+Change `strings.HasPrefix(extDir, "~")` to `strings.HasPrefix(extDir, "~/") || extDir == "~"` and check `os.UserHomeDir()` error.
+
+**Fix 9: .tmTheme filter (H-7)**
+Add `strings.HasSuffix(strings.ToLower(t.Path), ".json")` filter in the scanner loop to skip non-JSON theme files.
+
+**Fix 10: Token specificity (H-5)**
+Process `tokenColors` in reverse order so more-specific scopes win, or remove the `seenTokens` set entirely.
+
+**Fix 11: Theme ID collisions (M-5)**
+Include the extension ID in theme ID generation: `'imported-' + entry.extensionId + '-' + filename`.
+
+### Implementation Notes
+
+- **Approach B1 dropped** — The npm package `monaco-vscode-textmate-theme-converter` may not exist. Use B2 (hand-rolled) only.
+- **`wails generate module` → `wails generate`** — The `module` subcommand doesn't exist in Wails v2.
+- **High-contrast themes** — Map `hc-black` and `hc-light` UITheme values to their respective Monaco bases instead of defaulting to `vs-dark`.
+- **`dimColor` hex normalization** — Handle 4-char (`#RGB`), 7-char (`#RRGGBB`), and 9-char (`#RRGGBBAA`) hex formats.
