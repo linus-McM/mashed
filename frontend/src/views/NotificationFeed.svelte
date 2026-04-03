@@ -568,6 +568,11 @@
     if (evt.done && !evt.error) {
       repoActions[path] = { action: null, result: evt.output || 'Done', error: null };
       refreshRepoStatuses();
+      // Auto-close panel after success
+      setTimeout(() => {
+        delete commitPanels[path];
+        commitPanels = commitPanels;
+      }, 1500);
     } else if (evt.done && evt.error) {
       repoActions[path] = { action: null, result: null, error: evt.error };
     }

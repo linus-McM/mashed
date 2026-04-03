@@ -150,6 +150,8 @@
           GetScopedDiff(agent.repoPath).then(diff => {
             if (diff && diff.files) changedFiles = diff.files;
           }).catch(() => {});
+          // Auto-close panel after success
+          setTimeout(() => { commitPanel = null; }, 1500);
         } else {
           gitError = evt.error;
         }
