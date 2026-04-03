@@ -73,6 +73,13 @@ export namespace domain {
 	    tokensMax: number;
 	    tmuxTarget: string;
 	    pid: number;
+	    isSubAgent: boolean;
+	    parentAgentId?: string;
+	    subAgentName?: string;
+	    subAgentDesc?: string;
+	    subAgentStatus?: string;
+	    subAgentResult?: string;
+	    subAgentLogLines?: LogLine[];
 	
 	    static createFrom(source: any = {}) {
 	        return new NotificationEvent(source);
@@ -96,6 +103,13 @@ export namespace domain {
 	        this.tokensMax = source["tokensMax"];
 	        this.tmuxTarget = source["tmuxTarget"];
 	        this.pid = source["pid"];
+	        this.isSubAgent = source["isSubAgent"];
+	        this.parentAgentId = source["parentAgentId"];
+	        this.subAgentName = source["subAgentName"];
+	        this.subAgentDesc = source["subAgentDesc"];
+	        this.subAgentStatus = source["subAgentStatus"];
+	        this.subAgentResult = source["subAgentResult"];
+	        this.subAgentLogLines = this.convertValues(source["subAgentLogLines"], LogLine);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

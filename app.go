@@ -245,6 +245,35 @@ func (a *App) doScan() {
 		branch := repoBranch[dir]
 
 		_ = a.engine.ProcessAgentUpdate(ag, repoName, branch)
+
+		// Emit sub-agent events from the session's parsed sub-agents
+		if sessionData != nil {
+			for _, sub := range sessionData.SubAgents {
+				subID := fmt.Sprintf("%s-sub-%s-%s", agentID, sanitizeID(sub.Name), sub.ToolUseID)
+				subStatus := domain.StatusRunning
+				if sub.Status == "done" {
+					subStatus = domain.StatusDone
+				}
+
+				subAg := domain.Agent{
+					ID:          subID,
+					Name:        sub.Name,
+					Model:       model,
+					Status:      subStatus,
+					PID:         0, // sub-agents don't have their own PID
+					TokensUsed:  0,
+					TokensMax:   0,
+					HasTmuxPane: true,
+					TmuxTarget:  tmuxTarget, // use parent's pane
+					RepoPath:    dir,
+					LogLines:    sub.LogLines,
+					// Sub-agent metadata carried via the engine event
+					SubAgentInfo: &sub,
+				}
+
+				_ = a.engine.ProcessAgentUpdate(subAg, repoName, branch)
+			}
+		}
 	}
 
 	// Emit repos to frontend
@@ -433,6 +462,21 @@ func (a *App) inferStatus(data *domain.SessionData) domain.AgentStatus {
 	}
 
 	return domain.StatusRunning
+}
+
+// sanitizeID removes characters that would break agent ID parsing.
+func sanitizeID(s string) string {
+	out := make([]byte, 0, len(s))
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' {
+			out = append(out, c)
+		}
+	}
+	if len(out) == 0 {
+		return "agent"
+	}
+	return string(out)
 }
 
 // repoNameFromDir extracts the repo name from a directory path.

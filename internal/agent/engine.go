@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -117,6 +118,21 @@ func (e *NotificationEngine) ProcessAgentUpdate(agent domain.Agent, repoName, re
 		TmuxTarget: agent.TmuxTarget,
 		RepoPath:   agent.RepoPath,
 		PID:        agent.PID,
+	}
+
+	// Populate sub-agent metadata when present
+	if agent.SubAgentInfo != nil {
+		sub := agent.SubAgentInfo
+		event.IsSubAgent = true
+		// Derive parent ID from the agent ID format "{parentID}-sub-{name}-{toolUseID}"
+		if idx := strings.Index(agent.ID, "-sub-"); idx > 0 {
+			event.ParentAgentID = agent.ID[:idx]
+		}
+		event.SubAgentName = sub.Name
+		event.SubAgentDesc = sub.Description
+		event.SubAgentStatus = sub.Status
+		event.SubAgentResult = sub.Result
+		event.SubAgentLogLines = sub.LogLines
 	}
 
 	// Emit to Wails frontend

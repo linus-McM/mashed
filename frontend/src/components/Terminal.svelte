@@ -45,6 +45,7 @@
   }
 
   let lastLineCount = 0;
+  let onWindowFocus;
 
   async function pollLog() {
     if (!repoPath || !term) return;
@@ -112,6 +113,9 @@
     term.focus();
     // Re-focus after a short delay to ensure WebView has settled
     setTimeout(() => term.focus(), 100);
+    // Re-focus whenever the window regains focus so the cursor keeps blinking
+    onWindowFocus = () => { if (term) term.focus(); };
+    window.addEventListener('focus', onWindowFocus);
 
     const resizeObserver = new ResizeObserver(() => fitAddon.fit());
     resizeObserver.observe(terminalEl);
@@ -180,6 +184,7 @@
   });
 
   onDestroy(() => {
+    if (onWindowFocus) window.removeEventListener('focus', onWindowFocus);
     if (ws) ws.close();
     if (logPollInterval) clearInterval(logPollInterval);
     if (term) term.dispose();

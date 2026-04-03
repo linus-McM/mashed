@@ -139,7 +139,13 @@
     return result;
   }
 
-  $: flatAgents = orderedRepos.flatMap(r => r.agents);
+  $: flatAgents = orderedRepos.flatMap(r => r.agents.flatMap(a => {
+    const result = [a];
+    if (a.subAgents && a.subAgents.length > 0 && isAgentExpanded(a.agentId)) {
+      result.push(...a.subAgents);
+    }
+    return result;
+  }));
   $: totalAgents = flatAgents.length;
   $: totalRepos = orderedRepos.length;
   $: totalTokens = notifications.reduce((sum, e) => sum + (e.tokensUsed || 0), 0);
@@ -347,6 +353,23 @@
   function scrollIntoView(id) {
     const el = document.querySelector(`[data-agent-id="${id}"]`);
     if (el) el.scrollIntoView({ block: 'nearest' });
+  }
+
+  // Accordion state for sub-agents per parent agent
+  let expandedAgents = new Set();
+
+  function toggleAgentAccordion(agentId, e) {
+    e.stopPropagation();
+    if (expandedAgents.has(agentId)) {
+      expandedAgents.delete(agentId);
+    } else {
+      expandedAgents.add(agentId);
+    }
+    expandedAgents = expandedAgents;
+  }
+
+  function isAgentExpanded(agentId) {
+    return expandedAgents.has(agentId);
   }
 
   let killingAgents = new Set();
@@ -569,67 +592,84 @@
           <!-- Left: Agents (75%) -->
           <div class="repo-agents">
             {#each repo.agents as agent}
-              <div
-                class="agent-row"
-                class:selected={selectedId === agent.agentId}
-                data-agent-id={agent.agentId}
-                on:click={() => handleClick(agent)}
-                on:keydown={(e) => { if (e.key === 'Enter') handleClick(agent); }}
-                role="button"
-                tabindex="0"
-              >
-                <div class="agent-content">
-                  <span class="agent-indicator">
-                    {#if agent.eventType === 'terminal'}
-                      <TerminalSquare size={12} />
+              <div class="agent-accordion" class:has-children={agent.subAgents && agent.subAgents.length > 0}>
+                <div
+                  class="agent-row"
+                  class:selected={selectedId === agent.agentId}
+                  data-agent-id={agent.agentId}
+                  on:click={() => handleClick(agent)}
+                  on:keydown={(e) => { if (e.key === 'Enter') handleClick(agent); }}
+                  role="button"
+                  tabindex="0"
+                >
+                  <div class="agent-content">
+                    {#if agent.subAgents && agent.subAgents.length > 0}
+                      <button class="accordion-toggle" on:click={(e) => toggleAgentAccordion(agent.agentId, e)}>
+                        {#if isAgentExpanded(agent.agentId)}
+                          <ChevronDown size={12} />
+                        {:else}
+                          <ChevronRight size={12} />
+                        {/if}
+                      </button>
                     {:else}
-                      <Circle size={8} />
+                      <span class="agent-indicator">
+                        {#if agent.eventType === 'terminal'}
+                          <TerminalSquare size={12} />
+                        {:else}
+                          <Circle size={8} />
+                        {/if}
+                      </span>
                     {/if}
-                  </span>
-                  <span class="agent-model">{agent.eventType === 'terminal' ? 'shell' : (agent.model || agent.agentName)}</span>
-                  <StatusBadge status={agent.eventType} size="sm" />
-                  <span class="agent-summary">{agent.summary}</span>
-                  {#if agent.eventType !== 'terminal'}
-                    <span class="agent-tokens mono">{formatTokens(agent.tokensUsed || 0)}</span>
-                  {/if}
-                  <span class="agent-elapsed mono">{formatElapsed(agent.timestamp)}</span>
-                  <button
-                    class="kill-btn"
-                    title="Kill session"
-                    disabled={killingAgents.has(agent.agentId)}
-                    on:click={(e) => killSession(agent, e)}
-                  ><Trash2 size={12} /></button>
-                </div>
-              </div>
-
-              {#if agent.subAgents && agent.subAgents.length > 0}
-                {#each agent.subAgents as sub}
-                  <div
-                    class="sub-agent-row"
-                    class:selected={selectedId === sub.agentId}
-                    data-agent-id={sub.agentId}
-                    on:click={() => handleClick(sub)}
-                    on:keydown={(e) => { if (e.key === 'Enter') handleClick(sub); }}
-                    role="button"
-                    tabindex="0"
-                  >
-                    <div class="sub-content">
-                      <span class="tree-line">├─</span>
-                      <span class="sub-indicator">·</span>
-                      <span class="sub-name">{sub.agentName}</span>
-                      <StatusBadge status={sub.eventType} size="sm" />
-                      <span class="sub-summary">{sub.summary}</span>
-                      <span class="agent-elapsed mono">{formatElapsed(sub.timestamp)}</span>
-                      <button
-                        class="kill-btn"
-                        title="Kill session"
-                        disabled={killingAgents.has(sub.agentId)}
-                        on:click={(e) => killSession(sub, e)}
-                      ><Trash2 size={12} /></button>
-                    </div>
+                    <span class="agent-model">{agent.eventType === 'terminal' ? 'shell' : (agent.model || agent.agentName)}</span>
+                    <StatusBadge status={agent.eventType} size="sm" />
+                    {#if agent.subAgents && agent.subAgents.length > 0}
+                      <span class="sub-count">{agent.subAgents.length} sub</span>
+                    {/if}
+                    <span class="agent-summary">{agent.summary}</span>
+                    {#if agent.eventType !== 'terminal'}
+                      <span class="agent-tokens mono">{formatTokens(agent.tokensUsed || 0)}</span>
+                    {/if}
+                    <span class="agent-elapsed mono">{formatElapsed(agent.timestamp)}</span>
+                    <button
+                      class="kill-btn"
+                      title="Kill session"
+                      disabled={killingAgents.has(agent.agentId)}
+                      on:click={(e) => killSession(agent, e)}
+                    ><Trash2 size={12} /></button>
                   </div>
-                {/each}
-              {/if}
+                </div>
+
+                {#if agent.subAgents && agent.subAgents.length > 0 && isAgentExpanded(agent.agentId)}
+                  <div class="sub-agent-accordion">
+                    {#each agent.subAgents as sub, i}
+                      <div
+                        class="sub-agent-row"
+                        class:selected={selectedId === sub.agentId}
+                        data-agent-id={sub.agentId}
+                        on:click={() => handleClick(sub)}
+                        on:keydown={(e) => { if (e.key === 'Enter') handleClick(sub); }}
+                        role="button"
+                        tabindex="0"
+                      >
+                        <div class="sub-content">
+                          <span class="tree-line">{i < agent.subAgents.length - 1 ? '├─' : '└─'}</span>
+                          <span class="sub-indicator">
+                            {#if sub.subAgentStatus === 'done'}
+                              <Circle size={6} />
+                            {:else}
+                              <span class="sub-pulse" />
+                            {/if}
+                          </span>
+                          <span class="sub-name">{sub.subAgentName || sub.agentName}</span>
+                          <StatusBadge status={sub.eventType} size="sm" />
+                          <span class="sub-summary" title={sub.subAgentDesc || sub.summary}>{sub.subAgentDesc || sub.summary}</span>
+                          <span class="agent-elapsed mono">{formatElapsed(sub.timestamp)}</span>
+                        </div>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
             {/each}
 
           </div>
@@ -1019,6 +1059,51 @@
     cursor: not-allowed;
   }
 
+  /* Agent accordion */
+  .agent-accordion {
+    border-bottom: 1px solid transparent;
+  }
+
+  .agent-accordion.has-children {
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .agent-accordion.has-children:last-child {
+    border-bottom: none;
+  }
+
+  .accordion-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    transition: color 100ms ease;
+  }
+
+  .accordion-toggle:hover { color: var(--accent-green); }
+
+  .sub-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--bg-active);
+    padding: 0 5px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    line-height: 16px;
+  }
+
+  /* Sub-agent accordion panel */
+  .sub-agent-accordion {
+    background: rgba(0, 0, 0, 0.15);
+    border-top: 1px solid var(--border-subtle);
+    padding: 2px 0;
+  }
+
   /* Sub-agent row */
   .sub-agent-row {
     display: flex;
@@ -1034,8 +1119,8 @@
     display: flex;
     align-items: center;
     gap: var(--sp-xs);
-    padding: 2px var(--sp-lg);
-    padding-left: 32px;
+    padding: 3px var(--sp-lg);
+    padding-left: 36px;
     flex: 1;
     min-width: 0;
   }
@@ -1045,12 +1130,27 @@
     font-size: 11px;
     color: var(--text-muted);
     flex-shrink: 0;
+    user-select: none;
   }
 
   .sub-indicator {
-    color: var(--text-dim);
-    font-size: 8px;
+    color: var(--accent-green);
+    font-size: 6px;
     flex-shrink: 0;
+  }
+
+  .sub-pulse {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    animation: sub-pulse-anim 1.5s ease-in-out infinite;
+  }
+
+  @keyframes sub-pulse-anim {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
   }
 
   .sub-name {
@@ -1058,6 +1158,10 @@
     font-size: 12px;
     color: var(--text-dim);
     flex-shrink: 0;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .sub-summary {

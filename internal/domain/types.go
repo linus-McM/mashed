@@ -41,18 +41,19 @@ type LogLine struct {
 
 // Agent represents a running or completed Claude Code agent.
 type Agent struct {
-	ID          string        `json:"id"`          // "pid-{pid}" or "{parentID}-sub-{name}-{toolUseID}"
-	Name        string        `json:"name"`        // model name or sub-agent name
-	Status      AgentStatus   `json:"status"`
-	TokensUsed  int64         `json:"tokensUsed"`
-	TokensMax   int64         `json:"tokensMax"`   // 1M for opus, 200K for others
-	Model       string        `json:"model"`       // "claude-opus-4-6", "sonnet", etc.
-	LogLines    []LogLine     `json:"logLines"`    // last 50 log entries
-	Elapsed     time.Duration `json:"elapsed"`
-	PID         int           `json:"pid"`         // 0 for in-process sub-agents
-	HasTmuxPane bool          `json:"hasTmuxPane"`
-	TmuxTarget  string        `json:"tmuxTarget"`  // tmux pane target string
-	RepoPath    string        `json:"repoPath"`    // working directory path
+	ID           string        `json:"id"`          // "pid-{pid}" or "{parentID}-sub-{name}-{toolUseID}"
+	Name         string        `json:"name"`        // model name or sub-agent name
+	Status       AgentStatus   `json:"status"`
+	TokensUsed   int64         `json:"tokensUsed"`
+	TokensMax    int64         `json:"tokensMax"`   // 1M for opus, 200K for others
+	Model        string        `json:"model"`       // "claude-opus-4-6", "sonnet", etc.
+	LogLines     []LogLine     `json:"logLines"`    // last 50 log entries
+	Elapsed      time.Duration `json:"elapsed"`
+	PID          int           `json:"pid"`         // 0 for in-process sub-agents
+	HasTmuxPane  bool          `json:"hasTmuxPane"`
+	TmuxTarget   string        `json:"tmuxTarget"`  // tmux pane target string
+	RepoPath     string        `json:"repoPath"`    // working directory path
+	SubAgentInfo *SubAgentInfo `json:"-"`           // set when this agent represents a sub-agent
 }
 
 // DagEdge represents a parent→child relationship between agents.
@@ -160,6 +161,15 @@ type NotificationEvent struct {
 	TokensMax  int64     `json:"tokensMax"`  // context window size
 	TmuxTarget string    `json:"tmuxTarget"` // tmux pane target for drill-down (empty if no pane)
 	PID        int       `json:"pid"`
+
+	// Sub-agent fields (set when this event represents a sub-agent)
+	IsSubAgent       bool      `json:"isSubAgent"`
+	ParentAgentID    string    `json:"parentAgentId,omitempty"`
+	SubAgentName     string    `json:"subAgentName,omitempty"`
+	SubAgentDesc     string    `json:"subAgentDesc,omitempty"`
+	SubAgentStatus   string    `json:"subAgentStatus,omitempty"`   // "running" | "done"
+	SubAgentResult   string    `json:"subAgentResult,omitempty"`   // result summary text
+	SubAgentLogLines []LogLine `json:"subAgentLogLines,omitempty"` // sub-agent's own log lines
 }
 
 // WorktreeInfo describes a git worktree associated with an agent branch.
