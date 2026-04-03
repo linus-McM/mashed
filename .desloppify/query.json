@@ -1,13 +1,13 @@
 {
   "command": "scan",
-  "overall_score": 7.5,
-  "objective_score": 30.1,
-  "strict_score": 7.5,
-  "verified_strict_score": 30.1,
-  "prev_overall_score": 7.3,
-  "prev_objective_score": 29.4,
-  "prev_strict_score": 7.3,
-  "prev_verified_strict_score": 29.4,
+  "overall_score": 7.6,
+  "objective_score": 30.4,
+  "strict_score": 7.6,
+  "verified_strict_score": 30.4,
+  "prev_overall_score": 7.5,
+  "prev_objective_score": 30.1,
+  "prev_strict_score": 7.5,
+  "prev_verified_strict_score": 30.1,
   "profile": "full",
   "noise_budget": 10,
   "noise_global_budget": 0,
@@ -133,16 +133,16 @@
       }
     },
     "Test health": {
-      "score": 9.8,
-      "strict": 9.8,
-      "verified_strict_score": 9.8,
-      "checks": 204,
+      "score": 10.2,
+      "strict": 10.2,
+      "verified_strict_score": 10.2,
+      "checks": 205,
       "failing": 29,
       "tier": 4,
       "detectors": {
         "test_coverage": {
-          "potential": 204,
-          "pass_rate": 0.0975067676734011,
+          "potential": 205,
+          "pass_rate": 0.10190917368475037,
           "failing": 29,
           "weighted_failures": 184.10861939462617
         }
@@ -587,10 +587,10 @@
     }
   },
   "score_breakdown": {
-    "overall_score": 7.5,
+    "overall_score": 7.6,
     "mechanical_fraction": 0.25,
     "subjective_fraction": 0.75,
-    "mechanical_avg": 30.0727969348659,
+    "mechanical_avg": 30.37931034482758,
     "subjective_avg": 0.0,
     "entries": [
       {
@@ -635,15 +635,15 @@
       {
         "name": "Test health",
         "pool": "mechanical",
-        "score": 9.8,
-        "checks": 204.0,
+        "score": 10.2,
+        "checks": 205.0,
         "sample_factor": 1.0,
         "configured_weight": 1.0,
         "effective_weight": 1.0,
         "pool_share": 0.7662835249042145,
         "overall_per_point": 0.19157088122605362,
-        "overall_contribution": 1.8773946360153255,
-        "overall_drag": 17.279693486590038
+        "overall_contribution": 1.9540229885057467,
+        "overall_drag": 17.203065134099614
       },
       {
         "name": "Duplication",
@@ -949,7 +949,7 @@
       "structural": 16,
       "flat_dirs": 8,
       "responsibility_cohesion": 1,
-      "test_coverage": 204,
+      "test_coverage": 205,
       "security": 16,
       "subjective_review": 20,
       "stale_wontfix": 0
@@ -993,7 +993,7 @@
           "reason": "tool_not_found"
         }
       ],
-      "updated_at": "2026-04-02T06:33:37+00:00"
+      "updated_at": "2026-04-03T00:49:04+00:00"
     }
   },
   "zone_distribution": {
@@ -1002,7 +1002,7 @@
   },
   "narrative": {
     "phase": "stagnation",
-    "headline": "Score plateaued at 7.5 for 5 scans. Abstraction fit (0.0%) is where the breakthrough is.",
+    "headline": "Score plateaued at 7.6 for 5 scans. Abstraction fit (0.0%) is where the breakthrough is.",
     "dimensions": {
       "lowest_dimensions": [
         {
@@ -1032,6 +1032,11 @@
       ],
       "biggest_gap_dimensions": [],
       "stagnant_dimensions": [
+        {
+          "name": "Code quality",
+          "strict": 92.2,
+          "stuck_scans": 5
+        },
         {
           "name": "Security",
           "strict": 100.0,
@@ -1278,10 +1283,10 @@
         "description": "Generate prioritized markdown cleanup plan"
       },
       "badge": {
-        "generated": true,
+        "generated": false,
         "in_readme": false,
         "path": "scorecard.png",
-        "recommendation": "Add to README: <img src=\"scorecard.png\" width=\"100%\">"
+        "recommendation": null
       }
     },
     "debt": {
@@ -1304,8 +1309,8 @@
     "risk_flags": [],
     "strict_target": {
       "target": 85.0,
-      "current": 7.5,
-      "gap": 77.5,
+      "current": 7.6,
+      "gap": 77.4,
       "state": "below",
       "warning": null
     },
@@ -1320,7 +1325,7 @@
       }
     ],
     "reminder_history": {
-      "report_scores": 31,
+      "report_scores": 32,
       "feedback_nudge": 3,
       "stagnant_nudge": 25,
       "zone_classification": 3
@@ -1365,7 +1370,7 @@
   "plan": {
     "active": true,
     "focus": null,
-    "total_ordered": 20,
+    "total_ordered": 0,
     "total_skipped": 0,
     "plan_overrides_narrative": true
   }

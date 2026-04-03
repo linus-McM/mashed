@@ -22,6 +22,8 @@ export function GitCommitAndPush(arg1:string):Promise<string>;
 
 export function GitCommitPushAndPR(arg1:string):Promise<string>;
 
+export function GitCommitStreaming(arg1:string):Promise<void>;
+
 export function GitCreateBranch(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<void>;
 
 export function GitListBranches(arg1:string):Promise<Array<Record<string, any>>>;

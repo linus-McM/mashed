@@ -933,6 +933,99 @@ func (a *App) GitCommit(repoPath string) (string, error) {
 	return commitMsg, nil
 }
 
+// GitCommitStreaming stages, generates an AI commit message, and commits,
+// emitting progress events to the frontend at each step. On failure, calls
+// Claude to explain what went wrong.
+func (a *App) GitCommitStreaming(repoPath string) {
+	emit := func(step, output, errMsg, explanation string, done bool) {
+		runtime.EventsEmit(a.ctx, "git:commit:progress", map[string]interface{}{
+			"repoPath":    repoPath,
+			"step":        step,
+			"output":      output,
+			"error":       errMsg,
+			"explanation":  explanation,
+			"done":        done,
+		})
+	}
+
+	handleErr := func(step, output string, err error) {
+		fullErr := fmt.Sprintf("%s: %v", step, err)
+		if output != "" {
+			fullErr += "\n" + output
+		}
+
+		// Ask Claude to explain the failure
+		explanation := ""
+		prompt := fmt.Sprintf(
+			"A git commit operation failed during the %q step. Explain this error concisely (2-3 sentences) and suggest a fix.\n\nError:\n%s\n\nOutput:\n%s",
+			step, err.Error(), output,
+		)
+		claudeCmd := exec.CommandContext(a.ctx, "claude", "-p", prompt)
+		claudeCmd.Dir = repoPath
+		if expOut, expErr := claudeCmd.Output(); expErr == nil {
+			explanation = strings.TrimSpace(string(expOut))
+		}
+
+		emit(step, output, fullErr, explanation, true)
+	}
+
+	go func() {
+		// Step 1: Stage
+		emit("Staging changes...", "", "", "", false)
+		addCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "add", "-A")
+		if out, err := addCmd.CombinedOutput(); err != nil {
+			handleErr("git add", string(out), err)
+			return
+		}
+		emit("Staged all changes", "", "", "", false)
+
+		// Step 2: Check for changes
+		statusCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--cached", "--stat")
+		statusOut, err := statusCmd.Output()
+		if err != nil || len(statusOut) == 0 {
+			emit("Nothing to commit", string(statusOut), "Nothing to commit — working tree clean", "", true)
+			return
+		}
+		statText := strings.TrimSpace(string(statusOut))
+		emit("Changes found", statText, "", "", false)
+
+		// Step 3: Get diff for AI
+		emit("Generating commit message...", "", "", "", false)
+		diffCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--cached")
+		diffOut, _ := diffCmd.Output()
+		diffText := string(diffOut)
+		if len(diffText) > 8000 {
+			diffText = diffText[:8000] + "\n... (truncated)"
+		}
+
+		// Step 4: Generate commit message
+		prompt := fmt.Sprintf("Write a concise git commit message (1-2 lines max, no quotes, no markdown) for this diff:\n\n%s", diffText)
+		claudeCmd := exec.CommandContext(a.ctx, "claude", "-p", prompt)
+		claudeCmd.Dir = repoPath
+		msgOut, err := claudeCmd.Output()
+		commitMsg := strings.TrimSpace(string(msgOut))
+		if err != nil || commitMsg == "" {
+			commitMsg = "update: " + strings.TrimSpace(string(statusOut))
+			if idx := strings.IndexByte(commitMsg, '\n'); idx > 0 {
+				commitMsg = commitMsg[:idx]
+			}
+			emit("Using fallback commit message", commitMsg, "", "", false)
+		} else {
+			emit("Commit message ready", commitMsg, "", "", false)
+		}
+
+		// Step 5: Commit
+		emit("Committing...", "", "", "", false)
+		commitCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "commit", "-m", commitMsg)
+		if out, err := commitCmd.CombinedOutput(); err != nil {
+			handleErr("git commit", string(out), err)
+			return
+		}
+
+		emit("Committed", commitMsg, "", "", true)
+	}()
+}
+
 // GitCommitAndPush commits (via GitCommit) then pushes to origin.
 // Creates the remote branch if it doesn't exist.
 func (a *App) GitCommitAndPush(repoPath string) (string, error) {

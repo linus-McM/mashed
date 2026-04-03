@@ -1,8 +1,8 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { createEventDispatcher } from 'svelte';
-  import { SpawnAgent, SpawnAgentWithCommand, SpawnTerminal, KillAgent, GitCommit, GitCommitAndPush, GitCommitPushAndPR, SpawnPRReview, RepoStatus } from '../../wailsjs/go/main/App.js';
-  import { EventsOn } from '../../wailsjs/runtime/runtime.js';
+  import { SpawnAgent, SpawnAgentWithCommand, SpawnTerminal, KillAgent, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, SpawnPRReview, RepoStatus } from '../../wailsjs/go/main/App.js';
+  import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
   import { GripVertical, GitBranch, Trash2, Plus, Hexagon, Circle, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, TerminalSquare, ChevronRight, ChevronDown } from 'lucide-svelte';
   import BranchModal from './BranchModal.svelte';
   import SwitchBranchModal from './SwitchBranchModal.svelte';
@@ -527,6 +527,54 @@
       }
     }, 5000);
   }
+
+  // Streaming commit output panel: repoPath -> { lines[], error, explanation, done, visible }
+  let commitPanels = {};
+
+  function getCommitPanel(path) {
+    return commitPanels[path] || null;
+  }
+
+  function startStreamingCommit(path) {
+    commitPanels[path] = { lines: [], error: null, explanation: null, done: false, visible: true };
+    commitPanels = commitPanels;
+    repoActions[path] = { action: 'commit', result: null, error: null };
+    repoActions = repoActions;
+    GitCommitStreaming(path);
+  }
+
+  function closeCommitPanel(path) {
+    delete commitPanels[path];
+    commitPanels = commitPanels;
+  }
+
+  // Listen for streaming commit progress events
+  EventsOn('git:commit:progress', (evt) => {
+    const path = evt.repoPath;
+    if (!commitPanels[path]) {
+      commitPanels[path] = { lines: [], error: null, explanation: null, done: false, visible: true };
+    }
+    const panel = commitPanels[path];
+
+    if (evt.step && !evt.error) {
+      panel.lines = [...panel.lines, { step: evt.step, output: evt.output || '' }];
+    }
+    if (evt.error) {
+      panel.error = evt.error;
+      panel.explanation = evt.explanation || null;
+    }
+    panel.done = !!evt.done;
+
+    if (evt.done && !evt.error) {
+      repoActions[path] = { action: null, result: evt.output || 'Done', error: null };
+      refreshRepoStatuses();
+    } else if (evt.done && evt.error) {
+      repoActions[path] = { action: null, result: null, error: evt.error };
+    }
+
+    commitPanels = commitPanels;
+    repoActions = repoActions;
+  });
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:click={() => colorPickerRepo = null} />
@@ -699,7 +747,7 @@
                 class="action-btn"
                 class:action-hot={isDirty(repo.path)}
                 disabled={!!getAction(repo.path).action}
-                on:click|stopPropagation={() => runRepoAction(repo.path, 'commit', GitCommit)}
+                on:click|stopPropagation={() => startStreamingCommit(repo.path)}
                 title="Stage all + AI commit message + commit"
               >
                 <GitCommitIcon size={14} />
@@ -735,13 +783,63 @@
               </button>
             </div>
 
-            {#if getAction(repo.path).result}
-              <div class="action-result">{getAction(repo.path).result}</div>
-            {/if}
-            {#if getAction(repo.path).error}
-              <div class="action-error">{getAction(repo.path).error}</div>
+            {#if !getCommitPanel(repo.path)}
+              {#if getAction(repo.path).result}
+                <div class="action-result">{getAction(repo.path).result}</div>
+              {/if}
+              {#if getAction(repo.path).error && !getCommitPanel(repo.path)}
+                <div class="action-error">{getAction(repo.path).error}</div>
+              {/if}
             {/if}
           </div>
+
+          <!-- Commit output panel -->
+          {#if getCommitPanel(repo.path)}
+            {@const panel = getCommitPanel(repo.path)}
+            <div class="commit-panel" style="border-color: {getRepoColor(repo.name)}">
+              <div class="commit-panel-header">
+                <span class="commit-panel-title">
+                  {#if panel.done && !panel.error}
+                    Committed
+                  {:else if panel.error}
+                    Commit Failed
+                  {:else}
+                    Committing...
+                  {/if}
+                </span>
+                {#if panel.done}
+                  <button class="commit-panel-close" on:click|stopPropagation={() => closeCommitPanel(repo.path)}>×</button>
+                {/if}
+              </div>
+              <div class="commit-panel-body">
+                {#each panel.lines as line}
+                  <div class="commit-line">
+                    <span class="commit-step">{line.step}</span>
+                    {#if line.output}
+                      <pre class="commit-output">{line.output}</pre>
+                    {/if}
+                  </div>
+                {/each}
+                {#if !panel.done && !panel.error}
+                  <div class="commit-line commit-active">
+                    <span class="commit-spinner" />
+                  </div>
+                {/if}
+              </div>
+              {#if panel.error}
+                <div class="commit-error-section">
+                  <div class="commit-error-label">Error</div>
+                  <pre class="commit-error-text">{panel.error}</pre>
+                  {#if panel.explanation}
+                    <div class="commit-explain-label">Why this happened</div>
+                    <div class="commit-explain-text">{panel.explanation}</div>
+                  {:else if !panel.done}
+                    <div class="commit-explain-loading">Analyzing failure...</div>
+                  {/if}
+                </div>
+              {/if}
+            </div>
+          {/if}
         </div>
 
         {#if repo.path}
@@ -1429,5 +1527,155 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     padding: 2px 0;
+  }
+
+  /* Commit output panel */
+  .commit-panel {
+    border-top: 2px solid var(--border-subtle);
+    background: var(--bg-deepest);
+    max-height: 220px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .commit-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px var(--sp-lg);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+
+  .commit-panel-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+
+  .commit-panel-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+  }
+
+  .commit-panel-close:hover { color: var(--text-primary); }
+
+  .commit-panel-body {
+    padding: 6px var(--sp-lg);
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .commit-line {
+    padding: 2px 0;
+  }
+
+  .commit-step {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent-green);
+  }
+
+  .commit-output {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin: 2px 0 4px 0;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: var(--radius-sm);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 60px;
+    overflow-y: auto;
+  }
+
+  .commit-active {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .commit-spinner {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border: 1.5px solid var(--accent-green);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: commit-spin 0.6s linear infinite;
+  }
+
+  @keyframes commit-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Error section */
+  .commit-error-section {
+    border-top: 1px solid rgba(232, 69, 69, 0.2);
+    padding: 6px var(--sp-lg);
+    background: rgba(232, 69, 69, 0.04);
+    flex-shrink: 0;
+  }
+
+  .commit-error-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--accent-red);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .commit-error-text {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent-red);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0 0 8px 0;
+    padding: 4px 8px;
+    background: rgba(232, 69, 69, 0.06);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(232, 69, 69, 0.15);
+    max-height: 60px;
+    overflow-y: auto;
+  }
+
+  .commit-explain-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--accent-amber);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .commit-explain-text {
+    font-size: 11px;
+    color: var(--text-primary);
+    line-height: 1.5;
+    padding: 6px 8px;
+    background: rgba(240, 165, 0, 0.06);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(240, 165, 0, 0.15);
+  }
+
+  .commit-explain-loading {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    font-style: italic;
   }
 </style>

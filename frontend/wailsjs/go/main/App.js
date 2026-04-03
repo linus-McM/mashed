@@ -42,6 +42,10 @@ export function GitCommitPushAndPR(arg1) {
   return window['go']['main']['App']['GitCommitPushAndPR'](arg1);
 }
 
+export function GitCommitStreaming(arg1) {
+  return window['go']['main']['App']['GitCommitStreaming'](arg1);
+}
+
 export function GitCreateBranch(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['GitCreateBranch'](arg1, arg2, arg3, arg4);
 }
