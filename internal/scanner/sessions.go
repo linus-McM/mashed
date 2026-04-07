@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"conductor/internal/domain"
+	"mashed/internal/domain"
 )
 
 // sessionParserState tracks incremental parsing state for a single JSONL file.

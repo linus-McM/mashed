@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"conductor/internal/domain"
+	"mashed/internal/domain"
 )
 
 // RepoScanner discovers git repositories and merges them with agent session data.

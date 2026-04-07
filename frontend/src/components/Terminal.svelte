@@ -81,6 +81,7 @@
       cursorInactiveStyle: 'outline',
       scrollback: 5000,
       disableStdin: !paneTarget, // Read-only when showing log view
+      allowProposedApi: true,
     });
 
     const fitAddon = new FitAddon();
@@ -105,11 +106,78 @@
     onWindowFocus = () => { if (term) term.focus(); };
     window.addEventListener('focus', onWindowFocus);
 
+    // Clipboard helpers with fallback for non-secure contexts
+    function copyText(text) {
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).catch(() => copyFallback(text));
+      } else {
+        copyFallback(text);
+      }
+    }
+
+    function copyFallback(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+
+    function pasteToTerminal(text) {
+      if (!text || !paneTarget) return;
+      const encoder = new TextEncoder();
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(encoder.encode('\x1b[200~' + text + '\x1b[201~'));
+      }
+    }
+
+    // Strip mouse-tracking enable sequences from terminal output so xterm.js
+    // never enters mouse-reporting mode. This lets click+drag select text
+    // instead of forwarding mouse events to tmux.
+    // Matches: \x1b[?1000h \x1b[?1002h \x1b[?1003h \x1b[?1006h
+    //          \x1b[?1015h \x1b[?1005h
+    const mouseTrackingRe = /\x1b\[\?10(?:0[0-6]|15)h/g;
+    function stripMouseTracking(data) {
+      return data.replace(mouseTrackingRe, '');
+    }
+
+    // Cmd+C copies selection (or sends ^C if nothing selected),
+    // Cmd+V pastes from clipboard into the terminal.
+    term.attachCustomKeyEventHandler((ev) => {
+      const isMeta = ev.metaKey || ev.ctrlKey;
+      if (ev.type !== 'keydown') return true;
+
+      if (isMeta && ev.key === 'c') {
+        const sel = term.getSelection();
+        if (sel) {
+          copyText(sel);
+          term.clearSelection();
+          return false;
+        }
+        return true; // no selection — send ^C
+      }
+
+      if (isMeta && ev.key === 'v') {
+        if (navigator.clipboard?.readText) {
+          navigator.clipboard.readText()
+            .then(pasteToTerminal)
+            .catch(() => {});
+        }
+        return false;
+      }
+
+      return true;
+    });
+
     const resizeObserver = new ResizeObserver(() => fitAddon.fit());
     resizeObserver.observe(terminalEl);
 
     if (paneTarget) {
       // Live tmux terminal via WebSocket
+      term.write('\x1b[90mConnecting to tmux session...\x1b[0m');
       const port = await GetTerminalPort();
       if (port) {
         const url = `ws://127.0.0.1:${port}/ws/${encodeURIComponent(paneTarget)}`;
@@ -119,15 +187,15 @@
         ws.onopen = () => {
           // Send initial resize so tmux knows the real terminal size
           sendResize();
-          // Clear any stale rendering from the initial 1x1 pty
+          // Clear the "Connecting..." message and any stale 1x1 rendering
           term.clear();
         };
 
         ws.onmessage = (evt) => {
-          const data = evt.data instanceof ArrayBuffer
+          const raw = evt.data instanceof ArrayBuffer
             ? new TextDecoder().decode(evt.data)
             : evt.data;
-          term.write(data);
+          term.write(stripMouseTracking(raw));
         };
 
         ws.onclose = () => {
@@ -157,9 +225,12 @@
             ws.send(encoder.encode(data));
           }
         });
+      } else {
+        term.write('\r\n\x1b[31m[terminal bridge not available]\x1b[0m\r\n');
       }
     } else if (repoPath) {
       // Live log view — poll JSONL session data
+      term.write('\x1b[90mMonitoring session log...\x1b[0m\r\n');
 
       // Initial load
       await pollLog();
@@ -209,8 +280,18 @@
     background: var(--bg-deepest);
     border-radius: 0;
     overflow: hidden;
+    user-select: text;
+    -webkit-user-select: text;
   }
   .terminal-wrapper :global(.xterm) {
     padding: 8px;
+    cursor: text;
+  }
+  .terminal-wrapper :global(.xterm .xterm-screen) {
+    cursor: text;
+  }
+  .terminal-wrapper :global(.xterm-selection div) {
+    background: var(--accent-green) !important;
+    opacity: 0.25;
   }
 </style>

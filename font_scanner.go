@@ -137,18 +137,25 @@ type LocalFontFamily struct {
 	Files  []LocalFontFile `json:"files"`
 }
 
-// fontsDir returns the local fonts directory path.
+// fontsDir returns the bundled fonts directory path.
+// In production (.app bundle): Contents/Resources/fonts/
+// In development: ./fonts/ relative to the working directory.
 func fontsDir() string {
-	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".conductor", "fonts")
+	// Try app bundle Resources path (macOS .app)
+	exe, err := os.Executable()
+	if err == nil {
+		exe, _ = filepath.EvalSymlinks(exe)
+		// exe is .app/Contents/MacOS/mashed → go up to Contents, then Resources/fonts
+		resourcesDir := filepath.Join(filepath.Dir(exe), "..", "Resources", "fonts")
+		if info, err := os.Stat(resourcesDir); err == nil && info.IsDir() {
+			return resourcesDir
+		}
+	}
+	// Fallback: ./fonts relative to working directory (development)
+	return "fonts"
 }
 
-// ensureFontsDir creates ~/.conductor/fonts/ if it doesn't exist.
-func ensureFontsDir() {
-	os.MkdirAll(fontsDir(), 0755)
-}
-
-// GetFontsDir returns the local fonts directory path for the frontend.
+// GetFontsDir returns the bundled fonts directory path for the frontend.
 func (a *App) GetFontsDir() string {
 	return fontsDir()
 }
@@ -156,7 +163,6 @@ func (a *App) GetFontsDir() string {
 // OpenFontsDir opens the fonts directory in Finder.
 func (a *App) OpenFontsDir() error {
 	dir := fontsDir()
-	ensureFontsDir()
 	return exec.Command("open", dir).Start()
 }
 
@@ -259,7 +265,7 @@ func scanZipForFonts(zipPath string, families map[string][]LocalFontFile) {
 	}
 }
 
-// ListLocalFonts scans ~/.conductor/fonts/ for loose font files and zip archives,
+// ListLocalFonts scans bundled fonts/ for loose font files and zip archives,
 // returning font families with base64-encoded data for @font-face registration.
 func (a *App) ListLocalFonts() []LocalFontFamily {
 	dir := fontsDir()

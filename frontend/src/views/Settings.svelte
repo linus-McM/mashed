@@ -2,8 +2,9 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { ArrowLeft } from 'lucide-svelte';
   import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
-  import { GetConfig, SetTheme, SetImportedTheme, SetVSCodiumExtPath, PickDirectory, ListVSCodiumThemes, ListNerdFonts, ListLocalFonts, OpenFontsDir, SetMonoFont, SetFontSize } from '../../wailsjs/go/main/App.js';
-  import { activateImportedTheme, convertedCache, makeThemeId } from '../lib/themeInit.js';
+  import { GetConfig, SetTheme, SetImportedTheme, SetVSCodiumExtPath, PickDirectory, ListVSCodiumThemes, ListLocalFonts, SetMonoFont, SetFontSize } from '../../wailsjs/go/main/App.js';
+  import { activateImportedTheme, removeImportedTheme, convertedCache, makeThemeId } from '../lib/themeInit.js';
+  import { builtInThemeIds } from '../lib/stores/theme.js';
   import { currentMonoFont, currentFontSize, applyFont, registerLocalFonts } from '../lib/stores/font.js';
 
   const dispatch = createEventDispatcher();
@@ -15,7 +16,6 @@
   let themeLoadError = '';
   let activatingThemePath = '';
 
-  let nerdFonts = [];
   let localFonts = [];
   let allFonts = [];
   let loadingFonts = false;
@@ -39,7 +39,6 @@
     applyTheme(id);
     try {
       await SetTheme(id);
-      // AC-4: selecting a built-in theme clears the imported theme from config
       await SetImportedTheme('');
     } catch {}
   }
@@ -68,6 +67,10 @@
     }
   }
 
+  async function handleRemoveTheme(id) {
+    await removeImportedTheme(id);
+  }
+
   function isDarkTheme(uiTheme) {
     return uiTheme !== 'vs' && uiTheme !== 'vs-light';
   }
@@ -79,7 +82,6 @@
         vscodiumPath = dir;
         await SetVSCodiumExtPath(dir);
         flashSave();
-        // AC-7: re-scan themes after path change
         await scanThemes();
       }
     } catch {}
@@ -100,23 +102,11 @@
   async function scanFonts() {
     loadingFonts = true;
     try {
-      const [local, system] = await Promise.all([ListLocalFonts(), ListNerdFonts()]);
-      localFonts = local || [];
-      nerdFonts = system || [];
-
-      // Register local fonts so they're available in CSS
+      localFonts = await ListLocalFonts() || [];
       registerLocalFonts(localFonts);
-
-      // Merge: local fonts first, then system fonts not already in local
-      const localNames = new Set(localFonts.map(f => f.family));
-      const systemOnly = nerdFonts.filter(f => !localNames.has(f.family));
-      allFonts = [
-        ...localFonts.map(f => ({ family: f.family, source: 'local' })),
-        ...systemOnly.map(f => ({ family: f.family, source: 'system' })),
-      ];
+      allFonts = localFonts.map(f => ({ family: f.family, source: 'bundled' }));
     } catch {
       localFonts = [];
-      nerdFonts = [];
       allFonts = [];
     } finally {
       loadingFonts = false;
@@ -150,10 +140,10 @@
     <span class="settings-title">Settings</span>
   </div>
 
-  <div class="settings-scroll">
-    <!-- Theme section -->
-    <section class="settings-section">
-      <h2 class="section-title">Theme</h2>
+  <div class="settings-body">
+    <!-- Left column: themes -->
+    <div class="col-themes">
+      <h2 class="section-title">Themes</h2>
       <div class="theme-list">
         {#each $themeIds as id}
           {@const theme = $allThemes[id]}
@@ -176,125 +166,113 @@
               </div>
             </div>
             <span class="theme-list-label">{theme.label}</span>
+            {#if !builtInThemeIds.includes(id)}
+              <button class="remove-theme-btn" on:click|stopPropagation={() => handleRemoveTheme(id)} title="Remove theme">&times;</button>
+            {/if}
           </button>
         {/each}
       </div>
-    </section>
+    </div>
 
-    <!-- Mono Font section -->
-    <section class="settings-section">
-      <h2 class="section-title">Mono Font</h2>
-      <p class="section-desc">Drop font files into the fonts folder, or use system-installed Nerd Fonts.</p>
+    <!-- Right column: font, extensions, import -->
+    <div class="col-settings">
+      <!-- Mono Font -->
+      <section class="settings-section">
+        <h2 class="section-title">Font</h2>
 
-      <div class="font-actions-row">
-        <button class="browse-btn" on:click={() => OpenFontsDir()}>Open Fonts Folder</button>
-        <button class="browse-btn" on:click={scanFonts}>Rescan</button>
-      </div>
-
-      <div class="font-size-row">
-        <label>Size: {selectedFontSize}px</label>
-        <input type="range" min="10" max="20" bind:value={selectedFontSize}
-               on:change={() => changeFontSize(selectedFontSize)} />
-      </div>
-
-      {#if loadingFonts}
-        <p class="section-desc loading-text">Scanning fonts...</p>
-      {:else}
-        <div class="font-list">
-          <button class="font-option" class:active={!selectedFont}
-                  on:click={() => selectFont('')}>
-            <span class="font-preview" style="font-family: 'JetBrains Mono', monospace">Abc 0O1l</span>
-            <span class="font-name">Default (JetBrains Mono)</span>
-          </button>
-          {#each allFonts as font}
-            <button class="font-option" class:active={selectedFont === font.family}
-                    on:click={() => selectFont(font.family)}>
-              <span class="font-preview" style="font-family: '{font.family}', monospace">Abc 0O1l</span>
-              <span class="font-name">{font.family}</span>
-              <span class="font-source">{font.source}</span>
-            </button>
-          {/each}
-          {#if allFonts.length === 0}
-            <p class="section-desc" style="margin-top: var(--sp-sm)">No fonts found. Drop .ttf/.otf/.woff2 files into the fonts folder, or install <a href="https://www.nerdfonts.com/" class="nerd-link">Nerd Fonts</a> system-wide.</p>
-          {/if}
+        <!-- Live code preview -->
+        <div class="font-code-preview" style="font-size: {selectedFontSize}px">
+          <span class="preview-keyword">const</span> <span class="preview-fn">render</span> = (<span class="preview-param">items</span>) =&gt; {'{'}<br/>
+          &nbsp;&nbsp;<span class="preview-keyword">return</span> items.<span class="preview-fn">filter</span>(x =&gt; x !== <span class="preview-str">""</span>)<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;.<span class="preview-fn">map</span>((v, i) =&gt; <span class="preview-str">`${'{'}<span class="preview-param">i</span>{'}'}: ${'{'}<span class="preview-param">v</span>{'}'}`</span>)  <span class="preview-comment">// 0O 1lI</span><br/>
+          {'}'}
         </div>
-      {/if}
-    </section>
 
-    <!-- VSCodium Extension section -->
-    <section class="settings-section">
-      <h2 class="section-title">VSCodium Extension</h2>
-      <p class="section-desc">Path to the VSCodium extensions directory for code intelligence.</p>
-      <div class="path-input-row">
-        <input
-          class="path-input"
-          type="text"
-          bind:value={vscodiumPath}
-          placeholder="e.g. ~/.vscode-oss/extensions"
-          on:blur={saveVSCodiumPath}
-        />
-        <button class="browse-btn" on:click={browseVSCodium}>Browse</button>
-      </div>
-      {#if saveStatus}
-        <span class="save-status">{saveStatus}</span>
-      {/if}
-    </section>
+        <!-- Size control -->
+        <div class="font-size-control">
+          <button class="size-btn" on:click={() => changeFontSize(Math.max(10, selectedFontSize - 1))} disabled={selectedFontSize <= 10}>-</button>
+          <span class="size-value">{selectedFontSize}px</span>
+          <button class="size-btn" on:click={() => changeFontSize(Math.min(20, selectedFontSize + 1))} disabled={selectedFontSize >= 20}>+</button>
+          <input type="range" min="10" max="20" bind:value={selectedFontSize}
+                 on:input={() => changeFontSize(selectedFontSize)} class="size-slider" />
+        </div>
 
-    <!-- Imported Themes section -->
-    {#if loadingThemes}
-      <section class="settings-section">
-        <h2 class="section-title">Imported Themes</h2>
-        <p class="section-desc loading-text">Scanning themes...</p>
-      </section>
-    {:else if themeLoadError}
-      <section class="settings-section">
-        <h2 class="section-title">Imported Themes</h2>
-        <p class="section-desc error-text">{themeLoadError}</p>
-      </section>
-    {:else if vscodiumThemes.length > 0}
-      <section class="settings-section">
-        <h2 class="section-title">Imported Themes</h2>
-        <p class="section-desc">Click a theme to activate it. Themes are loaded from your VSCodium extensions.</p>
-        <div class="theme-list">
-          {#each vscodiumThemes as entry}
-            {@const themeId = makeThemeId(entry.themePath, entry.extensionId)}
-            {@const cached = convertedCache[entry.themePath]}
-            <button
-              class="theme-list-btn"
-              class:active={$currentThemeId === themeId}
-              disabled={activatingThemePath === entry.themePath}
-              on:click={() => handleImportedThemeClick(entry)}
-            >
-              {#if cached}
-                <div class="theme-thumb" style="background: {cached.theme.css['--bg-deepest']}; border-color: {cached.theme.css['--border-subtle']}">
-                  <div class="thumb-bar" style="background: {cached.theme.css['--bg-surface']}; border-bottom-color: {cached.theme.css['--border-subtle']}">
-                    <span class="preview-dot" style="background: #ff5f57" />
-                    <span class="preview-dot" style="background: #febc2e" />
-                    <span class="preview-dot" style="background: #28c840" />
-                  </div>
-                  <div class="thumb-body">
-                    <div class="preview-line" style="background: {cached.theme.css['--accent-green']}; width: 40%" />
-                    <div class="preview-line" style="background: {cached.theme.css['--text-dim']}; width: 65%" />
-                    <div class="preview-line" style="background: {cached.theme.css['--accent-purple']}; width: 30%" />
-                    <div class="preview-line" style="background: {cached.theme.css['--text-dim']}; width: 55%" />
-                  </div>
-                </div>
-              {:else}
-                <span class="theme-badge" class:dark={isDarkTheme(entry.uiTheme)} class:light={!isDarkTheme(entry.uiTheme)}>
-                  {isDarkTheme(entry.uiTheme) ? 'D' : 'L'}
+        <!-- Font list -->
+        {#if loadingFonts}
+          <p class="section-desc loading-text">Loading fonts...</p>
+        {:else}
+          <div class="font-list">
+            {#each allFonts as font}
+              <button
+                class="font-option"
+                class:active={selectedFont === font.family}
+                on:click={() => selectFont(font.family)}
+              >
+                <span class="font-sample" style="font-family: '{font.family}', monospace; font-size: {Math.max(selectedFontSize, 14)}px">
+                  AaBb 0123
                 </span>
-              {/if}
-              <span class="theme-list-label">
-                {entry.label}
-                {#if activatingThemePath === entry.themePath}
-                  <span class="activating-indicator">...</span>
-                {/if}
-              </span>
-            </button>
-          {/each}
-        </div>
+                <span class="font-meta">
+                  <span class="font-name">{font.family}</span>
+                  <span class="font-glyphs" style="font-family: '{font.family}', monospace">      </span>
+                </span>
+              </button>
+            {/each}
+          </div>
+        {/if}
       </section>
-    {/if}
+
+      <!-- VSCodium Extension path -->
+      <section class="settings-section">
+        <h2 class="section-title">Theme Extensions</h2>
+        <p class="section-desc">Path to .vsix theme files.</p>
+        <div class="path-input-row">
+          <input
+            class="path-input"
+            type="text"
+            bind:value={vscodiumPath}
+            placeholder="e.g. ~/.vscode-oss/extensions"
+            on:blur={saveVSCodiumPath}
+          />
+          <button class="browse-btn" on:click={browseVSCodium}>Browse</button>
+        </div>
+        {#if saveStatus}
+          <span class="save-status">{saveStatus}</span>
+        {/if}
+
+        {#if vscodiumPath}
+          <div class="import-row">
+            <button class="browse-btn" on:click={scanThemes} disabled={loadingThemes}>
+              {loadingThemes ? 'Scanning...' : 'Scan & Import'}
+            </button>
+            {#if themeLoadError}
+              <span class="error-text">{themeLoadError}</span>
+            {/if}
+          </div>
+          {#if vscodiumThemes.length > 0}
+            <div class="import-list">
+              {#each vscodiumThemes as entry}
+                {@const themeId = makeThemeId(entry.themePath, entry.extensionId)}
+                {@const alreadyImported = !!$allThemes[themeId]}
+                <button
+                  class="import-item"
+                  class:imported={alreadyImported}
+                  disabled={activatingThemePath === entry.themePath}
+                  on:click={() => handleImportedThemeClick(entry)}
+                >
+                  <span class="import-indicator" class:dark={isDarkTheme(entry.uiTheme)} class:light={!isDarkTheme(entry.uiTheme)} />
+                  <span class="import-label">{entry.label}</span>
+                  {#if activatingThemePath === entry.themePath}
+                    <span class="activating-indicator">...</span>
+                  {:else if alreadyImported}
+                    <span class="imported-check">&#10003;</span>
+                  {/if}
+                </button>
+              {/each}
+            </div>
+          {/if}
+        {/if}
+      </section>
+    </div>
   </div>
 
   <div class="settings-footer">
@@ -344,15 +322,135 @@
     color: var(--text-primary);
   }
 
-  .settings-scroll {
+  /* Two-column body */
+  .settings-body {
     flex: 1;
-    overflow-y: auto;
-    padding: var(--sp-xl) var(--sp-2xl);
-    max-width: 640px;
+    display: flex;
+    overflow: hidden;
   }
 
-  .settings-section {
-    margin-bottom: var(--sp-2xl);
+  /* Left column: theme list */
+  .col-themes {
+    width: 280px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .col-themes .section-title {
+    padding: var(--sp-lg) var(--sp-lg) var(--sp-sm);
+    margin: 0;
+  }
+
+  .theme-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 var(--sp-sm) var(--sp-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .theme-list-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    padding: 5px 8px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    text-align: left;
+    transition: all 100ms ease;
+    width: 100%;
+  }
+
+  .theme-list-btn:hover {
+    background: var(--bg-elevated);
+    border-color: var(--border-subtle);
+  }
+
+  .theme-list-btn.active {
+    background: var(--bg-active);
+    border-color: var(--accent-green);
+  }
+
+  .theme-thumb {
+    width: 56px;
+    height: 36px;
+    border: 1px solid;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .thumb-bar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 4px;
+    border-bottom: 1px solid;
+  }
+
+  .preview-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+  }
+
+  .thumb-body {
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .preview-line {
+    height: 2px;
+    border-radius: 1px;
+    opacity: 0.7;
+  }
+
+  .theme-list-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .remove-theme-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    border-radius: var(--radius-sm);
+    transition: color 100ms ease;
+    flex-shrink: 0;
+    opacity: 0;
+  }
+
+  .theme-list-btn:hover .remove-theme-btn {
+    opacity: 1;
+  }
+
+  .remove-theme-btn:hover {
+    color: var(--accent-red);
+  }
+
+  /* Right column: other settings */
+  .col-settings {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--sp-lg) var(--sp-xl);
+    min-width: 0;
   }
 
   .section-title {
@@ -369,12 +467,93 @@
     margin-bottom: var(--sp-md);
   }
 
-  /* Theme list */
-  .theme-list-btn {
+  .settings-section {
+    margin-bottom: var(--sp-2xl);
+  }
+
+  /* Font: live code preview */
+  .font-code-preview {
+    font-family: var(--font-mono);
+    line-height: 1.6;
+    padding: 12px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--sp-md);
+    color: var(--text-primary);
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .preview-keyword { color: var(--accent-purple); font-weight: 600; }
+  .preview-fn { color: var(--accent-blue); }
+  .preview-param { color: var(--accent-teal); }
+  .preview-str { color: var(--accent-green); }
+  .preview-comment { color: var(--text-muted); font-style: italic; }
+
+  /* Font: size control */
+  .font-size-control {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    margin-bottom: var(--sp-md);
+  }
+
+  .size-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 100ms ease;
+  }
+
+  .size-btn:hover:not(:disabled) {
+    color: var(--text-primary);
+    border-color: var(--border-emphasis);
+  }
+
+  .size-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .size-value {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    min-width: 36px;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .size-slider {
+    flex: 1;
+    max-width: 160px;
+    accent-color: var(--accent-green);
+    margin-left: var(--sp-sm);
+  }
+
+  /* Font: list */
+  .font-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .font-option {
     display: flex;
     align-items: center;
     gap: var(--sp-md);
-    padding: 6px 10px;
+    padding: 8px 12px;
     background: none;
     border: 1px solid transparent;
     border-radius: var(--radius-md);
@@ -383,64 +562,45 @@
     transition: all 100ms ease;
   }
 
-  .theme-list-btn:hover {
+  .font-option:hover {
     background: var(--bg-elevated);
     border-color: var(--border-subtle);
   }
 
-  .theme-list-btn.active {
+  .font-option.active {
     background: var(--bg-active);
     border-color: var(--accent-green);
   }
 
-  .theme-list-btn:disabled {
-    opacity: 0.6;
-    cursor: wait;
+  .font-sample {
+    color: var(--text-primary);
+    min-width: 120px;
+    white-space: nowrap;
   }
 
-  .theme-thumb {
-    width: 80px;
-    height: 52px;
-    border: 1px solid;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .thumb-bar {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    padding: 3px 5px;
-    border-bottom: 1px solid;
-  }
-
-  .preview-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-  }
-
-  .thumb-body {
-    padding: 6px;
+  .font-meta {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
+    min-width: 0;
   }
 
-  .preview-line {
-    height: 3px;
-    border-radius: 1.5px;
-    opacity: 0.7;
-  }
-
-  .theme-list-label {
+  .font-name {
     font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-primary);
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  /* VSCodium path */
+  .font-glyphs {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+  }
+
+  /* VSCodium / import */
   .path-input-row {
     display: flex;
     gap: var(--sp-sm);
@@ -493,38 +653,82 @@
     color: var(--accent-green);
   }
 
-  /* Theme list shared */
-  .theme-list {
+  .import-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    margin-top: var(--sp-md);
+  }
+
+  .import-list {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    max-height: 400px;
+    gap: 1px;
+    margin-top: var(--sp-sm);
+    max-height: 200px;
     overflow-y: auto;
   }
 
-  .theme-badge {
-    width: 80px;
-    height: 52px;
+  .import-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-md);
+    gap: var(--sp-sm);
+    padding: 4px 8px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-align: left;
     font-family: var(--font-mono);
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: all 100ms ease;
+  }
+
+  .import-item:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+  }
+
+  .import-item.imported {
+    color: var(--text-muted);
+  }
+
+  .import-item:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .import-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
     flex-shrink: 0;
   }
 
-  .theme-badge.dark {
-    background: #1e1e2e;
-    color: #cdd6f4;
-    border: 1px solid #313244;
+  .import-indicator.dark {
+    background: #565670;
   }
 
-  .theme-badge.light {
-    background: #eff1f5;
-    color: #4c4f69;
-    border: 1px solid #ccd0da;
+  .import-indicator.light {
+    background: #c0c0d0;
+  }
+
+  .import-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .activating-indicator {
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .imported-check {
+    color: var(--accent-green);
+    margin-left: auto;
+    font-size: 10px;
   }
 
   .loading-text {
@@ -534,94 +738,7 @@
 
   .error-text {
     color: var(--accent-red);
-  }
-
-  .activating-indicator {
-    color: var(--text-muted);
-  }
-
-  /* Font selection */
-  .font-actions-row {
-    display: flex;
-    gap: var(--sp-sm);
-    margin-bottom: var(--sp-md);
-  }
-
-  .font-source {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-left: auto;
-  }
-
-  .font-size-row {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-sm);
-    margin-bottom: var(--sp-md);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-dim);
-  }
-
-  .font-size-row input[type="range"] {
-    flex: 1;
-    max-width: 200px;
-    accent-color: var(--accent-green);
-  }
-
-  .font-list {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    max-height: 280px;
-    overflow-y: auto;
-  }
-
-  .font-option {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-sm);
-    padding: 6px 10px;
-    background: none;
-    border: 1px solid transparent;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    text-align: left;
-    transition: all 100ms ease;
-  }
-
-  .font-option:hover {
-    background: var(--bg-elevated);
-    border-color: var(--border-subtle);
-  }
-
-  .font-option.active {
-    background: var(--bg-active);
-    border-color: var(--accent-green);
-  }
-
-  .font-preview {
-    font-size: 16px;
-    color: var(--text-primary);
-    min-width: 80px;
-  }
-
-  .font-name {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-dim);
-  }
-
-  .nerd-link {
-    color: var(--accent-blue);
-    text-decoration: none;
-  }
-
-  .nerd-link:hover {
-    text-decoration: underline;
+    font-size: 11px;
   }
 
   /* Footer */

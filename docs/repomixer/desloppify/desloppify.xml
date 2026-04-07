@@ -305,6 +305,7 @@ desloppify/
         prepare.py
         prompt_sections.py
         runner_failures.py
+        runner_opencode.py
         runner_packets.py
         runtime_paths.py
         state_payloads.py
@@ -445,6 +446,7 @@ desloppify/
       GEMINI.md
       HERMES.md
       OPENCODE.md
+      scoring.md
       SKILL.md
       WINDSURF.md
     __init__.py
@@ -1025,9 +1027,11 @@ desloppify/
         __init__.py
         test_init.py
         test_js_nextjs_framework.py
+        test_test_coverage.py
       __init__.py
       _zones.py
       README.md
+      test_coverage.py
     julia/
       __init__.py
     kotlin/
@@ -1140,8 +1144,10 @@ desloppify/
       tests/
         __init__.py
         test_r_smells.py
+        test_r_test_coverage.py
       __init__.py
       phases_smells.py
+      test_coverage.py
     ruby/
       tests/
         __init__.py
@@ -10998,7 +11004,7 @@ run_stamp_fn: Callable[[], str]
 load_or_prepare_packet_fn: Callable[
 selected_batch_indexes_fn: Callable[..., list[int]]
 prepare_run_artifacts_fn: Callable[
-run_codex_batch_fn: Callable[..., int]
+run_batch_fn: Callable[..., int]
 execute_batches_fn: Callable[..., list[int]]
 collect_batch_results_fn: Callable[
 print_failures_fn: Callable[..., None]
@@ -11106,7 +11112,7 @@ def _batch_live_log_interval_seconds(heartbeat_seconds: float) -> float
 ⋮----
 """Clamp the live log polling interval derived from the heartbeat."""
 ⋮----
-def _build_batch_run_deps(*, policy, project_root: Path) -> review_batches_mod.BatchRunDeps
+def _build_batch_run_deps(*, args, policy, project_root: Path) -> review_batches_mod.BatchRunDeps
 ⋮----
 """Build the dependency bundle used by prepare/execute/import phases."""
 ⋮----
@@ -11230,6 +11236,10 @@ missing = [idx + 1 for idx in selected_indexes if not output_files[idx].exists()
 ⋮----
 hint = (
 ⋮----
+missing_set = {idx - 1 for idx in missing}
+selected_indexes = [idx for idx in selected_indexes if idx not in missing_set]
+output_files = {idx: output_files[idx] for idx in selected_indexes}
+⋮----
 successful_indexes = [idx for idx in selected_indexes if idx not in set(failures)]
 ⋮----
 # Reuse the canonical merge+metadata boundary from normal batch execution.
@@ -11278,9 +11288,13 @@ __all__ = ["render_batch_prompt"]
 <file path="desloppify/app/commands/review/batch/scope.py">
 """Scope, coverage, and packet-shape helpers for review batch execution."""
 ⋮----
+_SUPPORTED_RUNNERS = {"codex", "opencode"}
+⋮----
 def validate_runner(runner: str, *, colorize_fn) -> None
 ⋮----
 """Validate review batch runner."""
+⋮----
+supported = ", ".join(sorted(_SUPPORTED_RUNNERS))
 ⋮----
 """Return investigation batches or exit with a clear error."""
 batches = packet.get("investigation_batches", [])
@@ -11924,7 +11938,7 @@ __all__ = [
 ⋮----
 ASSESSMENT_POLICY_KEY = "_assessment_policy"
 BLIND_PROVENANCE_KIND = "blind_review_batch_import"
-SUPPORTED_BLIND_REVIEW_RUNNERS = {"codex", "claude"}
+SUPPORTED_BLIND_REVIEW_RUNNERS = {"codex", "claude", "opencode"}
 ATTESTED_EXTERNAL_RUNNERS = {"claude"}
 ATTESTED_EXTERNAL_REQUIRED_PHRASES = ("without awareness", "unbiased")
 ATTESTED_EXTERNAL_ATTEST_EXAMPLE = (
@@ -12463,9 +12477,11 @@ def _terminate_process(process: subprocess.Popen[str]) -> None
 ⋮----
 """Terminate (then kill) a subprocess that may still be running."""
 ⋮----
-def _drain_stream(stream, sink: list[str], state: _RunnerState) -> None
-⋮----
 """Read lines from *stream* into *sink*, updating activity timestamp."""
+⋮----
+current_stdout = None
+⋮----
+current_stdout = "".join(sink)
 ⋮----
 except (OSError, ValueError) as exc:  # pragma: no cover - defensive boundary
 ⋮----
@@ -12504,6 +12520,48 @@ baseline = prev_stable if isinstance(prev_stable, int | float) else now
 ⋮----
 output_age = now - prev_stable
 stream_idle = now - last_activity
+⋮----
+def extract_text_from_opencode_json_stream(raw: str) -> str
+⋮----
+"""Extract assistant text from OpenCode ``--format json`` NDJSON output.
+
+    OpenCode emits newline-delimited JSON events.  Text content lives in
+    events where ``event["type"] == "text"`` under ``event["part"]["text"]``.
+    Only completed assistant steps should be returned.  Earlier planning,
+    pre-tool text, or any other in-progress step content must not be mixed into
+    the final payload, because downstream JSON extraction accepts the first
+    matching review object.
+    """
+saw_step_events = False
+saw_tool_calls_step = False
+step_in_progress = False
+fallback_text_parts: list[str] = []
+current_step_parts: list[str] = []
+last_completed_step_text = ""
+final_step_text = ""
+⋮----
+line = line.strip()
+⋮----
+event = json.loads(line)
+⋮----
+event_type = str(event.get("type", "")).strip()
+part = event.get("part")
+part_dict = part if isinstance(part, dict) else {}
+⋮----
+saw_step_events = True
+step_in_progress = True
+current_step_parts = []
+⋮----
+text_value = str(part_dict.get("text", ""))
+⋮----
+current_step_text = "".join(current_step_parts)
+reason = str(part_dict.get("reason", "")).strip()
+⋮----
+saw_tool_calls_step = True
+⋮----
+last_completed_step_text = current_step_text
+⋮----
+final_step_text = current_step_text
 ⋮----
 __all__ = [
 </file>
@@ -13605,6 +13663,67 @@ timeout_count = categories.get("timeout", 0)
 __all__ = [
 </file>
 
+<file path="desloppify/app/commands/review/runner_opencode.py">
+"""OpenCode batch runner for review batch execution."""
+⋮----
+def opencode_batch_command(*, prompt: str, repo_root: Path) -> list[str]
+⋮----
+"""Build one ``opencode run`` command line for a batch prompt."""
+cmd = ["opencode", "run", "--format", "json"]
+model = os.environ.get("DESLOPPIFY_OPENCODE_MODEL", "").strip()
+⋮----
+variant = os.environ.get("DESLOPPIFY_OPENCODE_VARIANT", "").strip()
+⋮----
+attach_url = os.environ.get("DESLOPPIFY_OPENCODE_ATTACH", "").strip()
+⋮----
+"""Extract and persist a recoverable OpenCode payload from NDJSON stdout."""
+extracted_text = extract_text_from_opencode_json_stream(result.stdout_text)
+⋮----
+"""Persist OpenCode output only when it is a complete JSON object."""
+normalized_text = extracted_text.strip()
+⋮----
+payload = json.loads(normalized_text)
+⋮----
+"""Persist recoverable OpenCode payloads while stdout is still streaming."""
+last_persisted_text: str | None = None
+⋮----
+def _observe(stdout_text: str) -> None
+⋮----
+extracted_text = extract_text_from_opencode_json_stream(stdout_text)
+⋮----
+persisted_text = _persist_opencode_payload_text(
+⋮----
+last_persisted_text = persisted_text
+⋮----
+"""Restore the last known-good OpenCode payload for downstream recovery."""
+⋮----
+"""Execute one OpenCode batch and return a stable CLI-style status code."""
+⋮----
+opencode_batch_command_fn = opencode_batch_command
+cmd = opencode_batch_command_fn(
+config = _resolve_retry_config(deps)
+log_sections: list[str] = []
+recoverable_output_text: str | None = None
+⋮----
+stdout_text_observer = _build_live_opencode_stdout_observer(
+⋮----
+early_return = _handle_early_attempt_return(result)
+⋮----
+current_payload_text = _capture_opencode_stdout_payload(
+⋮----
+recoverable_output_text = current_payload_text
+⋮----
+timeout_or_stall = _handle_timeout_or_stall(
+⋮----
+delay = config.retry_backoff_seconds * (2 ** (attempt - 1))
+⋮----
+success_code = _handle_successful_attempt(
+⋮----
+failure_code = _handle_failed_attempt(
+⋮----
+__all__ = [
+</file>
+
 <file path="desloppify/app/commands/review/runner_packets.py">
 """Packet sanitization, hashing, and artifact layout helpers for review batches."""
 ⋮----
@@ -14360,6 +14479,8 @@ dim_keys = flatten_cli_keys(items, max_items=max_items)
 # If no evidence of prior runner usage, suggest --prepare first
 ⋮----
 command_parts = ["desloppify", "review", "--prepare"]
+⋮----
+cmd = f"`{' '.join(command_parts)}`"
 ⋮----
 command_parts = [
 ⋮----
@@ -19628,8 +19749,141 @@ Run triage stages sequentially. For each stage:
 
 When installed (via `desloppify update-skill opencode`), OpenCode automatically loads this skill for code quality, technical debt, and health score questions.
 
+### Review workflow
+
+Use the native `--runner opencode` for automated batch reviews:
+
+```
+desloppify review --run-batches --runner opencode --parallel --scan-after-import
+```
+
+This spawns OpenCode subprocesses (`opencode run --format json`) for each batch, extracts results from the NDJSON stream, merges them, and imports as trusted assessments — identical pipeline to the Codex runner but using OpenCode as the execution engine.
+
+#### Warm server mode (optional, recommended for parallel runs)
+
+Start a persistent OpenCode server to avoid MCP cold-start overhead per batch:
+
+```
+opencode serve --port 4096 &
+export DESLOPPIFY_OPENCODE_ATTACH=http://localhost:4096
+desloppify review --run-batches --runner opencode --parallel --scan-after-import
+```
+
+When `DESLOPPIFY_OPENCODE_ATTACH` is set, each batch subprocess attaches to the running server via `--attach <url>` instead of spawning a fresh instance.
+
+#### Preparing a review manually
+
+1. **Prepare**: `desloppify review --prepare` — writes `query.json` and `.desloppify/review_packet_blind.json`.
+2. **Run batches**: `desloppify review --run-batches --runner opencode --parallel --scan-after-import`
+
+The runner handles batch splitting, prompt generation, parallel execution, retry/stall detection, result extraction, merge, and trusted import automatically.
+
 <!-- desloppify-overlay: opencode -->
 <!-- desloppify-end -->
+</file>
+
+<file path="desloppify/data/global/scoring.md">
+# How Scoring Works
+
+Desloppify computes a **health score** from 0 to 100 that measures the overall quality of your codebase. A score of 100 means no known issues; lower scores reflect detected problems weighted by their severity and certainty.
+
+## Two pools: mechanical and subjective
+
+The overall health score blends two independent pools of dimensions:
+
+| Pool | Weight | Source |
+|------|--------|--------|
+| **Mechanical** | 25% | Automated detectors (code smells, duplication, security, etc.) |
+| **Subjective** | 75% | AI code review assessments (architecture, elegance, contracts, etc.) |
+
+If no subjective reviews have been run yet, the score is 100% mechanical. Once subjective dimensions have scores, the 25/75 split applies.
+
+Within each pool, dimensions are averaged using their own configured weights (see below).
+
+## Mechanical dimensions
+
+Mechanical dimensions are scored by automated detectors. Each detector scans your codebase and counts a **potential** (total checks performed) and **failures** (issues found). The dimension score is:
+
+    dimension_score = ((potential - weighted_failures) / potential) * 100
+
+Detectors are grouped into dimensions based on what they measure:
+
+| Dimension | Pool weight | Detectors |
+|-----------|-------------|-----------|
+| **File health** | 2.0 | structural |
+| **Code quality** | 1.0 | unused, logs, exports, smells, orphaned, flat_dirs, naming, single_use, coupling, facade, props, react, nextjs, next_lint, patterns, dict_keys, deprecated, stale_exclude, clippy_warning, cargo_error, rust_import_hygiene, rust_feature_hygiene, rust_api_convention, rust_error_boundary, rust_future_proofing, rust_async_locking, rust_drop_safety, rust_unsafe_api, global_mutable_config, private_imports, layer_violation, responsibility_cohesion |
+| **Duplication** | 1.0 | dupes, boilerplate_duplication |
+| **Test health** | 1.0 | test_coverage, rustdoc_warning, rust_doctest, rust_thread_safety |
+| **Security** | 1.0 | cycles, security |
+
+**Note:** Not every detector listed above will fire in every project. Detectors are language-specific -- Rust detectors only run on Rust codebases, React/Next.js detectors only on TypeScript projects with those frameworks, etc. Only detectors with a non-zero potential (i.e., they found something to check) contribute to a dimension's score.
+
+### Sample dampening
+
+Dimensions with fewer than 200 checks get their weight reduced proportionally. A dimension with 50 checks contributes at 25% of its configured weight. This prevents a dimension with only a handful of checks from having outsized influence.
+
+## Subjective dimensions
+
+Subjective dimensions come from AI code review (`desloppify review`). Each dimension receives a score from 0 to 100 based on the reviewer's assessment.
+
+The subjective dimensions and their weights within the subjective pool:
+
+| Dimension | Weight |
+|-----------|--------|
+| High elegance | 22.0 |
+| Mid elegance | 22.0 |
+| Low elegance | 12.0 |
+| Contracts | 12.0 |
+| Type safety | 12.0 |
+| Design coherence | 10.0 |
+| Abstraction fit | 8.0 |
+| Logic clarity | 6.0 |
+| Structure nav | 5.0 |
+| Error consistency | 3.0 |
+| Naming quality | 2.0 |
+| AI generated debt | 1.0 |
+
+Elegance, contracts, and type safety dominate because they reflect architectural quality and correctness. Naming quality and AI-generated debt are low-weight nudges for polish.
+
+## How confidence affects scoring
+
+Each detected issue has a confidence level that determines how heavily it counts as a failure:
+
+| Confidence | Weight |
+|------------|--------|
+| High | 1.0 |
+| Medium | 0.7 |
+| Low | 0.3 |
+
+A low-confidence issue pulls the score down only 30% as much as a high-confidence one. This means uncertain detections have a lighter touch on your score.
+
+## Lenient vs. strict scoring
+
+Desloppify tracks two score variants:
+
+- **Lenient (default):** `open`, `deferred`, and `triaged_out` issues count as failures. Issues you mark as `wontfix`, `fixed`, `false_positive`, or `auto_resolved` do not penalize the score.
+- **Strict:** `wontfix` and `auto_resolved` issues also count as failures, in addition to everything in lenient. This reveals the "true debt" you have accepted.
+
+The gap between lenient and strict scores shows how much technical debt you are carrying via `wontfix` decisions.
+
+## Zone filtering
+
+Not all files are scored equally. Files are classified into zones, and most non-production zones are excluded from the health score:
+
+- **Production** and **script** zones: scored
+- **Test**, **config**, **generated**, and **vendor** zones: excluded from scoring
+
+Issues in your test files, generated code, or vendored dependencies do not drag down your health score.
+
+## File-based detectors
+
+Some detectors (smells, dict_keys, test_coverage, security, concerns, review, nextjs, next_lint) use file-based scoring. Instead of counting individual issues against a raw potential, failures are capped per file so that a single problematic file cannot overwhelm the score. A file with 1-2 issues contributes up to 1.0 failure units, 3-5 issues up to 1.5, and 6+ issues up to 2.0.
+
+## What the score does NOT measure
+
+- The health score does not measure feature completeness, performance, or user experience.
+- Scores from different codebases are not directly comparable. A score of 85 on a 500-file project means something different than 85 on a 50-file project.
+- The score is a tracking tool for improvement over time, not an absolute quality rating.
 </file>
 
 <file path="desloppify/data/global/SKILL.md">
@@ -19656,6 +19910,17 @@ Maximise the **strict score** honestly. Your main cycle: **scan → plan → exe
 ## 2. The Workflow
 
 Three phases, repeated as a cycle.
+
+### Monorepos and multi-project directories
+
+If the workspace contains multiple programs (e.g., frontend + backend in sibling folders), scan each one separately — do not scan the parent directory:
+
+```bash
+desloppify --lang typescript scan --path ./frontend
+desloppify --lang python scan --path ./backend
+```
+
+Each `--path` target should be a single coherent project. Scanning a parent that contains multiple programs mixes state and path context, producing unreliable results.
 
 ### Phase 1: Scan and review — understand the codebase
 
@@ -29258,6 +29523,40 @@ __all__ = ["detect_naming_inconsistencies"]
 ⋮----
 _DUNDER_ALL_RE = re.compile(r"^__all__\s*[:=]", re.MULTILINE)
 ⋮----
+# ---------------------------------------------------------------------------
+# Next.js App Router convention files
+⋮----
+# Files that are entry points when inside an app/ directory
+_NEXTJS_APP_DIR_CONVENTIONS: set[str] = {
+⋮----
+# Files that are entry points at the project root (or src/)
+_NEXTJS_ROOT_CONVENTIONS: set[str] = {
+⋮----
+_NEXTJS_EXTENSIONS: set[str] = {".ts", ".tsx", ".js", ".jsx"}
+⋮----
+def _detect_nextjs_project(path: Path) -> bool
+⋮----
+"""Return True if the scan root looks like a Next.js project."""
+⋮----
+def _is_nextjs_convention_entry(rel_path: str) -> bool
+⋮----
+"""Return True if *rel_path* is a Next.js App Router convention file.
+
+    Checks:
+    - Files with convention names inside any ``app/`` directory segment
+    - Root-level convention files (middleware, instrumentation)
+    """
+p = Path(rel_path)
+ext = p.suffix
+⋮----
+stem = p.stem
+parts = p.parts
+⋮----
+# Root-level conventions: middleware.ts, instrumentation.ts, etc.
+# These can live at the project root or inside src/
+⋮----
+# App directory conventions: any file inside an app/ segment
+⋮----
 @dataclass
 class OrphanedDetectionOptions
 ⋮----
@@ -29267,6 +29566,7 @@ extra_entry_patterns: list[str] | None = None
 extra_barrel_names: set[str] | None = None
 dynamic_import_finder: Callable[[Path, list[str]], set[str]] | None = None
 alias_resolver: Callable[[str], str] | None = None
+detect_frameworks: bool = True
 ⋮----
 def _has_dunder_all(filepath: str) -> bool
 ⋮----
@@ -29288,6 +29588,9 @@ all_entry_patterns = resolved_options.extra_entry_patterns or []
 all_barrel_names = resolved_options.extra_barrel_names or set()
 dynamic_import_finder = resolved_options.dynamic_import_finder
 alias_resolver = resolved_options.alias_resolver
+⋮----
+# Framework convention detection
+is_nextjs = (
 ⋮----
 dynamic_targets = (
 ⋮----
@@ -38401,13 +38704,6 @@ path_node = _unwrap_node(captures.get("path"))
 ⋮----
 raw_path = _node_text(path_node).strip("\"'`")
 ⋮----
-# Check for alias (e.g. PHP ``use Foo as Bar``, Python ``import X as Y``).
-# When an alias is present, search for the alias name instead.
-alias_name = _extract_alias(import_node)
-⋮----
-# Extract the imported name from the path.
-name = alias_name or _extract_import_name(raw_path)
-⋮----
 # Get the import statement's line range so we can exclude it
 # from the search.
 import_start = import_node.start_byte
@@ -38415,6 +38711,18 @@ import_end = import_node.end_byte
 ⋮----
 # Build text without the import statement itself.
 rest = source_text[:import_start] + source_text[import_end:]
+⋮----
+# Handle grouped/braced imports (e.g. Rust `use crate::module::{A, B}`).
+grouped_names = _extract_grouped_import_names(raw_path)
+⋮----
+unused_names = [
+⋮----
+# Check for alias (e.g. PHP ``use Foo as Bar``, Python ``import X as Y``).
+# When an alias is present, search for the alias name instead.
+alias_name = _extract_alias(import_node)
+⋮----
+# Extract the imported name from the path.
+name = alias_name or _extract_import_name(raw_path)
 ⋮----
 # Check if the name appears in the rest of the file.
 ⋮----
@@ -38590,6 +38898,32 @@ def _iter_children(node)
 ⋮----
 child = node.children[i]
 # Yield leaf-like nodes (keywords, identifiers).
+⋮----
+def _extract_grouped_import_names(import_path: str) -> list[str] | None
+⋮----
+"""Extract individual names from a grouped/braced import.
+
+    Examples:
+        "crate::order::{ClobClient, place_order_typed}" -> ["ClobClient", "place_order_typed"]
+        "std::collections::{HashMap, HashSet}" -> ["HashMap", "HashSet"]
+        "crate::module::Foo" -> None  (not a grouped import)
+
+    Handles ``self`` inside braces (e.g. ``{self, Foo}``) by skipping it —
+    ``self`` is a module re-export and won't appear as an identifier elsewhere.
+    Also handles aliases (e.g. ``{Foo as Bar}``) by extracting the alias.
+    """
+brace_start = import_path.find("{")
+⋮----
+brace_end = import_path.rfind("}")
+⋮----
+inner = import_path[brace_start + 1 : brace_end]
+names: list[str] = []
+⋮----
+segment = segment.strip()
+⋮----
+# Handle aliases: ``Foo as Bar`` → use ``Bar``
+⋮----
+segment = segment.split(" as ", 1)[1].strip()
 ⋮----
 def _extract_import_name(import_path: str) -> str
 ⋮----
@@ -43958,6 +44292,110 @@ def test_nextjs_smells_phase_scans_jsx_error_and_js_middleware(tmp_path: Path)
 ids = {issue["id"] for issue in issues}
 </file>
 
+<file path="desloppify/languages/javascript/tests/test_test_coverage.py">
+"""Tests for the JavaScript test_coverage module.
+
+Verifies that test-to-source mapping, import resolution, and testable-logic
+heuristics work correctly for JavaScript projects with common directory
+layouts and file extensions (.js, .jsx, .mjs, .cjs).
+"""
+⋮----
+# ---------------------------------------------------------------------------
+# Contract: all required exports exist and have the correct types
+⋮----
+def test_assert_patterns_non_empty()
+⋮----
+def test_mock_patterns_non_empty()
+⋮----
+def test_snapshot_patterns_non_empty()
+⋮----
+def test_test_function_re_matches()
+⋮----
+def test_barrel_basenames()
+⋮----
+# strip_test_markers
+⋮----
+def test_strip_test_markers(basename, expected)
+⋮----
+# map_test_to_source — __tests__/unit/ nested layout
+⋮----
+PROD_FILES = {
+⋮----
+# __tests__/unit/<subdir>/<file> -> src/<subdir>/<file>
+⋮----
+# __tests__/unit/queries/ -> src/db/queries/ (basename match)
+⋮----
+# __tests__/integration/ category stripped
+⋮----
+# Direct __tests__/ without category
+⋮----
+# Colocated test (no __tests__ dir)
+⋮----
+# No match
+⋮----
+def test_map_test_to_source(test_path, expected)
+⋮----
+result = map_test_to_source(test_path, PROD_FILES)
+⋮----
+def test_map_test_to_source_basename_cross_extension()
+⋮----
+"""Test file .test.mjs should match production .js via basename."""
+prod = {"src/validators/isValidNumber.js"}
+result = map_test_to_source(
+# basename match: isValidNumber.mjs != isValidNumber.js, but basename
+# comparison strips the test marker first, yielding isValidNumber.mjs
+# which doesn't match isValidNumber.js by basename either.
+# This is a known limitation — the match relies on strip_test_markers
+# producing the same extension as the production file.
+# The naming_based_mapping fallback (strip_test_markers -> basename index)
+# handles this case at the engine level.
+⋮----
+# has_testable_logic
+⋮----
+def test_has_testable_logic_with_function()
+⋮----
+def test_has_testable_logic_pure_imports()
+⋮----
+content = "import { foo } from './foo.mjs';\nimport bar from 'bar';\n"
+⋮----
+def test_has_testable_logic_pure_reexports()
+⋮----
+content = "export * from './foo.mjs';\nexport { bar } from './bar.mjs';\n"
+⋮----
+def test_has_testable_logic_comments_only()
+⋮----
+content = "// this is a comment\n/* block comment */\n"
+⋮----
+def test_has_testable_logic_empty()
+⋮----
+def test_has_testable_logic_multiline_import()
+⋮----
+content = "import {\n  foo,\n  bar,\n} from './utils.mjs';\n"
+⋮----
+def test_has_testable_logic_export_with_logic()
+⋮----
+content = "import { x } from './x.mjs';\nexport const y = x + 1;\n"
+⋮----
+# parse_test_import_specs
+⋮----
+def test_parse_test_import_specs()
+⋮----
+content = """\
+specs = parse_test_import_specs(content)
+⋮----
+def test_parse_test_import_specs_dynamic()
+⋮----
+content = "const mod = await import('./dynamic.mjs');\n"
+⋮----
+# strip_comments
+⋮----
+def test_strip_comments_removes_line_comments()
+⋮----
+def test_strip_comments_removes_block_comments()
+⋮----
+result = strip_comments("before /* block */ after")
+</file>
+
 <file path="desloppify/languages/javascript/__init__.py">
 """JavaScript/JSX language plugin — ESLint."""
 ⋮----
@@ -44016,6 +44454,142 @@ The following directories are excluded from analysis:
 - `build`
 - `.next`
 - `coverage`
+</file>
+
+<file path="desloppify/languages/javascript/test_coverage.py">
+"""JavaScript-specific test coverage heuristics and mappings."""
+⋮----
+# ESM import syntax is shared with TypeScript.
+JS_IMPORT_RE = re.compile(
+JS_REEXPORT_RE = re.compile(
+⋮----
+ASSERT_PATTERNS = [
+MOCK_PATTERNS = [
+SNAPSHOT_PATTERNS = [
+TEST_FUNCTION_RE = re.compile(r"""(?:it|test)\s*\(\s*['\"]""")
+PLACEHOLDER_LABEL_PATTERNS = [
+EXPECT_COMPARISON_RE = re.compile(
+EXPECT_TO_BE_DEFINED_RE = re.compile(r"""\.toBeDefined\s*\(""")
+⋮----
+BARREL_BASENAMES = {"index.js", "index.jsx", "index.mjs", "index.cjs"}
+_JS_EXTENSIONS = ["", ".js", ".jsx", ".mjs", ".cjs", "/index.js", "/index.jsx", "/index.mjs", "/index.cjs"]
+logger = logging.getLogger(__name__)
+⋮----
+def _relative_if_under_root(path_str: str) -> str
+⋮----
+"""Return project-relative path when possible; else return original."""
+⋮----
+def has_testable_logic(filepath: str, content: str) -> bool
+⋮----
+"""Return True if a JavaScript file has runtime logic worth testing."""
+in_block_comment = False
+brace_context = False
+brace_depth = 0
+⋮----
+stripped = line.strip()
+⋮----
+in_block_comment = True
+⋮----
+brace_context = True
+brace_depth = stripped.count("{") - stripped.count("}")
+⋮----
+"""Resolve a JavaScript import specifier to a production file path."""
+⋮----
+base = get_src_path() / spec[2:]
+⋮----
+test_dir = Path(test_path).parent
+base = (test_dir / spec).resolve()
+⋮----
+candidate = str(Path(str(base) + ext))
+⋮----
+rel_candidate = _relative_if_under_root(candidate)
+⋮----
+resolved = str(Path(str(base) + ext).resolve())
+⋮----
+rel_resolved = _relative_if_under_root(resolved)
+⋮----
+def parse_test_import_specs(content: str) -> list[str]
+⋮----
+"""Extract import specs from JavaScript test content."""
+⋮----
+def resolve_barrel_reexports(filepath: str, production_files: set[str]) -> set[str]
+⋮----
+"""Resolve one-hop JavaScript barrel re-exports to concrete production files."""
+⋮----
+content = Path(filepath).read_text()
+⋮----
+results = set()
+⋮----
+spec = match.group(1)
+resolved = resolve_import_spec(spec, filepath, production_files)
+⋮----
+def map_test_to_source(test_path: str, production_set: set[str]) -> str | None
+⋮----
+"""Map a JavaScript test file path to a production file by naming convention.
+
+    Handles nested ``__tests__`` directories such as
+    ``src/__tests__/unit/utils/foo.test.mjs`` -> ``src/utils/foo.mjs``.
+    """
+basename = os.path.basename(test_path)
+dirname = os.path.dirname(test_path)
+parent = os.path.dirname(dirname)
+⋮----
+candidates: list[str] = []
+⋮----
+# Strip .test. / .spec. markers to derive the source basename.
+⋮----
+src = basename.replace(pattern, ".")
+⋮----
+# Walk up through __tests__ and any intermediate dirs (unit/, integration/).
+# e.g. src/__tests__/unit/utils/foo.test.mjs -> src/utils/foo.mjs
+parts = Path(test_path).parts
+⋮----
+tests_idx = parts.index("__tests__")
+prefix = os.path.join(*parts[:tests_idx]) if tests_idx > 0 else ""
+# Subdirectories after __tests__ that are category names, not source mirrors.
+_CATEGORY_DIRS = {"unit", "integration", "e2e", "functional", "smoke"}
+suffix_parts = list(parts[tests_idx + 1 :])
+# Strip leading category dirs.
+⋮----
+src_basename = suffix_parts[-1]
+⋮----
+src_basename = src_basename.replace(p, ".")
+⋮----
+candidate = os.path.join(prefix, *suffix_parts) if prefix else os.path.join(*suffix_parts)
+⋮----
+dir_basename = os.path.basename(dirname)
+⋮----
+# First pass: match by basename against all production files.
+⋮----
+prod_base = os.path.basename(prod)
+⋮----
+# Second pass: exact path match.
+⋮----
+def strip_test_markers(basename: str) -> str | None
+⋮----
+"""Strip JavaScript test naming markers to derive a source basename."""
+⋮----
+def strip_comments(content: str) -> str
+⋮----
+"""Strip C-style comments for test quality analysis."""
+⋮----
+def _normalize_tautology_token(token: str) -> str | None
+⋮----
+value = token.strip().rstrip(";")
+⋮----
+"""Heuristic for synthetic coverage-smoke tests with tautological assertions."""
+⋮----
+tautological = 0
+weak_to_be_defined = 0
+⋮----
+match = EXPECT_COMPARISON_RE.search(line)
+⋮----
+left = _normalize_tautology_token(match.group("left"))
+right = _normalize_tautology_token(match.group("right"))
+⋮----
+has_placeholder_label = any(p.search(content) for p in PLACEHOLDER_LABEL_PATTERNS)
+⋮----
+dynamic_import_calls = len(re.findall(r"\bimport\s*\(", content))
 </file>
 
 <file path="desloppify/languages/julia/__init__.py">
@@ -49118,6 +49692,92 @@ def test_nested_function_with_library(tmp_path)
 """Ensure library() in nested function is detected."""
 </file>
 
+<file path="desloppify/languages/r/tests/test_r_test_coverage.py">
+"""Tests for R test coverage heuristics and mappings."""
+⋮----
+class TestHasTestableLogic
+⋮----
+def test_function_definition_is_testable(self)
+⋮----
+content = 'my_func <- function(x) { x + 1 }'
+⋮----
+def test_pure_script_is_not_testable(self)
+⋮----
+content = 'x <- 1\ny <- 2\nprint(x + y)\n'
+⋮----
+def test_rmd_files_are_not_testable(self)
+⋮----
+content = '```{r}\nmy_func <- function(x) x\n```\n'
+⋮----
+class TestMapTestToSource
+⋮----
+def test_maps_testthat_test_to_r_source(self)
+⋮----
+production = {"R/transform.R", "R/utils.R"}
+result = map_test_to_source("tests/testthat/test-transform.R", production)
+⋮----
+def test_returns_none_for_non_testthat_file(self)
+⋮----
+production = {"R/transform.R"}
+result = map_test_to_source("R/transform.R", production)
+⋮----
+def test_returns_none_if_source_missing(self)
+⋮----
+production = {"R/other.R"}
+result = map_test_to_source("tests/testthat/test-missing.R", production)
+⋮----
+def test_handles_lowercase_r_extension(self)
+⋮----
+production = {"R/transform.r"}
+result = map_test_to_source("tests/testthat/test-transform.r", production)
+⋮----
+class TestStripTestMarkers
+⋮----
+def test_strips_test_prefix(self)
+⋮----
+def test_returns_none_for_non_test_file(self)
+⋮----
+class TestParseTestImportSpecs
+⋮----
+def test_extracts_library_names(self)
+⋮----
+content = 'library(dplyr)\nlibrary(testthat)\nx <- 1'
+specs = parse_test_import_specs(content)
+⋮----
+def test_extracts_require_names(self)
+⋮----
+content = 'require(data.table)\nrequire(ggplot2)'
+⋮----
+def test_ignores_base_packages(self)
+⋮----
+content = 'library(base)\nlibrary(dplyr)'
+⋮----
+def test_empty_when_no_imports(self)
+⋮----
+specs = parse_test_import_specs("x <- 1")
+⋮----
+class TestStripComments
+⋮----
+def test_strips_inline_comments(self)
+⋮----
+def test_preserves_hash_in_strings(self)
+⋮----
+result = strip_comments('x <- "# not a comment"')
+⋮----
+def test_preserves_multiline_code(self)
+⋮----
+code = "x <- 1\n# comment\ny <- 2"
+result = strip_comments(code)
+⋮----
+class TestAssertPatterns
+⋮----
+def test_matches_expect_equal(self)
+⋮----
+def test_matches_expect_true(self)
+⋮----
+def test_matches_expect_error(self)
+</file>
+
 <file path="desloppify/languages/r/__init__.py">
 """R language plugin — Jarl, lintr + tree-sitter + R-specific smells."""
 ⋮----
@@ -49135,6 +49795,77 @@ normalized_smells = normalize_smell_entries(smell_entries)
 results = make_smell_issues(
 ⋮----
 __all__ = ["phase_smells"]
+</file>
+
+<file path="desloppify/languages/r/test_coverage.py">
+"""R-specific test coverage heuristics and mappings.
+
+Maps testthat convention: tests/testthat/test-*.R -> R/*.R
+"""
+⋮----
+ASSERT_PATTERNS = [
+MOCK_PATTERNS: list[re.Pattern[str]] = []
+SNAPSHOT_PATTERNS: list[re.Pattern[str]] = []
+TEST_FUNCTION_RE = re.compile(r"(?m)^\s*test_that\s*\(")
+BARREL_BASENAMES: set[str] = set()
+⋮----
+_R_LOGIC_RE = re.compile(r"(?m)^\s*\w+\s*<-\s*function\s*\(")
+⋮----
+def has_testable_logic(filepath: str, content: str) -> bool
+⋮----
+"""Return True when an R file contains function declarations."""
+⋮----
+"""Best-effort R library()/require() to local file resolution."""
+normalized = spec.strip().strip("\"'`")
+⋮----
+normalized_production = {
+⋮----
+candidates: list[str] = [
+⋮----
+test_dir = os.path.dirname(test_path)
+⋮----
+norm = candidate.replace("\\", "/").strip("/")
+⋮----
+def resolve_barrel_reexports(_filepath: str, _production_files: set[str]) -> set[str]
+⋮----
+def parse_test_import_specs(content: str) -> list[str]
+⋮----
+"""Extract library/require names from test file content."""
+specs: list[str] = []
+⋮----
+def map_test_to_source(test_path: str, production_set: set[str]) -> str | None
+⋮----
+"""Map a testthat test file to its R/ source counterpart.
+
+    Convention: tests/testthat/test-my_module.R -> R/my_module.R
+    """
+basename = os.path.basename(test_path)
+⋮----
+stem = basename[5:-2]  # strip "test-" prefix and ".R"/".r" suffix
+candidate = f"R/{stem}.R"
+⋮----
+norm_candidate = candidate.replace("\\", "/").strip("/")
+⋮----
+candidate_r = f"R/{stem}.r"
+norm_candidate_r = candidate_r.replace("\\", "/").strip("/")
+⋮----
+def strip_test_markers(basename: str) -> str | None
+⋮----
+"""Strip R testthat naming marker to derive source basename."""
+⋮----
+def strip_comments(content: str) -> str
+⋮----
+"""Strip R comments (# to end of line) while preserving strings."""
+out: list[str] = []
+in_string: str | None = None
+i = 0
+⋮----
+ch = content[i]
+nxt = content[i + 1] if i + 1 < len(content) else ""
+⋮----
+in_string = None
+⋮----
+in_string = ch
 </file>
 
 <file path="desloppify/languages/ruby/tests/__init__.py">
@@ -49620,10 +50351,37 @@ prefix = line[:column]
 def _holds_lock_guard_across_await(body: str, acquire_re: re.Pattern[str]) -> bool
 ⋮----
 guard = match.groupdict().get("guard", "")
-tail = body[match.end() :]
+acquire_offset = match.end()
+⋮----
+# Determine the brace depth at the acquisition point so we can detect
+# implicit drops when the enclosing block scope ends.
+acquire_depth = _brace_depth_at(body, acquire_offset)
+⋮----
+tail = body[acquire_offset:]
 await_match = _AWAIT_RE.search(tail)
 ⋮----
 before_await = tail[: await_match.start()]
+⋮----
+# Explicit drop() call before the await → guard is released.
+⋮----
+# Implicit drop via block scope: if the brace depth drops below
+# the acquisition depth before the await, the guard has been
+# dropped by the closing brace of its enclosing block.
+⋮----
+def _brace_depth_at(text: str, offset: int) -> int
+⋮----
+"""Return the net brace depth at *offset* within *text*."""
+⋮----
+ch = text[i]
+⋮----
+def _scope_exits_before(text: str, acquire_depth: int) -> bool
+⋮----
+"""Return True if brace depth drops below *acquire_depth* anywhere in *text*.
+
+    This means the block that contained the lock acquisition has ended,
+    implicitly dropping the guard.
+    """
+depth = acquire_depth
 ⋮----
 detail_payload = dict(line=line)
 ⋮----
@@ -57286,6 +58044,12 @@ results = set()
 spec = match.group(1)
 resolved = resolve_import_spec(spec, filepath, production_files)
 ⋮----
+_TS_SOURCE_EXTENSIONS = (".ts", ".tsx", ".js", ".jsx")
+⋮----
+def _cross_extension_candidates(src_basename: str) -> list[str]
+⋮----
+"""Yield the basename with each TS/JS extension swapped in."""
+⋮----
 def map_test_to_source(test_path: str, production_set: set[str]) -> str | None
 ⋮----
 """Map a TypeScript test file path to a production file by naming convention."""
@@ -57303,7 +58067,12 @@ prod_base = os.path.basename(prod)
 ⋮----
 def strip_test_markers(basename: str) -> str | None
 ⋮----
-"""Strip TypeScript test naming markers to derive a source basename."""
+"""Strip TypeScript test naming markers to derive a source basename.
+
+    Returns the direct replacement (e.g. ``Foo.test.ts`` → ``Foo.ts``).
+    Cross-extension matching (``Foo.test.ts`` → ``Foo.tsx``) is handled by
+    ``map_test_to_source`` which tries all TS/JS extensions.
+    """
 ⋮----
 def strip_comments(content: str) -> str
 ⋮----
@@ -61998,6 +62767,12 @@ expected_contract = {
 query_path = tmp_path / "query.json"
 ⋮----
 def test_try_load_prepared_packet_rejects_contract_mismatch(tmp_path: Path, monkeypatch) -> None
+⋮----
+def test_build_batch_run_deps_selects_opencode_runner(tmp_path: Path) -> None
+⋮----
+deps = orchestrator_mod._build_batch_run_deps(
+⋮----
+def test_build_batch_run_deps_keeps_codex_runner_default(tmp_path: Path) -> None
 </file>
 
 <file path="desloppify/tests/commands/review/test_review_batch_execution_phases_direct.py">
@@ -62681,6 +63456,8 @@ packet_hash = hashlib.sha256(blind_packet.read_bytes()).hexdigest()
 ⋮----
 def test_import_attested_external_rejects_non_claude_runner(tmp_path, capsys)
 ⋮----
+def test_import_external_opencode_provenance_still_defaults_to_issues_only(tmp_path)
+⋮----
 def test_import_attested_external_rejects_allow_partial_combo(tmp_path, capsys)
 ⋮----
 def test_import_external_trusted_provenance_still_defaults_to_issues_only(tmp_path)
@@ -62871,6 +63648,25 @@ raw_path = tmp_path / "batch-1.raw.txt"
 def test_render_batch_prompt_loads_context_updates_example() -> None
 ⋮----
 prompt = prompt_template_mod.render_batch_prompt(
+⋮----
+def _safe_write_text(path: Path, text: str) -> None
+⋮----
+def test_run_opencode_batch_recovers_timeout_from_stdout_payload(tmp_path: Path) -> None
+⋮----
+log_file = tmp_path / "batch.log"
+output_file = tmp_path / "out.json"
+stale_payload = {"assessments": {"logic_clarity": 12}, "issues": []}
+payload = {"assessments": {"logic_clarity": 88}, "issues": []}
+stdout_text = "\n".join([
+⋮----
+code = runner_opencode_mod.run_opencode_batch(
+⋮----
+def test_run_opencode_batch_restores_valid_output_after_retry_failure(tmp_path: Path) -> None
+⋮----
+output_file = tmp_path / "batch-1.raw.txt"
+log_file = tmp_path / "batch-1.log"
+first_payload = {"assessments": {"logic_clarity": 10}, "issues": []}
+first_stdout = json.dumps({"type": "text", "part": {"type": "text", "text": json.dumps(first_payload)}}) + "\n"
 </file>
 
 <file path="desloppify/tests/commands/scan/test_cmd_scan_post_analysis.py">
@@ -66379,6 +67175,10 @@ parser = argparse.ArgumentParser(prog="desloppify")
 sub = parser.add_subparsers(dest="command")
 ⋮----
 args = parser.parse_args(["review", "--prepare", "--runner", "codex"])
+⋮----
+def test_add_review_parser_accepts_opencode_runner() -> None
+⋮----
+args = parser.parse_args(["review", "--prepare", "--runner", "opencode"])
 ⋮----
 def test_add_review_parser_invokes_each_option_group_builder_once(monkeypatch) -> None
 ⋮----
@@ -70223,6 +71023,22 @@ def test_typescript_spec_marker(self)
 test_files = {"src/utils.spec.tsx"}
 production_files = {"src/utils.tsx"}
 ⋮----
+def test_typescript_test_ts_finds_tsx_source(self)
+⋮----
+"""Closes #507: .test.ts must find .tsx production files."""
+test_files = {"src/components/OverlayEditor.test.ts"}
+production_files = {"src/components/OverlayEditor.tsx"}
+⋮----
+def test_typescript_test_tsx_finds_ts_source(self)
+⋮----
+test_files = {"src/utils/parser.test.tsx"}
+production_files = {"src/utils/parser.ts"}
+⋮----
+def test_typescript_spec_ts_finds_jsx_source(self)
+⋮----
+test_files = {"src/Button.spec.ts"}
+production_files = {"src/Button.jsx"}
+⋮----
 def test_no_match(self)
 ⋮----
 test_files = {"src/test_foo.py"}
@@ -73294,6 +74110,98 @@ def test_nonexistent_file(self, tmp_path)
 def test_dunder_all_not_at_line_start(self, tmp_path)
 ⋮----
 """__all__ preceded by other text on the same line is not matched."""
+⋮----
+# Next.js App Router framework awareness
+⋮----
+class TestDetectNextjsProject
+⋮----
+"""Unit tests for _detect_nextjs_project."""
+⋮----
+def test_next_config_js(self, tmp_path)
+⋮----
+def test_next_config_mjs(self, tmp_path)
+⋮----
+def test_next_config_ts(self, tmp_path)
+⋮----
+def test_no_next_config(self, tmp_path)
+⋮----
+class TestIsNextjsConventionEntry
+⋮----
+"""Unit tests for _is_nextjs_convention_entry."""
+⋮----
+def test_page_in_app_dir(self)
+⋮----
+def test_layout_in_app_dir(self)
+⋮----
+def test_loading_in_nested_app_dir(self)
+⋮----
+def test_route_handler(self)
+⋮----
+def test_error_boundary(self)
+⋮----
+def test_not_found(self)
+⋮----
+def test_global_error(self)
+⋮----
+def test_template(self)
+⋮----
+def test_default_parallel_route(self)
+⋮----
+def test_opengraph_image(self)
+⋮----
+def test_sitemap(self)
+⋮----
+def test_robots(self)
+⋮----
+def test_middleware_at_root(self)
+⋮----
+def test_middleware_in_src(self)
+⋮----
+def test_instrumentation_at_root(self)
+⋮----
+def test_instrumentation_client(self)
+⋮----
+def test_page_in_src_app(self)
+⋮----
+def test_regular_file_in_app_not_matched(self)
+⋮----
+"""A non-convention file inside app/ is NOT treated as entry."""
+⋮----
+def test_page_outside_app_not_matched(self)
+⋮----
+"""page.tsx outside an app/ directory is NOT treated as entry."""
+⋮----
+def test_middleware_too_deep_not_matched(self)
+⋮----
+"""middleware.ts nested more than one level deep is not an entry."""
+⋮----
+def test_non_js_extension_not_matched(self)
+⋮----
+def test_css_extension_not_matched(self)
+⋮----
+class TestNextjsIntegration
+⋮----
+"""Integration tests for Next.js orphan detection in detect_orphaned_files."""
+⋮----
+def test_nextjs_app_router_files_not_orphaned(self, tmp_path)
+⋮----
+"""Next.js convention files are excluded when next.config.js exists."""
+⋮----
+app_dir = tmp_path / "app"
+page = _write_file(app_dir / "page.tsx", lines=30)
+layout = _write_file(app_dir / "layout.tsx", lines=50)
+route = _write_file(app_dir / "api" / "route.ts", lines=20)
+orphan = _write_file(tmp_path / "src" / "orphan.ts", lines=25)
+⋮----
+def test_no_nextjs_config_no_exclusion(self, tmp_path)
+⋮----
+"""Without next.config, convention files ARE reported as orphaned."""
+⋮----
+def test_detect_frameworks_false_disables(self, tmp_path)
+⋮----
+"""Setting detect_frameworks=False skips Next.js detection."""
+⋮----
+page = _write_file(tmp_path / "app" / "page.tsx", lines=30)
 </file>
 
 <file path="desloppify/tests/detectors/test_passthrough.py">
@@ -89255,6 +90163,28 @@ def test_transient_phrase_case_insensitive(self, tmp_path)
 assert ret is None  # recognized as transient
 ⋮----
 # runner_parallel.execution.py
+⋮----
+class TestExtractTextFromOpenCodeJsonStream
+⋮----
+"""extract_text_from_opencode_json_stream: extracts terminal assistant text."""
+⋮----
+def test_terminal_stop_step_wins_over_planning_text(self)
+⋮----
+final_payload = json.dumps({"assessments": {}})
+planning_payload = json.dumps(
+stream = (
+⋮----
+def test_in_progress_step_returns_empty(self)
+⋮----
+payload = json.dumps({"assessments": {"logic_clarity": 10}, "issues": []})
+⋮----
+class TestOpenCodeFailureDetection
+⋮----
+def test_opencode_runner_missing_patterns_detected(self)
+⋮----
+class TestOpenCodeProvenanceSupport
+⋮----
+def test_supported_blind_review_runners_include_opencode(self)
 </file>
 
 <file path="desloppify/tests/review/test_runner_parallel_internals.py">
@@ -94242,7 +95172,7 @@ You are orchestrating Stage 1 (assessment) of a review pipeline for the desloppi
 
 5. Read `review/schema.json` — this defines the output format and field definitions.
 
-6. For each open PR and issue that doesn't already have a result file, launch a sub-agent using the **Agent tool** with `subagent_type: "general-purpose"`. Launch them all in parallel (multiple Agent tool calls in one message). For each sub-agent:
+6. For each open PR and issue that doesn't already have a result file, launch a sub-agent using the **Agent tool** with `subagent_type: "general-purpose"`. **Launch in batches of 4-5** (multiple Agent tool calls per batch, wait for each batch to finish before starting the next). For each sub-agent:
    - Fill `{TYPE}` with "pr" or "issue"
    - Fill `{NUMBER}` with the item number
    - Fill `{FULL_LIST}` with the complete list from step 1 (titles and descriptions only — for spotting potential duplicates)
@@ -94255,9 +95185,9 @@ You are orchestrating Stage 1 (assessment) of a review pipeline for the desloppi
 
 9. Do NOT post comments on PRs/issues — Stage 3 handles all GitHub communication.
 
-## Note on parallel execution
+## Batching and parallel execution
 
-All sub-agents hit the GitHub API simultaneously. If you have many items (20+), consider batching into groups of 10 to avoid rate limiting. Watch for agents that return empty/partial diffs — that's a sign of throttling.
+**Always batch sub-agents into groups of 4-5.** Launch one batch, wait for all agents in it to complete, then launch the next batch. This prevents API rate limiting and context exhaustion — launching all agents at once will burn through your usage quota even on Max plans. Watch for agents that return empty/partial diffs — that's a sign of throttling; reduce batch size if it happens.
 
 ## Batching strategy
 
@@ -94352,7 +95282,7 @@ Stage 1 has assessed every open PR and issue. Each item has a file at `review/re
 
 5. Check for existing `.stage2.json` files. Skip items that already have one (prior run). To re-run, delete the `.stage2.json` file first.
 
-6. Launch ALL sub-agents in parallel using the **Agent tool** with `subagent_type: "general-purpose"`:
+6. Launch sub-agents **in batches of 4-5** using the **Agent tool** with `subagent_type: "general-purpose"` (wait for each batch to finish before starting the next):
    - For ACCEPT/ACCEPT_WITH_CONDITIONS items: use the challenger prompt
    - For REJECT items: use the advocate prompt
    - Fill `{TYPE}`, `{NUMBER}`, and `{STAGE_1_ASSESSMENT}` (the full stage1 object)
@@ -94399,9 +95329,9 @@ Sub-agents each see one item. You see all of them. Now handle the things they ca
 
 14. Do NOT post comments — Stage 3 handles all GitHub communication.
 
-## Note on parallel execution
+## Batching and parallel execution
 
-Same rate-limiting concern as Stage 1 — all sub-agents hit `gh pr diff` / `gh issue view` simultaneously. Batch into groups of 10 if needed.
+**Always batch sub-agents into groups of 4-5.** Launch one batch, wait for all agents in it to complete, then launch the next batch. Same rate-limiting concern as Stage 1 — launching all at once will burn through usage quota and trigger throttling. Reduce batch size further if you see empty/partial results.
 </file>
 
 <file path="dev/review/prompts/2-devils-advocate.md">
@@ -96785,6 +97715,35 @@ Run triage stages sequentially. For each stage:
 
 When installed (via `desloppify update-skill opencode`), OpenCode automatically loads this skill for code quality, technical debt, and health score questions.
 
+### Review workflow
+
+Use the native `--runner opencode` for automated batch reviews:
+
+```
+desloppify review --run-batches --runner opencode --parallel --scan-after-import
+```
+
+This spawns OpenCode subprocesses (`opencode run --format json`) for each batch, extracts results from the NDJSON stream, merges them, and imports as trusted assessments — identical pipeline to the Codex runner but using OpenCode as the execution engine.
+
+#### Warm server mode (optional, recommended for parallel runs)
+
+Start a persistent OpenCode server to avoid MCP cold-start overhead per batch:
+
+```
+opencode serve --port 4096 &
+export DESLOPPIFY_OPENCODE_ATTACH=http://localhost:4096
+desloppify review --run-batches --runner opencode --parallel --scan-after-import
+```
+
+When `DESLOPPIFY_OPENCODE_ATTACH` is set, each batch subprocess attaches to the running server via `--attach <url>` instead of spawning a fresh instance.
+
+#### Preparing a review manually
+
+1. **Prepare**: `desloppify review --prepare` — writes `query.json` and `.desloppify/review_packet_blind.json`.
+2. **Run batches**: `desloppify review --run-batches --runner opencode --parallel --scan-after-import`
+
+The runner handles batch splitting, prompt generation, parallel execution, retry/stall detection, result extraction, merge, and trusted import automatically.
+
 <!-- desloppify-overlay: opencode -->
 <!-- desloppify-end -->
 </file>
@@ -96813,6 +97772,17 @@ Maximise the **strict score** honestly. Your main cycle: **scan → plan → exe
 ## 2. The Workflow
 
 Three phases, repeated as a cycle.
+
+### Monorepos and multi-project directories
+
+If the workspace contains multiple programs (e.g., frontend + backend in sibling folders), scan each one separately — do not scan the parent directory:
+
+```bash
+desloppify --lang typescript scan --path ./frontend
+desloppify --lang python scan --path ./backend
+```
+
+Each `--path` target should be a single coherent project. Scanning a parent that contains multiple programs mixes state and path context, producing unreliable results.
 
 ### Phase 1: Scan and review — understand the codebase
 
@@ -97155,27 +98125,159 @@ dev/release/release-notes-drafts/
 </file>
 
 <file path="LICENSE">
-MIT License
+Open Source Native License (OSNL)
+Version 0.2 - March 24, 2026
 
-Copyright (c) 2025 Peter O'Malley
+Copyright (c) 2025-2026 Peter O'Malley
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Preamble
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The Open Source Native License (OSNL) allows anyone — individuals and
+organizations alike — to use this software for their own internal purposes.
+Commercialization (distributing it as part of a product or service, or offering
+it to third parties) is unrestricted for entities who open source their primary
+business assets. Non-open source entities require a separate commercial license
+to commercialize it.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+This approach balances the benefits of open-source development with the
+realities of commercial enterprise — keeping software a shared, community-driven
+resource while enabling businesses to thrive in an open-source ecosystem.
+
+1. Definitions
+
+- "This License" refers to Version 0.2 of the Open Source Native License.
+- "The Program" refers to the software distributed under this License.
+- "You" refers to the individual or entity utilizing or contributing to the
+  Program.
+- "Primary Business Assets" are the core resources, capabilities, and
+  technology that constitute the main value proposition and operational basis
+  of a business.
+- "The Licensor" refers to Peter O'Malley.
+
+2. Grant of License
+
+Subject to the terms and conditions of this License, you are hereby granted a
+free, perpetual, worldwide, non-exclusive, no-charge, royalty-free license to
+use, reproduce, modify, distribute, and sublicense the Program, subject to
+the termination provisions in Section 6 and provided that any sublicense is
+granted under the terms of this License.
+
+a) Internal Use
+
+   Any person or organization may use, modify, and contribute to the Program
+   for their own internal purposes without restriction. This includes personal
+   projects, education, research, internal tooling, and using the Program to
+   improve your own codebase — regardless of whether you are an individual, a
+   nonprofit, or a commercial entity. No additional license is required for
+   internal use.
+
+b) Commercialization by Open Source Entities
+
+   If you distribute the Program or a derivative as part of a product or
+   service, or otherwise offer it to third parties, you may do so freely and
+   at no cost provided that your primary business assets — including core
+   technologies, software, and platforms — are available under an OSI-approved
+   open source license or under this License (OSNL). This condition applies
+   only to primary business assets, not to ancillary or peripheral services.
+
+c) Commercialization by Non-Open Source Entities
+
+   If you wish to distribute the Program or a derivative as part of a product
+   or service, or otherwise offer it to third parties, and you do not meet the
+   open source condition in section (b), the following terms apply:
+
+   - If your organization has raised less than $1,000,000 USD in total funding
+     and has less than $1,000,000 USD in annual revenue, no license fee or
+     registration is required. You may commercialize the Program freely.
+
+   - If your organization has raised $1,000,000 USD or more in total funding,
+     or has $1,000,000 USD or more in annual revenue, the license fee is
+     $1,000 USD per month.
+
+   - If your organization has $10,000,000 USD or more in annual revenue, the
+     license fee is $5,000 USD per month.
+
+   - If your organization has $100,000,000 USD or more in annual revenue, the
+     license fee is $10,000 USD per month.
+
+   Your tier is determined by your organization's current status. If your
+   revenue or funding crosses a tier threshold, the new fee applies from the
+   following calendar month.
+
+   "Total funding raised" includes equity, debt, and convertible instruments
+   but excludes revenue. For paid tiers, contact the Licensor at
+   peter@omalley.io to arrange payment.
+
+3. Redistribution
+
+You may reproduce and distribute copies of the Program or derivative works
+thereof in any medium, with or without modifications, provided that you meet
+the following conditions:
+
+- You must give any recipients of the Program a copy of this License.
+- You must ensure that any modified files carry prominent notices stating that
+  you changed the files.
+- Any distribution of the Program or derivative works must comply with the
+  applicable use category in Section 2.
+
+4. Patent Grant
+
+Each contributor to the Program hereby grants you a perpetual, worldwide,
+non-exclusive, no-charge, royalty-free patent license to make, have made, use,
+offer to sell, sell, import, and otherwise transfer the Program, where such
+license applies only to those patent claims licensable by the contributor that
+are necessarily infringed by their contribution(s) alone or in combination with
+the Program.
+
+If you institute patent litigation against any entity (including a cross-claim
+or counterclaim in a lawsuit) alleging that the Program constitutes patent
+infringement, then any patent licenses granted to you under this License for
+the Program shall terminate as of the date such litigation is filed.
+
+5. Disclaimer of Warranty
+
+THE PROGRAM IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+OUT OF OR IN CONNECTION WITH THE USE OF THE PROGRAM OR OTHER DEALINGS IN THE
+PROGRAM.
+
+6. Termination
+
+Your rights under this License will terminate automatically if you fail to
+comply with any of its terms. However, if you become compliant, then your
+rights under this License are reinstated:
+
+- Provisionally, unless and until the Licensor explicitly and finally
+  terminates your rights, and
+- Permanently, if the Licensor does not notify you of the non-compliance
+  within 60 days after you have become compliant.
+
+Moreover, your rights under this License are reinstated permanently if the
+Licensor notifies you of the non-compliance and it is the first time you have
+received notice of non-compliance with this License, and you cure the
+non-compliance within 30 days after receipt of the notice.
+
+Termination of your rights under this section does not terminate the licenses
+of parties who have received copies or rights from you under this License,
+provided those parties remain in full compliance.
+
+7. Version Upgrade
+
+You may choose to follow the terms of this version of the OSNL or any later
+version as published by the Licensor. No one other than the Licensor has the
+right to modify or publish new versions of this License. Each version will be
+given a distinguishing version number.
+
+8. General
+
+This License does not grant permission to use the trade names, trademarks,
+service marks, or product names of the Licensor, except as required for
+reasonable and customary use in describing the origin of the Program.
+
+For commercial licensing inquiries: peter@omalley.io
 </file>
 
 <file path="Makefile">
@@ -97272,11 +98374,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "desloppify"
-version = "0.9.14"
+version = "0.9.15"
 description = "Multi-language codebase health scanner and technical debt tracker"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
+license = {text = "OSNL-0.2"}
 authors = [
     {name = "Peter O'Malley", email = "pom@banodoco.ai"},
 ]
@@ -97440,6 +98542,17 @@ Use `plan` / `plan queue` to reorder priorities or cluster related issues. Resca
 The scan output includes agent instructions — follow them, don't substitute your own analysis.
 ```
 
+## Monorepos and multi-project directories
+
+If your workspace contains multiple programs (e.g., a frontend and backend in sibling directories), scan each one separately with `--path`:
+
+```bash
+desloppify --lang typescript scan --path ./frontend
+desloppify --lang python scan --path ./backend
+```
+
+Scanning the parent directory that contains both will mix state and path context across unrelated codebases, producing unreliable results. Each `--path` target should be a single coherent project. Desloppify maintains separate state per language, so you can scan a TypeScript frontend and a Python backend from the same workspace without conflict — just target them individually.
+
 ## How it works
 
 ```
@@ -97485,7 +98598,7 @@ If you'd like to join a community of vibe engineers who want to build beautiful 
 
 Issues, improvements, and PRs are hugely appreciated — [github.com/peteromallet/desloppify](https://github.com/peteromallet/desloppify).
 
-MIT License
+Desloppify is free for any individual — whether working independently or at a company — to use for their own work. It is also free for open source companies to use in any capacity, including commercial. Non-open source companies who wish to commercialize it should refer to the [LICENSE](LICENSE) for transparent pricing details.
 </file>
 
 </files>

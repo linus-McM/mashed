@@ -1,11 +1,13 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { createEventDispatcher } from 'svelte';
-  import { SpawnAgent, SpawnAgentWithCommand, SpawnTerminal, KillAgent, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, SpawnPRReview, RepoStatus } from '../../wailsjs/go/main/App.js';
+  import { SpawnAgent, SpawnAgentWithCommand, SpawnTerminal, KillAgent, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus } from '../../wailsjs/go/main/App.js';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
-  import { GripVertical, GitBranch, Trash2, Plus, Hexagon, Circle, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, TerminalSquare, ChevronRight, ChevronDown } from 'lucide-svelte';
+  import { GripVertical, GitBranch, Trash2, Plus, Hexagon, Circle, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, TerminalSquare, ChevronRight, ChevronDown, Download, GitMerge } from 'lucide-svelte';
   import BranchModal from './BranchModal.svelte';
   import SwitchBranchModal from './SwitchBranchModal.svelte';
+  import MergeModal from './MergeModal.svelte';
+  import ForcePushModal from './ForcePushModal.svelte';
   import NewSessionModal from './NewSessionModal.svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
   import SparkLine from '../components/SparkLine.svelte';
@@ -59,6 +61,7 @@
   // Drag and drop reordering
   let dragRepo = null;
   let dragOverRepo = null;
+  let dropPosition = null; // 'above' | 'below'
 
   // Load saved repo order from localStorage
   let repoOrder = [];
@@ -71,18 +74,33 @@
     dragRepo = repoName;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', repoName);
+    // Slight delay so the browser captures the drag image before we add opacity
+    requestAnimationFrame(() => { dragRepo = repoName; });
   }
 
   function onDragOver(e, repoName) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    if (repoName !== dragRepo) {
-      dragOverRepo = repoName;
+    if (repoName === dragRepo) {
+      dragOverRepo = null;
+      dropPosition = null;
+      return;
     }
+    dragOverRepo = repoName;
+
+    // Determine above/below based on mouse Y relative to the target element center
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    dropPosition = e.clientY < midY ? 'above' : 'below';
   }
 
-  function onDragLeave() {
-    dragOverRepo = null;
+  function onDragLeave(e) {
+    // Only clear if we actually left the element (not entering a child)
+    const related = e.relatedTarget;
+    if (!e.currentTarget.contains(related)) {
+      dragOverRepo = null;
+      dropPosition = null;
+    }
   }
 
   function onDrop(e, targetName) {
@@ -90,29 +108,41 @@
     if (!dragRepo || dragRepo === targetName) {
       dragRepo = null;
       dragOverRepo = null;
+      dropPosition = null;
       return;
     }
 
-    // Build current display order names
     const names = orderedRepos.map(r => r.name);
     const fromIdx = names.indexOf(dragRepo);
-    const toIdx = names.indexOf(targetName);
+    let toIdx = names.indexOf(targetName);
     if (fromIdx === -1 || toIdx === -1) return;
 
-    // Reorder
+    // Remove from old position
     names.splice(fromIdx, 1);
-    names.splice(toIdx, 0, dragRepo);
+
+    // Recalculate target index after removal
+    toIdx = names.indexOf(targetName);
+    if (toIdx === -1) return;
+
+    // Insert above or below the target
+    if (dropPosition === 'below') {
+      names.splice(toIdx + 1, 0, dragRepo);
+    } else {
+      names.splice(toIdx, 0, dragRepo);
+    }
 
     repoOrder = names;
     localStorage.setItem('mashed:repoOrder', JSON.stringify(repoOrder));
 
     dragRepo = null;
     dragOverRepo = null;
+    dropPosition = null;
   }
 
   function onDragEnd() {
     dragRepo = null;
     dragOverRepo = null;
+    dropPosition = null;
   }
 
   // Group: repo → agents → sub-agents, merged with all scanned repos
@@ -207,6 +237,16 @@
       if (evt.eventType === 'needs_response' || evt.eventType === 'error') {
         repo.worstStatus = evt.eventType;
       }
+    }
+
+    // Sort agents within each repo: running/active on top, then by priority
+    const agentPriority = { needs_response: 0, error: 1, running: 2, open: 3, started: 4, finished: 5, completed: 6 };
+    for (const repo of repoMap.values()) {
+      repo.agents.sort((a, b) => {
+        const pa = agentPriority[a.eventType] ?? 7;
+        const pb = agentPriority[b.eventType] ?? 7;
+        return pa - pb;
+      });
     }
 
     // Sort repos: repos with attention-needed first, then alphabetical
@@ -380,7 +420,7 @@
     killingAgents.add(agent.agentId);
     killingAgents = killingAgents; // trigger reactivity
     try {
-      await KillAgent(agent.agentId, agent.pid || 0);
+      await KillAgent(agent.agentId, agent.pid || 0, agent.tmuxTarget || '');
     } catch (err) {
       console.error('Kill failed:', err);
     }
@@ -388,9 +428,11 @@
     killingAgents = killingAgents;
   }
 
-  // Listen for agent removal events from the backend
+  // Listen for agent removal events from the backend — also remove sub-agents
   EventsOn('agent:removed', (agentId) => {
-    notifications = notifications.filter(n => n.agentId !== agentId);
+    notifications = notifications.filter(n =>
+      n.agentId !== agentId && n.parentAgentId !== agentId
+    );
   });
 
   // Repo git status: repoPath -> { dirty: bool, openPRs: number }
@@ -423,6 +465,62 @@
 
   function hasOpenPR(path) {
     return (repoStatuses[path]?.openPRs || 0) > 0;
+  }
+
+  function isAhead(path) {
+    return (repoStatuses[path]?.ahead || 0) > 0;
+  }
+
+  function isProtected(path) {
+    return repoStatuses[path]?.protected || false;
+  }
+
+  // Push with conflict detection — returns true if conflict modal should open
+  let forcePushRepo = null; // { path, message } or null
+
+  async function smartPush(path) {
+    repoActions[path] = { action: 'push', result: null, error: null };
+    repoActions = repoActions;
+    try {
+      const result = await GitPush(path);
+      if (result.startsWith('conflict:')) {
+        forcePushRepo = { path, message: result.slice('conflict:'.length) };
+        repoActions[path] = { action: null, result: null, error: null };
+      } else {
+        repoActions[path] = { action: null, result: 'Pushed', error: null };
+        setTimeout(() => {
+          if (repoActions[path] && !repoActions[path].action) {
+            repoActions[path] = { action: null, result: null, error: null };
+            repoActions = repoActions;
+          }
+        }, 5000);
+      }
+    } catch (err) {
+      repoActions[path] = { action: null, result: null, error: err?.message || String(err) };
+      setTimeout(() => {
+        if (repoActions[path] && !repoActions[path].action) {
+          repoActions[path] = { action: null, result: null, error: null };
+          repoActions = repoActions;
+        }
+      }, 5000);
+    }
+    repoActions = repoActions;
+    refreshRepoStatuses();
+  }
+
+  function onForcePushed() {
+    if (forcePushRepo) {
+      repoActions[forcePushRepo.path] = { action: null, result: 'Force pushed', error: null };
+      repoActions = repoActions;
+      setTimeout(() => {
+        if (repoActions[forcePushRepo.path] && !repoActions[forcePushRepo.path].action) {
+          repoActions[forcePushRepo.path] = { action: null, result: null, error: null };
+          repoActions = repoActions;
+        }
+      }, 5000);
+    }
+    forcePushRepo = null;
+    refreshRepoStatuses();
   }
 
   // Collapsed state per repo name
@@ -463,6 +561,7 @@
   // Branch modal state
   let branchModalRepo = null; // { path, branch } or null
   let switchModalRepo = null; // { path, branch, color } or null
+  let mergeModalRepo = null; // { path, branch } or null
 
   function openBranchModal(repo) {
     branchModalRepo = { path: repo.path, branch: repo.branch };
@@ -470,6 +569,24 @@
 
   function openSwitchModal(repo) {
     switchModalRepo = { path: repo.path, branch: repo.branch, color: getRepoColor(repo.name) };
+  }
+
+  function openMergeModal(repo) {
+    mergeModalRepo = { path: repo.path, branch: repo.branch };
+  }
+
+  function onMerged(e) {
+    const targetBranch = e.detail?.targetBranch;
+    if (targetBranch && mergeModalRepo) {
+      notifications = notifications.map(n => {
+        if (n.repoPath === mergeModalRepo.path) {
+          return { ...n, repoBranch: targetBranch };
+        }
+        return n;
+      });
+    }
+    mergeModalRepo = null;
+    refreshRepoStatuses();
   }
 
   function onBranchSwitched(e) {
@@ -589,8 +706,13 @@
     {#each orderedRepos as repo (repo.name)}
       <div
         class="repo-group"
-        class:drag-over={dragOverRepo === repo.name}
+        class:drag-over-above={dragOverRepo === repo.name && dropPosition === 'above'}
+        class:drag-over-below={dragOverRepo === repo.name && dropPosition === 'below'}
+        class:dragging={dragRepo === repo.name}
         style="border-color: {getRepoColor(repo.name)}"
+        on:dragover={(e) => onDragOver(e, repo.name)}
+        on:dragleave={(e) => onDragLeave(e)}
+        on:drop={(e) => onDrop(e, repo.name)}
       >
         <!-- Repo header (draggable, dblclick to toggle) -->
         <div
@@ -598,9 +720,6 @@
           class:collapsed={isCollapsed(repo)}
           draggable="true"
           on:dragstart={(e) => onDragStart(e, repo.name)}
-          on:dragover={(e) => onDragOver(e, repo.name)}
-          on:dragleave={onDragLeave}
-          on:drop={(e) => onDrop(e, repo.name)}
           on:dragend={onDragEnd}
         >
           <button class="collapse-btn" on:click|stopPropagation={() => handleHeaderClick(repo)}>
@@ -761,11 +880,30 @@
               <button
                 class="action-btn"
                 disabled={!!getAction(repo.path).action}
-                on:click|stopPropagation={() => runRepoAction(repo.path, 'push', GitCommitAndPush)}
-                title="Commit + push to origin"
+                on:click|stopPropagation={() => runRepoAction(repo.path, 'pull', GitPull)}
+                title="Pull remote changes"
+              >
+                <Download size={14} />
+                <span>{getAction(repo.path).action === 'pull' ? 'Pulling...' : 'Pull'}</span>
+              </button>
+              <button
+                class="action-btn"
+                class:action-hot={isAhead(repo.path) && !isProtected(repo.path)}
+                disabled={!!getAction(repo.path).action}
+                on:click|stopPropagation={() => smartPush(repo.path)}
+                title={isProtected(repo.path) ? 'Branch is protected — push via PR' : isAhead(repo.path) ? `${repoStatuses[repo.path]?.ahead} commit(s) ahead of remote` : 'Push to origin'}
               >
                 <Upload size={14} />
                 <span>{getAction(repo.path).action === 'push' ? 'Pushing...' : 'Push'}</span>
+              </button>
+              <button
+                class="action-btn"
+                disabled={!!getAction(repo.path).action}
+                on:click|stopPropagation={() => openMergeModal(repo)}
+                title="Merge current branch into another"
+              >
+                <GitMerge size={14} />
+                <span>Merge</span>
               </button>
               <button
                 class="action-btn"
@@ -925,6 +1063,24 @@
   />
 {/if}
 
+{#if mergeModalRepo}
+  <MergeModal
+    repoPath={mergeModalRepo.path}
+    currentBranch={mergeModalRepo.branch}
+    on:merged={onMerged}
+    on:cancel={() => mergeModalRepo = null}
+  />
+{/if}
+
+{#if forcePushRepo}
+  <ForcePushModal
+    repoPath={forcePushRepo.path}
+    conflictMessage={forcePushRepo.message}
+    on:pushed={onForcePushed}
+    on:cancel={() => forcePushRepo = null}
+  />
+{/if}
+
 <script context="module">
   const statusColors = {
     running:        '#39ff14',
@@ -968,8 +1124,43 @@
     transition: border-color 200ms ease, transform 150ms ease, opacity 150ms ease;
   }
 
-  .repo-group.drag-over {
-    border-top: 2px solid var(--accent-green);
+  .repo-group.dragging {
+    opacity: 0.35;
+    transform: scale(0.98);
+  }
+
+  .repo-group.drag-over-above {
+    position: relative;
+  }
+
+  .repo-group.drag-over-above::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 12px;
+    right: 12px;
+    height: 3px;
+    background: var(--accent-green);
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(0, 229, 122, 0.5);
+    z-index: 10;
+  }
+
+  .repo-group.drag-over-below {
+    position: relative;
+  }
+
+  .repo-group.drag-over-below::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 12px;
+    right: 12px;
+    height: 3px;
+    background: var(--accent-green);
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(0, 229, 122, 0.5);
+    z-index: 10;
   }
 
   .repo-header {

@@ -10,7 +10,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
-	"conductor/internal/domain"
+	"mashed/internal/domain"
 )
 
 // WatchSessions watches ~/.claude/projects/ for session file changes and emits events.

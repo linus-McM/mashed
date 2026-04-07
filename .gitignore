@@ -52,3 +52,4 @@ images/*
 *.backup
 console-**.log
 nanobanana-output
+docs/repomixer/*

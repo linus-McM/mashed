@@ -1,24 +1,9 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { ReadFile, ReadFileAtHead, WriteFile, ExplainDiffHunk, IsExplainAvailable } from '../../wailsjs/go/main/App.js';
-  import { defineAllThemes, getEditorFont } from '../lib/monacoTheme.js';
+  import { defineAllThemes, getEditorFont, toMonacoId } from '../lib/monacoTheme.js';
   import { currentMonoFont, currentFontSize } from '../lib/stores/font.js';
   import { allThemes, currentThemeId, builtInThemeIds } from '../lib/stores/theme.js';
-  import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-  import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
-  import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
-  import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
-  import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
-
-  self.MonacoEnvironment = {
-    getWorker(_, label) {
-      if (label === 'json') return new jsonWorker();
-      if (label === 'css' || label === 'scss' || label === 'less') return new cssWorker();
-      if (label === 'html' || label === 'handlebars' || label === 'razor') return new htmlWorker();
-      if (label === 'typescript' || label === 'javascript') return new tsWorker();
-      return new editorWorker();
-    }
-  };
 
   export let filePath = '';
   export let repoPath = '';
@@ -75,7 +60,7 @@
 
   function getEditorOptions() {
     return {
-      theme: $currentThemeId,
+      theme: toMonacoId($currentThemeId),
       fontFamily: getEditorFont(),
       fontSize: $currentFontSize,
       lineHeight: 1.5 * 13,
@@ -404,10 +389,49 @@
         explainAvailable = false;
       });
 
-      monacoModule = await import('monaco-editor');
+      // Set up Monaco workers lazily — only created when Monaco requests them.
+      // Uses Vite's new URL() pattern so worker code stays out of the main chunk.
+      self.MonacoEnvironment = {
+        getWorker(_, label) {
+          if (label === 'json')
+            return new Worker(new URL('monaco-editor/esm/vs/language/json/json.worker.js', import.meta.url), { type: 'module' });
+          if (label === 'css' || label === 'scss' || label === 'less')
+            return new Worker(new URL('monaco-editor/esm/vs/language/css/css.worker.js', import.meta.url), { type: 'module' });
+          if (label === 'html' || label === 'handlebars' || label === 'razor')
+            return new Worker(new URL('monaco-editor/esm/vs/language/html/html.worker.js', import.meta.url), { type: 'module' });
+          if (label === 'typescript' || label === 'javascript')
+            return new Worker(new URL('monaco-editor/esm/vs/language/typescript/ts.worker.js', import.meta.url), { type: 'module' });
+          return new Worker(new URL('monaco-editor/esm/vs/editor/editor.worker.js', import.meta.url), { type: 'module' });
+        }
+      };
+
+      // Import core editor + only the languages/features this app uses.
+      // This avoids pulling ~90 language grammars we never touch.
+      monacoModule = await import('monaco-editor/esm/vs/editor/editor.api.js');
+
+      await Promise.all([
+        // Basic languages (syntax highlighting only)
+        import('monaco-editor/esm/vs/basic-languages/go/go.contribution.js'),
+        import('monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution.js'),
+        import('monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution.js'),
+        import('monaco-editor/esm/vs/basic-languages/html/html.contribution.js'),
+        import('monaco-editor/esm/vs/basic-languages/css/css.contribution.js'),
+        import('monaco-editor/esm/vs/basic-languages/markdown/markdown.contribution.js'),
+        import('monaco-editor/esm/vs/basic-languages/yaml/yaml.contribution.js'),
+        import('monaco-editor/esm/vs/basic-languages/shell/shell.contribution.js'),
+        import('monaco-editor/esm/vs/basic-languages/python/python.contribution.js'),
+        import('monaco-editor/esm/vs/basic-languages/rust/rust.contribution.js'),
+        import('monaco-editor/esm/vs/basic-languages/sql/sql.contribution.js'),
+        import('monaco-editor/esm/vs/basic-languages/xml/xml.contribution.js'),
+        // Rich languages (intellisense + validation)
+        import('monaco-editor/esm/vs/language/json/monaco.contribution.js'),
+        import('monaco-editor/esm/vs/language/css/monaco.contribution.js'),
+        import('monaco-editor/esm/vs/language/html/monaco.contribution.js'),
+        import('monaco-editor/esm/vs/language/typescript/monaco.contribution.js'),
+      ]);
       if (!themeRegistered) {
-        defineAllThemes(monacoModule);
-        for (const id of builtInThemeIds) {
+        const defined = defineAllThemes(monacoModule);
+        for (const id of defined) {
           registeredThemeIds.add(id);
         }
         themeRegistered = true;
@@ -434,15 +458,19 @@
   // Live theme switching — register imported themes on demand, then activate
   $: if (monacoModule && $currentThemeId) {
     const theme = $allThemes[$currentThemeId];
+    const monacoId = toMonacoId($currentThemeId);
     if (theme && theme.monaco && !registeredThemeIds.has($currentThemeId)) {
       try {
-        monacoModule.editor.defineTheme($currentThemeId, theme.monaco);
+        monacoModule.editor.defineTheme(monacoId, theme.monaco);
         registeredThemeIds.add($currentThemeId);
       } catch (e) {
         console.error('Failed to define Monaco theme:', e);
       }
     }
-    monacoModule.editor.setTheme($currentThemeId);
+    // Use sanitized ID for Monaco; fall back to first built-in if current isn't registered
+    monacoModule.editor.setTheme(
+      registeredThemeIds.has($currentThemeId) ? monacoId : toMonacoId(builtInThemeIds[0])
+    );
   }
 
   // Live font switching

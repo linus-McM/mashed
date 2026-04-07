@@ -266,7 +266,7 @@ export namespace main {
 	        this.uiTheme = source["uiTheme"];
 	    }
 	}
-	export class conductorConfig {
+	export class mashedConfig {
 	    devDir: string;
 	    theme?: string;
 	    vscodiumExtPath?: string;
@@ -275,7 +275,7 @@ export namespace main {
 	    fontSize?: number;
 	
 	    static createFrom(source: any = {}) {
-	        return new conductorConfig(source);
+	        return new mashedConfig(source);
 	    }
 	
 	    constructor(source: any = {}) {

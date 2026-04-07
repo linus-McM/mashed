@@ -2,9 +2,9 @@
 // Shared module for theme activation logic used by both Settings.svelte and App.svelte.
 // Handles reading, converting, registering, applying, and persisting imported VSCodium themes.
 
-import { ReadThemeFile, SetImportedTheme, SetTheme } from '../../wailsjs/go/main/App.js';
+import { ReadThemeFile, SetImportedTheme, SetTheme, GetSavedThemes, SaveTheme, RemoveTheme } from '../../wailsjs/go/main/App.js';
 import { convertVSCodeTheme, validateConvertedTheme } from './themeConverter.js';
-import { registerImportedTheme, applyTheme, DEFAULT_THEME } from './stores/theme.js';
+import { registerImportedTheme, registerSavedThemes, applyTheme, DEFAULT_THEME } from './stores/theme.js';
 
 // Cache of already-converted themes: { themePath: { id, theme } }
 // Exported so Settings.svelte can render preview thumbnails for activated themes.
@@ -53,6 +53,36 @@ export function makeThemeId(themePath, extensionId) {
 }
 
 /**
+ * Load all previously-saved imported themes from ~/.mashed/themes.json
+ * and register them into the allThemes store. Called once on app startup.
+ *
+ * @returns {Promise<void>}
+ */
+export async function loadSavedThemes() {
+  try {
+    const raw = await GetSavedThemes();
+    const saved = JSON.parse(raw);
+    if (saved && typeof saved === 'object' && Object.keys(saved).length > 0) {
+      registerSavedThemes(saved);
+    }
+  } catch {
+    // No saved themes or parse error — not critical
+  }
+}
+
+/**
+ * Remove a saved imported theme by ID. Unregisters from store and deletes from disk.
+ *
+ * @param {string} themeId - the theme ID to remove
+ * @returns {Promise<void>}
+ */
+export async function removeImportedTheme(themeId) {
+  const { unregisterImportedTheme } = await import('./stores/theme.js');
+  unregisterImportedTheme(themeId);
+  try { await RemoveTheme(themeId); } catch {}
+}
+
+/**
  * Activate an imported theme by path. Reads, converts, registers, applies, persists.
  *
  * @param {string} themePath - absolute path to the theme JSON file
@@ -83,7 +113,7 @@ export async function activateImportedTheme(themePath, extensionId) {
     const raw = await ReadThemeFile(themePath);
     const vsTheme = JSON.parse(raw);
 
-    // Convert to Conductor format
+    // Convert to Mashed format
     const converted = convertVSCodeTheme(vsTheme, themeId);
 
     // Validate minimum CSS vars present
@@ -98,8 +128,9 @@ export async function activateImportedTheme(themePath, extensionId) {
     registerImportedTheme(themeId, converted);
     applyTheme(themeId);
 
-    // Persist to config
+    // Persist theme data + active selection
     await Promise.all([
+      SaveTheme(themeId, JSON.stringify(converted)),
       SetTheme(themeId),
       SetImportedTheme(themePath),
     ]);

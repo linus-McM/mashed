@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"conductor/internal/domain"
+	"mashed/internal/domain"
 )
 
 // drainEvents reads all available events from the engine channel within a timeout.

@@ -10,7 +10,7 @@
   import { Hexagon } from 'lucide-svelte';
   import TitleBar from './components/TitleBar.svelte';
   import { applyTheme } from './lib/stores/theme.js';
-  import { restoreImportedThemeFromConfig } from './lib/themeInit.js';
+  import { loadSavedThemes, restoreImportedThemeFromConfig } from './lib/themeInit.js';
   import { applyFont, registerLocalFonts } from './lib/stores/font.js';
 
   let currentView = 'loading'; // 'loading' | 'setup' | 'feed' | 'detail' | 'settings'
@@ -19,31 +19,26 @@
   let showSpawnModal = false;
 
   onMount(async () => {
-    // Load persisted theme before rendering content
+    const cfg = await GetConfig();
+
+    // Load themes + fonts before rendering
     try {
-      const cfg = await GetConfig();
-      if (cfg.importedTheme) {
-        // Restore imported VSCodium theme (C-5 fix: survives app restarts)
-        await restoreImportedThemeFromConfig(cfg);
-      } else if (cfg.theme) {
+      await loadSavedThemes();
+      if (cfg.theme) {
         applyTheme(cfg.theme);
+      } else if (cfg.importedTheme) {
+        await restoreImportedThemeFromConfig(cfg);
       }
-      // Register local fonts (@font-face) before applying selection
       const localFonts = await ListLocalFonts();
       registerLocalFonts(localFonts);
-      // Font store is the single source of truth — always initialize it
       applyFont(cfg.monoFont || '', cfg.fontSize || 0);
     } catch {}
 
-    try {
-      const dir = await GetDevDir();
-      if (dir && dir.length > 0) {
-        currentView = 'feed';
-        notifications = await GetNotifications();
-      } else {
-        currentView = 'setup';
-      }
-    } catch (e) {
+    const dir = await GetDevDir();
+    if (dir && dir.length > 0) {
+      currentView = 'feed';
+      try { notifications = await GetNotifications(); } catch {}
+    } else {
       currentView = 'setup';
     }
   });
@@ -56,6 +51,12 @@
       notifications = [event, ...notifications];
     }
     notifications = notifications.sort((a, b) => a.priority - b.priority);
+  });
+
+  EventsOn('agent:removed', (agentId) => {
+    notifications = notifications.filter(n =>
+      n.agentId !== agentId && n.parentAgentId !== agentId
+    );
   });
 
   function onSetupReady() {

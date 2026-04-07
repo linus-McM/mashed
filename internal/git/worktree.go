@@ -1,7 +1,7 @@
 package git
 
 import (
-	"conductor/internal/domain"
+	"mashed/internal/domain"
 	"os/exec"
 	"strings"
 )

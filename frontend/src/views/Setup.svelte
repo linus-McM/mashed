@@ -67,12 +67,12 @@
 
     {#if selectedDir}
       <button class="confirm-btn" on:click={confirm} disabled={loading}>
-        {loading ? 'Starting...' : 'Start Conductor'}
+        {loading ? 'Starting...' : 'Start Mashed'}
       </button>
     {/if}
 
     <p class="footer-hint">
-      You can change this later. Config saved to ~/.conductor/config.json
+      You can change this later. Config saved to ~/.mashed/config.json
     </p>
   </div>
 </div>

@@ -1,4 +1,4 @@
-module conductor
+module mashed
 
 go 1.25.0
 

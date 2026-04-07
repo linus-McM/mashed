@@ -1,5 +1,5 @@
 // themeConverter.js
-// Pure transformation module: VSCode color theme JSON -> Conductor unified format.
+// Pure transformation module: VSCode color theme JSON -> Mashed unified format.
 // Zero imports from other project files. Zero npm dependencies.
 
 // ---------------------------------------------------------------------------
@@ -83,7 +83,7 @@ function dimColor(hex, factor) {
 // ---------------------------------------------------------------------------
 
 /**
- * Map VSCode editor colors to Conductor's 16 CSS custom properties.
+ * Map VSCode editor colors to Mashed's 16 CSS custom properties.
  * Falls back to sensible defaults when a color is missing.
  */
 function mapVSCodeColorsToCSSVars(colors, isDark) {
@@ -240,7 +240,7 @@ export function getMonacoBase(vsTheme) {
 }
 
 /**
- * Convert a VSCode color theme JSON object into Conductor's unified theme format.
+ * Convert a VSCode color theme JSON object into Mashed's unified theme format.
  *
  * @param {object} vsTheme - Parsed VSCode theme JSON (name, type/uiTheme, colors, tokenColors)
  * @param {string} themeId - Identifier for the theme (used as label fallback)
@@ -253,11 +253,18 @@ export function convertVSCodeTheme(vsTheme, themeId) {
 
   const tokenRules = convertTokenColors(vsTheme.tokenColors);
 
+  // Filter out null/undefined color values — VSCode themes use null to mean
+  // "inherit from base theme" but Monaco requires string values.
+  const cleanColors = {};
+  for (const [k, v] of Object.entries(colors)) {
+    if (typeof v === 'string') cleanColors[k] = v;
+  }
+
   const monaco = {
     base,
     inherit: true,
     rules: tokenRules,
-    colors: { ...colors },
+    colors: cleanColors,
   };
 
   const css = mapVSCodeColorsToCSSVars(colors, isDark);

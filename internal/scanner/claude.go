@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"conductor/internal/domain"
+	"mashed/internal/domain"
 )
 
 // Compile-time interface check.

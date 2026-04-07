@@ -1,13 +1,15 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, SpawnPRReview, RepoMtimes } from '../../wailsjs/go/main/App.js';
+  import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus, RepoMtimes } from '../../wailsjs/go/main/App.js';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
-  import { ArrowLeft, GitBranch, GripVertical, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus } from 'lucide-svelte';
+  import { ArrowLeft, GitBranch, GripVertical, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, Download, GitMerge, AlertTriangle } from 'lucide-svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
   import Terminal from '../components/Terminal.svelte';
   import MonacoEditor from '../components/MonacoEditor.svelte';
   import FileTree from '../components/FileTree.svelte';
   import BranchModal from './BranchModal.svelte';
+  import MergeModal from './MergeModal.svelte';
+  import ForcePushModal from './ForcePushModal.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -85,6 +87,44 @@
   let gitResult = null;
   let gitError = null;
   let showBranchModal = false;
+  let showMergeModal = false;
+  let forcePushState = null; // { message } or null
+
+  // Repo status for push highlighting
+  let repoStatus = { ahead: 0, behind: 0, protected: false };
+  let statusInterval;
+
+  async function refreshRepoStatus() {
+    if (!agent?.repoPath) return;
+    try {
+      repoStatus = await RepoStatus(agent.repoPath);
+    } catch (_) {}
+  }
+
+  $: if (agent?.repoPath) refreshRepoStatus();
+
+  async function smartPush() {
+    if (!agent?.repoPath) return;
+    gitAction = 'push';
+    gitResult = null;
+    gitError = null;
+    try {
+      const result = await GitPush(agent.repoPath);
+      if (result.startsWith('conflict:')) {
+        forcePushState = { message: result.slice('conflict:'.length) };
+        gitAction = null;
+        return;
+      }
+      gitResult = 'Pushed';
+      refreshChangedFiles();
+      refreshAllFiles();
+    } catch (err) {
+      gitError = err?.message || String(err);
+    }
+    gitAction = null;
+    refreshRepoStatus();
+    setTimeout(() => { gitResult = null; gitError = null; }, 5000);
+  }
 
   async function runGitAction(actionName, fn) {
     if (!agent?.repoPath) return;
@@ -257,6 +297,9 @@
         }
       } catch {}
       mtimeInterval = setInterval(checkMtimes, 5000);
+
+      // Poll repo status for push highlighting
+      statusInterval = setInterval(refreshRepoStatus, 10000);
     }
   });
 
@@ -264,6 +307,7 @@
     window.removeEventListener('keydown', handleKeydown);
     if (commitEventCancel) commitEventCancel();
     if (mtimeInterval) clearInterval(mtimeInterval);
+    if (statusInterval) clearInterval(statusInterval);
   });
 </script>
 
@@ -411,8 +455,20 @@
         <button class="git-btn" class:git-hot={changedFiles.length > 0} disabled={!!gitAction} on:click={() => startStreamingCommit()}>
           <GitCommitIcon size={14} /> {gitAction === 'commit' ? 'Committing...' : 'Commit'}
         </button>
-        <button class="git-btn" disabled={!!gitAction} on:click={() => runGitAction('push', GitCommitAndPush)}>
+        <button class="git-btn" disabled={!!gitAction} on:click={() => runGitAction('pull', GitPull)}>
+          <Download size={14} /> {gitAction === 'pull' ? 'Pulling...' : 'Pull'}
+        </button>
+        <button
+          class="git-btn"
+          class:git-hot={(repoStatus.ahead || 0) > 0 && !repoStatus.protected}
+          disabled={!!gitAction}
+          on:click={() => smartPush()}
+          title={repoStatus.protected ? 'Branch is protected — push via PR' : (repoStatus.ahead || 0) > 0 ? `${repoStatus.ahead} commit(s) ahead of remote` : 'Push to origin'}
+        >
           <Upload size={14} /> {gitAction === 'push' ? 'Pushing...' : 'Push'}
+        </button>
+        <button class="git-btn" disabled={!!gitAction} on:click={() => showMergeModal = true}>
+          <GitMerge size={14} /> Merge
         </button>
         <button class="git-btn" class:git-hot={changedFiles.length > 0} disabled={!!gitAction} on:click={() => runGitAction('pr', GitCommitPushAndPR)}>
           <GitPullRequest size={14} /> {gitAction === 'pr' ? 'Creating...' : 'PR'}
@@ -513,6 +569,24 @@
     repoPath={agent.repoPath}
     repoBranch={agent.repoBranch || 'main'}
     on:close={() => showBranchModal = false}
+  />
+{/if}
+
+{#if showMergeModal}
+  <MergeModal
+    repoPath={agent.repoPath}
+    currentBranch={agent.repoBranch || 'main'}
+    on:merged={(e) => { showMergeModal = false; gitResult = e.detail?.result || 'Merged'; refreshChangedFiles(); }}
+    on:cancel={() => showMergeModal = false}
+  />
+{/if}
+
+{#if forcePushState}
+  <ForcePushModal
+    repoPath={agent.repoPath}
+    conflictMessage={forcePushState.message}
+    on:pushed={() => { forcePushState = null; gitResult = 'Force pushed'; refreshRepoStatus(); refreshChangedFiles(); setTimeout(() => { gitResult = null; }, 5000); }}
+    on:cancel={() => forcePushState = null}
   />
 {/if}
 

@@ -26,6 +26,10 @@ export function GetNotifications() {
   return window['go']['main']['App']['GetNotifications']();
 }
 
+export function GetSavedThemes() {
+  return window['go']['main']['App']['GetSavedThemes']();
+}
+
 export function GetScopedDiff(arg1) {
   return window['go']['main']['App']['GetScopedDiff'](arg1);
 }
@@ -58,8 +62,24 @@ export function GitCreateBranch(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['GitCreateBranch'](arg1, arg2, arg3, arg4);
 }
 
+export function GitForcePush(arg1) {
+  return window['go']['main']['App']['GitForcePush'](arg1);
+}
+
 export function GitListBranches(arg1) {
   return window['go']['main']['App']['GitListBranches'](arg1);
+}
+
+export function GitMergeInto(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GitMergeInto'](arg1, arg2, arg3);
+}
+
+export function GitPull(arg1) {
+  return window['go']['main']['App']['GitPull'](arg1);
+}
+
+export function GitPush(arg1) {
+  return window['go']['main']['App']['GitPush'](arg1);
 }
 
 export function GitSwitchBranch(arg1, arg2, arg3) {
@@ -70,8 +90,8 @@ export function IsExplainAvailable() {
   return window['go']['main']['App']['IsExplainAvailable']();
 }
 
-export function KillAgent(arg1, arg2) {
-  return window['go']['main']['App']['KillAgent'](arg1, arg2);
+export function KillAgent(arg1, arg2, arg3) {
+  return window['go']['main']['App']['KillAgent'](arg1, arg2, arg3);
 }
 
 export function ListLocalFonts() {
@@ -122,12 +142,20 @@ export function ReadThemeFile(arg1) {
   return window['go']['main']['App']['ReadThemeFile'](arg1);
 }
 
+export function RemoveTheme(arg1) {
+  return window['go']['main']['App']['RemoveTheme'](arg1);
+}
+
 export function RepoMtimes(arg1) {
   return window['go']['main']['App']['RepoMtimes'](arg1);
 }
 
 export function RepoStatus(arg1) {
   return window['go']['main']['App']['RepoStatus'](arg1);
+}
+
+export function SaveTheme(arg1, arg2) {
+  return window['go']['main']['App']['SaveTheme'](arg1, arg2);
 }
 
 export function SetDevDir(arg1) {

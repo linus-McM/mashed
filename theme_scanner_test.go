@@ -1284,7 +1284,7 @@ func TestConcurrentConfigWrites(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read config: %v", err)
 	}
-	var check conductorConfig
+	var check mashedConfig
 	if err := json.Unmarshal(data, &check); err != nil {
 		t.Fatalf("config is corrupt JSON after concurrent writes: %v", err)
 	}

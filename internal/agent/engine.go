@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"conductor/internal/domain"
+	"mashed/internal/domain"
 
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )

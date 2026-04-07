@@ -1,8 +1,8 @@
-// Unified theme definitions for Conductor.
+// Unified theme definitions for Mashed.
 // Each theme has: label, css (custom properties), monaco (editor theme), xterm (terminal theme).
 
 export const themes = {
-  'conductor-dark': {
+  'mashed-dark': {
     label: 'Dark',
     css: {
       '--bg-deepest': '#07080a',
@@ -76,7 +76,7 @@ export const themes = {
     },
   },
 
-  'conductor-light': {
+  'mashed-light': {
     label: 'Light',
     css: {
       '--bg-deepest': '#f8f9fb',
@@ -150,7 +150,7 @@ export const themes = {
     },
   },
 
-  'conductor-midnight': {
+  'mashed-midnight': {
     label: 'Midnight',
     css: {
       '--bg-deepest': '#0a0e1a',
@@ -226,4 +226,4 @@ export const themes = {
 };
 
 export const themeIds = Object.keys(themes);
-export const DEFAULT_THEME = 'conductor-dark';
+export const DEFAULT_THEME = 'mashed-dark';

@@ -34,6 +34,10 @@ export function registerImportedTheme(id, theme) {
   allThemes.update(($all) => ({ ...$all, [id]: theme }));
 }
 
+export function registerSavedThemes(themesMap) {
+  allThemes.update(($all) => ({ ...$all, ...themesMap }));
+}
+
 export function unregisterImportedTheme(id) {
   // Prevent unregistering built-in themes
   if (builtInThemeIds.includes(id)) return;

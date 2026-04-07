@@ -2,6 +2,7 @@ package terminal
 
 import (
 	"context"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -167,6 +168,28 @@ func (b *Bridge) servePane(ctx context.Context, ws *websocket.Conn, target strin
 		b.untrackConn(ws)
 		ws.Close()
 	}()
+
+	// Disable tmux mouse mode so xterm.js handles text selection natively.
+	// This is session-scoped and doesn't affect other terminal emulators.
+	_ = exec.CommandContext(ctx, "tmux", "set-option", "-t", target, "mouse", "off").Run()
+
+	// Send scroll history above the visible pane so the frontend has scrollback.
+	// -p prints to stdout, -e preserves ANSI escape sequences for colors,
+	// -S -5000 captures up to 5000 lines of history (matches xterm.js scrollback),
+	// -E -1 = last line before the visible area.
+	historyCmd := exec.CommandContext(ctx, "tmux", "capture-pane", "-t", target,
+		"-p", "-e", "-S", "-5000", "-E", "-1")
+	if histOut, err := historyCmd.Output(); err == nil {
+		histOut = bytes.TrimRight(histOut, "\n")
+		if len(histOut) > 0 {
+			// xterm.js expects \r\n line endings for correct rendering
+			histOut = bytes.ReplaceAll(histOut, []byte("\n"), []byte("\r\n"))
+			histOut = append(histOut, '\r', '\n')
+			if wsErr := ws.WriteMessage(websocket.BinaryMessage, histOut); wsErr != nil {
+				return
+			}
+		}
+	}
 
 	cmd := exec.CommandContext(ctx, "tmux", "attach-session", "-t", target)
 	cmd.Env = append(os.Environ(), "TERM=xterm-256color")

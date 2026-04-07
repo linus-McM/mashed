@@ -14,12 +14,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"conductor/internal/agent"
-	"conductor/internal/domain"
-	"conductor/internal/explain"
-	"conductor/internal/git"
-	"conductor/internal/scanner"
-	"conductor/internal/terminal"
+	"mashed/internal/agent"
+	"mashed/internal/domain"
+	"mashed/internal/explain"
+	"mashed/internal/git"
+	"mashed/internal/scanner"
+	"mashed/internal/terminal"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -48,8 +48,8 @@ type VSCodeThemeEntry struct {
 	UITheme     string `json:"uiTheme"`
 }
 
-// conductorConfig persists user settings between launches.
-type conductorConfig struct {
+// mashedConfig persists user settings between launches.
+type mashedConfig struct {
 	DevDir          string `json:"devDir"`
 	Theme           string `json:"theme,omitempty"`
 	VSCodiumExtPath string `json:"vscodiumExtPath,omitempty"`
@@ -58,25 +58,31 @@ type conductorConfig struct {
 	FontSize        int    `json:"fontSize,omitempty"`
 }
 
-// configPath returns the path to the conductor config file.
+// configPath returns the path to the mashed config file.
 func configPath() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".conductor", "config.json")
+	return filepath.Join(home, ".mashed", "config.json")
+}
+
+// themesPath returns the path to the saved themes file.
+func themesPath() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".mashed", "themes.json")
 }
 
 // loadConfig reads the persisted config, or returns empty config.
-func loadConfig() conductorConfig {
+func loadConfig() mashedConfig {
 	data, err := os.ReadFile(configPath())
 	if err != nil {
-		return conductorConfig{}
+		return mashedConfig{}
 	}
-	var cfg conductorConfig
+	var cfg mashedConfig
 	json.Unmarshal(data, &cfg)
 	return cfg
 }
 
 // saveConfig persists the config to disk.
-func saveConfig(cfg conductorConfig) error {
+func saveConfig(cfg mashedConfig) error {
 	dir := filepath.Dir(configPath())
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("creating config dir: %w", err)
@@ -111,25 +117,25 @@ func (a *App) startup(ctx context.Context) {
 	// Initialize the diff explainer (uses ANTHROPIC_API_KEY from env)
 	a.explainer = explain.New()
 
-	// Ensure local fonts directory exists
-	ensureFontsDir()
-
-	// Check for saved config — if dir exists, start scanning immediately.
-	// If not, frontend will detect empty GetDevDir() on mount and show setup.
+	// Restore devDir from config so GetDevDir() works even if scanning fails.
 	cfg := loadConfig()
 	if cfg.DevDir != "" {
-		a.initScanning(cfg.DevDir)
+		a.devDir = cfg.DevDir
+		if err := a.initScanning(cfg.DevDir); err != nil {
+			log.Printf("scanning failed for %s: %v — app will show feed but may be empty", cfg.DevDir, err)
+		}
 	}
 }
 
 // initScanning starts all background goroutines for a given dev directory.
-func (a *App) initScanning(devDir string) {
+// Returns an error if the provider fails to initialize so callers can react.
+func (a *App) initScanning(devDir string) error {
 	a.devDir = devDir
 
 	provider, err := scanner.NewClaudeCodeProvider(devDir)
 	if err != nil {
 		log.Printf("failed to init claude provider: %v", err)
-		return
+		return fmt.Errorf("init claude provider: %w", err)
 	}
 	a.provider = provider
 	a.repoScanner = scanner.NewRepoScanner(devDir)
@@ -140,6 +146,7 @@ func (a *App) initScanning(devDir string) {
 
 	// Tell frontend setup is done
 	runtime.EventsEmit(a.ctx, "needs-setup", false)
+	return nil
 }
 
 // shutdown is called by Wails when the app is closing.
@@ -184,6 +191,16 @@ func (a *App) doScan() {
 		repoBranch[r.Path] = r.Branch
 	}
 
+	// Track which agent IDs are alive this scan so we can prune dead ones
+	seenAgentIDs := make(map[string]bool)
+
+	// Sort sessions newest-first so the most recently started process claims
+	// the most recently modified session file (prevents stale file mismatches
+	// when multiple processes lack --session-id).
+	sort.Slice(sessions, func(i, j int) bool {
+		return sessions[i].StartedAt.After(sessions[j].StartedAt)
+	})
+
 	// Track claimed session files so two agents in the same repo don't share one
 	claimedSessions := make(map[string]bool) // sessionDir/sessionID -> true
 
@@ -192,8 +209,17 @@ func (a *App) doScan() {
 		if err != nil {
 			continue
 		}
+		// Resolve to git repo root so agents in subdirs group under the repo
+		if out, err := exec.Command("git", "-C", dir, "rev-parse", "--show-toplevel").Output(); err == nil {
+			dir = strings.TrimSpace(string(out))
+		}
+		// Skip agents whose repo root is outside the configured dev directory
+		if !strings.HasPrefix(dir, a.devDir+"/") && dir != a.devDir {
+			continue
+		}
 
 		agentID := fmt.Sprintf("pid-%d", s.PID)
+		seenAgentIDs[agentID] = true
 		model := s.Model
 		if model == "" {
 			model = "claude"
@@ -291,6 +317,24 @@ func (a *App) doScan() {
 			}
 		}
 	}
+
+	// Prune agents whose process is gone (session killed / exited).
+	// Sub-agents are pruned if their parent is gone.
+	a.mu.Lock()
+	pruned := a.notifications[:0]
+	for _, n := range a.notifications {
+		keep := seenAgentIDs[n.AgentID]
+		if n.IsSubAgent {
+			keep = seenAgentIDs[n.ParentAgentID]
+		}
+		if keep {
+			pruned = append(pruned, n)
+		} else {
+			a.engine.RemoveAgent(n.AgentID)
+		}
+	}
+	a.notifications = pruned
+	a.mu.Unlock()
 
 	// Emit repos to frontend
 	runtime.EventsEmit(a.ctx, "repos", repos)
@@ -500,13 +544,7 @@ func repoNameFromDir(dir string) string {
 	if dir == "" {
 		return "unknown"
 	}
-	// Use last path component
-	for i := len(dir) - 1; i >= 0; i-- {
-		if dir[i] == '/' {
-			return dir[i+1:]
-		}
-	}
-	return dir
+	return filepath.Base(dir)
 }
 
 // --- Wails-bound methods (called from Svelte frontend) ---
@@ -548,8 +586,7 @@ func (a *App) SetDevDir(dir string) error {
 		a.mu.Unlock()
 	}
 
-	a.initScanning(dir)
-	return nil
+	return a.initScanning(dir)
 }
 
 // GetDevDir returns the current development directory.
@@ -558,7 +595,7 @@ func (a *App) GetDevDir() string {
 }
 
 // GetConfig returns the full persisted config for the frontend.
-func (a *App) GetConfig() conductorConfig {
+func (a *App) GetConfig() mashedConfig {
 	return loadConfig()
 }
 
@@ -596,6 +633,59 @@ func (a *App) SetFontSize(size int) error {
 	cfg := loadConfig()
 	cfg.FontSize = size
 	return saveConfig(cfg)
+}
+
+// GetSavedThemes returns all saved imported themes as a JSON string.
+// The format is {"themeId": { label, css, monaco, xterm }, ...}.
+func (a *App) GetSavedThemes() string {
+	data, err := os.ReadFile(themesPath())
+	if err != nil {
+		return "{}"
+	}
+	return string(data)
+}
+
+// SaveTheme persists a converted theme to ~/.mashed/themes.json.
+func (a *App) SaveTheme(id string, themeJSON string) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	// Load existing themes
+	all := make(map[string]json.RawMessage)
+	if data, err := os.ReadFile(themesPath()); err == nil {
+		json.Unmarshal(data, &all)
+	}
+
+	all[id] = json.RawMessage(themeJSON)
+
+	dir := filepath.Dir(themesPath())
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("creating themes dir: %w", err)
+	}
+	data, err := json.MarshalIndent(all, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshaling themes: %w", err)
+	}
+	return os.WriteFile(themesPath(), data, 0644)
+}
+
+// RemoveTheme removes a saved theme from ~/.mashed/themes.json.
+func (a *App) RemoveTheme(id string) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	all := make(map[string]json.RawMessage)
+	if data, err := os.ReadFile(themesPath()); err == nil {
+		json.Unmarshal(data, &all)
+	}
+
+	delete(all, id)
+
+	data, err := json.MarshalIndent(all, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshaling themes: %w", err)
+	}
+	return os.WriteFile(themesPath(), data, 0644)
 }
 
 // GetNotifications returns the current notification list sorted by priority.
@@ -672,7 +762,7 @@ func (a *App) SpawnAgent(repoPath string, model string) (string, error) {
 
 	// Derive a session name from the repo
 	repoName := repoNameFromDir(repoPath)
-	sessionName := fmt.Sprintf("conductor-%s-%d", repoName, time.Now().Unix())
+	sessionName := fmt.Sprintf("mashed-%s-%d", repoName, time.Now().Unix())
 
 	// Build the claude command
 	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s", model)
@@ -810,31 +900,54 @@ func (a *App) ReadFileAtHead(repoPath, filePath string) (string, error) {
 	return string(out), nil
 }
 
-// KillAgent terminates an agent process and removes it from tracking.
-func (a *App) KillAgent(agentID string, pid int) error {
-	if pid > 0 {
-		proc, err := os.FindProcess(pid)
-		if err != nil {
-			return fmt.Errorf("find process %d: %w", pid, err)
-		}
-		// Send SIGTERM for graceful shutdown
-		if err := proc.Signal(os.Interrupt); err != nil {
-			// Process may already be dead — try SIGKILL
-			_ = proc.Kill()
-		}
-	}
-
-	// Remove from engine tracking
-	a.engine.RemoveAgent(agentID)
-
-	// Remove from notification list
+// KillAgent terminates an agent process, kills its tmux session, and removes it from tracking.
+// The tmuxTarget parameter is a fallback used when the agent was spawned from the UI
+// and doesn't yet have a matching entry in the backend notification list.
+func (a *App) KillAgent(agentID string, pid int, tmuxTarget string) error {
 	a.mu.Lock()
-	for i, n := range a.notifications {
-		if n.AgentID == agentID {
-			a.notifications = append(a.notifications[:i], a.notifications[i+1:]...)
+	for _, n := range a.notifications {
+		if n.AgentID == agentID && n.TmuxTarget != "" {
+			tmuxTarget = n.TmuxTarget
 			break
 		}
 	}
+	a.mu.Unlock()
+
+	if tmuxTarget != "" {
+		sessionName := tmuxTarget
+		if idx := strings.Index(sessionName, ":"); idx > 0 {
+			sessionName = sessionName[:idx]
+		}
+		if err := exec.Command("tmux", "kill-session", "-t", sessionName).Run(); err != nil {
+			log.Printf("tmux kill-session %s failed: %v", sessionName, err)
+		}
+	}
+
+	// If the process is still alive (e.g. tmux kill didn't reach it), signal directly
+	if pid > 0 {
+		proc, err := os.FindProcess(pid)
+		if err == nil {
+			if err := proc.Signal(os.Interrupt); err != nil {
+				_ = proc.Kill()
+			}
+		}
+	}
+
+	// Also remove any sub-agents belonging to this parent
+	a.engine.RemoveAgent(agentID)
+	a.mu.Lock()
+	pruned := a.notifications[:0]
+	for _, n := range a.notifications {
+		if n.AgentID == agentID {
+			continue
+		}
+		if n.IsSubAgent && n.ParentAgentID == agentID {
+			a.engine.RemoveAgent(n.AgentID)
+			continue
+		}
+		pruned = append(pruned, n)
+	}
+	a.notifications = pruned
 	a.mu.Unlock()
 
 	// Emit updated list to frontend
@@ -930,11 +1043,14 @@ func (a *App) GitCreateBranch(repoPath, prefix, name string, autoCommit bool) er
 	return nil
 }
 
-// RepoStatus returns git dirty state and open PR count for a repo.
+// RepoStatus returns git dirty state, open PR count, and ahead/behind counts for a repo.
 func (a *App) RepoStatus(repoPath string) map[string]interface{} {
 	result := map[string]interface{}{
-		"dirty":   false,
-		"openPRs": 0,
+		"dirty":     false,
+		"openPRs":   0,
+		"ahead":     0,
+		"behind":    0,
+		"protected": false,
 	}
 
 	// Check dirty (uncommitted changes including untracked files)
@@ -962,6 +1078,30 @@ func (a *App) RepoStatus(repoPath string) map[string]interface{} {
 				fmt.Sscanf(count, "%d", &n)
 				result["openPRs"] = n
 			}
+		}
+
+		// Check ahead/behind remote tracking branch
+		revCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath,
+			"rev-list", "--left-right", "--count", "HEAD...@{upstream}")
+		if revOut, err := revCmd.Output(); err == nil {
+			parts := strings.Fields(strings.TrimSpace(string(revOut)))
+			if len(parts) == 2 {
+				var ahead, behind int
+				fmt.Sscanf(parts[0], "%d", &ahead)
+				fmt.Sscanf(parts[1], "%d", &behind)
+				result["ahead"] = ahead
+				result["behind"] = behind
+			}
+		}
+
+		// Check branch protection rules via gh API
+		ghProtCmd := exec.CommandContext(a.ctx, "gh", "api",
+			fmt.Sprintf("repos/{owner}/{repo}/branches/%s/protection", branch),
+			"--jq", ".required_status_checks // empty",
+		)
+		ghProtCmd.Dir = repoPath
+		if protOut, err := ghProtCmd.Output(); err == nil && len(strings.TrimSpace(string(protOut))) > 0 {
+			result["protected"] = true
 		}
 	}
 
@@ -1124,6 +1264,105 @@ func (a *App) GitCommitAndPush(repoPath string) (string, error) {
 	}
 
 	return msg, nil
+}
+
+// GitPush pushes the current branch to origin without committing first.
+// Returns a structured result: "ok" on success, or "conflict:<message>" when
+// the push is rejected due to diverged history (non-fast-forward).
+func (a *App) GitPush(repoPath string) (string, error) {
+	if repoPath == "" {
+		return "", fmt.Errorf("repo path is required")
+	}
+
+	pushCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "push", "-u", "origin", "HEAD")
+	out, err := pushCmd.CombinedOutput()
+	if err != nil {
+		outStr := string(out)
+		// Detect non-fast-forward (diverged history) vs other errors
+		if strings.Contains(outStr, "non-fast-forward") ||
+			strings.Contains(outStr, "rejected") ||
+			strings.Contains(outStr, "fetch first") {
+			return "conflict:" + strings.TrimSpace(outStr), nil
+		}
+		return "", fmt.Errorf("git push: %w (%s)", err, outStr)
+	}
+	return "ok", nil
+}
+
+// GitForcePush force-pushes the current branch to origin with --force-with-lease
+// for safety (fails if someone else pushed since your last fetch).
+func (a *App) GitForcePush(repoPath string) (string, error) {
+	if repoPath == "" {
+		return "", fmt.Errorf("repo path is required")
+	}
+
+	pushCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "push", "--force-with-lease", "-u", "origin", "HEAD")
+	out, err := pushCmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("git force push: %w (%s)", err, string(out))
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// GitPull pulls remote changes into the current branch.
+func (a *App) GitPull(repoPath string) (string, error) {
+	if repoPath == "" {
+		return "", fmt.Errorf("repo path is required")
+	}
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "pull")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("git pull: %w (%s)", err, string(out))
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// GitMergeInto merges the current branch into targetBranch.
+// If autoCommit is true, commits current changes before merging.
+// On merge failure, aborts the merge and checks out the original branch.
+func (a *App) GitMergeInto(repoPath, targetBranch string, autoCommit bool) (string, error) {
+	if repoPath == "" || targetBranch == "" {
+		return "", fmt.Errorf("repo path and target branch are required")
+	}
+
+	// Get current branch name
+	branchCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD")
+	branchOut, err := branchCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("get current branch: %w", err)
+	}
+	sourceBranch := strings.TrimSpace(string(branchOut))
+
+	if sourceBranch == targetBranch {
+		return "", fmt.Errorf("already on %s — nothing to merge", targetBranch)
+	}
+
+	// Auto-commit current changes if requested
+	if autoCommit {
+		if _, err := a.GitCommit(repoPath); err != nil {
+			if !strings.Contains(err.Error(), "nothing to commit") {
+				return "", fmt.Errorf("auto-commit failed: %w", err)
+			}
+		}
+	}
+
+	// Switch to target branch
+	checkoutCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", targetBranch)
+	if out, err := checkoutCmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("checkout %s: %w (%s)", targetBranch, err, string(out))
+	}
+
+	// Merge source into target
+	mergeCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "merge", sourceBranch)
+	mergeOut, mergeErr := mergeCmd.CombinedOutput()
+	if mergeErr != nil {
+		// Abort the failed merge and return to the original branch
+		_ = exec.CommandContext(a.ctx, "git", "-C", repoPath, "merge", "--abort").Run()
+		_ = exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", sourceBranch).Run()
+		return "", fmt.Errorf("merge %s into %s failed: %w (%s)", sourceBranch, targetBranch, mergeErr, string(mergeOut))
+	}
+
+	return fmt.Sprintf("Merged %s into %s", sourceBranch, targetBranch), nil
 }
 
 // GitCommitPushAndPR commits, pushes, and creates a PR with an extensive description.

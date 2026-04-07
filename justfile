@@ -27,12 +27,13 @@ dev:
 
 # Build and launch Mashed
 run: build
-    open build/bin/conductor.app
+    open build/bin/mashed.app
 
 # Build Mashed production binary
 build:
     cd frontend && npm install && cd ..
     PATH="$HOME/go/bin:$PATH" wails build
+    cp -r fonts build/bin/mashed.app/Contents/Resources/fonts
 
 # Run Go tests
 test:
@@ -41,5 +42,8 @@ test:
 
 repomixer:
     repomix --remote https://github.com/peteromallet/desloppify --compress -o ./docs/repomixer/desloppify/desloppify.xml --style xml
-    repomix --remote https://github.com/wailsapp/wails  --compress -o ./docs/repomixer/wails/wails.xml --style xml 
+    repomix --remote https://github.com/wailsapp/wails  --compress -o ./docs/repomixer/wails/wails.xml --style xml
+    repomix --remote https://github.com/xyflow/xyflow  --compress -o ./docs/repomixer/xyflow/xyflow.xml --style xml
+    repomix --remote https://github.com/bmad-code-org/BMAD-METHOD  --compress -o ./docs/repomixer/bmad-method/bmad-method.xml --style xml
+
 

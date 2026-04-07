@@ -7,13 +7,15 @@ export function ExplainDiffHunk(arg1:string,arg2:string,arg3:string):Promise<str
 
 export function GetAgentLog(arg1:string):Promise<Array<domain.LogLine>>;
 
-export function GetConfig():Promise<main.conductorConfig>;
+export function GetConfig():Promise<main.mashedConfig>;
 
 export function GetDevDir():Promise<string>;
 
 export function GetFontsDir():Promise<string>;
 
 export function GetNotifications():Promise<Array<domain.NotificationEvent>>;
+
+export function GetSavedThemes():Promise<string>;
 
 export function GetScopedDiff(arg1:string):Promise<domain.ScopedDiff>;
 
@@ -31,13 +33,21 @@ export function GitCommitStreaming(arg1:string):Promise<void>;
 
 export function GitCreateBranch(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<void>;
 
+export function GitForcePush(arg1:string):Promise<string>;
+
 export function GitListBranches(arg1:string):Promise<Array<Record<string, any>>>;
+
+export function GitMergeInto(arg1:string,arg2:string,arg3:boolean):Promise<string>;
+
+export function GitPull(arg1:string):Promise<string>;
+
+export function GitPush(arg1:string):Promise<string>;
 
 export function GitSwitchBranch(arg1:string,arg2:string,arg3:boolean):Promise<void>;
 
 export function IsExplainAvailable():Promise<boolean>;
 
-export function KillAgent(arg1:string,arg2:number):Promise<void>;
+export function KillAgent(arg1:string,arg2:number,arg3:string):Promise<void>;
 
 export function ListLocalFonts():Promise<Array<main.LocalFontFamily>>;
 
@@ -63,9 +73,13 @@ export function ReadFileDiff(arg1:string,arg2:string):Promise<string>;
 
 export function ReadThemeFile(arg1:string):Promise<string>;
 
+export function RemoveTheme(arg1:string):Promise<void>;
+
 export function RepoMtimes(arg1:string):Promise<Record<string, number>>;
 
 export function RepoStatus(arg1:string):Promise<Record<string, any>>;
+
+export function SaveTheme(arg1:string,arg2:string):Promise<void>;
 
 export function SetDevDir(arg1:string):Promise<void>;
 

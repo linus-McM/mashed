@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"conductor/internal/domain"
+	"mashed/internal/domain"
 )
 
 var (
@@ -27,6 +27,10 @@ var (
 		"Claude.app/Contents/MacOS",
 		"context-mode",
 		"/bin/zsh",
+		"tmux new-session",
+		"tmux attach",
+		"sh -c",
+		".claude/plugins",
 	}
 )
 

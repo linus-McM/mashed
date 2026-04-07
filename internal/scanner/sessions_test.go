@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"conductor/internal/domain"
+	"mashed/internal/domain"
 )
 
 // helper to write JSONL content to a temp file and return its path.
