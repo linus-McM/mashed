@@ -1,0 +1,436 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Close" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - button "Minimize" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+      - button "Fullscreen" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+    - generic [ref=e15]:
+      - button "Switch theme" [ref=e17] [cursor=pointer]:
+        - img [ref=e18]
+      - button "Workflows" [ref=e24] [cursor=pointer]:
+        - img [ref=e25]
+      - button "Settings" [ref=e29] [cursor=pointer]:
+        - img [ref=e30]
+  - generic [ref=e37]:
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - button [ref=e41] [cursor=pointer]:
+            - img [ref=e42]
+          - img [ref=e45]
+          - generic [ref=e52]: esurfr
+          - generic [ref=e53]:
+            - img [ref=e54]
+            - text: dev
+          - generic [ref=e58]: 7 agents · 22.4M
+          - button "Change border color" [ref=e60] [cursor=pointer]
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - button "claude-opus-4-6 FINISHED 5 sub **ULTIMATE BMad Method STORY CONTEXT CREATED, Linus!** **Story Details:** - S... 1.6M 57s" [ref=e64] [cursor=pointer]:
+              - generic [ref=e65]:
+                - button [ref=e66]:
+                  - img [ref=e67]
+                - generic [ref=e69]: claude-opus-4-6
+                - generic [ref=e70]: FINISHED
+                - generic [ref=e71]: 5 sub
+                - generic [ref=e72]: "**ULTIMATE BMad Method STORY CONTEXT CREATED, Linus!** **Story Details:** - S..."
+                - generic [ref=e73]: 1.6M
+                - generic [ref=e74]: 57s
+                - button "Kill session" [ref=e75]:
+                  - img [ref=e76]
+            - 'button "opus FINISHED 6 sub Story file is finalized. Here''s your summary, Linus: --- **Story 3.5: Stepped... 3.5M 9m" [ref=e80] [cursor=pointer]':
+              - generic [ref=e81]:
+                - button [ref=e82]:
+                  - img [ref=e83]
+                - generic [ref=e85]: opus
+                - generic [ref=e86]: FINISHED
+                - generic [ref=e87]: 6 sub
+                - generic [ref=e88]: "Story file is finalized. Here's your summary, Linus: --- **Story 3.5: Stepped..."
+                - generic [ref=e89]: 3.5M
+                - generic [ref=e90]: 9m
+                - button "Kill session" [ref=e91]:
+                  - img [ref=e92]
+            - button "claude FINISHED 4 sub Hey Linus! Welcome back. Bob here, your Scrum Master. I've loaded the project... 317.2K 9m" [ref=e96] [cursor=pointer]:
+              - generic [ref=e97]:
+                - button [ref=e98]:
+                  - img [ref=e99]
+                - generic [ref=e101]: claude
+                - generic [ref=e102]: FINISHED
+                - generic [ref=e103]: 4 sub
+                - generic [ref=e104]: Hey Linus! Welcome back. Bob here, your Scrum Master. I've loaded the project...
+                - generic [ref=e105]: 317.2K
+                - generic [ref=e106]: 9m
+                - button "Kill session" [ref=e107]:
+                  - img [ref=e108]
+            - 'button "claude FINISHED 3 sub --- **Code review actions complete** - Decision-needed resolved: 0 - Patches ... 14.4M 9m" [ref=e112] [cursor=pointer]':
+              - generic [ref=e113]:
+                - button [ref=e114]:
+                  - img [ref=e115]
+                - generic [ref=e117]: claude
+                - generic [ref=e118]: FINISHED
+                - generic [ref=e119]: 3 sub
+                - generic [ref=e120]: "--- **Code review actions complete** - Decision-needed resolved: 0 - Patches ..."
+                - generic [ref=e121]: 14.4M
+                - generic [ref=e122]: 9m
+                - button "Kill session" [ref=e123]:
+                  - img [ref=e124]
+            - 'button "claude FINISHED 4 sub Commit `7fcfeb5` created on `dev` — removed 4 obsolete planning artifacts a... 228.3K 9m" [ref=e128] [cursor=pointer]':
+              - generic [ref=e129]:
+                - button [ref=e130]:
+                  - img [ref=e131]
+                - generic [ref=e133]: claude
+                - generic [ref=e134]: FINISHED
+                - generic [ref=e135]: 4 sub
+                - generic [ref=e136]: "Commit `7fcfeb5` created on `dev` — removed 4 obsolete planning artifacts a..."
+                - generic [ref=e137]: 228.3K
+                - generic [ref=e138]: 9m
+                - button "Kill session" [ref=e139]:
+                  - img [ref=e140]
+            - button "claude-opus-4-6 FINISHED 14 sub **ULTIMATE BMad Method STORY CONTEXT CREATED, Linus!** **Story Details:** - S... 1.7M 9m" [ref=e144] [cursor=pointer]:
+              - generic [ref=e145]:
+                - button [ref=e146]:
+                  - img [ref=e147]
+                - generic [ref=e149]: claude-opus-4-6
+                - generic [ref=e150]: FINISHED
+                - generic [ref=e151]: 14 sub
+                - generic [ref=e152]: "**ULTIMATE BMad Method STORY CONTEXT CREATED, Linus!** **Story Details:** - S..."
+                - generic [ref=e153]: 1.7M
+                - generic [ref=e154]: 9m
+                - button "Kill session" [ref=e155]:
+                  - img [ref=e156]
+            - 'button "claude FINISHED 6 sub **Document Discovery Complete** ## PRD Documents **Whole Documents:** - `prd.... 680.9K 9m" [ref=e160] [cursor=pointer]':
+              - generic [ref=e161]:
+                - button [ref=e162]:
+                  - img [ref=e163]
+                - generic [ref=e165]: claude
+                - generic [ref=e166]: FINISHED
+                - generic [ref=e167]: 6 sub
+                - generic [ref=e168]: "**Document Discovery Complete** ## PRD Documents **Whole Documents:** - `prd...."
+                - generic [ref=e169]: 680.9K
+                - generic [ref=e170]: 9m
+                - button "Kill session" [ref=e171]:
+                  - img [ref=e172]
+          - generic [ref=e175]:
+            - button "dev" [ref=e176] [cursor=pointer]:
+              - img [ref=e177]
+              - generic [ref=e181]: dev
+            - generic [ref=e182]:
+              - button "Branch" [ref=e183] [cursor=pointer]:
+                - img [ref=e184]
+                - generic [ref=e188]: Branch
+              - button "Commit" [ref=e189] [cursor=pointer]:
+                - img [ref=e190]
+                - generic [ref=e192]: Commit
+              - button "Pull" [ref=e193] [cursor=pointer]:
+                - img [ref=e194]
+                - generic [ref=e197]: Pull
+              - button "Push" [ref=e198] [cursor=pointer]:
+                - img [ref=e199]
+                - generic [ref=e202]: Push
+              - button "Merge" [ref=e203] [cursor=pointer]:
+                - img [ref=e204]
+                - generic [ref=e208]: Merge
+              - button "PR" [ref=e209] [cursor=pointer]:
+                - img [ref=e210]
+                - generic [ref=e214]: PR
+              - button "Review" [ref=e215] [cursor=pointer]:
+                - img [ref=e216]
+                - generic [ref=e218]: Review
+        - generic [ref=e219]:
+          - button "New Session" [ref=e220] [cursor=pointer]:
+            - img [ref=e222]
+            - text: New Session
+          - button "Terminal" [ref=e223] [cursor=pointer]:
+            - img [ref=e225]
+            - text: Terminal
+      - generic [ref=e228]:
+        - generic [ref=e229]:
+          - button [ref=e230] [cursor=pointer]:
+            - img [ref=e231]
+          - img [ref=e234]
+          - generic [ref=e241]: mashed
+          - generic [ref=e242]:
+            - img [ref=e243]
+            - text: feature/xyflow_design
+          - generic [ref=e247]: 10 agents · 87.8M
+          - button "Change border color" [ref=e249] [cursor=pointer]
+        - generic [ref=e250]:
+          - generic [ref=e251]:
+            - button "claude RUNNING Running... 0 25m" [ref=e253] [cursor=pointer]:
+              - generic [ref=e254]:
+                - img [ref=e256]
+                - generic [ref=e258]: claude
+                - generic [ref=e259]: RUNNING
+                - generic [ref=e260]: Running...
+                - generic [ref=e261]: "0"
+                - generic [ref=e262]: 25m
+                - button "Kill session" [ref=e263]:
+                  - img [ref=e264]
+            - 'button "claude RUNNING Bash: git diff --cached -- app.go font_scanner.go frontend/src/ internal/ jus... 281.5K 25m" [ref=e268] [cursor=pointer]':
+              - generic [ref=e269]:
+                - img [ref=e271]
+                - generic [ref=e273]: claude
+                - generic [ref=e274]: RUNNING
+                - generic [ref=e275]: "Bash: git diff --cached -- app.go font_scanner.go frontend/src/ internal/ jus..."
+                - generic [ref=e276]: 281.5K
+                - generic [ref=e277]: 25m
+                - button "Kill session" [ref=e278]:
+                  - img [ref=e279]
+            - button "claude RUNNING SendMessage 11.2M 25m" [ref=e283] [cursor=pointer]:
+              - generic [ref=e284]:
+                - img [ref=e286]
+                - generic [ref=e288]: claude
+                - generic [ref=e289]: RUNNING
+                - generic [ref=e290]: SendMessage
+                - generic [ref=e291]: 11.2M
+                - generic [ref=e292]: 25m
+                - button "Kill session" [ref=e293]:
+                  - img [ref=e294]
+            - button "claude RUNNING SendMessage 22.4M 25m" [ref=e298] [cursor=pointer]:
+              - generic [ref=e299]:
+                - img [ref=e301]
+                - generic [ref=e303]: claude
+                - generic [ref=e304]: RUNNING
+                - generic [ref=e305]: SendMessage
+                - generic [ref=e306]: 22.4M
+                - generic [ref=e307]: 25m
+                - button "Kill session" [ref=e308]:
+                  - img [ref=e309]
+            - 'button "claude RUNNING Bash: git diff --cached -- app.go --no-color | tail -120 433.1K 25m" [ref=e313] [cursor=pointer]':
+              - generic [ref=e314]:
+                - img [ref=e316]
+                - generic [ref=e318]: claude
+                - generic [ref=e319]: RUNNING
+                - generic [ref=e320]: "Bash: git diff --cached -- app.go --no-color | tail -120"
+                - generic [ref=e321]: 433.1K
+                - generic [ref=e322]: 25m
+                - button "Kill session" [ref=e323]:
+                  - img [ref=e324]
+            - button "claude RUNNING 3 sub browser_wait_for 39.1M 1s" [ref=e328] [cursor=pointer]:
+              - generic [ref=e329]:
+                - button [ref=e330]:
+                  - img [ref=e331]
+                - generic [ref=e333]: claude
+                - generic [ref=e334]: RUNNING
+                - generic [ref=e335]: 3 sub
+                - generic [ref=e336]: browser_wait_for
+                - generic [ref=e337]: 39.1M
+                - generic [ref=e338]: 1s
+                - button "Kill session" [ref=e339]:
+                  - img [ref=e340]
+            - 'button "claude FINISHED Done. Both agents now have a **BMAD Method Integration** section at the end: ... 3.4M 25m" [ref=e344] [cursor=pointer]':
+              - generic [ref=e345]:
+                - img [ref=e347]
+                - generic [ref=e349]: claude
+                - generic [ref=e350]: FINISHED
+                - generic [ref=e351]: "Done. Both agents now have a **BMAD Method Integration** section at the end: ..."
+                - generic [ref=e352]: 3.4M
+                - generic [ref=e353]: 25m
+                - button "Kill session" [ref=e354]:
+                  - img [ref=e355]
+            - 'button "claude FINISHED Done. Here''s what I created: **Skill created**: `.claude/skills/xyflow/SKILL.... 1.8M 25m" [ref=e359] [cursor=pointer]':
+              - generic [ref=e360]:
+                - img [ref=e362]
+                - generic [ref=e364]: claude
+                - generic [ref=e365]: FINISHED
+                - generic [ref=e366]: "Done. Here's what I created: **Skill created**: `.claude/skills/xyflow/SKILL...."
+                - generic [ref=e367]: 1.8M
+                - generic [ref=e368]: 25m
+                - button "Kill session" [ref=e369]:
+                  - img [ref=e370]
+            - button "claude FINISHED 3 sub All three review agents completed. The fixes I already applied (removing redu... 8.9M 25m" [ref=e374] [cursor=pointer]:
+              - generic [ref=e375]:
+                - button [ref=e376]:
+                  - img [ref=e377]
+                - generic [ref=e379]: claude
+                - generic [ref=e380]: FINISHED
+                - generic [ref=e381]: 3 sub
+                - generic [ref=e382]: All three review agents completed. The fixes I already applied (removing redu...
+                - generic [ref=e383]: 8.9M
+                - generic [ref=e384]: 25m
+                - button "Kill session" [ref=e385]:
+                  - img [ref=e386]
+            - 'button "claude FINISHED Bash: git -C /Users/linus/Development/mashed log --oneline -10 160.0K 25m" [ref=e390] [cursor=pointer]':
+              - generic [ref=e391]:
+                - img [ref=e393]
+                - generic [ref=e395]: claude
+                - generic [ref=e396]: FINISHED
+                - generic [ref=e397]: "Bash: git -C /Users/linus/Development/mashed log --oneline -10"
+                - generic [ref=e398]: 160.0K
+                - generic [ref=e399]: 25m
+                - button "Kill session" [ref=e400]:
+                  - img [ref=e401]
+          - generic [ref=e404]:
+            - button "feature/xyflow_design" [ref=e405] [cursor=pointer]:
+              - img [ref=e406]
+              - generic [ref=e410]: feature/xyflow_design
+            - generic [ref=e411]:
+              - button "Branch" [ref=e412] [cursor=pointer]:
+                - img [ref=e413]
+                - generic [ref=e417]: Branch
+              - button "Commit" [ref=e418] [cursor=pointer]:
+                - img [ref=e419]
+                - generic [ref=e421]: Commit
+              - button "Pull" [ref=e422] [cursor=pointer]:
+                - img [ref=e423]
+                - generic [ref=e426]: Pull
+              - button "Push" [ref=e427] [cursor=pointer]:
+                - img [ref=e428]
+                - generic [ref=e431]: Push
+              - button "Merge" [ref=e432] [cursor=pointer]:
+                - img [ref=e433]
+                - generic [ref=e437]: Merge
+              - button "PR" [ref=e438] [cursor=pointer]:
+                - img [ref=e439]
+                - generic [ref=e443]: PR
+              - button "Review" [ref=e444] [cursor=pointer]:
+                - img [ref=e445]
+                - generic [ref=e447]: Review
+        - generic [ref=e448]:
+          - button "New Session" [ref=e449] [cursor=pointer]:
+            - img [ref=e451]
+            - text: New Session
+          - button "Terminal" [ref=e452] [cursor=pointer]:
+            - img [ref=e454]
+            - text: Terminal
+      - generic [ref=e457]:
+        - generic [ref=e458]:
+          - button [ref=e459] [cursor=pointer]:
+            - img [ref=e460]
+          - img [ref=e463]
+          - generic [ref=e470]: surf-seer
+          - generic [ref=e471]:
+            - img [ref=e472]
+            - text: preflight
+          - generic [ref=e476]: 1 agent · 642.6K
+          - button "Change border color" [ref=e478] [cursor=pointer]
+        - generic [ref=e479]:
+          - button "claude-opus-4-6 FINISHED The iOS build completed successfully. The app should now be running on the iP... 642.6K 25m" [ref=e482] [cursor=pointer]:
+            - generic [ref=e483]:
+              - img [ref=e485]
+              - generic [ref=e487]: claude-opus-4-6
+              - generic [ref=e488]: FINISHED
+              - generic [ref=e489]: The iOS build completed successfully. The app should now be running on the iP...
+              - generic [ref=e490]: 642.6K
+              - generic [ref=e491]: 25m
+              - button "Kill session" [ref=e492]:
+                - img [ref=e493]
+          - generic [ref=e496]:
+            - button "preflight" [ref=e497] [cursor=pointer]:
+              - img [ref=e498]
+              - generic [ref=e502]: preflight
+            - generic [ref=e503]:
+              - button "Branch" [ref=e504] [cursor=pointer]:
+                - img [ref=e505]
+                - generic [ref=e509]: Branch
+              - button "Commit" [ref=e510] [cursor=pointer]:
+                - img [ref=e511]
+                - generic [ref=e513]: Commit
+              - button "Pull" [ref=e514] [cursor=pointer]:
+                - img [ref=e515]
+                - generic [ref=e518]: Pull
+              - button "Push" [ref=e519] [cursor=pointer]:
+                - img [ref=e520]
+                - generic [ref=e523]: Push
+              - button "Merge" [ref=e524] [cursor=pointer]:
+                - img [ref=e525]
+                - generic [ref=e529]: Merge
+              - button "PR" [ref=e530] [cursor=pointer]:
+                - img [ref=e531]
+                - generic [ref=e535]: PR
+              - button "Review" [ref=e536] [cursor=pointer]:
+                - img [ref=e537]
+                - generic [ref=e539]: Review
+        - generic [ref=e540]:
+          - button "New Session" [ref=e541] [cursor=pointer]:
+            - img [ref=e543]
+            - text: New Session
+          - button "Terminal" [ref=e544] [cursor=pointer]:
+            - img [ref=e546]
+            - text: Terminal
+      - generic [ref=e550]:
+        - button [ref=e551] [cursor=pointer]:
+          - img [ref=e552]
+        - img [ref=e555]
+        - generic [ref=e562]: surf-seer-infra
+        - generic [ref=e563]:
+          - img [ref=e564]
+          - text: feature/go-clwateam
+        - generic [ref=e568]: 0 agents · 0
+        - button "Change border color" [ref=e570] [cursor=pointer]
+      - generic [ref=e571]:
+        - generic [ref=e572]:
+          - button [ref=e573] [cursor=pointer]:
+            - img [ref=e574]
+          - img [ref=e577]
+          - generic [ref=e584]: surfseer
+          - generic [ref=e585]:
+            - img [ref=e586]
+            - text: main
+          - generic [ref=e590]: 1 agent · 11.1M
+          - button "Change border color" [ref=e592] [cursor=pointer]
+        - generic [ref=e593]:
+          - 'button "opus FINISHED 2 sub The file looks correct now — `{setup-skill-name}` with no spaces. Is your e... 11.1M 25m" [ref=e596] [cursor=pointer]':
+            - generic [ref=e597]:
+              - button [ref=e598]:
+                - img [ref=e599]
+              - generic [ref=e601]: opus
+              - generic [ref=e602]: FINISHED
+              - generic [ref=e603]: 2 sub
+              - generic [ref=e604]: "The file looks correct now — `{setup-skill-name}` with no spaces. Is your e..."
+              - generic [ref=e605]: 11.1M
+              - generic [ref=e606]: 25m
+              - button "Kill session" [ref=e607]:
+                - img [ref=e608]
+          - generic [ref=e611]:
+            - button "main" [ref=e612] [cursor=pointer]:
+              - img [ref=e613]
+              - generic [ref=e617]: main
+            - generic [ref=e618]:
+              - button "Branch" [ref=e619] [cursor=pointer]:
+                - img [ref=e620]
+                - generic [ref=e624]: Branch
+              - button "Commit" [ref=e625] [cursor=pointer]:
+                - img [ref=e626]
+                - generic [ref=e628]: Commit
+              - button "Pull" [ref=e629] [cursor=pointer]:
+                - img [ref=e630]
+                - generic [ref=e633]: Pull
+              - button "Push" [ref=e634] [cursor=pointer]:
+                - img [ref=e635]
+                - generic [ref=e638]: Push
+              - button "Merge" [ref=e639] [cursor=pointer]:
+                - img [ref=e640]
+                - generic [ref=e644]: Merge
+              - button "PR" [ref=e645] [cursor=pointer]:
+                - img [ref=e646]
+                - generic [ref=e650]: PR
+              - button "Review" [ref=e651] [cursor=pointer]:
+                - img [ref=e652]
+                - generic [ref=e654]: Review
+        - generic [ref=e655]:
+          - button "New Session" [ref=e656] [cursor=pointer]:
+            - img [ref=e658]
+            - text: New Session
+          - button "Terminal" [ref=e659] [cursor=pointer]:
+            - img [ref=e661]
+            - text: Terminal
+    - generic [ref=e664]:
+      - generic [ref=e665]: 19 agents
+      - generic [ref=e666]: ·
+      - generic [ref=e667]: 5 repos
+      - generic [ref=e668]: ·
+      - generic [ref=e669]: 122.0M tokens
+      - generic [ref=e670]:
+        - generic [ref=e671]: j
+        - text: /
+        - generic [ref=e672]: k
+        - text: navigate ·
+        - generic [ref=e673]: Enter
+        - text: open ·
+        - button "⌘N Spawn Agent" [ref=e674] [cursor=pointer]:
+          - generic [ref=e675]: ⌘N
+          - text: Spawn Agent

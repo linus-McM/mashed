@@ -1,0 +1,182 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Close" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - button "Minimize" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+      - button "Fullscreen" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+    - generic [ref=e15]:
+      - button "Switch theme" [ref=e17] [cursor=pointer]:
+        - img [ref=e18]
+      - button "Workflows" [active] [ref=e24] [cursor=pointer]:
+        - img [ref=e25]
+      - button "Settings" [ref=e29] [cursor=pointer]:
+        - img [ref=e30]
+  - generic [ref=e1645]:
+    - generic [ref=e1646]:
+      - generic [ref=e1647]:
+        - button "Processes" [ref=e1648] [cursor=pointer]
+        - button "Templates" [ref=e1649] [cursor=pointer]
+        - button "Saved" [ref=e1650] [cursor=pointer]
+      - generic [ref=e1652]:
+        - generic [ref=e1653]:
+          - button "Analysis 5" [ref=e1654] [cursor=pointer]:
+            - img [ref=e1656]
+            - generic [ref=e1658]: Analysis
+            - generic [ref=e1659]: "5"
+          - generic [ref=e1660]:
+            - generic "Facilitate a structured brainstorming session to explore ideas and possibilities." [ref=e1661]:
+              - generic [ref=e1663]: Brainstorming
+              - generic [ref=e1664]: core
+            - generic "Create a concise product brief capturing vision, goals, and target audience." [ref=e1665]:
+              - generic [ref=e1667]: Product Brief
+              - generic [ref=e1668]: core
+            - generic "Research the problem domain to understand context, terminology, and constraints." [ref=e1669]:
+              - generic [ref=e1671]: Domain Research
+              - generic [ref=e1672]: core
+            - generic "Analyze the competitive landscape and market opportunity." [ref=e1673]:
+              - generic [ref=e1675]: Market Research
+              - generic [ref=e1676]: core
+            - generic "Investigate technical approaches, libraries, and architectural options." [ref=e1677]:
+              - generic [ref=e1679]: Technical Research
+              - generic [ref=e1680]: core
+        - generic [ref=e1681]:
+          - button "Planning 4" [ref=e1682] [cursor=pointer]:
+            - img [ref=e1684]
+            - generic [ref=e1686]: Planning
+            - generic [ref=e1687]: "4"
+          - generic [ref=e1688]:
+            - generic "Draft a product requirements document from the product brief." [ref=e1689]:
+              - generic [ref=e1691]: Create PRD
+              - generic [ref=e1692]: core
+            - generic "Revise and refine an existing PRD based on feedback." [ref=e1693]:
+              - generic [ref=e1695]: Edit PRD
+              - generic [ref=e1696]: core
+            - generic "Validate the PRD for completeness, consistency, and feasibility." [ref=e1697]:
+              - generic [ref=e1699]: Validate PRD
+              - generic [ref=e1700]: core
+            - generic "Design the user experience including flows, wireframes, and interaction patterns." [ref=e1701]:
+              - generic [ref=e1703]: Create UX Design
+              - generic [ref=e1704]: core
+        - generic [ref=e1705]:
+          - button "Solutioning 4" [ref=e1706] [cursor=pointer]:
+            - img [ref=e1708]
+            - generic [ref=e1710]: Solutioning
+            - generic [ref=e1711]: "4"
+          - generic [ref=e1712]:
+            - generic "Design the system architecture based on PRD requirements." [ref=e1713]:
+              - generic [ref=e1715]: Create Architecture
+              - generic [ref=e1716]: core
+            - generic "Verify that all artifacts are complete and consistent before implementation begins." [ref=e1717]:
+              - generic [ref=e1719]: Check Implementation Readiness
+              - generic [ref=e1720]: core
+            - generic "Break down the PRD and architecture into epics and user stories." [ref=e1721]:
+              - generic [ref=e1723]: Create Epics and Stories
+              - generic [ref=e1724]: core
+            - generic "Generate a consolidated project context document for onboarding and reference." [ref=e1725]:
+              - generic [ref=e1727]: Generate Project Context
+              - generic [ref=e1728]: core
+        - generic [ref=e1729]:
+          - button "Implementation 8" [ref=e1730] [cursor=pointer]:
+            - img [ref=e1732]
+            - generic [ref=e1734]: Implementation
+            - generic [ref=e1735]: "8"
+          - generic [ref=e1736]:
+            - generic "Create a detailed implementation story from epics with tasks and acceptance criteria." [ref=e1737]:
+              - generic [ref=e1739]: Create Story
+              - generic [ref=e1740]: core
+            - generic "Implement a story by writing code and tests according to acceptance criteria." [ref=e1741]:
+              - generic [ref=e1743]: Develop Story
+              - generic [ref=e1744]: core
+            - generic "Rapid development of small features or fixes without a formal story." [ref=e1745]:
+              - generic [ref=e1747]: Quick Dev
+              - generic [ref=e1748]: core
+            - generic "Plan a sprint by selecting and prioritizing stories from the backlog." [ref=e1749]:
+              - generic [ref=e1751]: Sprint Planning
+              - generic [ref=e1752]: core
+            - generic "Update and report on current sprint progress and blockers." [ref=e1753]:
+              - generic [ref=e1755]: Sprint Status
+              - generic [ref=e1756]: core
+            - generic "Review code changes for quality, correctness, and adherence to standards." [ref=e1757]:
+              - generic [ref=e1759]: Code Review
+              - generic [ref=e1760]: core
+            - generic "Generate end-to-end tests from stories and existing code." [ref=e1761]:
+              - generic [ref=e1763]: QA Generate E2E Tests
+              - generic [ref=e1764]: core
+            - generic "Conduct a sprint retrospective to identify improvements." [ref=e1765]:
+              - generic [ref=e1767]: Retrospective
+              - generic [ref=e1768]: core
+        - generic [ref=e1769]:
+          - button "Support 4" [ref=e1770] [cursor=pointer]:
+            - img [ref=e1772]
+            - generic [ref=e1774]: Support
+            - generic [ref=e1775]: "4"
+          - generic [ref=e1776]:
+            - generic "Review document prose for clarity, tone, and readability." [ref=e1777]:
+              - generic [ref=e1779]: Editorial Review (Prose)
+              - generic [ref=e1780]: core
+            - generic "Review document structure for organization, completeness, and consistency." [ref=e1781]:
+              - generic [ref=e1783]: Editorial Review (Structure)
+              - generic [ref=e1784]: core
+            - generic "Use structured elicitation techniques to extract requirements and knowledge." [ref=e1785]:
+              - generic [ref=e1787]: Advanced Elicitation
+              - generic [ref=e1788]: core
+            - generic "Hunt for edge cases, contradictions, and missing requirements in documents." [ref=e1789]:
+              - generic [ref=e1791]: Review Edge Case Hunter
+              - generic [ref=e1792]: core
+    - generic [ref=e1793]:
+      - generic [ref=e1794]:
+        - button "Back to feed" [ref=e1795] [cursor=pointer]:
+          - img [ref=e1796]
+        - textbox "Workflow name..." [ref=e1798]: Untitled Workflow
+        - button "New" [ref=e1799] [cursor=pointer]
+        - button "Save" [ref=e1800] [cursor=pointer]:
+          - img [ref=e1801]
+          - text: Save
+        - button "Agents" [ref=e1805] [cursor=pointer]
+      - generic [ref=e1807]:
+        - generic:
+          - generic: Drag processes from the sidebar or select a template
+        - application [ref=e1808]:
+          - generic [ref=e1810]:
+            - generic:
+              - generic:
+                - img
+          - link "Svelte Flow attribution" [ref=e1812] [cursor=pointer]:
+            - /url: https://svelteflow.dev
+            - text: Svelte Flow
+          - generic "Svelte Flow controls" [ref=e1813]:
+            - button "zoom in" [ref=e1814] [cursor=pointer]:
+              - img [ref=e1815]
+            - button "zoom out" [ref=e1817] [cursor=pointer]:
+              - img [ref=e1818]
+            - button "fit view" [ref=e1820] [cursor=pointer]:
+              - img [ref=e1821]
+            - button "toggle interactivity" [ref=e1823] [cursor=pointer]:
+              - img [ref=e1824]
+          - img "Mini map" [ref=e1827]
+          - img
+          - iframe [ref=e1828]:
+            
+      - generic [ref=e1829]:
+        - generic [ref=e1830]:
+          - combobox [ref=e1831]:
+            - option "esurfr" [selected]
+            - option "mashed"
+            - option "surf-seer"
+            - option "surf-seer-infra"
+            - option "surfseer"
+          - combobox [ref=e1832]:
+            - option "claude-opus-4-6" [selected]
+            - option "claude-sonnet-4-20250514"
+            - option "claude-haiku-3.5"
+        - generic [ref=e1833]:
+          - button "Run" [ref=e1834] [cursor=pointer]:
+            - img [ref=e1835]
+            - generic [ref=e1837]: Run
+          - button "Pause" [disabled] [ref=e1838]:
+            - img [ref=e1839]
+          - button "Stop" [disabled] [ref=e1842]:
+            - img [ref=e1843]

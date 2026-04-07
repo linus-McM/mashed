@@ -12,6 +12,7 @@
   let term;
   let ws;
   let logPollInterval;
+  let resizeObserver;
 
   const KIND_COLORS = {
     ok:     '\x1b[32m',  // green
@@ -172,7 +173,9 @@
       return true;
     });
 
-    const resizeObserver = new ResizeObserver(() => fitAddon.fit());
+    resizeObserver = new ResizeObserver(() => {
+      if (term && terminalEl) fitAddon.fit();
+    });
     resizeObserver.observe(terminalEl);
 
     if (paneTarget) {
@@ -243,10 +246,11 @@
   });
 
   onDestroy(() => {
+    if (resizeObserver) resizeObserver.disconnect();
     if (onWindowFocus) window.removeEventListener('focus', onWindowFocus);
     if (ws) ws.close();
     if (logPollInterval) clearInterval(logPollInterval);
-    if (term) term.dispose();
+    if (term) { term.dispose(); term = null; }
   });
 
   // Live theme switching — xterm supports setting theme via options

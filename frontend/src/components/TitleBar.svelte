@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { Quit, WindowMinimise, WindowToggleMaximise } from '../../wailsjs/runtime/runtime.js';
-  import { Settings, Palette } from 'lucide-svelte';
+  import { Settings, Palette, Workflow } from 'lucide-svelte';
   import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
   import { SetTheme } from '../../wailsjs/go/main/App.js';
 
@@ -22,6 +22,11 @@
   function openSettings() {
     showThemePicker = false;
     dispatch('open-settings');
+  }
+
+  function openWorkflows() {
+    showThemePicker = false;
+    dispatch('open-workflows');
   }
 </script>
 
@@ -66,6 +71,9 @@
         </div>
       {/if}
     </div>
+    <button class="titlebar-btn" on:click={openWorkflows} title="Workflows">
+      <Workflow size={14} />
+    </button>
     <button class="titlebar-btn" on:click={openSettings} title="Settings">
       <Settings size={14} />
     </button>

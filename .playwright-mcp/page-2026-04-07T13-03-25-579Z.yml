@@ -1,0 +1,191 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Close" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - button "Minimize" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+      - button "Fullscreen" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+    - generic [ref=e15]:
+      - button "Switch theme" [ref=e17] [cursor=pointer]:
+        - img [ref=e18]
+      - button "Workflows" [ref=e24] [cursor=pointer]:
+        - img [ref=e25]
+      - button "Settings" [ref=e29] [cursor=pointer]:
+        - img [ref=e30]
+  - generic [ref=e654]:
+    - generic [ref=e655]:
+      - generic [ref=e656]:
+        - button "Processes" [ref=e657] [cursor=pointer]
+        - button "Templates" [ref=e658] [cursor=pointer]
+        - button "Saved" [ref=e659] [cursor=pointer]
+      - generic [ref=e854]:
+        - generic [ref=e855]:
+          - generic [ref=e856]:
+            - generic [ref=e857]: Full Product Lifecycle
+            - generic [ref=e858]: 13 nodes
+          - button "Use" [ref=e859] [cursor=pointer]
+        - generic [ref=e860]:
+          - generic [ref=e861]:
+            - generic [ref=e862]: Quick Sprint
+            - generic [ref=e863]: 4 nodes
+          - button "Use" [ref=e864] [cursor=pointer]
+        - generic [ref=e865]:
+          - generic [ref=e866]:
+            - generic [ref=e867]: Architecture Review
+            - generic [ref=e868]: 3 nodes
+          - button "Use" [ref=e869] [cursor=pointer]
+        - generic [ref=e870]:
+          - generic [ref=e871]:
+            - generic [ref=e872]: Story Development
+            - generic [ref=e873]: 3 nodes
+          - button "Use" [ref=e874] [cursor=pointer]
+        - generic [ref=e875]:
+          - generic [ref=e876]:
+            - generic [ref=e877]: PRD Pipeline
+            - generic [ref=e878]: 4 nodes
+          - button "Use" [ref=e879] [cursor=pointer]
+        - generic [ref=e880]:
+          - generic [ref=e881]:
+            - generic [ref=e882]: QA & Polish
+            - generic [ref=e883]: 3 nodes
+          - button "Use" [ref=e884] [cursor=pointer]
+    - generic [ref=e802]:
+      - generic [ref=e803]:
+        - button "Back to feed" [ref=e804] [cursor=pointer]:
+          - img [ref=e805]
+        - textbox "Workflow name..." [ref=e807]: Copy of Quick Sprint
+        - button "New" [ref=e808] [cursor=pointer]
+        - button "Save" [ref=e809] [cursor=pointer]:
+          - img [ref=e810]
+          - text: Save
+        - button "Agents" [ref=e814] [cursor=pointer]
+      - generic [ref=e815]:
+        - application [ref=e817]:
+          - generic [ref=e819]:
+            - generic:
+              - generic:
+                - img
+                - img:
+                  - img "Edge from tpl-qs-1 to tpl-qs-2"
+                - img:
+                  - img "Edge from tpl-qs-2 to tpl-qs-3"
+                - img:
+                  - img "Edge from tpl-qs-3 to tpl-qs-4"
+              - generic:
+                - generic [ref=e886]:
+                  - generic [ref=e888]:
+                    - generic [ref=e889]:
+                      - img [ref=e891]
+                      - generic [ref=e894]: Create Story
+                    - generic [ref=e895]:
+                      - generic [ref=e896]: "in:"
+                      - generic [ref=e897]: epics/
+                    - generic [ref=e898]:
+                      - generic [ref=e899]: "out:"
+                      - generic [ref=e900]: story-*.md
+                    - generic [ref=e903]: pending
+                  - button [ref=e904]
+                  - button [ref=e905]
+                - generic [ref=e907]:
+                  - generic [ref=e909]:
+                    - generic [ref=e910]:
+                      - img [ref=e912]
+                      - generic [ref=e915]: Develop Story
+                    - generic [ref=e916]:
+                      - generic [ref=e917]: "in:"
+                      - generic [ref=e918]: story-*.md
+                    - generic [ref=e919]:
+                      - generic [ref=e920]: "out:"
+                      - generic [ref=e921]: code, tests
+                    - generic [ref=e924]: pending
+                  - button [ref=e925]
+                  - button [ref=e926]
+                - generic [ref=e928]:
+                  - generic [ref=e930]:
+                    - generic [ref=e931]:
+                      - img [ref=e933]
+                      - generic [ref=e936]: Code Review
+                    - generic [ref=e937]:
+                      - generic [ref=e938]: "in:"
+                      - generic [ref=e939]: code
+                    - generic [ref=e940]:
+                      - generic [ref=e941]: "out:"
+                      - generic [ref=e942]: review-report
+                    - generic [ref=e945]: pending
+                  - button [ref=e946]
+                  - button [ref=e947]
+                - generic [ref=e949]:
+                  - generic [ref=e951]:
+                    - generic [ref=e952]:
+                      - img [ref=e954]
+                      - generic [ref=e956]: E2E Tests
+                    - generic [ref=e957]:
+                      - generic [ref=e958]: "in:"
+                      - generic [ref=e959]: code, story-*.md
+                    - generic [ref=e960]:
+                      - generic [ref=e961]: "out:"
+                      - generic [ref=e962]: tests
+                    - generic [ref=e965]: pending
+                  - button [ref=e966]
+                  - button [ref=e967]
+          - link "Svelte Flow attribution" [ref=e821] [cursor=pointer]:
+            - /url: https://svelteflow.dev
+            - text: Svelte Flow
+          - generic "Svelte Flow controls" [ref=e822]:
+            - button "zoom in" [ref=e823] [cursor=pointer]:
+              - img [ref=e824]
+            - button "zoom out" [ref=e826] [cursor=pointer]:
+              - img [ref=e827]
+            - button "fit view" [ref=e829] [cursor=pointer]:
+              - img [ref=e830]
+            - button "toggle interactivity" [ref=e832] [cursor=pointer]:
+              - img [ref=e833]
+          - img "Mini map" [ref=e836]
+          - img
+          - iframe [ref=e837]:
+            
+        - generic [ref=e975]:
+          - generic [ref=e976]:
+            - generic [ref=e977]: "Configure: Create Story"
+            - button "Close" [ref=e978] [cursor=pointer]:
+              - img [ref=e979]
+          - generic [ref=e982]:
+            - generic [ref=e983]:
+              - generic [ref=e984]: Model
+              - combobox "Model" [ref=e985]:
+                - option "Default (inherit)" [selected]
+                - option "claude-opus-4-6"
+                - option "claude-sonnet-4-20250514"
+                - option "claude-haiku-3.5"
+            - generic [ref=e986]:
+              - generic [ref=e987]: Context
+              - textbox "Context" [ref=e988]:
+                - /placeholder: Additional context for this process...
+            - generic [ref=e989]:
+              - generic [ref=e990]: Agent
+              - combobox "Agent" [ref=e991]:
+                - option "Default" [selected]
+                - option "Test (developer)"
+      - generic [ref=e838]:
+        - generic [ref=e839]:
+          - combobox [ref=e840]:
+            - option "esurfr" [selected]
+            - option "mashed"
+            - option "surf-seer"
+            - option "surf-seer-infra"
+            - option "surfseer"
+          - combobox [ref=e841]:
+            - option "claude-opus-4-6" [selected]
+            - option "claude-sonnet-4-20250514"
+            - option "claude-haiku-3.5"
+        - generic [ref=e842]:
+          - button "Run" [ref=e843] [cursor=pointer]:
+            - img [ref=e844]
+            - generic [ref=e846]: Run
+          - button "Pause" [disabled] [ref=e847]:
+            - img [ref=e848]
+          - button "Stop" [disabled] [ref=e851]:
+            - img [ref=e852]
+        - generic [ref=e973]: 0/4 done

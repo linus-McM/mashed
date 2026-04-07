@@ -1,3 +1,243 @@
+export namespace bmad {
+	
+	export class BmadAgentConfig {
+	    id: string;
+	    name: string;
+	    role: string;
+	    persona: string;
+	    skills: string[];
+	    model: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new BmadAgentConfig(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.role = source["role"];
+	        this.persona = source["persona"];
+	        this.skills = source["skills"];
+	        this.model = source["model"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class ModuleDef {
+	    id: string;
+	    name: string;
+	    version: string;
+	    processes: string[];
+	    upgradePath?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ModuleDef(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.version = source["version"];
+	        this.processes = source["processes"];
+	        this.upgradePath = source["upgradePath"];
+	    }
+	}
+	export class Position {
+	    x: number;
+	    y: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Position(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.x = source["x"];
+	        this.y = source["y"];
+	    }
+	}
+	export class ProcessDef {
+	    id: string;
+	    name: string;
+	    phase: string;
+	    agentRole: string;
+	    skillName: string;
+	    description: string;
+	    inputs: string[];
+	    outputs: string[];
+	    moduleId: string;
+	    version: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ProcessDef(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.phase = source["phase"];
+	        this.agentRole = source["agentRole"];
+	        this.skillName = source["skillName"];
+	        this.description = source["description"];
+	        this.inputs = source["inputs"];
+	        this.outputs = source["outputs"];
+	        this.moduleId = source["moduleId"];
+	        this.version = source["version"];
+	    }
+	}
+	export class WorkflowEdge {
+	    id: string;
+	    source: string;
+	    target: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new WorkflowEdge(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.source = source["source"];
+	        this.target = source["target"];
+	    }
+	}
+	export class WorkflowNode {
+	    id: string;
+	    processId: string;
+	    label: string;
+	    position: Position;
+	    status: string;
+	    config: Record<string, string>;
+	    tmuxTarget: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new WorkflowNode(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.processId = source["processId"];
+	        this.label = source["label"];
+	        this.position = this.convertValues(source["position"], Position);
+	        this.status = source["status"];
+	        this.config = source["config"];
+	        this.tmuxTarget = source["tmuxTarget"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class WorkflowDef {
+	    id: string;
+	    name: string;
+	    description: string;
+	    nodes: WorkflowNode[];
+	    edges: WorkflowEdge[];
+	    isTemplate: boolean;
+	    templateId?: string;
+	    createdAt: string;
+	    updatedAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new WorkflowDef(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.description = source["description"];
+	        this.nodes = this.convertValues(source["nodes"], WorkflowNode);
+	        this.edges = this.convertValues(source["edges"], WorkflowEdge);
+	        this.isTemplate = source["isTemplate"];
+	        this.templateId = source["templateId"];
+	        this.createdAt = source["createdAt"];
+	        this.updatedAt = source["updatedAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class WorkflowExecution {
+	    id: string;
+	    workflowId: string;
+	    repoPath: string;
+	    status: string;
+	    nodes: WorkflowNode[];
+	    startedAt: string;
+	    currentNode: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new WorkflowExecution(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.workflowId = source["workflowId"];
+	        this.repoPath = source["repoPath"];
+	        this.status = source["status"];
+	        this.nodes = this.convertValues(source["nodes"], WorkflowNode);
+	        this.startedAt = source["startedAt"];
+	        this.currentNode = source["currentNode"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace domain {
 	
 	export class DiffFileStat {
