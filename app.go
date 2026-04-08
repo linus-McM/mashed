@@ -3,11 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"mashed/internal/agent"
 	"mashed/internal/bmad"
@@ -19,6 +22,13 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
+// paneDiscoverer abstracts tmux pane discovery for testability.
+type paneDiscoverer interface {
+	ListPanes() ([]terminal.TmuxPane, error)
+	InvalidateCache()
+	FindPaneForPID(agentPID int) (*terminal.TmuxPane, error)
+}
+
 // App is the main application struct bound to the Wails frontend.
 type App struct {
 	ctx         context.Context
@@ -27,7 +37,7 @@ type App struct {
 	repoScanner *scanner.RepoScanner
 	engine      *agent.NotificationEngine
 	bridge      *terminal.Bridge
-	panes       *terminal.PaneDiscovery
+	panes       paneDiscoverer
 	explainer   *explain.Explainer
 	mu          sync.Mutex
 
@@ -36,6 +46,8 @@ type App struct {
 
 	bmadStorage  *bmad.Storage
 	bmadExecutor *bmad.Executor
+
+	terminalSessions map[string]domain.TerminalSession
 }
 
 // VSCodeThemeEntry represents a single color theme found in a VSCodium extension.
@@ -160,6 +172,36 @@ func (a *App) PickDirectory() (string, error) {
 		return "", fmt.Errorf("directory dialog: %w", err)
 	}
 	return dir, nil
+}
+
+// TakeScreenshot launches macOS screencapture and returns the saved file path.
+func (a *App) TakeScreenshot() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("screencapture: %w", err)
+	}
+
+	filename := fmt.Sprintf("mashed-screenshot-%s.png", time.Now().Format("20060102-150405"))
+	path := filepath.Join(home, "Desktop", filename)
+
+	ctx := a.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	cmd := exec.CommandContext(ctx, "screencapture", "-i", "-x", path)
+	if err := cmd.Run(); err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+			return "", nil
+		}
+		return "", fmt.Errorf("screencapture: %w", err)
+	}
+
+	if a.cancel != nil {
+		runtime.EventsEmit(a.ctx, "screenshot:taken", path)
+	}
+	return path, nil
 }
 
 // SetDevDir saves the chosen directory and starts scanning.
