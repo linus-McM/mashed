@@ -4,7 +4,7 @@
 **Domain:** fullstack
 **Estimated Complexity:** L
 **Depends On:** sprint4-01-artifact-path-system, sprint4-02-file-aware-context
-**Status:** done (backend only — frontend pending)
+**Status:** done
 
 ## Description
 

@@ -122,6 +122,22 @@
     updateProgress();
   });
 
+  const cancelArtifactListener = EventsOn('bmad:node:artifacts', (event) => {
+    if (!event?.nodeId || (executionId && event.execId !== executionId)) return;
+    $nodes = $nodes.map(n => {
+      if (n.id === event.nodeId) {
+        return { ...n, data: {
+          ...n.data,
+          artifactStatus: { found: event.found || [], missing: event.missing || [] },
+        } };
+      }
+      return n;
+    });
+    if (selectedNode && selectedNode.id === event.nodeId) {
+      selectedNode = $nodes.find(n => n.id === event.nodeId) || selectedNode;
+    }
+  });
+
   const cancelExecListener = EventsOn('bmad:execution:status', (event) => {
     if (executionId && event.execId !== executionId) return;
     if (event?.status) executionStatus = event.status;
@@ -149,6 +165,7 @@
 
   onDestroy(() => {
     if (cancelStatusListener) cancelStatusListener();
+    if (cancelArtifactListener) cancelArtifactListener();
     if (cancelExecListener) cancelExecListener();
     if (cancelSprintListener) cancelSprintListener();
   });

@@ -35,6 +35,8 @@
   $: label = data.label || process.name || 'Process';
   $: storyId = data.storyId || '';
   $: storyStatus = data.storyStatus || '';
+  $: artifactStatus = data.artifactStatus || null;
+  $: hasArtifacts = artifactStatus && (artifactStatus.found?.length > 0 || artifactStatus.missing?.length > 0);
 
   import { storyStatusColors } from '../../lib/sprintColors.js';
 </script>
@@ -82,6 +84,17 @@
         <span class="status-text">skipped</span>
       {/if}
     </div>
+
+    {#if status === 'complete' && hasArtifacts}
+      <div class="artifact-indicators">
+        {#each artifactStatus.found as name}
+          <span class="artifact-icon found" title="{name} found">&#10003;</span>
+        {/each}
+        {#each artifactStatus.missing as name}
+          <span class="artifact-icon missing" title="{name} missing">!</span>
+        {/each}
+      </div>
+    {/if}
 
     {#if storyId}
       <div class="story-badge">
@@ -233,6 +246,38 @@
     font-size: 10px;
     color: var(--text-muted);
     line-height: 1;
+  }
+
+  .artifact-indicators {
+    display: flex;
+    gap: 3px;
+    margin-top: 3px;
+    padding-top: 3px;
+    border-top: 1px solid var(--border-subtle);
+    flex-wrap: wrap;
+  }
+
+  .artifact-icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: default;
+  }
+
+  .artifact-icon.found {
+    background: rgba(0, 229, 122, 0.15);
+    color: var(--accent-green, #00e57a);
+  }
+
+  .artifact-icon.missing {
+    background: rgba(240, 165, 0, 0.15);
+    color: var(--accent-amber, #f0a500);
   }
 
   .story-badge {

@@ -216,6 +216,29 @@
         </div>
       {/if}
 
+      {#if status === 'complete' && isProcessNode && node?.data?.artifactStatus}
+        {@const artifacts = node.data.artifactStatus}
+        {#if artifacts.found?.length > 0 || artifacts.missing?.length > 0}
+          <div class="field">
+            <label class="field-label">Artifacts</label>
+            <div class="artifact-list">
+              {#each artifacts.found || [] as name}
+                <div class="artifact-item found">
+                  <span class="artifact-badge found-badge">found</span>
+                  <span class="artifact-name">{name}</span>
+                </div>
+              {/each}
+              {#each artifacts.missing || [] as name}
+                <div class="artifact-item missing">
+                  <span class="artifact-badge missing-badge">missing</span>
+                  <span class="artifact-name">{name}</span>
+                </div>
+              {/each}
+            </div>
+          </div>
+        {/if}
+      {/if}
+
       {#if hasTerminal}
         <button class="terminal-btn" on:click={() => dispatch('open-terminal', tmuxTarget)}>
           <Terminal size={13} />
@@ -397,6 +420,51 @@
 
   .output-btn:hover {
     border-color: var(--accent-blue, #3d9eff);
+  }
+
+  .artifact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .artifact-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px;
+    background: var(--bg-deepest);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+
+  .artifact-badge {
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .found-badge {
+    background: rgba(0, 229, 122, 0.15);
+    color: var(--accent-green, #00e57a);
+  }
+
+  .missing-badge {
+    background: rgba(240, 165, 0, 0.15);
+    color: var(--accent-amber, #f0a500);
+  }
+
+  .artifact-name {
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .story-link {
