@@ -85,7 +85,7 @@ const retrospectiveSuffix = "-retrospective"
 // sprintStatusPath returns the expected filesystem path to the sprint-status.yaml
 // given a repository root.
 func sprintStatusPath(repoPath string) string {
-	return filepath.Join(repoPath, "_bmad-output", "implementation-artifacts", "sprint-status.yaml")
+	return filepath.Join(repoPath, bmadOutputDir, "implementation-artifacts", "sprint-status.yaml")
 }
 
 // ParseSprintStatus reads and parses the sprint-status.yaml file from the

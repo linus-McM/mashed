@@ -166,6 +166,25 @@ type BmadAgentConfig struct {
 	CreatedAt string        `json:"createdAt"`
 }
 
+// ArtifactType classifies the format of a BMAD artifact.
+type ArtifactType string
+
+const (
+	ArtifactMarkdown  ArtifactType = "markdown"
+	ArtifactYAML      ArtifactType = "yaml"
+	ArtifactDirectory ArtifactType = "directory"
+	ArtifactCode      ArtifactType = "code"
+)
+
+// ArtifactSpec describes a single artifact produced or consumed by a BMAD process.
+type ArtifactSpec struct {
+	Name        string       `json:"name"`
+	Type        ArtifactType `json:"type"`
+	Path        string       `json:"path"`
+	Description string       `json:"description"`
+	Optional    bool         `json:"optional"`
+}
+
 // ControlFlowNodeDef describes a control flow node type for the frontend sidebar.
 type ControlFlowNodeDef struct {
 	Type        NodeType `json:"type"`
