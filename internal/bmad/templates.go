@@ -1,6 +1,6 @@
 package bmad
 
-// BuiltinTemplates returns the 6 built-in workflow templates.
+// BuiltinTemplates returns the 8 built-in workflow templates.
 // Each template is a WorkflowDef with IsTemplate: true and pre-placed
 // nodes connected by edges in a left-to-right layout.
 func BuiltinTemplates() []WorkflowDef {
@@ -11,6 +11,8 @@ func BuiltinTemplates() []WorkflowDef {
 		storyDevelopment(),
 		prdPipeline(),
 		qaAndPolish(),
+		rapidPrototype(),
+		fullInfra(),
 	}
 }
 
@@ -163,6 +165,37 @@ func qaAndPolish() WorkflowDef {
 		Description: "Code review, end-to-end testing, and editorial polish.",
 		Nodes:       nodes,
 		Edges:       chain("tpl-qp", nodes),
+		IsTemplate:  true,
+	}
+}
+
+func rapidPrototype() WorkflowDef {
+	nodes := []WorkflowNode{
+		node("tpl-rp-1", "bmad-party-mode", "Party Mode", 0),
+		node("tpl-rp-2", "bmad-code-review", "Code Review", 250),
+	}
+	return WorkflowDef{
+		ID:          "tpl-rapid-prototype",
+		Name:        "Rapid Prototype",
+		Description: "Quick prototype with party mode followed by code review.",
+		Nodes:       nodes,
+		Edges:       chain("tpl-rp", nodes),
+		IsTemplate:  true,
+	}
+}
+
+func fullInfra() WorkflowDef {
+	nodes := []WorkflowNode{
+		node("tpl-fi-1", "bmad-create-architecture", "Architecture", 0),
+		node("tpl-fi-2", "bmad-infrastructure-devops", "Infrastructure & DevOps", 250),
+		node("tpl-fi-3", "bmad-code-review", "Code Review", 500),
+	}
+	return WorkflowDef{
+		ID:          "tpl-full-infra",
+		Name:        "Full Infrastructure",
+		Description: "Architecture design through infrastructure setup and code review.",
+		Nodes:       nodes,
+		Edges:       chain("tpl-fi", nodes),
 		IsTemplate:  true,
 	}
 }

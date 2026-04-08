@@ -9,20 +9,33 @@ type ModuleDef struct {
 	UpgradePath string   `json:"upgradePath,omitempty"`
 }
 
-// GetModules returns all available BMAD modules.
-func GetModules() []ModuleDef {
-	// Build core process IDs from the live registry.
-	coreProcs := ProcessesByModule("core")
-	coreIDs := make([]string, len(coreProcs))
-	for i, p := range coreProcs {
-		coreIDs[i] = p.ID
-	}
+// moduleSpecs defines the static metadata for each BMAD module.
+// Process lists are populated dynamically from the registry.
+var moduleSpecs = []ModuleDef{
+	{ID: "core", Name: "Core BMAD", Version: "1.0.0"},
+	{ID: "bmb", Name: "BMAD Module Builder", Version: "1.0.0"},
+	{ID: "tea", Name: "Testing & Engineering Automation", Version: "1.0.0"},
+	{ID: "bmgd", Name: "BMAD Game Design", Version: "1.0.0"},
+	{ID: "cis", Name: "CI/CD & Infrastructure", Version: "1.0.0"},
+}
 
-	return []ModuleDef{
-		{ID: "core", Name: "Core BMAD", Version: "1.0.0", Processes: coreIDs},
-		{ID: "bmb", Name: "BMAD Module Builder", Version: "1.0.0", Processes: []string{}},
-		{ID: "tea", Name: "Testing & Engineering Automation", Version: "1.0.0", Processes: []string{}},
-		{ID: "bmgd", Name: "BMAD Game Design", Version: "1.0.0", Processes: []string{}},
-		{ID: "cis", Name: "CI/CD & Infrastructure", Version: "1.0.0", Processes: []string{}},
+// GetModules returns all available BMAD modules with their process lists
+// dynamically populated from the registry.
+func GetModules() []ModuleDef {
+	modules := make([]ModuleDef, len(moduleSpecs))
+	for i, spec := range moduleSpecs {
+		procs := ProcessesByModule(spec.ID)
+		ids := make([]string, len(procs))
+		for j, p := range procs {
+			ids[j] = p.ID
+		}
+		modules[i] = ModuleDef{
+			ID:          spec.ID,
+			Name:        spec.Name,
+			Version:     spec.Version,
+			Processes:   ids,
+			UpgradePath: spec.UpgradePath,
+		}
 	}
+	return modules
 }

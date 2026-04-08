@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -726,7 +727,7 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 	state.mu.Unlock()
 
 	// Build command.
-	contextStr := buildContextString(proc, nodesCopy, nodeIndex, outputsCopy)
+	contextStr := buildContextStringV3(proc, nodesCopy, nodeIndex, outputsCopy, repoPath)
 	command := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s "use %s%s"`, model, proc.SkillName, contextStr)
 
 	sessionName := fmt.Sprintf("bmad-%s-%d", nodeID, time.Now().Unix())
@@ -918,12 +919,15 @@ func extractLines(input, pattern string) string {
 	return strings.Join(lines[start:end], "\n")
 }
 
-// buildContextString builds the context string for a process node, including
-// both artifact matching (from upstream processes) and extracted transform data.
-func buildContextString(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[string]int, nodeOutputs map[string]string) string {
+// buildContextStringV3 builds the context string for a process node, including
+// file-aware artifact matching (from upstream processes) and extracted transform data.
+// When repoPath is non-empty, it resolves artifact paths on disk and provides
+// file-path instructions. When repoPath is empty or the artifact is unmapped,
+// it falls back to hint-style messages.
+func buildContextStringV3(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[string]int, nodeOutputs map[string]string, repoPath string) string {
 	var parts []string
 
-	// Existing artifact matching.
+	// Artifact matching with file-path resolution.
 	if len(proc.Inputs) > 0 {
 		needed := make(map[string]bool)
 		for _, input := range proc.Inputs {
@@ -938,8 +942,20 @@ func buildContextString(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[str
 				continue
 			}
 			for _, output := range upstream.Outputs {
-				if needed[output] {
+				if !needed[output] {
+					continue
+				}
+				resolvedPath := ResolveArtifactPath(output, repoPath)
+				if resolvedPath == "" {
+					// Unmapped artifact — fall back to hint.
 					parts = append(parts, fmt.Sprintf(" The upstream process '%s' produced '%s' -- use it as input.", upstream.Name, output))
+					continue
+				}
+				_, err := os.Stat(resolvedPath)
+				if err == nil {
+					parts = append(parts, fmt.Sprintf(" Read the artifact '%s' from file '%s' and use it as input.", output, resolvedPath))
+				} else {
+					parts = append(parts, fmt.Sprintf(" The upstream process '%s' should have produced '%s' at '%s' but it was not found. Proceed with best effort.", upstream.Name, output, resolvedPath))
 				}
 			}
 		}

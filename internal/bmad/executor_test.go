@@ -1521,9 +1521,9 @@ func TestTransformNode_Passthrough(t *testing.T) {
 	assert.Equal(t, "raw output data", ex.NodeOutputs["T"], "unknown extractType should passthrough")
 }
 
-// ── buildContextString Tests ──
+// ── buildContextStringV3 Tests ──
 
-func TestBuildContextStringV2_IncludesTransformData(t *testing.T) {
+func TestBuildContextStringV3_IncludesTransformData(t *testing.T) {
 	nodes := []WorkflowNode{
 		{ID: "A", ProcessID: "bmad-brainstorming", Label: "Process A", Status: NodeComplete, Config: map[string]string{}},
 		{ID: "T", NodeType: NodeTypeTransform, Label: "Version Extract", Status: NodeComplete, Config: map[string]string{}},
@@ -1535,12 +1535,12 @@ func TestBuildContextStringV2_IncludesTransformData(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-create-prd")
-	result := buildContextString(proc, nodes, nodeIndex, nodeOutputs)
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "")
 	assert.Contains(t, result, "Version Extract")
 	assert.Contains(t, result, "3.4.5")
 }
 
-func TestBuildContextStringV2_TruncatesLongData(t *testing.T) {
+func TestBuildContextStringV3_TruncatesLongData(t *testing.T) {
 	longData := strings.Repeat("X", 3000)
 	nodes := []WorkflowNode{
 		{ID: "T", NodeType: NodeTypeTransform, Label: "Big Transform", Status: NodeComplete, Config: map[string]string{}},
@@ -1552,14 +1552,14 @@ func TestBuildContextStringV2_TruncatesLongData(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-brainstorming")
-	result := buildContextString(proc, nodes, nodeIndex, nodeOutputs)
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "")
 	assert.Contains(t, result, "Big Transform")
 	// The data portion should be capped at 2000 chars.
 	assert.LessOrEqual(t, len(result), 2100, "result should not contain full 3000-char data")
 	assert.NotContains(t, result, longData, "full long data should be truncated")
 }
 
-func TestBuildContextStringV2_IncludesArtifactMatching(t *testing.T) {
+func TestBuildContextStringV3_IncludesArtifactMatching(t *testing.T) {
 	// bmad-create-prd has Inputs: ["product-brief"] and bmad-product-brief has Outputs: ["product-brief"].
 	nodes := []WorkflowNode{
 		{ID: "A", ProcessID: "bmad-product-brief", Label: "Product Brief", Status: NodeComplete, Config: map[string]string{}},
@@ -1569,12 +1569,12 @@ func TestBuildContextStringV2_IncludesArtifactMatching(t *testing.T) {
 	nodeOutputs := map[string]string{}
 
 	proc, _ := ProcessByID("bmad-create-prd")
-	result := buildContextString(proc, nodes, nodeIndex, nodeOutputs)
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "")
 	assert.Contains(t, result, "upstream process")
 	assert.Contains(t, result, "product-brief")
 }
 
-func TestBuildContextStringV2_EmptyTransformData(t *testing.T) {
+func TestBuildContextStringV3_EmptyTransformData(t *testing.T) {
 	// Transform node with empty output should be excluded.
 	nodes := []WorkflowNode{
 		{ID: "T", NodeType: NodeTypeTransform, Label: "Empty Transform", Status: NodeComplete, Config: map[string]string{}},
@@ -1586,11 +1586,11 @@ func TestBuildContextStringV2_EmptyTransformData(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-brainstorming")
-	result := buildContextString(proc, nodes, nodeIndex, nodeOutputs)
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "")
 	assert.NotContains(t, result, "Empty Transform", "empty transform data should not appear")
 }
 
-func TestBuildContextStringV2_SkipsNonCompleteTransforms(t *testing.T) {
+func TestBuildContextStringV3_SkipsNonCompleteTransforms(t *testing.T) {
 	nodes := []WorkflowNode{
 		{ID: "T", NodeType: NodeTypeTransform, Label: "Pending Transform", Status: NodePending, Config: map[string]string{}},
 		{ID: "B", ProcessID: "bmad-brainstorming", Label: "Process B", Status: NodePending, Config: map[string]string{}},
@@ -1601,8 +1601,143 @@ func TestBuildContextStringV2_SkipsNonCompleteTransforms(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-brainstorming")
-	result := buildContextString(proc, nodes, nodeIndex, nodeOutputs)
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "")
 	assert.NotContains(t, result, "Pending Transform", "non-complete transform should not appear")
+}
+
+func TestBuildContextStringV3_FilePathResolution(t *testing.T) {
+	tests := []struct {
+		name        string
+		setupFiles  bool   // whether to create the artifact file on disk
+		procID      string // downstream process
+		upstreamID  string // upstream process
+		wantContain []string
+		wantAbsent  []string
+	}{
+		{
+			name:       "file_exists",
+			setupFiles: true,
+			procID:     "bmad-create-architecture", // Inputs: ["PRD.md"]
+			upstreamID: "bmad-create-prd",          // Outputs: ["PRD.md"]
+			wantContain: []string{
+				"Read the artifact 'PRD.md' from file",
+				"planning-artifacts/PRD.md",
+			},
+			wantAbsent: []string{
+				"was not found",
+			},
+		},
+		{
+			name:       "file_missing",
+			setupFiles: false,
+			procID:     "bmad-create-architecture", // Inputs: ["PRD.md"]
+			upstreamID: "bmad-create-prd",          // Outputs: ["PRD.md"]
+			wantContain: []string{
+				"should have produced 'PRD.md'",
+				"but it was not found",
+			},
+			wantAbsent: []string{
+				"Read the artifact",
+			},
+		},
+		{
+			name:       "unmapped_artifact",
+			setupFiles: false,
+			procID:     "bmad-brainstorming", // Inputs: [] (empty)
+			upstreamID: "bmad-brainstorming", // Outputs: ["brainstorm-notes"]
+			// brainstorming has no inputs, so no artifact matching at all
+			wantContain: []string{},
+			wantAbsent:  []string{"upstream process"},
+		},
+		{
+			name:       "no_inputs",
+			setupFiles: false,
+			procID:     "bmad-brainstorming", // Inputs: []
+			upstreamID: "",
+			wantContain: []string{},
+			wantAbsent:  []string{"upstream", "artifact"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+
+			if tt.setupFiles {
+				// Create the artifact file.
+				proc, ok := ProcessByID(tt.upstreamID)
+				require.True(t, ok)
+				for _, output := range proc.Outputs {
+					p := ResolveArtifactPath(output, tmpDir)
+					if p == "" {
+						continue
+					}
+					require.NoError(t, os.MkdirAll(filepath.Dir(p), 0o755))
+					require.NoError(t, os.WriteFile(p, []byte("test content"), 0o644))
+				}
+			}
+
+			var nodes []WorkflowNode
+			if tt.upstreamID != "" {
+				nodes = append(nodes, WorkflowNode{
+					ID:        "upstream",
+					ProcessID: tt.upstreamID,
+					Label:     "Upstream",
+					Status:    NodeComplete,
+					Config:    map[string]string{},
+				})
+			}
+			nodes = append(nodes, WorkflowNode{
+				ID:        "downstream",
+				ProcessID: tt.procID,
+				Label:     "Downstream",
+				Status:    NodePending,
+				Config:    map[string]string{},
+			})
+
+			nodeIndex := buildNodeIndex(nodes)
+			nodeOutputs := map[string]string{}
+
+			proc, ok := ProcessByID(tt.procID)
+			require.True(t, ok)
+
+			result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, tmpDir)
+
+			for _, want := range tt.wantContain {
+				assert.Contains(t, result, want, "expected result to contain %q", want)
+			}
+			for _, absent := range tt.wantAbsent {
+				assert.NotContains(t, result, absent, "expected result NOT to contain %q", absent)
+			}
+		})
+	}
+}
+
+func TestBuildContextStringV3_TransformDataPreservedWithRepoPath(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create the product-brief artifact file so we get file-path message.
+	prdPath := ResolveArtifactPath("product-brief", tmpDir)
+	require.NoError(t, os.MkdirAll(filepath.Dir(prdPath), 0o755))
+	require.NoError(t, os.WriteFile(prdPath, []byte("brief content"), 0o644))
+
+	nodes := []WorkflowNode{
+		{ID: "A", ProcessID: "bmad-product-brief", Label: "Product Brief", Status: NodeComplete, Config: map[string]string{}},
+		{ID: "T", NodeType: NodeTypeTransform, Label: "Version Extract", Status: NodeComplete, Config: map[string]string{}},
+		{ID: "B", ProcessID: "bmad-create-prd", Label: "Create PRD", Status: NodePending, Config: map[string]string{}},
+	}
+	nodeIndex := buildNodeIndex(nodes)
+	nodeOutputs := map[string]string{
+		"T": "3.4.5",
+	}
+
+	proc, _ := ProcessByID("bmad-create-prd")
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, tmpDir)
+
+	// Should contain both file-path info AND transform data.
+	assert.Contains(t, result, "Read the artifact 'product-brief' from file")
+	assert.Contains(t, result, "Version Extract")
+	assert.Contains(t, result, "3.4.5")
 }
 
 // ── Loop / LoopUntil Execution ──

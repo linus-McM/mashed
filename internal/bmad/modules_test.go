@@ -47,16 +47,77 @@ func TestGetModules_UniqueIDs(t *testing.T) {
 	}
 }
 
-func TestGetModules_ReservedModulesEmpty(t *testing.T) {
-	reserved := []string{"bmb", "tea", "bmgd", "cis"}
+// ── Sprint 4 Story 3: Module Population Tests ──
+
+func TestAC2_ModulesPopulated_CIS(t *testing.T) {
+	modules := GetModules()
+	var cis ModuleDef
+	found := false
+	for _, m := range modules {
+		if m.ID == "cis" {
+			cis = m
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "cis module must exist")
+	assert.Contains(t, cis.Processes, "bmad-infrastructure-devops",
+		"cis module must contain bmad-infrastructure-devops")
+}
+
+func TestAC2_ModulesPopulated_BMGD(t *testing.T) {
+	modules := GetModules()
+	var bmgd ModuleDef
+	found := false
+	for _, m := range modules {
+		if m.ID == "bmgd" {
+			bmgd = m
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "bmgd module must exist")
+	assert.Contains(t, bmgd.Processes, "bmad-game-dev-studio",
+		"bmgd module must contain bmad-game-dev-studio")
+}
+
+func TestAC2_ModulesPopulated_CoreIncludesNew(t *testing.T) {
+	modules := GetModules()
+	var core ModuleDef
+	found := false
+	for _, m := range modules {
+		if m.ID == "core" {
+			core = m
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "core module must exist")
+
+	expectedNew := []string{
+		"bmad-party-mode",
+		"bmad-quick-flow",
+		"bmad-adversarial-general",
+		"bmad-document-project",
+		"bmad-web-orchestrator",
+	}
+	for _, id := range expectedNew {
+		assert.Contains(t, core.Processes, id,
+			"core module must contain %q", id)
+	}
+}
+
+func TestGetModules_UnpopulatedModulesEmpty(t *testing.T) {
+	// bmb and tea have no processes registered; bmgd and cis now have processes.
+	unpopulated := []string{"bmb", "tea"}
 	modules := GetModules()
 	byID := map[string]ModuleDef{}
 	for _, m := range modules {
 		byID[m.ID] = m
 	}
-	for _, id := range reserved {
+	for _, id := range unpopulated {
 		m, ok := byID[id]
 		require.True(t, ok, "module %q not found", id)
-		assert.Empty(t, m.Processes, "reserved module %q should have empty processes", id)
+		assert.Empty(t, m.Processes, "module %q should have empty processes", id)
 	}
 }
