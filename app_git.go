@@ -732,5 +732,5 @@ Be specific — cite file names and line numbers. Don't be nice, be thorough.
 Start by running: gh pr diff %s`, prNumber, prNumber)
 
 	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model claude-opus-4-6 -p %q", prompt)
-	return a.spawnTmuxSession("review", repoPath, cmd)
+	return a.spawnTmuxSession("review", repoPath, cmd, domain.SessionAgent, "claude-opus-4-6")
 }

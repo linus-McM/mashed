@@ -6,12 +6,76 @@ import (
 	"log"
 	"os/exec"
 	"sort"
+	"strings"
+	"time"
 
 	"mashed/internal/domain"
 	"mashed/internal/terminal"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
+
+// recoverSessions scans tmux for existing sessions matching mashed's naming
+// convention and registers them in the terminal session registry.
+func (a *App) recoverSessions() {
+	out, err := exec.Command("tmux", "list-sessions", "-F", "#{session_name}").Output()
+	if err != nil {
+		log.Printf("session recovery: tmux list-sessions failed (tmux may not be running): %v", err)
+		return
+	}
+	n := a.recoverSessionsFromOutput(string(out))
+	if n > 0 {
+		log.Printf("session recovery: recovered %d session(s)", n)
+	}
+}
+
+// recoverSessionsFromOutput parses tmux list-sessions output and registers sessions.
+// Returns the number of sessions recovered.
+func (a *App) recoverSessionsFromOutput(sessionOutput string) int {
+	count := 0
+	for _, line := range strings.Split(sessionOutput, "\n") {
+		name := strings.TrimSpace(line)
+		if name == "" {
+			continue
+		}
+
+		var sessionType domain.SessionType
+		var repoName string
+
+		switch {
+		case strings.HasPrefix(name, "term-"):
+			sessionType = domain.SessionTerminal
+			repoName = parseRepoName(name, "term-")
+		case strings.HasPrefix(name, "mashed-"):
+			sessionType = domain.SessionAgent
+			repoName = parseRepoName(name, "mashed-")
+		default:
+			continue
+		}
+
+		session := domain.TerminalSession{
+			SessionName: name,
+			PaneTarget:  name + ":0.0",
+			RepoName:    repoName,
+			SessionType: sessionType,
+			SpawnedAt:   time.Now(),
+		}
+		a.registerSession(session)
+		count++
+	}
+	return count
+}
+
+// parseRepoName extracts the repo name from a session name like "prefix-repoName-timestamp".
+// The repo name may itself contain hyphens, so we strip the prefix and the last "-timestamp" segment.
+func parseRepoName(sessionName, prefix string) string {
+	rest := strings.TrimPrefix(sessionName, prefix) // "repoName-timestamp" or "my-repo-timestamp"
+	lastDash := strings.LastIndex(rest, "-")
+	if lastDash <= 0 {
+		return rest
+	}
+	return rest[:lastDash]
+}
 
 func (a *App) registerSession(session domain.TerminalSession) {
 	a.mu.Lock()

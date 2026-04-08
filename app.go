@@ -125,6 +125,9 @@ func (a *App) startup(ctx context.Context) {
 		log.Printf("terminal bridge start failed: %v", err)
 	}
 
+	// Recover any surviving tmux sessions from a previous app instance.
+	a.recoverSessions()
+
 	// Initialize the diff explainer (uses ANTHROPIC_API_KEY from env)
 	a.explainer = explain.New()
 

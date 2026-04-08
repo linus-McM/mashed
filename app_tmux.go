@@ -16,7 +16,7 @@ import (
 // spawnTmuxSession creates a new tmux session with the given prefix, working
 // directory, and optional shell command. It returns the pane target string.
 // If command is empty, the session starts a default shell.
-func (a *App) spawnTmuxSession(prefix, repoPath, command string) (string, error) {
+func (a *App) spawnTmuxSession(prefix, repoPath, command string, sessionType domain.SessionType, model string) (string, error) {
 	repoName := repoNameFromDir(repoPath)
 	sessionName := fmt.Sprintf("%s-%s-%d", prefix, repoName, time.Now().Unix())
 
@@ -33,6 +33,19 @@ func (a *App) spawnTmuxSession(prefix, repoPath, command string) (string, error)
 	target := fmt.Sprintf("%s:0.0", sessionName)
 	a.panes.InvalidateCache()
 
+	session := domain.TerminalSession{
+		SessionName: sessionName,
+		PaneTarget:  target,
+		RepoPath:    repoPath,
+		RepoName:    repoName,
+		SessionType: sessionType,
+		Model:       model,
+		SpawnedAt:   time.Now(),
+		IsAlive:     true,
+	}
+	a.registerSession(session)
+	runtime.EventsEmit(a.ctx, "terminal:session:added", session)
+
 	log.Printf("spawned tmux session %s at %s", sessionName, repoPath)
 	return target, nil
 }
@@ -47,7 +60,7 @@ func (a *App) SpawnAgent(repoPath string, model string) (string, error) {
 		model = "claude-opus-4-6"
 	}
 	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s", model)
-	return a.spawnTmuxSession("mashed", repoPath, cmd)
+	return a.spawnTmuxSession("mashed", repoPath, cmd, domain.SessionAgent, model)
 }
 
 // SpawnAgentWithCommand starts a Claude session using a fully built CLI command.
@@ -56,7 +69,7 @@ func (a *App) SpawnAgentWithCommand(repoPath, command string) (string, error) {
 	if repoPath == "" || command == "" {
 		return "", fmt.Errorf("repo path and command are required")
 	}
-	return a.spawnTmuxSession("mashed", repoPath, command)
+	return a.spawnTmuxSession("mashed", repoPath, command, domain.SessionAgent, "")
 }
 
 // SpawnTerminal starts a plain shell tmux session in the given repo directory.
@@ -65,7 +78,7 @@ func (a *App) SpawnTerminal(repoPath string) (string, error) {
 	if repoPath == "" {
 		return "", fmt.Errorf("empty repo path")
 	}
-	return a.spawnTmuxSession("term", repoPath, "")
+	return a.spawnTmuxSession("term", repoPath, "", domain.SessionTerminal, "")
 }
 
 // GetAgentLog returns the parsed log lines for an agent's latest session.
@@ -107,6 +120,12 @@ func (a *App) KillAgent(agentID string, pid int, tmuxTarget string) error {
 		if err := exec.Command("tmux", "kill-session", "-t", sessionName).Run(); err != nil {
 			log.Printf("tmux kill-session %s failed: %v", sessionName, err)
 		}
+
+		// Deregister from terminal session registry
+		a.mu.Lock()
+		delete(a.terminalSessions, sessionName)
+		a.mu.Unlock()
+		runtime.EventsEmit(a.ctx, "terminal:session:removed", sessionName)
 	}
 
 	// If the process is still alive (e.g. tmux kill didn't reach it), signal directly
