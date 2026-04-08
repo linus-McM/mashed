@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { Quit, WindowMinimise, WindowToggleMaximise } from '../../wailsjs/runtime/runtime.js';
-  import { Settings, Palette, Workflow } from 'lucide-svelte';
+  import { Settings, Palette, FolderPlus } from 'lucide-svelte';
   import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
   import { SetTheme } from '../../wailsjs/go/main/App.js';
 
@@ -24,9 +24,9 @@
     dispatch('open-settings');
   }
 
-  function openWorkflows() {
+  function openNewRepo() {
     showThemePicker = false;
-    dispatch('open-workflows');
+    dispatch('open-new-repo');
   }
 </script>
 
@@ -71,8 +71,8 @@
         </div>
       {/if}
     </div>
-    <button class="titlebar-btn" on:click={openWorkflows} title="Workflows">
-      <Workflow size={14} />
+    <button class="titlebar-btn" on:click={openNewRepo} title="New Repo">
+      <FolderPlus size={14} />
     </button>
     <button class="titlebar-btn" on:click={openSettings} title="Settings">
       <Settings size={14} />
@@ -140,25 +140,26 @@
   .titlebar-actions {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     --wails-draggable: none;
   }
 
   .titlebar-btn {
     background: none;
-    border: none;
-    color: var(--text-muted);
+    border: 1px solid transparent;
+    color: var(--text-primary);
     cursor: pointer;
-    padding: 4px 6px;
+    padding: 4px 8px;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
-    transition: color 100ms ease, background 100ms ease;
+    transition: color 100ms ease, background 100ms ease, border-color 100ms ease;
   }
 
   .titlebar-btn:hover {
-    color: var(--text-dim);
+    color: var(--text-primary);
     background: var(--bg-elevated);
+    border-color: var(--border-subtle);
   }
 
   /* Theme picker popover */

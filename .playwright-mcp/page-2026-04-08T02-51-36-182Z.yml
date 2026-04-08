@@ -1,0 +1,78 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Close" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - button "Minimize" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+      - button "Fullscreen" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+    - generic [ref=e15]:
+      - button "Switch theme" [ref=e17] [cursor=pointer]:
+        - img [ref=e18]
+      - button "New Repo" [ref=e24] [cursor=pointer]:
+        - img [ref=e25]
+      - button "Settings" [ref=e27] [cursor=pointer]:
+        - img [ref=e28]
+  - generic [ref=e1055]:
+    - generic [ref=e1056]:
+      - generic [ref=e1057]:
+        - button "Processes" [ref=e1058] [cursor=pointer]
+        - button "Templates" [ref=e1059] [cursor=pointer]
+        - button "Saved" [ref=e1060] [cursor=pointer]
+        - button "Sprint" [active] [ref=e1061] [cursor=pointer]
+      - generic [ref=e1305]: No sprint data found
+    - generic [ref=e1204]:
+      - generic [ref=e1205]:
+        - generic "/Users/linus/Development/test-bmad-repo2" [ref=e1206]:
+          - img [ref=e1207]
+          - generic [ref=e1211]: test-bmad-repo2
+        - generic [ref=e1214]: No sprint data
+      - generic [ref=e1215]:
+        - button "Back to feed" [ref=e1216] [cursor=pointer]:
+          - img [ref=e1217]
+        - textbox "Workflow name..." [ref=e1219]: Untitled Workflow
+        - button "New" [ref=e1220] [cursor=pointer]
+        - button "Save" [ref=e1221] [cursor=pointer]:
+          - img [ref=e1222]
+          - text: Save
+        - button "Agents" [ref=e1226] [cursor=pointer]
+      - generic [ref=e1228]:
+        - generic:
+          - generic: Drag processes from the sidebar or select a template
+        - application [ref=e1229]:
+          - generic [ref=e1231]:
+            - generic:
+              - generic:
+                - img
+          - link "Svelte Flow attribution" [ref=e1233] [cursor=pointer]:
+            - /url: https://svelteflow.dev
+            - text: Svelte Flow
+          - generic "Svelte Flow controls" [ref=e1234]:
+            - button "zoom in" [ref=e1235] [cursor=pointer]:
+              - img [ref=e1236]
+            - button "zoom out" [ref=e1238] [cursor=pointer]:
+              - img [ref=e1239]
+            - button "fit view" [ref=e1241] [cursor=pointer]:
+              - img [ref=e1242]
+            - button "toggle interactivity" [ref=e1244] [cursor=pointer]:
+              - img [ref=e1245]
+          - img "Mini map" [ref=e1248]
+          - img
+          - iframe [ref=e1249]:
+            
+      - generic [ref=e1250]:
+        - generic [ref=e1251]:
+          - generic "/Users/linus/Development/test-bmad-repo2" [ref=e1252]: test-bmad-repo2
+          - combobox [ref=e1253]:
+            - option "claude-opus-4-6" [selected]
+            - option "claude-sonnet-4-20250514"
+            - option "claude-haiku-3.5"
+        - generic [ref=e1254]:
+          - button "Run" [ref=e1255] [cursor=pointer]:
+            - img [ref=e1256]
+            - generic [ref=e1258]: Run
+          - button "Pause" [disabled] [ref=e1259]:
+            - img [ref=e1260]
+          - button "Stop" [disabled] [ref=e1263]:
+            - img [ref=e1264]

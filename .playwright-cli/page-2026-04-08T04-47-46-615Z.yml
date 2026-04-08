@@ -1,0 +1,132 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Close" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - button "Minimize" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+      - button "Fullscreen" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+    - generic [ref=e15]:
+      - button "Switch theme" [ref=e17] [cursor=pointer]:
+        - img [ref=e18]
+      - button "New Repo" [ref=e24] [cursor=pointer]:
+        - img [ref=e25]
+      - button "Settings" [ref=e27] [cursor=pointer]:
+        - img [ref=e28]
+  - generic [ref=e2822]:
+    - generic [ref=e2823]:
+      - generic [ref=e2824]:
+        - button "Templates" [ref=e2825] [cursor=pointer]
+        - button "Sprint" [active] [ref=e2826] [cursor=pointer]
+        - button "Processes" [ref=e2827] [cursor=pointer]
+        - button "Saved" [ref=e2828] [cursor=pointer]
+      - generic [ref=e2934]:
+        - button "epic-1 9/9" [ref=e2936] [cursor=pointer]:
+          - img [ref=e2938]
+          - generic [ref=e2940]: epic-1
+          - generic [ref=e2941]: 9/9
+        - button "epic-2 9/9" [ref=e2943] [cursor=pointer]:
+          - img [ref=e2945]
+          - generic [ref=e2947]: epic-2
+          - generic [ref=e2948]: 9/9
+        - generic [ref=e2949]:
+          - button "epic-3 5/9" [ref=e2950] [cursor=pointer]:
+            - img [ref=e2952]
+            - generic [ref=e2954]: epic-3
+            - generic [ref=e2955]: 5/9
+          - generic [ref=e2956]:
+            - generic "Drag to canvas to create a workflow node" [ref=e2957]:
+              - generic [ref=e2959]: 3-2-planning-choice-screen
+              - generic [ref=e2960]: DONE
+            - generic "Drag to canvas to create a workflow node" [ref=e2961]:
+              - generic [ref=e2963]: 3-3-freeform-plan-screen
+              - generic [ref=e2964]: DONE
+            - generic "Drag to canvas to create a workflow node" [ref=e2965]:
+              - generic [ref=e2967]: 3-4-guided-plan-state-machine
+              - generic [ref=e2968]: DONE
+            - generic "Drag to canvas to create a workflow node" [ref=e2969]:
+              - generic [ref=e2971]: 3-5-steppedflow-shared-component
+              - generic [ref=e2972]: DONE
+            - generic "Drag to canvas to create a workflow node" [ref=e2973]:
+              - generic [ref=e2975]: 3-6-guided-question-cards-wave-progress
+              - generic [ref=e2976]: DONE
+            - generic "Drag to canvas to create a workflow node" [ref=e2977]:
+              - generic [ref=e2979]: 3-7-running-summary-buildsummary-function
+              - generic [ref=e2980]: READY FOR DEV
+            - generic "Drag to canvas to create a workflow node" [ref=e2981]:
+              - generic [ref=e2983]: 3-8-plan-save-session-creation
+              - generic [ref=e2984]: READY FOR DEV
+            - generic "Drag to canvas to create a workflow node" [ref=e2985]:
+              - generic [ref=e2987]: 3-9-planning-mode-switch-draft-resume
+              - generic [ref=e2988]: BACKLOG
+            - generic "Drag to canvas to create a workflow node" [ref=e2989]:
+              - generic [ref=e2991]: epic-3-retrospective
+              - generic [ref=e2992]: BACKLOG
+        - button "epic-4 0/7" [ref=e2994] [cursor=pointer]:
+          - img [ref=e2996]
+          - generic [ref=e2998]: epic-4
+          - generic [ref=e2999]: 0/7
+        - button "epic-5 0/7" [ref=e3001] [cursor=pointer]:
+          - img [ref=e3003]
+          - generic [ref=e3005]: epic-5
+          - generic [ref=e3006]: 0/7
+    - generic [ref=e2860]:
+      - generic [ref=e2861]:
+        - button "Back" [ref=e2862] [cursor=pointer]:
+          - img [ref=e2863]
+          - text: Back
+        - generic "/Users/linus/Development/esurfr" [ref=e2866]:
+          - img [ref=e2867]
+          - generic [ref=e2871]: esurfr
+          - generic [ref=e2872]: dev
+        - generic [ref=e2874]: 23/41 done
+      - generic [ref=e2877]:
+        - generic [ref=e2878]: "File Name:"
+        - textbox "Workflow name..." [ref=e2879]: Untitled Workflow
+        - button "New" [ref=e2880] [cursor=pointer]
+        - button "Save" [ref=e2881] [cursor=pointer]:
+          - img [ref=e2882]
+          - text: Save
+        - button "Agents" [ref=e2886] [cursor=pointer]
+        - generic [ref=e2888]:
+          - combobox [ref=e2890]:
+            - option "claude-opus-4-6" [selected]
+            - option "claude-sonnet-4-20250514"
+            - option "claude-haiku-3.5"
+          - generic [ref=e2891]:
+            - button "Run" [ref=e2892] [cursor=pointer]:
+              - img [ref=e2893]
+              - generic [ref=e2895]: Run
+            - button "Pause" [disabled] [ref=e2896]:
+              - img [ref=e2897]
+              - generic [ref=e2900]: Pause
+            - button "Stop" [disabled] [ref=e2901]:
+              - img [ref=e2902]
+              - generic [ref=e2904]: Stop
+      - generic [ref=e2906]:
+        - generic:
+          - generic: Drag processes from the sidebar or select a template
+        - application [ref=e2907]:
+          - generic [ref=e2909]:
+            - generic:
+              - generic:
+                - img
+          - link "Svelte Flow attribution" [ref=e2911] [cursor=pointer]:
+            - /url: https://svelteflow.dev
+            - text: Svelte Flow
+          - generic "Svelte Flow controls" [ref=e2912]:
+            - button "zoom in" [ref=e2913] [cursor=pointer]:
+              - img [ref=e2914]
+            - button "zoom out" [ref=e2916] [cursor=pointer]:
+              - img [ref=e2917]
+            - button "fit view" [ref=e2919] [cursor=pointer]:
+              - img [ref=e2920]
+            - button "toggle interactivity" [ref=e2922] [cursor=pointer]:
+              - img [ref=e2923]
+          - img "Mini map" [ref=e2926]
+          - img
+          - iframe [ref=e2927]:
+            
+        - button "Fit all nodes in view" [ref=e2928] [cursor=pointer]:
+          - img [ref=e2929]

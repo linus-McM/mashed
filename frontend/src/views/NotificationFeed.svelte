@@ -3,7 +3,7 @@
   import { createEventDispatcher } from 'svelte';
   import { SpawnAgent, SpawnAgentWithCommand, SpawnTerminal, KillAgent, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus } from '../../wailsjs/go/main/App.js';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
-  import { GripVertical, GitBranch, Trash2, Plus, Hexagon, Circle, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, TerminalSquare, ChevronRight, ChevronDown, Download, GitMerge } from 'lucide-svelte';
+  import { GripVertical, GitBranch, Trash2, Plus, Hexagon, Circle, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, TerminalSquare, ChevronRight, ChevronDown, Download, GitMerge, Workflow } from 'lucide-svelte';
   import BranchModal from './BranchModal.svelte';
   import SwitchBranchModal from './SwitchBranchModal.svelte';
   import MergeModal from './MergeModal.svelte';
@@ -985,6 +985,8 @@
           {/if}
         </div>
 
+        {/if}
+
         {#if repo.path}
           <div class="spawn-row">
             <button
@@ -1005,8 +1007,15 @@
               <span class="new-session-icon"><TerminalSquare size={14} /></span>
               {spawningTerminal === repo.path ? 'Opening...' : 'Terminal'}
             </button>
+            <button
+              class="new-session-btn"
+              style="color: {getRepoColor(repo.name) !== '#1e2530' ? getRepoColor(repo.name) : ''}"
+              on:click|stopPropagation={() => dispatch('open-workspace', repo)}
+            >
+              <span class="new-session-icon"><Workflow size={14} /></span>
+              BMAD Workspace
+            </button>
           </div>
-        {/if}
         {/if}
       </div>
     {/each}

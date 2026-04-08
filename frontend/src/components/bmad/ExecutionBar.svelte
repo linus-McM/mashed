@@ -16,8 +16,6 @@
 
   let selectedModel = models[0];
 
-  $: repoName = repoPath ? repoPath.split('/').pop() : 'No repo';
-
   $: isIdle = executionStatus === 'idle';
   $: isRunning = executionStatus === 'running';
   $: isPaused = executionStatus === 'paused';
@@ -38,10 +36,6 @@
 
 <div class="execution-bar">
   <div class="selectors">
-    <div class="repo-label" title={repoPath}>
-      {repoName}
-    </div>
-
     <select class="bar-select" bind:value={selectedModel} disabled={isRunning || isPaused}>
       {#each models as m}
         <option value={m}>{m}</option>
@@ -52,34 +46,39 @@
   <div class="controls">
     <button
       class="ctrl-btn run"
+      class:active={isRunning}
       on:click={handleRun}
       disabled={!runEnabled}
       title={isPaused ? 'Resume' : isDone ? 'Restart' : 'Run'}
     >
       {#if isDone}
-        <RotateCcw size={13} />
+        <RotateCcw size={14} />
       {:else}
-        <Play size={13} />
+        <Play size={14} />
       {/if}
       <span>{isPaused ? 'Resume' : isDone ? 'Restart' : 'Run'}</span>
     </button>
 
     <button
       class="ctrl-btn pause"
+      class:active={isPaused}
       on:click={() => dispatch('pause')}
       disabled={!pauseEnabled}
       title="Pause"
     >
-      <Pause size={13} />
+      <Pause size={14} />
+      <span>Pause</span>
     </button>
 
     <button
       class="ctrl-btn stop"
+      class:active={isDone && executionStatus === 'failed'}
       on:click={() => dispatch('stop')}
       disabled={!stopEnabled}
       title="Stop"
     >
-      <Square size={13} />
+      <Square size={14} />
+      <span>Stop</span>
     </button>
   </div>
 
@@ -103,12 +102,8 @@
   .execution-bar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 6px 10px;
-    background: var(--bg-surface);
-    border-top: 1px solid var(--border-subtle);
+    gap: 8px;
     flex-shrink: 0;
-    height: 38px;
   }
 
   .selectors {
@@ -117,75 +112,94 @@
   }
 
   .bar-select {
-    padding: 3px 6px;
+    padding: 4px 8px;
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     outline: none;
-    max-width: 160px;
+    max-width: 180px;
   }
 
   .bar-select:focus { border-color: var(--accent-green); }
   .bar-select:disabled { opacity: 0.5; }
 
-  .repo-label {
-    padding: 3px 6px;
-    background: var(--bg-deepest);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    max-width: 160px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .controls {
     display: flex;
     gap: 4px;
-    padding: 0 8px;
-    border-left: 1px solid var(--border-subtle);
-    border-right: 1px solid var(--border-subtle);
   }
 
   .ctrl-btn {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
+    gap: 5px;
+    padding: 4px 10px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
-    color: var(--text-dim);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 100ms ease, color 100ms ease, border-color 100ms ease;
-  }
-
-  .ctrl-btn:hover:not(:disabled) {
-    background: var(--bg-active);
-    color: var(--text-primary);
+    transition: background 100ms ease, color 100ms ease, border-color 100ms ease, box-shadow 100ms ease;
   }
 
   .ctrl-btn:disabled {
-    opacity: 0.35;
+    opacity: 0.3;
     cursor: not-allowed;
   }
 
+  /* Run: cyan idle, green when running */
+  .ctrl-btn.run {
+    color: #22d3ee;
+    border-color: rgba(34, 211, 238, 0.3);
+  }
   .ctrl-btn.run:hover:not(:disabled) {
-    border-color: var(--accent-green);
-    color: var(--accent-green);
+    background: rgba(34, 211, 238, 0.1);
+    border-color: #22d3ee;
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.25);
+  }
+  .ctrl-btn.run.active {
+    color: var(--accent-green, #00e57a);
+    border-color: var(--accent-green, #00e57a);
+    background: rgba(0, 229, 122, 0.1);
+    box-shadow: 0 0 8px rgba(0, 229, 122, 0.3);
   }
 
+  /* Pause: amber idle, amber glow when paused */
+  .ctrl-btn.pause {
+    color: var(--accent-amber, #f0a500);
+    border-color: rgba(240, 165, 0, 0.3);
+  }
+  .ctrl-btn.pause:hover:not(:disabled) {
+    background: rgba(240, 165, 0, 0.1);
+    border-color: var(--accent-amber, #f0a500);
+    box-shadow: 0 0 8px rgba(240, 165, 0, 0.25);
+  }
+  .ctrl-btn.pause.active {
+    color: var(--accent-amber, #f0a500);
+    border-color: var(--accent-amber, #f0a500);
+    background: rgba(240, 165, 0, 0.15);
+    box-shadow: 0 0 8px rgba(240, 165, 0, 0.4);
+  }
+
+  /* Stop: orange idle, red when stopped/failed */
+  .ctrl-btn.stop {
+    color: #fb923c;
+    border-color: rgba(251, 146, 60, 0.3);
+  }
   .ctrl-btn.stop:hover:not(:disabled) {
-    border-color: var(--accent-red, #f85149);
+    background: rgba(251, 146, 60, 0.1);
+    border-color: #fb923c;
+    box-shadow: 0 0 8px rgba(251, 146, 60, 0.25);
+  }
+  .ctrl-btn.stop.active {
     color: var(--accent-red, #f85149);
+    border-color: var(--accent-red, #f85149);
+    background: rgba(248, 81, 73, 0.1);
+    box-shadow: 0 0 8px rgba(248, 81, 73, 0.3);
   }
 
   .progress {
@@ -197,8 +211,8 @@
 
   .progress-text {
     font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-muted);
+    font-size: 11px;
+    color: var(--text-primary);
     white-space: nowrap;
   }
 

@@ -9,7 +9,7 @@ g_session:
 
 # Start a Claude session (default model) in tmux
 c_session:
-    @tmux new-session -d -s {{repo}}-opus-{{rand}} 'claude --dangerously-skip-permissions' && tmux attach -t {{repo}}-opus-{{rand}}
+    @claude --dangerously-skip-permissions
 
 # Start Claude with Sonnet model in tmux
 sonnet:

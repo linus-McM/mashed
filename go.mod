@@ -8,6 +8,7 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/stretchr/testify v1.10.0
 	github.com/wailsapp/wails/v2 v2.12.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -40,7 +41,6 @@ require (
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 // replace github.com/wailsapp/wails/v2 v2.12.0 => /Users/linus/go/pkg/mod

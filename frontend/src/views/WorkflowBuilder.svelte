@@ -3,7 +3,7 @@
   import '@xyflow/svelte/dist/style.css';
   import { writable } from 'svelte/store';
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
-  import { ArrowLeft, Save } from 'lucide-svelte';
+  import { Save } from 'lucide-svelte';
   import { EventsOn } from '../../wailsjs/runtime/runtime.js';
   import { GetBmadProcesses, ListBmadTemplates, ListBmadWorkflowsByRepo,
            SaveBmadWorkflow, GetBmadWorkflow, CreateFromTemplate,
@@ -20,6 +20,7 @@
   import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
 
   export let repoPath = '';
+  export let repoBranch = '';
 
   const dispatch = createEventDispatcher();
 
@@ -45,6 +46,7 @@
 
   // Config panel state
   let selectedNode = null;
+  let configPanelWidth = 280;
 
   // Agent modal state
   let showAgentModal = false;
@@ -232,7 +234,53 @@
     } else if (selection.nodes.length === 0) {
       selectedNode = null;
     }
-    // For multi-select, keep selectedNode as null (hides NodeConfigPanel)
+  }
+
+  function onAddTemplate(templateId, position, connectToNodeId) {
+    const tpl = templates.find(t => t.id === templateId);
+    if (!tpl || !tpl.nodes?.length) return;
+
+    const ts = Date.now();
+    const idMap = {};
+
+    // Create new nodes offset from the click position
+    const newNodes = tpl.nodes.map((n, i) => {
+      const newId = `tpl-${ts}-${i}`;
+      idMap[n.id] = newId;
+      return {
+        id: newId,
+        type: 'bmadProcess',
+        position: { x: position.x + (n.position?.x || 0), y: position.y + (n.position?.y || 0) },
+        data: {
+          label: n.label,
+          processId: n.processId,
+          process: processes.find(p => p.id === n.processId) || null,
+          status: 'pending',
+          config: n.config || {},
+        },
+      };
+    });
+
+    // Recreate template edges with new IDs
+    const newEdges = (tpl.edges || []).map((e, i) => ({
+      id: `tpl-edge-${ts}-${i}`,
+      source: idMap[e.source] || e.source,
+      target: idMap[e.target] || e.target,
+    })).filter(e => e.source && e.target);
+
+    $nodes = [...$nodes, ...newNodes];
+    $edges = [...$edges, ...newEdges];
+
+    // Connect the source node to the first template node
+    if (connectToNodeId && newNodes.length > 0) {
+      $edges = [...$edges, {
+        id: `connect-${ts}`,
+        source: connectToNodeId,
+        target: newNodes[0].id,
+      }];
+    }
+
+    updateProgress();
   }
 
   function onConfigUpdate(e) {
@@ -451,14 +499,13 @@
     on:use-template={useTemplate}
     on:load-workflow={loadWorkflow}
     on:delete-workflow={deleteWorkflow}
+    on:create-custom-template={newWorkflow}
   />
 
   <div class="canvas-area">
-    <RepoContextBar {repoPath} {sprintStatus} />
+    <RepoContextBar {repoPath} {repoBranch} {sprintStatus} on:back={() => dispatch('back')} />
     <div class="toolbar">
-      <button class="toolbar-btn back-btn" on:click={() => dispatch('back')} title="Back to feed">
-        <ArrowLeft size={14} />
-      </button>
+      <span class="toolbar-label">File Name:</span>
       <input
         class="workflow-name-input"
         type="text"
@@ -473,6 +520,18 @@
       <button class="toolbar-btn agents-btn" on:click={() => { editingAgent = null; showAgentModal = true; }} title="Manage agents">
         Agents
       </button>
+
+      <div class="toolbar-sep" />
+
+      <ExecutionBar
+        {executionStatus}
+        {nodeProgress}
+        {repoPath}
+        on:start={handleExecStart}
+        on:pause={handleExecPause}
+        on:resume={handleExecResume}
+        on:stop={handleExecStop}
+      />
     </div>
 
     <div class="canvas-with-panel">
@@ -486,11 +545,16 @@
           {onDropProcess}
           {onDropStory}
           {onNodeClick}
+          onPaneClick={() => selectedNode = null}
           {onNodesDelete}
           {onEdgesDelete}
           {onSelectionChange}
           {onReconnect}
+          {onAddTemplate}
+          {templates}
           {executionStatus}
+          configPanelOpen={!!selectedNode}
+          {configPanelWidth}
         >
           <div slot="empty-hint">
             {#if $nodes.length === 0 && !currentWorkflow}
@@ -503,6 +567,7 @@
       <NodeConfigPanel
         node={selectedNode}
         {agents}
+        bind:panelWidth={configPanelWidth}
         on:update={onConfigUpdate}
         on:close={() => selectedNode = null}
         on:open-terminal={onOpenTerminal}
@@ -516,15 +581,6 @@
       </div>
     {/if}
 
-    <ExecutionBar
-      {executionStatus}
-      {nodeProgress}
-      {repoPath}
-      on:start={handleExecStart}
-      on:pause={handleExecPause}
-      on:resume={handleExecResume}
-      on:stop={handleExecStop}
-    />
   </div>
 
   {#if showTerminalModal}
@@ -582,14 +638,15 @@
   .toolbar-btn {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
+    gap: 5px;
+    padding: 4px 10px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
-    color: var(--text-dim);
+    color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
     transition: background 100ms ease, color 100ms ease, border-color 100ms ease;
     flex-shrink: 0;
@@ -607,8 +664,23 @@
   }
 
   .save-btn:hover { border-color: var(--accent-green); color: var(--accent-green); }
-  .back-btn:hover { border-color: var(--accent-blue, #58a6ff); }
   .agents-btn:hover { border-color: var(--accent-purple, #9d6fff); color: var(--accent-purple, #9d6fff); }
+
+  .toolbar-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .toolbar-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--border-subtle);
+    flex-shrink: 0;
+  }
 
   .workflow-name-input {
     flex: 1;

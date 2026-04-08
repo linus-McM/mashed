@@ -6,6 +6,8 @@ import {main} from '../models';
 
 export function CreateFromTemplate(arg1:string,arg2:string):Promise<bmad.WorkflowDef>;
 
+export function CreateRepo(arg1:string,arg2:boolean,arg3:boolean):Promise<void>;
+
 export function DeleteBmadAgent(arg1:string):Promise<void>;
 
 export function DeleteBmadWorkflow(arg1:string):Promise<void>;
@@ -139,5 +141,7 @@ export function SpawnTerminal(arg1:string):Promise<string>;
 export function StartBmadWorkflow(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function StopBmadWorkflow(arg1:string):Promise<void>;
+
+export function UpdateStoryStatus(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function WriteFile(arg1:string,arg2:string):Promise<void>;

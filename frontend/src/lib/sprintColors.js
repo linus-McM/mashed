@@ -9,8 +9,8 @@ export const storyStatusColors = {
 
 export const storyStatusLabels = {
   'backlog': 'BACKLOG',
-  'ready-for-dev': 'READY',
-  'in-progress': 'IN PROG',
+  'ready-for-dev': 'READY FOR DEV',
+  'in-progress': 'IN PROGRESS',
   'review': 'REVIEW',
   'done': 'DONE',
 };

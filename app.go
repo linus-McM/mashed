@@ -875,6 +875,97 @@ func (a *App) ListRepoChoices() []map[string]string {
 	return choices
 }
 
+// CreateRepo creates a new repository in the dev directory with optional GitHub
+// remote and BMAD method installation. Emits repo:create:progress events.
+func (a *App) CreateRepo(name string, isPublic bool, installBmad bool) {
+	emit := func(step, message, errMsg string, done bool) {
+		runtime.EventsEmit(a.ctx, "repo:create:progress", map[string]interface{}{
+			"step":    step,
+			"message": message,
+			"error":   errMsg,
+			"done":    done,
+		})
+	}
+
+	go func() {
+		// Validate name
+		if name == "" || strings.ContainsAny(name, "/\\. ") {
+			emit("validate", "", "Invalid repo name: must be non-empty with no spaces, dots, or slashes", true)
+			return
+		}
+		if a.devDir == "" {
+			emit("validate", "", "No development directory configured — set it in Settings first", true)
+			return
+		}
+		targetDir := filepath.Join(a.devDir, name)
+		if _, err := os.Stat(targetDir); err == nil {
+			emit("validate", "", fmt.Sprintf("Directory %q already exists", name), true)
+			return
+		}
+
+		// Check gh auth
+		emit("gh-auth", "Checking GitHub CLI...", "", false)
+		if out, err := exec.CommandContext(a.ctx, "gh", "auth", "status").CombinedOutput(); err != nil {
+			emit("gh-auth", "", fmt.Sprintf("GitHub CLI not authenticated: %s", strings.TrimSpace(string(out))), true)
+			return
+		}
+
+		// Create repo via gh
+		visibility := "--private"
+		if isPublic {
+			visibility = "--public"
+		}
+		emit("gh-create", fmt.Sprintf("Creating %s repo %q...", visibility[2:], name), "", false)
+		ghCmd := exec.CommandContext(a.ctx, "gh", "repo", "create", name, visibility, "--clone")
+		ghCmd.Dir = a.devDir
+		if out, err := ghCmd.CombinedOutput(); err != nil {
+			emit("gh-create", "", fmt.Sprintf("gh repo create failed: %s", strings.TrimSpace(string(out))), true)
+			return
+		}
+
+		// Install BMAD (best-effort)
+		if installBmad {
+			emit("bmad-install", "Installing BMAD method...", "", false)
+			npxPath, err := exec.LookPath("npx")
+			if err != nil {
+				emit("bmad-install", "npx not found — skipping BMAD install", "", false)
+			} else {
+				bmadCmd := exec.CommandContext(a.ctx, npxPath, "bmad-method", "install", "--tools", "claude-code", "--directory", ".", "-y")
+				bmadCmd.Dir = targetDir
+				if out, err := bmadCmd.CombinedOutput(); err != nil {
+					emit("bmad-install", fmt.Sprintf("BMAD install warning: %s", strings.TrimSpace(string(out))), "", false)
+				} else {
+					emit("bmad-install", "BMAD method installed", "", false)
+				}
+			}
+		}
+
+		// Git add + commit (best-effort)
+		emit("git-commit", "Committing initial scaffold...", "", false)
+		addCmd := exec.CommandContext(a.ctx, "git", "-C", targetDir, "add", "-A")
+		if out, err := addCmd.CombinedOutput(); err != nil {
+			emit("git-commit", fmt.Sprintf("git add warning: %s", strings.TrimSpace(string(out))), "", false)
+		} else {
+			commitCmd := exec.CommandContext(a.ctx, "git", "-C", targetDir, "commit", "-m", "feat: initial BMAD method scaffold")
+			if out, err := commitCmd.CombinedOutput(); err != nil {
+				emit("git-commit", fmt.Sprintf("git commit warning: %s", strings.TrimSpace(string(out))), "", false)
+			} else {
+				emit("git-commit", "Initial commit created", "", false)
+			}
+		}
+
+		// Refresh repo list — rescan and emit the same "repos" event the feed listens for
+		if a.repoScanner != nil {
+			a.repoScanner.InvalidateCache(targetDir)
+			if repos, err := a.repoScanner.ScanRepos(nil); err == nil {
+				runtime.EventsEmit(a.ctx, "repos", repos)
+			}
+		}
+
+		emit("done", fmt.Sprintf("Repository %q created successfully", name), "", true)
+	}()
+}
+
 // ReadFile returns the contents of a file as a string.
 func (a *App) ReadFile(path string) (string, error) {
 	data, err := os.ReadFile(path)

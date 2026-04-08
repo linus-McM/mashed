@@ -202,11 +202,11 @@
         };
 
         ws.onclose = () => {
-          term.write('\r\n\x1b[33m[disconnected]\x1b[0m\r\n');
+          if (term) term.write('\r\n\x1b[33m[disconnected]\x1b[0m\r\n');
         };
 
         ws.onerror = () => {
-          term.write('\r\n\x1b[31m[connection error]\x1b[0m\r\n');
+          if (term) term.write('\r\n\x1b[31m[connection error]\x1b[0m\r\n');
         };
 
         // Send resize event to bridge so tmux/pty knows the real terminal dimensions

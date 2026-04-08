@@ -8,7 +8,7 @@
   import SpawnAgent from './views/SpawnAgent.svelte';
   import Settings from './views/Settings.svelte';
   import WorkflowBuilder from './views/WorkflowBuilder.svelte';
-  import RepoPickerModal from './components/bmad/RepoPickerModal.svelte';
+  import NewRepoModal from './components/NewRepoModal.svelte';
   import { Hexagon } from 'lucide-svelte';
   import TitleBar from './components/TitleBar.svelte';
   import { applyTheme } from './lib/stores/theme.js';
@@ -19,8 +19,9 @@
   let selectedAgent = null;
   let notifications = [];
   let showSpawnModal = false;
-  let showRepoPicker = false;
+  let showNewRepoModal = false;
   let builderRepoPath = '';
+  let builderRepoBranch = '';
 
   onMount(async () => {
     const cfg = await GetConfig();
@@ -112,20 +113,10 @@
     currentView = 'settings';
   }
 
-  function openWorkflows() {
-    showRepoPicker = true;
-  }
-
-  function onRepoSelected(e) {
-    builderRepoPath = e.detail.path;
-    showRepoPicker = false;
-    currentView = 'workflows';
-  }
-
   function handleKeydown(e) {
     if (e.key === 'Escape') {
-      if (showRepoPicker) {
-        showRepoPicker = false;
+      if (showNewRepoModal) {
+        showNewRepoModal = false;
       } else if (showSpawnModal) {
         showSpawnModal = false;
       } else if (currentView === 'detail' || currentView === 'settings' || currentView === 'workflows') {
@@ -137,18 +128,13 @@
       e.preventDefault();
       showSpawnModal = true;
     }
-    // Ctrl+W or Cmd+W to open workflows
-    if ((e.ctrlKey || e.metaKey) && e.key === 'w' && currentView === 'feed') {
-      e.preventDefault();
-      openWorkflows();
-    }
   }
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
 
 <main>
-  <TitleBar on:open-settings={openSettings} on:open-workflows={openWorkflows} />
+  <TitleBar on:open-settings={openSettings} on:open-new-repo={() => showNewRepoModal = true} />
   {#if currentView === 'loading'}
     <div class="loading">
       <div class="loading-icon"><Hexagon size={48} /></div>
@@ -161,19 +147,20 @@
       on:select={(e) => drillDown(e.detail)}
       on:notify={addNotification}
       on:spawn={() => showSpawnModal = true}
+      on:open-workspace={(e) => { builderRepoPath = e.detail.path; builderRepoBranch = e.detail.branch || ''; currentView = 'workflows'; }}
     />
   {:else if currentView === 'workflows'}
-    <WorkflowBuilder repoPath={builderRepoPath} on:back={goBack} />
+    <WorkflowBuilder repoPath={builderRepoPath} repoBranch={builderRepoBranch} on:back={goBack} />
   {:else if currentView === 'settings'}
     <Settings on:back={goBack} />
   {:else}
     <AgentDetail agent={selectedAgent} on:back={goBack} />
   {/if}
 
-  {#if showRepoPicker}
-    <RepoPickerModal
-      on:select={onRepoSelected}
-      on:cancel={() => showRepoPicker = false}
+  {#if showNewRepoModal}
+    <NewRepoModal
+      on:created={() => showNewRepoModal = false}
+      on:cancel={() => showNewRepoModal = false}
     />
   {/if}
 

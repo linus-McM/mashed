@@ -6,6 +6,10 @@ export function CreateFromTemplate(arg1, arg2) {
   return window['go']['main']['App']['CreateFromTemplate'](arg1, arg2);
 }
 
+export function CreateRepo(arg1, arg2, arg3) {
+  return window['go']['main']['App']['CreateRepo'](arg1, arg2, arg3);
+}
+
 export function DeleteBmadAgent(arg1) {
   return window['go']['main']['App']['DeleteBmadAgent'](arg1);
 }
@@ -272,6 +276,10 @@ export function StartBmadWorkflow(arg1, arg2, arg3) {
 
 export function StopBmadWorkflow(arg1) {
   return window['go']['main']['App']['StopBmadWorkflow'](arg1);
+}
+
+export function UpdateStoryStatus(arg1, arg2, arg3) {
+  return window['go']['main']['App']['UpdateStoryStatus'](arg1, arg2, arg3);
 }
 
 export function WriteFile(arg1, arg2) {

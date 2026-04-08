@@ -145,6 +145,26 @@ func parseDevelopmentStatus(node *yaml.Node) ([]SprintEpic, error) {
 		key := keyNode.Value
 		val := valNode.Value
 
+		// Check retrospective suffix before epic prefix — "epic-3-retrospective" is a story, not an epic
+		if strings.HasSuffix(key, retrospectiveSuffix) {
+			if currentEpic == nil {
+				return nil, fmt.Errorf("%w: story %q appears before any epic", ErrSprintFileMalformed, key)
+			}
+			status, ok := ValidateStoryStatus(val)
+			if !ok {
+				// Retrospectives may have non-standard statuses like "optional" — treat as backlog
+				status = StoryBacklog
+			}
+			currentEpic.Stories = append(currentEpic.Stories, SprintStory{
+				ID:       key,
+				EpicID:   currentEpic.ID,
+				Status:   status,
+				Sequence: storySeq,
+			})
+			storySeq++
+			continue
+		}
+
 		if strings.HasPrefix(key, epicKeyPrefix) {
 			// Flush the current epic before starting a new one.
 			if currentEpic != nil {

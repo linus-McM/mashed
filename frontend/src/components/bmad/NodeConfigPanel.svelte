@@ -7,6 +7,30 @@
 
   const dispatch = createEventDispatcher();
 
+  // Resize logic — exported so parent can read current width
+  export let panelWidth = 280;
+  let resizing = false;
+
+  function onResizeStart(e) {
+    e.preventDefault();
+    resizing = true;
+    const startX = e.clientX;
+    const startWidth = panelWidth;
+
+    function onMouseMove(e) {
+      panelWidth = Math.max(220, Math.min(500, startWidth - (e.clientX - startX)));
+    }
+
+    function onMouseUp() {
+      resizing = false;
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    }
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }
+
   const models = [
     { value: '', label: 'Default (inherit)' },
     { value: 'claude-opus-4-6', label: 'claude-opus-4-6' },
@@ -47,7 +71,8 @@
 </script>
 
 {#if node}
-  <div class="config-panel" class:visible={!!node}>
+  <div class="config-panel" class:visible={!!node} style="width: {panelWidth}px;">
+    <div class="resize-handle" class:active={resizing} on:mousedown={onResizeStart} />
     <div class="panel-header">
       <span class="panel-title">Configure: {label}</span>
       <button class="close-btn" on:click={close} title="Close">
@@ -112,7 +137,6 @@
     position: absolute;
     top: 0;
     right: 0;
-    width: 260px;
     height: 100%;
     background: var(--bg-surface);
     border-left: 1px solid var(--border-subtle);
@@ -121,6 +145,23 @@
     z-index: 10;
     box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
     animation: slide-in 150ms ease-out;
+  }
+
+  .resize-handle {
+    position: absolute;
+    top: 0;
+    left: -3px;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 11;
+    transition: background 150ms ease;
+  }
+
+  .resize-handle:hover,
+  .resize-handle.active {
+    background: var(--accent-green);
+    opacity: 0.5;
   }
 
   @keyframes slide-in {

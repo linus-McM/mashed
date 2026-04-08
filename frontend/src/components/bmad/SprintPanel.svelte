@@ -4,25 +4,26 @@
 
   export let sprintStatus = null;
 
-  let expandedEpics = {};
+  let openEpic = null;
 
-  $: if (sprintStatus?.epics) {
-    for (const epic of sprintStatus.epics) {
-      if (!(epic.id in expandedEpics)) {
-        expandedEpics[epic.id] = true;
-      }
-    }
+  // Auto-open the first epic that has a backlog story
+  $: if (sprintStatus?.epics?.length && openEpic === null) {
+    const backlogEpic = sprintStatus.epics.find(e =>
+      e.stories.some(s => s.status === 'backlog')
+    );
+    openEpic = backlogEpic ? backlogEpic.id : sprintStatus.epics[0].id;
   }
 
   function toggleEpic(epicId) {
-    expandedEpics[epicId] = !expandedEpics[epicId];
-    expandedEpics = expandedEpics;
+    openEpic = openEpic === epicId ? null : epicId;
   }
 
-  function epicProgress(epic) {
-    const done = epic.stories.filter(s => s.status === 'done').length;
-    return `${done}/${epic.stories.length}`;
+  function epicDone(epic) {
+    return epic.stories.filter(s => s.status === 'done').length;
   }
+
+  // The first epic with a backlog story — gets green highlight
+  $: activeEpicId = sprintStatus?.epics?.find(e => e.stories.some(s => s.status === 'backlog'))?.id || null;
 
   function onDragStart(e, story) {
     e.dataTransfer.setData('application/bmad-story', JSON.stringify({
@@ -39,18 +40,24 @@
     <div class="empty-state">No sprint data found</div>
   {:else}
     {#each sprintStatus.epics as epic}
-      <div class="epic-group">
+      {@const done = epicDone(epic)}
+      {@const total = epic.stories.length}
+      {@const isActive = epic.id === activeEpicId}
+      {@const isComplete = done === total && total > 0}
+      <div class="epic-group" class:active-epic={isActive}>
         <button class="epic-header" on:click={() => toggleEpic(epic.id)}>
           <span class="epic-indicator" style="background: {statusColors[epic.status] || statusColors.backlog}" />
-          {#if expandedEpics[epic.id]}
+          {#if openEpic === epic.id}
             <ChevronDown size={12} />
           {:else}
             <ChevronRight size={12} />
           {/if}
           <span class="epic-label">{epic.id}</span>
-          <span class="epic-progress">{epicProgress(epic)}</span>
+          <span class="epic-progress-badge" class:complete={isComplete} class:active={isActive}>
+            {done}/{total}
+          </span>
         </button>
-        {#if expandedEpics[epic.id]}
+        {#if openEpic === epic.id}
           <div class="story-items">
             {#each epic.stories as story}
               <div
@@ -75,35 +82,40 @@
 
 <style>
   .sprint-panel {
-    padding: 4px 0;
+    padding: 6px 8px;
   }
 
   .epic-group {
-    margin-bottom: 2px;
+    margin-bottom: 4px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    overflow: hidden;
   }
 
   .epic-header {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     width: 100%;
-    padding: 6px 10px;
-    background: none;
+    padding: 8px 10px;
+    background: var(--bg-elevated);
     border: none;
-    color: var(--text-dim);
+    color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    transition: background 80ms ease;
   }
 
-  .epic-header:hover { background: var(--bg-elevated); }
+  .epic-header:hover { background: var(--bg-active); }
 
   .epic-indicator {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
   }
@@ -116,14 +128,38 @@
     white-space: nowrap;
   }
 
-  .epic-progress {
-    font-size: 10px;
-    color: var(--text-muted);
-    font-weight: 400;
+  .epic-progress-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: var(--bg-deepest);
+    border: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+
+  .epic-progress-badge.complete {
+    color: var(--accent-green, #00e57a);
+    border-color: rgba(0, 229, 122, 0.3);
+    background: rgba(0, 229, 122, 0.1);
+  }
+
+  .epic-progress-badge.active {
+    color: var(--accent-green, #00e57a);
+    border-color: var(--accent-green, #00e57a);
+    background: rgba(0, 229, 122, 0.12);
+  }
+
+  .active-epic {
+    border-color: var(--accent-green, #00e57a);
   }
 
   .story-items {
-    padding: 0 0 4px;
+    padding: 2px 0 6px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
   }
 
   .story-item {

@@ -1,0 +1,111 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Close" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - button "Minimize" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+      - button "Fullscreen" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+    - generic [ref=e15]:
+      - button "Switch theme" [ref=e17] [cursor=pointer]:
+        - img [ref=e18]
+      - button "New Repo" [ref=e24] [cursor=pointer]:
+        - img [ref=e25]
+      - button "Settings" [ref=e27] [cursor=pointer]:
+        - img [ref=e28]
+  - generic [ref=e2822]:
+    - generic [ref=e2823]:
+      - generic [ref=e2824]:
+        - button "Templates" [ref=e2825] [cursor=pointer]
+        - button "Sprint" [ref=e2826] [cursor=pointer]
+        - button "Processes" [ref=e2827] [cursor=pointer]
+        - button "Saved" [ref=e2828] [cursor=pointer]
+      - generic [ref=e2830]:
+        - generic "Drag onto canvas to add this template" [ref=e2831]:
+          - generic [ref=e2832]: Full Product Lifecycle
+          - generic [ref=e2833]: 13 nodes · 12 edges
+          - generic [ref=e2834]: Complete BMAD lifecycle from brainstorming through retrospective.
+        - generic "Drag onto canvas to add this template" [ref=e2835]:
+          - generic [ref=e2836]: Quick Sprint
+          - generic [ref=e2837]: 4 nodes · 3 edges
+          - generic [ref=e2838]: "Fast iteration: story creation through QA testing."
+        - generic "Drag onto canvas to add this template" [ref=e2839]:
+          - generic [ref=e2840]: Architecture Review
+          - generic [ref=e2841]: 3 nodes · 2 edges
+          - generic [ref=e2842]: Design and validate system architecture.
+        - generic "Drag onto canvas to add this template" [ref=e2843]:
+          - generic [ref=e2844]: Story Development
+          - generic [ref=e2845]: 3 nodes · 2 edges
+          - generic [ref=e2846]: Single story from creation through code review.
+        - generic "Drag onto canvas to add this template" [ref=e2847]:
+          - generic [ref=e2848]: PRD Pipeline
+          - generic [ref=e2849]: 4 nodes · 3 edges
+          - generic [ref=e2850]: From brainstorming to a validated PRD.
+        - generic "Drag onto canvas to add this template" [ref=e2851]:
+          - generic [ref=e2852]: QA & Polish
+          - generic [ref=e2853]: 3 nodes · 2 edges
+          - generic [ref=e2854]: Code review, end-to-end testing, and editorial polish.
+        - button "+ Custom Template Build your own workflow Design a bespoke pipeline by dragging processes onto a blank canvas. Arrange nodes, connect edges, and save as a reusable template for your team." [ref=e2855] [cursor=pointer]:
+          - generic [ref=e2856]: + Custom Template
+          - generic [ref=e2857]: Build your own workflow
+          - generic [ref=e2858]: Design a bespoke pipeline by dragging processes onto a blank canvas. Arrange nodes, connect edges, and save as a reusable template for your team.
+    - generic [ref=e2860]:
+      - generic [ref=e2861]:
+        - button "Back" [ref=e2862] [cursor=pointer]:
+          - img [ref=e2863]
+          - text: Back
+        - generic "/Users/linus/Development/esurfr" [ref=e2866]:
+          - img [ref=e2867]
+          - generic [ref=e2871]: esurfr
+          - generic [ref=e2872]: dev
+        - generic [ref=e2874]: 23/41 done
+      - generic [ref=e2877]:
+        - generic [ref=e2878]: "File Name:"
+        - textbox "Workflow name..." [ref=e2879]: Untitled Workflow
+        - button "New" [ref=e2880] [cursor=pointer]
+        - button "Save" [ref=e2881] [cursor=pointer]:
+          - img [ref=e2882]
+          - text: Save
+        - button "Agents" [ref=e2886] [cursor=pointer]
+        - generic [ref=e2888]:
+          - combobox [ref=e2890]:
+            - option "claude-opus-4-6" [selected]
+            - option "claude-sonnet-4-20250514"
+            - option "claude-haiku-3.5"
+          - generic [ref=e2891]:
+            - button "Run" [ref=e2892] [cursor=pointer]:
+              - img [ref=e2893]
+              - generic [ref=e2895]: Run
+            - button "Pause" [disabled] [ref=e2896]:
+              - img [ref=e2897]
+              - generic [ref=e2900]: Pause
+            - button "Stop" [disabled] [ref=e2901]:
+              - img [ref=e2902]
+              - generic [ref=e2904]: Stop
+      - generic [ref=e2906]:
+        - generic:
+          - generic: Drag processes from the sidebar or select a template
+        - application [ref=e2907]:
+          - generic [ref=e2909]:
+            - generic:
+              - generic:
+                - img
+          - link "Svelte Flow attribution" [ref=e2911] [cursor=pointer]:
+            - /url: https://svelteflow.dev
+            - text: Svelte Flow
+          - generic "Svelte Flow controls" [ref=e2912]:
+            - button "zoom in" [ref=e2913] [cursor=pointer]:
+              - img [ref=e2914]
+            - button "zoom out" [ref=e2916] [cursor=pointer]:
+              - img [ref=e2917]
+            - button "fit view" [ref=e2919] [cursor=pointer]:
+              - img [ref=e2920]
+            - button "toggle interactivity" [ref=e2922] [cursor=pointer]:
+              - img [ref=e2923]
+          - img "Mini map" [ref=e2926]
+          - img
+          - iframe [ref=e2927]:
+            
+        - button "Fit all nodes in view" [ref=e2928] [cursor=pointer]:
+          - img [ref=e2929]
