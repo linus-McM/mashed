@@ -17,8 +17,9 @@ import (
 // directory, and optional shell command. It returns the pane target string.
 // If command is empty, the session starts a default shell.
 func (a *App) spawnTmuxSession(prefix, repoPath, command string, sessionType domain.SessionType, model string) (string, error) {
+	now := time.Now()
 	repoName := repoNameFromDir(repoPath)
-	sessionName := fmt.Sprintf("%s-%s-%d", prefix, repoName, time.Now().Unix())
+	sessionName := fmt.Sprintf("%s-%s-%d", prefix, repoName, now.Unix())
 
 	args := []string{"new-session", "-d", "-s", sessionName, "-c", repoPath}
 	if command != "" {
@@ -40,11 +41,11 @@ func (a *App) spawnTmuxSession(prefix, repoPath, command string, sessionType dom
 		RepoName:    repoName,
 		SessionType: sessionType,
 		Model:       model,
-		SpawnedAt:   time.Now(),
+		SpawnedAt:   now,
 		IsAlive:     true,
 	}
 	a.registerSession(session)
-	runtime.EventsEmit(a.ctx, "terminal:session:added", session)
+	runtime.EventsEmit(a.ctx, eventSessionAdded, session)
 
 	log.Printf("spawned tmux session %s at %s", sessionName, repoPath)
 	return target, nil
@@ -121,11 +122,7 @@ func (a *App) KillAgent(agentID string, pid int, tmuxTarget string) error {
 			log.Printf("tmux kill-session %s failed: %v", sessionName, err)
 		}
 
-		// Deregister from terminal session registry
-		a.mu.Lock()
-		delete(a.terminalSessions, sessionName)
-		a.mu.Unlock()
-		runtime.EventsEmit(a.ctx, "terminal:session:removed", sessionName)
+		a.deregisterSession(sessionName)
 	}
 
 	// If the process is still alive (e.g. tmux kill didn't reach it), signal directly

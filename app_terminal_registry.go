@@ -24,9 +24,39 @@ func (a *App) recoverSessions() {
 		return
 	}
 	n := a.recoverSessionsFromOutput(string(out))
-	if n > 0 {
-		log.Printf("session recovery: recovered %d session(s)", n)
+	if n == 0 {
+		return
 	}
+
+	// Enrich recovered sessions with working directory from tmux.
+	a.mu.Lock()
+	names := make([]string, 0, len(a.terminalSessions))
+	for name, sess := range a.terminalSessions {
+		if sess.RepoPath == "" {
+			names = append(names, name)
+		}
+	}
+	a.mu.Unlock()
+
+	for _, name := range names {
+		pathOut, err := exec.Command("tmux", "display-message", "-t", name, "-p", "#{pane_current_path}").Output()
+		if err != nil {
+			continue
+		}
+		repoPath := strings.TrimSpace(string(pathOut))
+		if repoPath == "" {
+			continue
+		}
+		a.mu.Lock()
+		if sess, ok := a.terminalSessions[name]; ok {
+			sess.RepoPath = repoPath
+			sess.RepoName = repoNameFromDir(repoPath)
+			a.terminalSessions[name] = sess
+		}
+		a.mu.Unlock()
+	}
+
+	log.Printf("session recovery: recovered %d session(s)", n)
 }
 
 // recoverSessionsFromOutput parses tmux list-sessions output and registers sessions.
@@ -43,12 +73,12 @@ func (a *App) recoverSessionsFromOutput(sessionOutput string) int {
 		var repoName string
 
 		switch {
-		case strings.HasPrefix(name, "term-"):
+		case strings.HasPrefix(name, prefixTerminal):
 			sessionType = domain.SessionTerminal
-			repoName = parseRepoName(name, "term-")
-		case strings.HasPrefix(name, "mashed-"):
+			repoName = parseRepoName(name, prefixTerminal)
+		case strings.HasPrefix(name, prefixAgent):
 			sessionType = domain.SessionAgent
-			repoName = parseRepoName(name, "mashed-")
+			repoName = parseRepoName(name, prefixAgent)
 		default:
 			continue
 		}
@@ -77,10 +107,32 @@ func parseRepoName(sessionName, prefix string) string {
 	return rest[:lastDash]
 }
 
+// Session name prefixes used by spawnTmuxSession and recovery.
+const (
+	prefixTerminal = "term-"
+	prefixAgent    = "mashed-"
+)
+
+// Wails event names for terminal session lifecycle.
+const (
+	eventSessionAdded   = "terminal:session:added"
+	eventSessionRemoved = "terminal:session:removed"
+)
+
 func (a *App) registerSession(session domain.TerminalSession) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.terminalSessions[session.SessionName] = session
+}
+
+// deregisterSession removes a session from the registry by name.
+func (a *App) deregisterSession(sessionName string) {
+	a.mu.Lock()
+	delete(a.terminalSessions, sessionName)
+	a.mu.Unlock()
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, eventSessionRemoved, sessionName)
+	}
 }
 
 // ListRepoSessions returns all live terminal sessions for the given repo path.
@@ -138,19 +190,15 @@ func (a *App) ListRepoSessions(repoPath string) []domain.TerminalSession {
 func (a *App) KillTerminalSession(sessionName string) error {
 	a.mu.Lock()
 	_, exists := a.terminalSessions[sessionName]
+	a.mu.Unlock()
 	if !exists {
-		a.mu.Unlock()
 		return fmt.Errorf("session %q not found in registry", sessionName)
 	}
-	delete(a.terminalSessions, sessionName)
-	a.mu.Unlock()
 
 	if err := exec.Command("tmux", "kill-session", "-t", sessionName).Run(); err != nil {
 		log.Printf("tmux kill-session %s (may already be dead): %v", sessionName, err)
 	}
 
-	if a.ctx != nil {
-		runtime.EventsEmit(a.ctx, "terminal:session:removed", sessionName)
-	}
+	a.deregisterSession(sessionName)
 	return nil
 }

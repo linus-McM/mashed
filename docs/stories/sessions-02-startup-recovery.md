@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** S
 **Depends On:** sessions-01
-**Status:** ready
+**Status:** done
 
 ## Description
 
