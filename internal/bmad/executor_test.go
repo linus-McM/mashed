@@ -2,8 +2,11 @@ package bmad
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -459,6 +462,215 @@ func TestStartWorkflow_WorkflowNotFound(t *testing.T) {
 	h := newHarness(t)
 	_, err := h.executor.StartWorkflow("nonexistent", "/tmp", "sonnet")
 	assert.True(t, errors.Is(err, ErrWorkflowNotFound))
+}
+
+// ── GetExecution returns copy ──
+
+// ── StoryID JSON serialization ──
+
+func TestWorkflowNode_StoryID_Serialization(t *testing.T) {
+	tests := []struct {
+		name     string
+		node     WorkflowNode
+		wantJSON string // substring to check in JSON
+		noJSON   string // substring that must NOT appear
+	}{
+		{
+			name: "with storyId",
+			node: WorkflowNode{
+				ID: "n1", ProcessID: "bmad-brainstorming", Label: "A",
+				Position: Position{X: 0, Y: 0}, Status: NodePending,
+				Config: map[string]string{}, StoryID: "1-2-dashboard",
+			},
+			wantJSON: `"storyId":"1-2-dashboard"`,
+		},
+		{
+			name: "without storyId (omitempty)",
+			node: WorkflowNode{
+				ID: "n2", ProcessID: "bmad-brainstorming", Label: "B",
+				Position: Position{X: 0, Y: 0}, Status: NodePending,
+				Config: map[string]string{},
+			},
+			noJSON: `"storyId"`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(tt.node)
+			require.NoError(t, err)
+			jsonStr := string(data)
+
+			if tt.wantJSON != "" {
+				assert.Contains(t, jsonStr, tt.wantJSON)
+			}
+			if tt.noJSON != "" {
+				assert.NotContains(t, jsonStr, tt.noJSON)
+			}
+
+			// Round-trip
+			var decoded WorkflowNode
+			err = json.Unmarshal(data, &decoded)
+			require.NoError(t, err)
+			assert.Equal(t, tt.node.StoryID, decoded.StoryID)
+		})
+	}
+}
+
+func TestWorkflowNode_StoryID_BackwardCompat(t *testing.T) {
+	// JSON without storyId field should deserialize without error.
+	jsonStr := `{"id":"n1","processId":"p1","label":"A","position":{"x":0,"y":0},"status":"pending","config":{},"tmuxTarget":""}`
+	var node WorkflowNode
+	err := json.Unmarshal([]byte(jsonStr), &node)
+	require.NoError(t, err)
+	assert.Empty(t, node.StoryID)
+}
+
+// ── completeNode auto-advances story status ──
+
+func TestCompleteNode_WithStoryID_AdvancesStory(t *testing.T) {
+	h := newHarness(t)
+	h.executor.SetCommandRunner(successRunner())
+
+	// Create sprint YAML in a temp repo.
+	repoDir := createSprintYAMLForExec(t)
+
+	// Save a workflow with a node that has a StoryID.
+	wf := WorkflowDef{
+		ID:   "wf-story",
+		Name: "Story Workflow",
+		Nodes: []WorkflowNode{
+			{ID: "A", ProcessID: "bmad-brainstorming", Label: "A", Position: Position{X: 0, Y: 0}, Status: NodePending, Config: map[string]string{}, StoryID: "1-2-dashboard"},
+		},
+		Edges:     []WorkflowEdge{},
+		CreatedAt: "2026-04-07T00:00:00Z",
+		UpdatedAt: "2026-04-07T00:00:00Z",
+	}
+	require.NoError(t, h.storage.SaveWorkflow(wf))
+
+	exec, err := h.executor.StartWorkflow("wf-story", repoDir, "sonnet")
+	require.NoError(t, err)
+
+	// Wait for completion.
+	require.Eventually(t, func() bool {
+		ex, _ := h.executor.GetExecution(exec.ID)
+		return ex != nil && ex.Status == ExecComplete
+	}, 5*time.Second, 50*time.Millisecond)
+
+	// Verify sprint event was emitted.
+	sprintEvents := h.eventsByName("bmad:sprint:updated")
+	require.NotEmpty(t, sprintEvents, "should emit bmad:sprint:updated event")
+	eventData, ok := sprintEvents[0].data.(map[string]string)
+	require.True(t, ok)
+	assert.Equal(t, "1-2-dashboard", eventData["storyId"])
+	assert.Equal(t, "in-progress", eventData["status"])
+
+	// Verify the story status was actually updated in the YAML file.
+	result, err := ParseSprintStatus(repoDir)
+	require.NoError(t, err)
+	require.Len(t, result.Epics, 1)
+	// 1-2-dashboard was "backlog", should now be "in-progress"
+	found := false
+	for _, story := range result.Epics[0].Stories {
+		if story.ID == "1-2-dashboard" {
+			assert.Equal(t, StoryInProgress, story.Status)
+			found = true
+		}
+	}
+	assert.True(t, found, "story 1-2-dashboard should exist in sprint status")
+}
+
+func TestCompleteNode_WithoutStoryID_NoSprintEvent(t *testing.T) {
+	h := newHarness(t)
+	h.executor.SetCommandRunner(successRunner())
+	wfID := saveThreeNodeWorkflow(t, h.storage)
+
+	exec, err := h.executor.StartWorkflow(wfID, "/tmp/repo", "sonnet")
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool {
+		ex, _ := h.executor.GetExecution(exec.ID)
+		return ex != nil && ex.Status == ExecComplete
+	}, 5*time.Second, 50*time.Millisecond)
+
+	// No sprint events should be emitted for nodes without storyID.
+	sprintEvents := h.eventsByName("bmad:sprint:updated")
+	assert.Empty(t, sprintEvents, "should NOT emit bmad:sprint:updated for nodes without storyID")
+}
+
+func TestFailNode_WithStoryID_NoSprintUpdate(t *testing.T) {
+	h := newHarness(t)
+	h.executor.SetCommandRunner(failRunner())
+
+	// Create sprint YAML.
+	repoDir := createSprintYAMLForExec(t)
+
+	wf := WorkflowDef{
+		ID:   "wf-story-fail",
+		Name: "Story Fail Workflow",
+		Nodes: []WorkflowNode{
+			{ID: "A", ProcessID: "bmad-brainstorming", Label: "A", Position: Position{X: 0, Y: 0}, Status: NodePending, Config: map[string]string{}, StoryID: "1-2-dashboard"},
+		},
+		Edges:     []WorkflowEdge{},
+		CreatedAt: "2026-04-07T00:00:00Z",
+		UpdatedAt: "2026-04-07T00:00:00Z",
+	}
+	require.NoError(t, h.storage.SaveWorkflow(wf))
+
+	exec, err := h.executor.StartWorkflow("wf-story-fail", repoDir, "sonnet")
+	require.NoError(t, err)
+
+	// Wait for pause (failure causes pause).
+	require.Eventually(t, func() bool {
+		ex, _ := h.executor.GetExecution(exec.ID)
+		return ex != nil && ex.Status == ExecPaused
+	}, 5*time.Second, 50*time.Millisecond)
+
+	// Verify node failed.
+	ex, _ := h.executor.GetExecution(exec.ID)
+	assert.Equal(t, NodeFailed, ex.Nodes[0].Status)
+
+	// No sprint events should be emitted on failure.
+	sprintEvents := h.eventsByName("bmad:sprint:updated")
+	assert.Empty(t, sprintEvents, "should NOT emit bmad:sprint:updated when node fails")
+
+	// Verify story status unchanged in YAML.
+	result, err := ParseSprintStatus(repoDir)
+	require.NoError(t, err)
+	for _, story := range result.Epics[0].Stories {
+		if story.ID == "1-2-dashboard" {
+			assert.Equal(t, StoryBacklog, story.Status, "story status should remain unchanged on failure")
+		}
+	}
+
+	// Cleanup: stop the paused execution.
+	h.executor.StopWorkflow(exec.ID)
+}
+
+// createSprintYAMLForExec creates a sprint-status.yaml in a temp dir for executor tests.
+func createSprintYAMLForExec(t *testing.T) string {
+	t.Helper()
+	content := `generated: "2026-04-07T10:00:00Z"
+last_updated: "2026-04-07T12:00:00Z"
+project: "mashed"
+project_key: "MSHD"
+tracking_system: "github"
+story_location: "docs/stories"
+development_status:
+  epic-1: in-progress
+  1-1-user-auth: done
+  1-2-dashboard: backlog
+  1-3-settings: backlog
+`
+	repoDir := t.TempDir()
+	dir := filepath.Join(repoDir, "_bmad-output", "implementation-artifacts")
+	require.NoError(t, os.MkdirAll(dir, 0755))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "sprint-status.yaml"),
+		[]byte(content),
+		0644,
+	))
+	return repoDir
 }
 
 // ── GetExecution returns copy ──

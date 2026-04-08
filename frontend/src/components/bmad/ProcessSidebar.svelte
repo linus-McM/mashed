@@ -1,10 +1,12 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { ChevronDown, ChevronRight, Trash2 } from 'lucide-svelte';
+  import SprintPanel from './SprintPanel.svelte';
 
   export let processes = [];
   export let templates = [];
   export let savedWorkflows = [];
+  export let sprintStatus = null;
 
   const dispatch = createEventDispatcher();
 
@@ -53,6 +55,7 @@
     <button class="tab" class:active={activeTab === 'processes'} on:click={() => activeTab = 'processes'}>Processes</button>
     <button class="tab" class:active={activeTab === 'templates'} on:click={() => activeTab = 'templates'}>Templates</button>
     <button class="tab" class:active={activeTab === 'saved'} on:click={() => activeTab = 'saved'}>Saved</button>
+    <button class="tab" class:active={activeTab === 'sprint'} on:click={() => activeTab = 'sprint'}>Sprint</button>
   </div>
 
   <div class="tab-content">
@@ -129,6 +132,9 @@
           <div class="empty-state">No saved workflows</div>
         {/if}
       </div>
+
+    {:else if activeTab === 'sprint'}
+      <SprintPanel {sprintStatus} />
     {/if}
   </div>
 </div>

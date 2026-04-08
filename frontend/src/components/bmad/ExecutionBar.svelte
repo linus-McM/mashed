@@ -1,10 +1,10 @@
 <script>
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
   import { Play, Pause, Square, RotateCcw } from 'lucide-svelte';
-  import { ListRepoChoices } from '../../../wailsjs/go/main/App.js';
 
   export let executionStatus = 'idle';
   export let nodeProgress = { completed: 0, total: 0 };
+  export let repoPath = '';
 
   const dispatch = createEventDispatcher();
 
@@ -14,25 +14,16 @@
     'claude-haiku-3.5',
   ];
 
-  let repoChoices = [];
-  let selectedRepo = '';
   let selectedModel = models[0];
 
-  onMount(async () => {
-    try {
-      repoChoices = await ListRepoChoices();
-      if (repoChoices.length > 0) {
-        selectedRepo = repoChoices[0].path || repoChoices[0];
-      }
-    } catch {}
-  });
+  $: repoName = repoPath ? repoPath.split('/').pop() : 'No repo';
 
   $: isIdle = executionStatus === 'idle';
   $: isRunning = executionStatus === 'running';
   $: isPaused = executionStatus === 'paused';
   $: isDone = executionStatus === 'complete' || executionStatus === 'failed';
 
-  $: runEnabled = isIdle || isPaused || isDone;
+  $: runEnabled = (isIdle || isPaused || isDone) && repoPath;
   $: pauseEnabled = isRunning;
   $: stopEnabled = isRunning || isPaused;
 
@@ -40,21 +31,16 @@
     if (isPaused) {
       dispatch('resume');
     } else {
-      dispatch('start', { repoPath: selectedRepo, model: selectedModel });
+      dispatch('start', { model: selectedModel });
     }
   }
 </script>
 
 <div class="execution-bar">
   <div class="selectors">
-    <select class="bar-select" bind:value={selectedRepo} disabled={isRunning || isPaused}>
-      {#each repoChoices as repo}
-        <option value={repo.path || repo}>{repo.name || repo}</option>
-      {/each}
-      {#if repoChoices.length === 0}
-        <option value="">No repos</option>
-      {/if}
-    </select>
+    <div class="repo-label" title={repoPath}>
+      {repoName}
+    </div>
 
     <select class="bar-select" bind:value={selectedModel} disabled={isRunning || isPaused}>
       {#each models as m}
@@ -144,6 +130,20 @@
 
   .bar-select:focus { border-color: var(--accent-green); }
   .bar-select:disabled { opacity: 0.5; }
+
+  .repo-label {
+    padding: 3px 6px;
+    background: var(--bg-deepest);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
   .controls {
     display: flex;

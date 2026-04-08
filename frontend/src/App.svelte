@@ -8,6 +8,7 @@
   import SpawnAgent from './views/SpawnAgent.svelte';
   import Settings from './views/Settings.svelte';
   import WorkflowBuilder from './views/WorkflowBuilder.svelte';
+  import RepoPickerModal from './components/bmad/RepoPickerModal.svelte';
   import { Hexagon } from 'lucide-svelte';
   import TitleBar from './components/TitleBar.svelte';
   import { applyTheme } from './lib/stores/theme.js';
@@ -18,6 +19,8 @@
   let selectedAgent = null;
   let notifications = [];
   let showSpawnModal = false;
+  let showRepoPicker = false;
+  let builderRepoPath = '';
 
   onMount(async () => {
     const cfg = await GetConfig();
@@ -110,12 +113,20 @@
   }
 
   function openWorkflows() {
+    showRepoPicker = true;
+  }
+
+  function onRepoSelected(e) {
+    builderRepoPath = e.detail.path;
+    showRepoPicker = false;
     currentView = 'workflows';
   }
 
   function handleKeydown(e) {
     if (e.key === 'Escape') {
-      if (showSpawnModal) {
+      if (showRepoPicker) {
+        showRepoPicker = false;
+      } else if (showSpawnModal) {
         showSpawnModal = false;
       } else if (currentView === 'detail' || currentView === 'settings' || currentView === 'workflows') {
         goBack();
@@ -152,11 +163,18 @@
       on:spawn={() => showSpawnModal = true}
     />
   {:else if currentView === 'workflows'}
-    <WorkflowBuilder on:back={goBack} />
+    <WorkflowBuilder repoPath={builderRepoPath} on:back={goBack} />
   {:else if currentView === 'settings'}
     <Settings on:back={goBack} />
   {:else}
     <AgentDetail agent={selectedAgent} on:back={goBack} />
+  {/if}
+
+  {#if showRepoPicker}
+    <RepoPickerModal
+      on:select={onRepoSelected}
+      on:cancel={() => showRepoPicker = false}
+    />
   {/if}
 
   {#if showSpawnModal}

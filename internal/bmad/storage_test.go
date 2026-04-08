@@ -1,6 +1,7 @@
 package bmad
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -226,6 +227,147 @@ func TestNewStorage_CreatesDirectories(t *testing.T) {
 	info, err = os.Stat(s.agentDir)
 	require.NoError(t, err)
 	assert.True(t, info.IsDir())
+}
+
+// ── Overwrite existing workflow ──
+
+// ── Helper with RepoPath ──
+
+func sampleWorkflowWithRepo(id, repoPath string) WorkflowDef {
+	wf := sampleWorkflow(id)
+	wf.RepoPath = repoPath
+	return wf
+}
+
+// ── ListWorkflowsByRepo ──
+
+func TestListWorkflowsByRepo(t *testing.T) {
+	tests := []struct {
+		name      string
+		setup     func(s *Storage)
+		repoPath  string
+		wantCount int
+		wantIDs   []string
+	}{
+		{
+			name: "filters by repo path correctly",
+			setup: func(s *Storage) {
+				require.NoError(t, s.SaveWorkflow(sampleWorkflowWithRepo("wf-a1", "/repo-a")))
+				require.NoError(t, s.SaveWorkflow(sampleWorkflowWithRepo("wf-a2", "/repo-a")))
+				require.NoError(t, s.SaveWorkflow(sampleWorkflowWithRepo("wf-b1", "/repo-b")))
+			},
+			repoPath:  "/repo-a",
+			wantCount: 2,
+			wantIDs:   []string{"wf-a1", "wf-a2"},
+		},
+		{
+			name: "empty RepoPath workflows excluded from repo filter",
+			setup: func(s *Storage) {
+				require.NoError(t, s.SaveWorkflow(sampleWorkflowWithRepo("wf-r1", "/repo-a")))
+				require.NoError(t, s.SaveWorkflow(sampleWorkflow("wf-nopath"))) // no RepoPath
+			},
+			repoPath:  "/repo-a",
+			wantCount: 1,
+			wantIDs:   []string{"wf-r1"},
+		},
+		{
+			name: "trailing slash normalization",
+			setup: func(s *Storage) {
+				require.NoError(t, s.SaveWorkflow(sampleWorkflowWithRepo("wf-trail", "/repo-a/")))
+				require.NoError(t, s.SaveWorkflow(sampleWorkflowWithRepo("wf-noslash", "/repo-a")))
+			},
+			repoPath:  "/repo-a/",
+			wantCount: 2,
+			wantIDs:   []string{"wf-noslash", "wf-trail"},
+		},
+		{
+			name: "no matches returns empty slice",
+			setup: func(s *Storage) {
+				require.NoError(t, s.SaveWorkflow(sampleWorkflowWithRepo("wf-x", "/repo-x")))
+			},
+			repoPath:  "/repo-y",
+			wantCount: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := newTestStorage(t)
+			tt.setup(s)
+
+			got, err := s.ListWorkflowsByRepo(tt.repoPath)
+			require.NoError(t, err)
+			assert.Len(t, got, tt.wantCount)
+
+			if tt.wantIDs != nil {
+				var gotIDs []string
+				for _, wf := range got {
+					gotIDs = append(gotIDs, wf.ID)
+				}
+				assert.ElementsMatch(t, tt.wantIDs, gotIDs)
+			}
+		})
+	}
+}
+
+func TestListWorkflowsByRepo_ListWorkflowsStillReturnsAll(t *testing.T) {
+	s := newTestStorage(t)
+	require.NoError(t, s.SaveWorkflow(sampleWorkflowWithRepo("wf-a", "/repo-a")))
+	require.NoError(t, s.SaveWorkflow(sampleWorkflowWithRepo("wf-b", "/repo-b")))
+	require.NoError(t, s.SaveWorkflow(sampleWorkflow("wf-none"))) // no RepoPath
+
+	all, err := s.ListWorkflows()
+	require.NoError(t, err)
+	assert.Len(t, all, 3, "ListWorkflows should return all workflows regardless of RepoPath")
+}
+
+// ── RepoPath Serialization ──
+
+func TestWorkflowDef_RepoPathSerialization(t *testing.T) {
+	t.Run("RepoPath persists through save/load cycle", func(t *testing.T) {
+		s := newTestStorage(t)
+		wf := sampleWorkflowWithRepo("wf-persist", "/my/project")
+		require.NoError(t, s.SaveWorkflow(wf))
+
+		loaded, err := s.LoadWorkflow("wf-persist")
+		require.NoError(t, err)
+		assert.Equal(t, "/my/project", loaded.RepoPath)
+	})
+
+	t.Run("backward compat: JSON without repoPath loads fine", func(t *testing.T) {
+		s := newTestStorage(t)
+		// Write JSON without repoPath field (simulating old data)
+		oldJSON := `{
+			"id": "wf-legacy",
+			"name": "Legacy Workflow",
+			"description": "No repoPath field",
+			"nodes": [],
+			"edges": [],
+			"isTemplate": false,
+			"createdAt": "2026-04-01T00:00:00Z",
+			"updatedAt": "2026-04-01T00:00:00Z"
+		}`
+		legacyPath := filepath.Join(s.workflowDir, "wf-legacy.json")
+		require.NoError(t, os.WriteFile(legacyPath, []byte(oldJSON), 0644))
+
+		loaded, err := s.LoadWorkflow("wf-legacy")
+		require.NoError(t, err)
+		assert.Equal(t, "", loaded.RepoPath, "RepoPath should be empty string for legacy data")
+	})
+
+	t.Run("RepoPath omitted from JSON when empty", func(t *testing.T) {
+		wf := sampleWorkflow("wf-empty-repo")
+		data, err := json.Marshal(wf)
+		require.NoError(t, err)
+		assert.NotContains(t, string(data), "repoPath", "empty RepoPath should be omitted via omitempty")
+	})
+
+	t.Run("RepoPath present in JSON when set", func(t *testing.T) {
+		wf := sampleWorkflowWithRepo("wf-with-repo", "/some/path")
+		data, err := json.Marshal(wf)
+		require.NoError(t, err)
+		assert.Contains(t, string(data), `"repoPath":"/some/path"`)
+	})
 }
 
 // ── Overwrite existing workflow ──

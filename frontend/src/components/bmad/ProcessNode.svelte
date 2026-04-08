@@ -33,6 +33,10 @@
   $: outputs = process.outputs || [];
   $: status = data.status || 'pending';
   $: label = data.label || process.name || 'Process';
+  $: storyId = data.storyId || '';
+  $: storyStatus = data.storyStatus || '';
+
+  import { storyStatusColors } from '../../lib/sprintColors.js';
 </script>
 
 <div class="process-node" class:selected class:running={status === 'running'}>
@@ -78,6 +82,13 @@
         <span class="status-text">skipped</span>
       {/if}
     </div>
+
+    {#if storyId}
+      <div class="story-badge">
+        <span class="story-badge-dot" style="background: {storyStatusColors[storyStatus] || storyStatusColors.backlog}" />
+        <span class="story-badge-id">{storyId}</span>
+      </div>
+    {/if}
   </div>
 
   <Handle type="target" position={Position.Left} />
@@ -98,7 +109,7 @@
 
   .process-node.selected {
     border-color: var(--accent-green);
-    box-shadow: 0 0 0 1px var(--accent-green);
+    box-shadow: 0 0 0 2px rgba(0, 229, 122, 0.35);
   }
 
   .process-node.running {
@@ -222,5 +233,29 @@
     font-size: 10px;
     color: var(--text-muted);
     line-height: 1;
+  }
+
+  .story-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 0 0;
+    border-top: 1px solid var(--border-subtle);
+    margin-top: 2px;
+  }
+
+  .story-badge-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .story-badge-id {
+    font-size: 8px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>

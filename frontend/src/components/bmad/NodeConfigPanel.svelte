@@ -87,6 +87,16 @@
         </select>
       </div>
 
+      {#if node?.data?.storyId}
+        <div class="field">
+          <label class="field-label">Linked Story</label>
+          <div class="story-link">
+            <span class="story-link-id">{node.data.storyId}</span>
+            <span class="story-link-status">{node.data.storyStatus || 'unknown'}</span>
+          </div>
+        </div>
+      {/if}
+
       {#if hasTerminal}
         <button class="terminal-btn" on:click={() => dispatch('open-terminal', tmuxTarget)}>
           <Terminal size={13} />
@@ -224,5 +234,25 @@
   .terminal-btn:hover {
     background: var(--bg-active);
     border-color: var(--accent-green);
+  }
+
+  .story-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 6px;
+    background: var(--bg-deepest);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+
+  .story-link-id { color: var(--text-primary); }
+
+  .story-link-status {
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 9px;
   }
 </style>

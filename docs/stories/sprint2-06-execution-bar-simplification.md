@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** S
 **Depends On:** Story 4
-**Status:** ready
+**Status:** done
 
 ## Description
 

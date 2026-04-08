@@ -1590,6 +1590,14 @@ func (a *App) GetBmadProcessesByPhase(phase string) []bmad.ProcessDef {
 	return bmad.ProcessesByPhase(bmad.BmadPhase(phase))
 }
 
+// ListBmadWorkflowsByRepo returns workflows scoped to a specific repository path.
+func (a *App) ListBmadWorkflowsByRepo(repoPath string) ([]bmad.WorkflowDef, error) {
+	if a.bmadStorage == nil {
+		return nil, fmt.Errorf("bmad storage not initialized")
+	}
+	return a.bmadStorage.ListWorkflowsByRepo(repoPath)
+}
+
 // ── BMAD Templates ──
 
 // ListBmadTemplates returns the 6 built-in workflow templates.
@@ -1598,7 +1606,7 @@ func (a *App) ListBmadTemplates() []bmad.WorkflowDef {
 }
 
 // CreateFromTemplate deep-copies a built-in template into a user workflow.
-func (a *App) CreateFromTemplate(templateID string) (bmad.WorkflowDef, error) {
+func (a *App) CreateFromTemplate(templateID, repoPath string) (bmad.WorkflowDef, error) {
 	if a.bmadStorage == nil {
 		return bmad.WorkflowDef{}, fmt.Errorf("bmad storage not initialized")
 	}
@@ -1630,11 +1638,24 @@ func (a *App) CreateFromTemplate(templateID string) (bmad.WorkflowDef, error) {
 	}
 	copy(wf.Nodes, tpl.Nodes)
 	copy(wf.Edges, tpl.Edges)
+	wf.RepoPath = repoPath
 
 	if err := a.bmadStorage.SaveWorkflow(wf); err != nil {
 		return bmad.WorkflowDef{}, fmt.Errorf("saving workflow from template: %w", err)
 	}
 	return wf, nil
+}
+
+// ── BMAD Sprint Status ──
+
+// GetSprintStatus reads and parses the sprint-status.yaml for the given repo.
+func (a *App) GetSprintStatus(repoPath string) (bmad.SprintStatus, error) {
+	return bmad.ParseSprintStatus(repoPath)
+}
+
+// UpdateStoryStatus modifies a story's status in sprint-status.yaml.
+func (a *App) UpdateStoryStatus(repoPath, storyID, newStatus string) error {
+	return bmad.UpdateStoryStatus(repoPath, storyID, newStatus)
 }
 
 // ── BMAD Execution ──

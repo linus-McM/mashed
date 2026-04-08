@@ -101,6 +101,23 @@ func (s *Storage) ListWorkflows() ([]WorkflowDef, error) {
 	return out, nil
 }
 
+// ListWorkflowsByRepo returns workflows whose RepoPath matches the given path.
+// Trailing slashes are normalized before comparison.
+func (s *Storage) ListWorkflowsByRepo(repoPath string) ([]WorkflowDef, error) {
+	all, err := s.ListWorkflows()
+	if err != nil {
+		return nil, fmt.Errorf("listing workflows by repo: %w", err)
+	}
+	repoPath = strings.TrimRight(repoPath, "/")
+	var filtered []WorkflowDef
+	for _, wf := range all {
+		if strings.TrimRight(wf.RepoPath, "/") == repoPath {
+			filtered = append(filtered, wf)
+		}
+	}
+	return filtered, nil
+}
+
 // DeleteWorkflow removes a workflow file by ID.
 func (s *Storage) DeleteWorkflow(id string) error {
 	if err := validateID(id); err != nil {

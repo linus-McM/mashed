@@ -6,17 +6,35 @@
   export let isValidConnection;
   export let onConnect;
   export let onDropProcess;
+  export let onDropStory = null;
   export let nodeTypes = {};
   export let onNodeClick = null;
+  export let onNodesDelete = null;
+  export let onEdgesDelete = null;
+  export let onSelectionChange = null;
+  export let onReconnect = null;
+  export let executionStatus = 'idle';
 
   const { screenToFlowPosition } = useSvelteFlow();
+
+  $: deleteKeys = executionStatus === 'idle' ? ['Delete', 'Backspace'] : [];
 
   function onDrop(e) {
     e.preventDefault();
     const processId = e.dataTransfer.getData('application/bmad-process');
-    if (!processId) return;
-    const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-    onDropProcess(processId, position);
+    if (processId) {
+      const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      onDropProcess(processId, position);
+      return;
+    }
+    const storyJson = e.dataTransfer.getData('application/bmad-story');
+    if (storyJson && onDropStory) {
+      try {
+        const storyData = JSON.parse(storyJson);
+        const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        onDropStory(storyData, position);
+      } catch { /* invalid JSON — ignore */ }
+    }
   }
 
   function onDragOver(e) {
@@ -31,6 +49,22 @@
   function handleNodeClick(e) {
     if (onNodeClick) onNodeClick(e.detail);
   }
+
+  function handleNodesDelete(e) {
+    if (onNodesDelete) onNodesDelete(e.detail);
+  }
+
+  function handleEdgesDelete(e) {
+    if (onEdgesDelete) onEdgesDelete(e.detail);
+  }
+
+  function handleSelectionChange(e) {
+    if (onSelectionChange) onSelectionChange(e.detail);
+  }
+
+  function handleReconnect(e) {
+    if (onReconnect) onReconnect(e.detail);
+  }
 </script>
 
 <div class="flow-wrap" on:drop={onDrop} on:dragover={onDragOver}>
@@ -42,6 +76,14 @@
     {isValidConnection}
     on:connect={handleConnect}
     on:nodeclick={handleNodeClick}
+    on:nodesdelete={handleNodesDelete}
+    on:edgesdelete={handleEdgesDelete}
+    on:selectionchange={handleSelectionChange}
+    on:reconnect={handleReconnect}
+    deleteKeyCode={deleteKeys}
+    selectionKeyCode="Shift"
+    multiSelectionKeyCode="Meta"
+    edgesReconnectable
     fitView
   >
     <Controls position="bottom-right" />
@@ -114,5 +156,27 @@
 
   .flow-wrap :global(.svelte-flow__background pattern line) {
     stroke: var(--border-subtle);
+  }
+
+  /* Selected edge styling */
+  .flow-wrap :global(.svelte-flow__edge.selected .svelte-flow__edge-path) {
+    stroke: var(--accent-green);
+    stroke-width: 3;
+  }
+
+  .flow-wrap :global(.svelte-flow__edge-path:hover) {
+    stroke: var(--accent-green);
+    cursor: pointer;
+  }
+
+  /* Edge reconnection handle */
+  .flow-wrap :global(.svelte-flow__edgeupdater) {
+    cursor: grab;
+  }
+
+  /* Multi-select rectangle */
+  .flow-wrap :global(.svelte-flow__selection) {
+    background: rgba(0, 229, 122, 0.08);
+    border: 1px dashed var(--accent-green);
   }
 </style>

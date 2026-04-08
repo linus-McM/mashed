@@ -340,8 +340,20 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 func (e *Executor) completeNode(state *execState, idx int, nodeID string) {
 	state.mu.Lock()
 	state.exec.Nodes[idx].Status = NodeComplete
+	storyID := state.exec.Nodes[idx].StoryID
+	repoPath := state.exec.RepoPath
 	state.mu.Unlock()
 	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeComplete})
+
+	// Auto-advance linked sprint story status on node completion.
+	if storyID != "" && repoPath != "" {
+		targetStatus := string(StoryInProgress)
+		if err := UpdateStoryStatus(repoPath, storyID, targetStatus); err != nil {
+			fmt.Printf("bmad: failed to update story %s status: %v\n", storyID, err)
+		} else {
+			e.emitEvent("bmad:sprint:updated", map[string]string{"storyId": storyID, "status": targetStatus})
+		}
+	}
 }
 
 func (e *Executor) failNode(state *execState, idx int, nodeID string) {

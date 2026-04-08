@@ -5,11 +5,11 @@
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import { ArrowLeft, Save } from 'lucide-svelte';
   import { EventsOn } from '../../wailsjs/runtime/runtime.js';
-  import { GetBmadProcesses, ListBmadTemplates, ListBmadWorkflows,
+  import { GetBmadProcesses, ListBmadTemplates, ListBmadWorkflowsByRepo,
            SaveBmadWorkflow, GetBmadWorkflow, CreateFromTemplate,
            DeleteBmadWorkflow, ListBmadAgents, SaveBmadAgent, DeleteBmadAgent,
            StartBmadWorkflow, PauseBmadWorkflow, ResumeBmadWorkflow, StopBmadWorkflow,
-           GetTerminalPort } from '../../wailsjs/go/main/App.js';
+           GetTerminalPort, GetSprintStatus } from '../../wailsjs/go/main/App.js';
   import Terminal from '../components/Terminal.svelte';
   import ProcessSidebar from '../components/bmad/ProcessSidebar.svelte';
   import CanvasPane from '../components/bmad/CanvasPane.svelte';
@@ -17,6 +17,9 @@
   import ExecutionBar from '../components/bmad/ExecutionBar.svelte';
   import NodeConfigPanel from '../components/bmad/NodeConfigPanel.svelte';
   import AgentConfigModal from '../components/bmad/AgentConfigModal.svelte';
+  import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
+
+  export let repoPath = '';
 
   const dispatch = createEventDispatcher();
 
@@ -29,6 +32,7 @@
   let templates = [];
   let savedWorkflows = [];
   let agents = [];
+  let sprintStatus = null;
   let currentWorkflow = null;
   let workflowName = 'Untitled Workflow';
   let saving = false;
@@ -49,14 +53,14 @@
   // Terminal modal state
   let showTerminalModal = false;
   let terminalTarget = '';
-  let terminalRepoPath = '';
+  $: terminalRepoPath = repoPath;
 
   onMount(async () => {
     try {
       [processes, templates, savedWorkflows, agents] = await Promise.all([
         GetBmadProcesses(),
         ListBmadTemplates(),
-        ListBmadWorkflows(),
+        repoPath ? ListBmadWorkflowsByRepo(repoPath) : Promise.resolve([]),
         ListBmadAgents(),
       ]);
     } catch (e) {
@@ -65,6 +69,14 @@
       templates = templates || [];
       savedWorkflows = savedWorkflows || [];
       agents = agents || [];
+    }
+
+    if (repoPath) {
+      try {
+        sprintStatus = await GetSprintStatus(repoPath);
+      } catch (e) {
+        console.warn('No sprint status for repo:', e);
+      }
     }
   });
 
@@ -89,9 +101,30 @@
     if (event?.status) executionStatus = event.status;
   });
 
+  let sprintRefreshTimer = null;
+  const cancelSprintListener = EventsOn('bmad:sprint:updated', (event) => {
+    // Update node storyStatus immediately
+    if (event?.storyId) {
+      $nodes = $nodes.map(n => {
+        if (n.data?.storyId === event.storyId) {
+          return { ...n, data: { ...n.data, storyStatus: event.status } };
+        }
+        return n;
+      });
+    }
+    // Debounce full sprint data refresh (coalesces rapid node completions)
+    clearTimeout(sprintRefreshTimer);
+    sprintRefreshTimer = setTimeout(async () => {
+      if (repoPath) {
+        try { sprintStatus = await GetSprintStatus(repoPath); } catch {}
+      }
+    }, 400);
+  });
+
   onDestroy(() => {
     if (cancelStatusListener) cancelStatusListener();
     if (cancelExecListener) cancelExecListener();
+    if (cancelSprintListener) cancelSprintListener();
   });
 
   function updateProgress() {
@@ -132,9 +165,74 @@
     $nodes = [...$nodes, newNode];
   }
 
+  function onDropStory(storyData, position) {
+    const newNode = {
+      id: `story-node-${Date.now()}`,
+      type: 'bmadProcess',
+      position,
+      data: {
+        label: storyData.storyId,
+        processId: 'bmad-dev-story',
+        storyId: storyData.storyId,
+        storyStatus: storyData.status,
+        status: 'pending',
+        config: { storyId: storyData.storyId },
+      },
+    };
+    $nodes = [...$nodes, newNode];
+  }
+
   function onNodeClick(detail) {
     const node = detail.node;
     if (node) selectedNode = node;
+  }
+
+  function onNodesDelete(deletedNodes) {
+    // Filter out running nodes — they cannot be deleted
+    const protectedIds = deletedNodes
+      .filter(n => n.data?.status === 'running')
+      .map(n => n.id);
+
+    if (protectedIds.length > 0) {
+      // Re-add protected nodes that xyflow already removed
+      const protectedNodes = deletedNodes.filter(n => protectedIds.includes(n.id));
+      $nodes = [...$nodes, ...protectedNodes];
+    }
+
+    // Clear selectedNode if it was deleted
+    if (selectedNode && deletedNodes.some(n => n.id === selectedNode.id) && !protectedIds.includes(selectedNode.id)) {
+      selectedNode = null;
+    }
+    updateProgress();
+  }
+
+  function onEdgesDelete(deletedEdges) {
+    // xyflow handles store removal; no additional state cleanup needed
+  }
+
+  function onReconnect(detail) {
+    const { oldEdge, newConnection } = detail;
+    $edges = $edges.map(e => {
+      if (e.id === oldEdge.id) {
+        return {
+          ...e,
+          source: newConnection.source,
+          target: newConnection.target,
+          sourceHandle: newConnection.sourceHandle,
+          targetHandle: newConnection.targetHandle,
+        };
+      }
+      return e;
+    });
+  }
+
+  function onSelectionChange(selection) {
+    if (selection.nodes.length === 1) {
+      selectedNode = selection.nodes[0];
+    } else if (selection.nodes.length === 0) {
+      selectedNode = null;
+    }
+    // For multi-select, keep selectedNode as null (hides NodeConfigPanel)
   }
 
   function onConfigUpdate(e) {
@@ -171,8 +269,6 @@
 
   async function onOpenTerminal(e) {
     terminalTarget = e.detail;
-    // Get the repo path from the current workflow execution context
-    terminalRepoPath = '';
     showTerminalModal = true;
   }
 
@@ -183,6 +279,7 @@
         id: currentWorkflow?.id || `wf-${Date.now()}`,
         name: workflowName,
         description: '',
+        repoPath: repoPath,
         nodes: $nodes.map(n => ({
           id: n.id,
           processId: n.data.processId,
@@ -191,6 +288,7 @@
           status: n.data.status || 'pending',
           config: n.data.config || {},
           tmuxTarget: n.data.tmuxTarget || '',
+          storyId: n.data.storyId || '',
         })),
         edges: $edges.map(e => ({ id: e.id, source: e.source, target: e.target })),
         isTemplate: false,
@@ -200,7 +298,7 @@
       };
       await SaveBmadWorkflow(wf);
       currentWorkflow = wf;
-      savedWorkflows = await ListBmadWorkflows();
+      savedWorkflows = repoPath ? await ListBmadWorkflowsByRepo(repoPath) : [];
     } catch (e) {
       console.error('Failed to save workflow:', e);
     }
@@ -219,6 +317,8 @@
         status: n.status || 'pending',
         config: n.config || {},
         tmuxTarget: n.tmuxTarget || '',
+        storyId: n.storyId || '',
+        storyStatus: n.storyStatus || '',
       },
     }));
     $edges = (wf.edges || []).map(e => ({
@@ -245,7 +345,7 @@
   async function useTemplate(e) {
     const templateId = e.detail;
     try {
-      const wf = await CreateFromTemplate(templateId);
+      const wf = await CreateFromTemplate(templateId, repoPath);
       currentWorkflow = wf;
       workflowName = wf.name;
       loadNodesEdges(wf);
@@ -258,7 +358,7 @@
     const wfId = e.detail;
     try {
       await DeleteBmadWorkflow(wfId);
-      savedWorkflows = await ListBmadWorkflows();
+      savedWorkflows = repoPath ? await ListBmadWorkflowsByRepo(repoPath) : [];
       if (currentWorkflow?.id === wfId) {
         currentWorkflow = null;
         workflowName = 'Untitled Workflow';
@@ -285,7 +385,7 @@
   }
 
   async function handleExecStart(e) {
-    const { repoPath, model } = e.detail;
+    const { model } = e.detail;
     execError = '';
 
     // Auto-save before executing
@@ -305,9 +405,8 @@
     nodeProgress = { completed: 0, total: $nodes.length };
 
     try {
-      executionId = await StartBmadWorkflow(currentWorkflow.id, repoPath, model);
+      executionId = await StartBmadWorkflow(currentWorkflow.id, repoPath, model || 'claude-opus-4-6');
       executionStatus = 'running';
-      terminalRepoPath = repoPath;
     } catch (err) {
       execError = String(err);
       executionStatus = 'idle';
@@ -348,12 +447,14 @@
     {processes}
     {templates}
     {savedWorkflows}
+    {sprintStatus}
     on:use-template={useTemplate}
     on:load-workflow={loadWorkflow}
     on:delete-workflow={deleteWorkflow}
   />
 
   <div class="canvas-area">
+    <RepoContextBar {repoPath} {sprintStatus} />
     <div class="toolbar">
       <button class="toolbar-btn back-btn" on:click={() => dispatch('back')} title="Back to feed">
         <ArrowLeft size={14} />
@@ -383,7 +484,13 @@
           {isValidConnection}
           {onConnect}
           {onDropProcess}
+          {onDropStory}
           {onNodeClick}
+          {onNodesDelete}
+          {onEdgesDelete}
+          {onSelectionChange}
+          {onReconnect}
+          {executionStatus}
         >
           <div slot="empty-hint">
             {#if $nodes.length === 0 && !currentWorkflow}
@@ -412,6 +519,7 @@
     <ExecutionBar
       {executionStatus}
       {nodeProgress}
+      {repoPath}
       on:start={handleExecStart}
       on:pause={handleExecPause}
       on:resume={handleExecResume}

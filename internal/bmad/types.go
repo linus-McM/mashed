@@ -13,7 +13,10 @@ var (
 	ErrExecNotFound    = errors.New("bmad: execution not found")
 	ErrExecNotRunning  = errors.New("bmad: execution not running")
 	ErrExecNotPaused   = errors.New("bmad: execution not paused")
-	ErrCyclicWorkflow  = errors.New("bmad: workflow contains a cycle")
+	ErrCyclicWorkflow      = errors.New("bmad: workflow contains a cycle")
+	ErrSprintFileNotFound  = errors.New("bmad: sprint status file not found")
+	ErrSprintFileMalformed = errors.New("bmad: sprint status file is malformed")
+	ErrStoryNotFound       = errors.New("bmad: story not found in sprint status")
 )
 
 // BmadPhase groups processes into lifecycle stages.
@@ -74,6 +77,7 @@ type WorkflowNode struct {
 	Status     WorkflowNodeStatus `json:"status"`
 	Config     map[string]string  `json:"config"`
 	TmuxTarget string             `json:"tmuxTarget"`
+	StoryID    string             `json:"storyId,omitempty"`
 }
 
 // Position is a 2D coordinate for canvas placement.
@@ -94,6 +98,7 @@ type WorkflowDef struct {
 	ID          string         `json:"id"`
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
+	RepoPath    string         `json:"repoPath,omitempty"`
 	Nodes       []WorkflowNode `json:"nodes"`
 	Edges       []WorkflowEdge `json:"edges"`
 	IsTemplate  bool           `json:"isTemplate"`

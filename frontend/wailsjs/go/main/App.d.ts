@@ -4,7 +4,7 @@ import {bmad} from '../models';
 import {domain} from '../models';
 import {main} from '../models';
 
-export function CreateFromTemplate(arg1:string):Promise<bmad.WorkflowDef>;
+export function CreateFromTemplate(arg1:string,arg2:string):Promise<bmad.WorkflowDef>;
 
 export function DeleteBmadAgent(arg1:string):Promise<void>;
 
@@ -35,6 +35,8 @@ export function GetNotifications():Promise<Array<domain.NotificationEvent>>;
 export function GetSavedThemes():Promise<string>;
 
 export function GetScopedDiff(arg1:string):Promise<domain.ScopedDiff>;
+
+export function GetSprintStatus(arg1:string):Promise<bmad.SprintStatus>;
 
 export function GetTerminalPort():Promise<number>;
 
@@ -71,6 +73,8 @@ export function ListBmadAgents():Promise<Array<bmad.BmadAgentConfig>>;
 export function ListBmadTemplates():Promise<Array<bmad.WorkflowDef>>;
 
 export function ListBmadWorkflows():Promise<Array<bmad.WorkflowDef>>;
+
+export function ListBmadWorkflowsByRepo(arg1:string):Promise<Array<bmad.WorkflowDef>>;
 
 export function ListLocalFonts():Promise<Array<main.LocalFontFamily>>;
 

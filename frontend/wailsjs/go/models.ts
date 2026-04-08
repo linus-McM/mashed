@@ -235,6 +235,100 @@ export namespace bmad {
 		    return a;
 		}
 	}
+	export class SprintStory {
+	    id: string;
+	    epicId: string;
+	    status: string;
+	    sequence: number;
+
+	    static createFrom(source: any = {}) {
+	        return new SprintStory(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.epicId = source["epicId"];
+	        this.status = source["status"];
+	        this.sequence = source["sequence"];
+	    }
+	}
+	export class SprintEpic {
+	    id: string;
+	    status: string;
+	    stories: SprintStory[];
+
+	    static createFrom(source: any = {}) {
+	        return new SprintEpic(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.status = source["status"];
+	        this.stories = this.convertValues(source["stories"], SprintStory);
+	    }
+
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class SprintStatus {
+	    generated: string;
+	    lastUpdated: string;
+	    project: string;
+	    projectKey: string;
+	    trackingSystem: string;
+	    storyLocation: string;
+	    epics: SprintEpic[];
+
+	    static createFrom(source: any = {}) {
+	        return new SprintStatus(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.generated = source["generated"];
+	        this.lastUpdated = source["lastUpdated"];
+	        this.project = source["project"];
+	        this.projectKey = source["projectKey"];
+	        this.trackingSystem = source["trackingSystem"];
+	        this.storyLocation = source["storyLocation"];
+	        this.epics = this.convertValues(source["epics"], SprintEpic);
+	    }
+
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 
 }
 

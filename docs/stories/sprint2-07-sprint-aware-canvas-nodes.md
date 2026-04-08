@@ -4,7 +4,7 @@
 **Domain:** fullstack
 **Estimated Complexity:** L
 **Depends On:** Story 2, Story 5
-**Status:** ready
+**Status:** done
 
 ## Description
 
