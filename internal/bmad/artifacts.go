@@ -66,14 +66,12 @@ func VerifyArtifacts(repoPath string, outputNames []string) (found, missing []st
 			continue
 		}
 		_, err := os.Stat(p)
-		switch {
-		case err == nil:
+		if err == nil {
 			found = append(found, name)
-		case os.IsNotExist(err):
-			missing = append(missing, name)
-		default:
-			// Permission denied, symlink loops, etc. — treat as missing in a
-			// desktop app context where partial results are acceptable.
+		} else {
+			// Intentionally treats all errors as missing — both os.IsNotExist
+			// and other failures (permission denied, symlink loops). In a desktop
+			// app context, partial results are acceptable.
 			missing = append(missing, name)
 		}
 	}
