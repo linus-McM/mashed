@@ -91,35 +91,52 @@ with:
 
 ---
 
-## 3. Markdown Editor Options
+## 3. Markdown Editor: Milkdown Crepe (DECIDED)
 
-### Recommendation: **Milkdown** (Primary) or **Tiptap via svelte-tiptap** (Alternative)
+### Decision: **Milkdown Crepe** (`@milkdown/crepe`)
 
-| Criterion | Milkdown | Tiptap + svelte-tiptap | CodeMirror 6 + markdown |
-|---|---|---|---|
-| Svelte support | Framework-agnostic headless design; community Svelte wrapper | Community `svelte-tiptap` package | Direct — CM6 is vanilla JS |
-| Editing mode | WYSIWYG (ProseMirror) | WYSIWYG (ProseMirror) | Source-only (closest to Obsidian's actual editor) |
-| Plugin ecosystem | Slash commands, tooltips, math, diagrams | 150+ extensions; markdown ext available | CM6 extensions (syntax, fold, autocomplete) |
-| Bundle size (gzip) | ~40-50 kB core + plugins | ~30-45 kB core | ~25-30 kB |
-| Maintenance | Active (MIT) | Active, well-funded (MIT core) | Active (MIT) |
-| "Obsidian feel" | Rich WYSIWYG, less Obsidian-like | Rich WYSIWYG, less Obsidian-like | Most Obsidian-like (Obsidian uses CM6 internally) |
+Full WYSIWYG markdown editing — no raw source view, no split pane. Users edit and view rendered markdown directly, like Notion or Obsidian Live Preview.
 
-**Trade-off decision needed:**
+### Why Crepe
 
-- **If "Obsidian-like" means WYSIWYG rendering** (headers render large, links are clickable, images inline): Use **Milkdown** or **Tiptap**. These give a Notion/Obsidian Live Preview experience.
+- **Single package**: `npm install @milkdown/crepe` — batteries-included editor built on Milkdown
+- **WYSIWYG**: Headers render large, links are clickable, images inline, code blocks have syntax highlighting
+- **Simple API**: Mount with `new Crepe({ root, defaultValue })`, destroy with `crepe.destroy()`
+- **Plugin system**: Slash commands, tables, math (KaTeX), diagrams (Mermaid) available via Milkdown plugins
+- **Framework-agnostic**: No Svelte adapter needed — mount to a DOM node, Svelte manages lifecycle
+- **Bundle**: ~40-50 kB gzip (core + theme), lazy-loaded on first `.md` file
+- **License**: MIT
+- **Active maintenance**: Milkdown ecosystem actively maintained
 
-- **If "Obsidian-like" means source editing with live preview** (what Obsidian actually does internally): Use **CodeMirror 6** with `@codemirror/lang-markdown` + `@lezer/markdown`. This is literally the same engine Obsidian uses. Bundle is smallest. You could add a split-pane preview with `markdown-it` for rendered output.
+### Integration Pattern
 
-- **If you want both modes** (source + WYSIWYG toggle): Use **Milkdown** which supports switching between markup and WYSIWYG modes via its `@milkdown/plugin-slash` and dual-mode plugins.
+```javascript
+import { Crepe } from '@milkdown/crepe';
+import '@milkdown/crepe/theme/common/style.css';
+import './crepe-mashed.css'; // custom theme bridging to mashed CSS vars
 
-### My recommendation: **CodeMirror 6 for markdown**
+const crepe = new Crepe({
+  root: container,       // DOM element
+  defaultValue: content, // markdown string from ReadFile
+});
 
-Rationale:
-1. Closest to actual Obsidian UX (same engine)
-2. Smallest bundle (~25 kB vs Monaco's ~2 MB)
-3. You already have Monaco's theme system — CM6 themes can mirror it
-4. Future option: add live preview pane without replacing the editor
-5. No framework-specific adapter needed (vanilla JS, wrap in Svelte action)
+await crepe.create();
+
+// On file switch or component destroy:
+crepe.destroy();
+```
+
+### Theme Integration
+
+Crepe uses CSS variables internally. A single `crepe-mashed.css` file maps Crepe's variables to the existing mashed design tokens (`--bg-deepest`, `--text-primary`, etc.). Theme switching works automatically — when `applyTheme()` updates `:root` CSS vars, Crepe inherits the new values with zero extra code. See Section 5.2 for details.
+
+### No Raw Source View Needed
+
+Since Crepe is WYSIWYG, the Source/Diff toggle in the editor header is irrelevant for `.md` files. The `EditorRouter` does not pass `mode` to `MarkdownEditor.svelte`. The editor header can show the file path and save status, but the mode toggle is hidden.
+
+### Getting Content for Auto-Save
+
+Crepe provides `crepe.getMarkdown()` which returns the current document as a markdown string. Wire this to the same `WriteFile` Wails binding with 800ms debounce, matching Monaco's auto-save behavior.
 
 ---
 
@@ -165,29 +182,51 @@ If users later need rotate/flip/metadata, upgrade to PhotoSwipe v5 or Viewer.js.
 
 **Enhancement:** Consider lazy-loading Monaco only when a code file is first selected (not on app startup). Currently it loads on `onMount` of MonacoEditor. With EditorRouter, it won't mount until a code file is picked.
 
-### 5.2 Markdown Editor Lazy Loading
+### 5.2 Crepe/Milkdown Lazy Loading & Theme Bridge
 
-**Approach:** Dynamic `import()` for the markdown editor module, identical to how Monaco is loaded:
+**Lazy loading:** Dynamic `import()` for Crepe, identical to how Monaco is loaded:
 
 ```javascript
 // Inside MarkdownEditor.svelte onMount
-const { EditorView } = await import('@codemirror/view');
-const { markdown } = await import('@codemirror/lang-markdown');
+const { Crepe } = await import('@milkdown/crepe');
+await import('@milkdown/crepe/theme/common/style.css');
+// crepe-mashed.css is a static import (tiny, just variable mappings)
 ```
 
-**Bundle impact:** CM6 markdown adds ~25-30 kB gzip. Since it's lazy-loaded, it doesn't affect initial app load time.
+**Bundle impact:** Crepe adds ~40-50 kB gzip. Since it's lazy-loaded, zero impact on initial app load.
+
+**Theme bridge:** A single `crepe-mashed.css` file maps Crepe's internal CSS to mashed design tokens:
+
+```css
+.crepe {
+  --crepe-color-background: var(--bg-deepest);
+  --crepe-color-surface: var(--bg-surface);
+  --crepe-color-on-surface: var(--text-primary);
+  --crepe-color-outline: var(--border-subtle);
+  --crepe-color-primary: var(--accent-green);
+  --crepe-font-code: var(--font-mono);
+  --crepe-font-default: var(--font-ui);
+  font-size: var(--text-body);
+}
+.crepe .heading { color: var(--accent-purple); }
+.crepe .code-inline { background: var(--bg-elevated); color: var(--accent-green); }
+.crepe .link { color: var(--accent-blue); }
+.crepe .blockquote { border-left-color: var(--accent-amber); }
+```
+
+Unlike Monaco (which needs imperative `defineTheme()` + `setTheme()` calls), Crepe inherits theme changes automatically via CSS variable cascade. No `monacoTheme.js`-style bridge file needed — just the CSS.
 
 ### 5.3 Shared Concerns Across All Editors
 
-| Concern | Current (Monaco) | Must replicate in new editors |
-|---|---|---|
-| Auto-save (800ms debounce) | Yes | Yes — same `WriteFile` Wails binding |
-| Theme integration | Custom `defineAllThemes` | CM6: create matching theme. Image: CSS vars only |
-| Font settings | `$currentMonoFont`, `$currentFontSize` stores | CM6: `EditorView.theme`. Image: N/A |
-| Resize handling | `ResizeObserver` on container | CM6: built-in with `EditorView.updateListener`. Image: CSS `object-fit` |
-| Cmd+S save | `editor.addCommand` | CM6: `keymap.of([...])`. Image: N/A |
-| Diff mode | `createDiffEditor` | CM6: possible with `@codemirror/merge`. Image: N/A |
-| Editable toggle | `readOnly` option | CM6: `EditorView.editable`. Image: N/A |
+| Concern | Current (Monaco) | Crepe (Markdown) | panzoom (Image) |
+|---|---|---|---|
+| Auto-save (800ms debounce) | Yes | `crepe.getMarkdown()` → `WriteFile` | N/A (read-only) |
+| Theme integration | `defineAllThemes` (imperative) | CSS variable cascade (automatic) | CSS vars only |
+| Font settings | `$currentMonoFont` store | CSS `--crepe-font-*` vars | N/A |
+| Resize handling | `ResizeObserver` | ProseMirror handles internally | CSS `object-fit` |
+| Cmd+S save | `editor.addCommand` | Keymap plugin or DOM `keydown` | N/A |
+| Diff mode | `createDiffEditor` | Not needed (WYSIWYG) | N/A |
+| Editable toggle | `readOnly` option | `crepe.setReadonly(bool)` | N/A (always read-only) |
 
 ### 5.4 SVG Files — Ambiguity
 
@@ -210,19 +249,19 @@ Current behavior: Monaco opens with `isBinary` flag → read-only. This should r
 4. Add `ReadFileBase64` or equivalent Wails binding for image data (or use file:// protocol if Wails allows)
 5. **Estimated effort:** 1-2 sessions
 
-### Phase 2: Markdown Editor (Medium risk, medium effort)
-1. Install `@codemirror/view`, `@codemirror/state`, `@codemirror/lang-markdown`, `@lezer/markdown`
-2. Create `MarkdownEditor.svelte` with lazy-loaded CM6
-3. Wire auto-save, theme mirroring, font stores
-4. Add markdown-specific toolbar (bold, italic, heading, link — optional)
-5. **Estimated effort:** 2-3 sessions
+### Phase 2: Markdown Editor with Crepe (Medium risk, medium effort)
+1. Install `@milkdown/crepe`
+2. Create `crepe-mashed.css` theme bridge (map Crepe vars → mashed design tokens)
+3. Create `MarkdownEditor.svelte` with lazy-loaded Crepe — WYSIWYG, no raw source
+4. Wire auto-save (`crepe.getMarkdown()` → `WriteFile` with 800ms debounce)
+5. Wire Cmd+S, editable toggle
+6. **Estimated effort:** 2-3 sessions
 
 ### Phase 3: Polish & Edge Cases
 1. SVG dual-mode (image + source toggle)
-2. Markdown diff view (if needed — `@codemirror/merge`)
-3. Markdown live preview pane (split view with `markdown-it` renderer)
-4. Keyboard shortcut parity (Cmd+S, Escape to close)
-5. **Estimated effort:** 1-2 sessions
+2. Keyboard shortcut parity (Cmd+S, Escape to close)
+3. Crepe plugin additions (slash commands, tables, code block highlighting)
+4. **Estimated effort:** 1-2 sessions
 
 ---
 
@@ -231,9 +270,9 @@ Current behavior: Monaco opens with `isBinary` flag → read-only. This should r
 | Component | Size (gzip) | Loading |
 |---|---|---|
 | Monaco (current) | ~800 kB (tree-shaken ESM) | Lazy on first code file |
-| CodeMirror 6 + markdown | ~25-30 kB | Lazy on first .md file |
+| Milkdown Crepe | ~40-50 kB | Lazy on first .md file |
 | panzoom | ~3 kB | Lazy on first image |
-| **Total new** | **~28-33 kB** | **All lazy-loaded** |
+| **Total new** | **~43-53 kB** | **All lazy-loaded** |
 
 Net impact on initial load: **zero** (all dynamic imports).
 
@@ -251,21 +290,29 @@ When the user takes a screenshot via the OS menu (`Cmd+Shift+S`), the image is s
 - Menu item wired at `main.go:53` (`Cmd+Shift+S`)
 - Emits `screenshot:taken` Wails event with path
 - `App.svelte:92` shows a toast on receipt
-- Terminal input flows via WebSocket: `xterm.js onData → ws.send(binary) → Go bridge → tmux pane`
+- Terminal input flows via **WebSocket** (no tmux dependency for injection): `xterm.js onData → ws.send(binary) → Go bridge → pty`
 - `pasteToTerminal()` in `Terminal.svelte:130` wraps text in bracketed paste sequences (`\x1b[200~` ... `\x1b[201~`)
 - Session tab bar (Stories 1-5 done) tracks sessions per repo with `paneTarget` IDs
+- Terminal sessions are moving away from tmux to direct pty-backed sessions
 
-### 8.3 Architecture
+### 8.3 Architecture — Path-Based Auto-Insert via WebSocket (No tmux)
+
+The injection path is entirely WebSocket-based. No `tmux send-keys` involved. The path string is sent through the same WebSocket bridge that handles regular keyboard input from `Terminal.svelte`.
 
 ```
 Cmd+Shift+S
-  → screencapture -i -x {repoPath}/.screenshots/screenshot-{timestamp}.png
-  → Go: emit "screenshot:inject" event with { path, paneTarget }
-  → Terminal.svelte: EventsOn("screenshot:inject") listener
-  → if event.paneTarget matches this terminal's paneTarget:
-      → ws.send(bracketed paste of path + Enter)
-  → Claude Code CLI receives the image path as input
+  → macOS screencapture -i (interactive area select, blocks until done)
+  → saves to {repoPath}/.screenshots/screenshot-{timestamp}.png
+  → Go emits "screenshot:inject" Wails event with { path, paneTarget }
+  → Every mounted Terminal.svelte receives the event
+  → Only the terminal whose paneTarget matches responds
+  → ws.send(bracketed paste of path + Enter) via existing WebSocket
+  → Go bridge receives binary data, writes to the session's pty
+  → Claude Code CLI (running in that pty) receives the path as typed input + Enter
+  → Claude Code reads the .png file and attaches it as visual context
 ```
+
+**Key point:** The injection uses the same `ws.send()` → Go bridge → pty write path as normal typing. It is completely independent of tmux. When the tmux-to-pty migration (sessions stories) completes, this feature works identically because it only depends on the WebSocket bridge, not on how the underlying process is managed.
 
 ### 8.4 Go Backend Changes
 
@@ -413,12 +460,12 @@ Claude Code CLI accepts image file paths pasted into the input prompt. When it r
 
 ## 9. Open Questions for User Decision
 
-**Multi-Editor:**
-1. **Markdown editing mode:** WYSIWYG (Milkdown/Crepe) vs. source editing (CM6)? Crepe gives the richest Obsidian-like WYSIWYG; CM6 gives the closest-to-Obsidian source editing.
-2. **Markdown preview pane:** Needed at all? If yes, side-by-side or toggle?
+**Multi-Editor (decided: Crepe WYSIWYG for markdown, panzoom for images, Monaco for code):**
+1. ~~Markdown editing mode~~ → **DECIDED: Milkdown Crepe (WYSIWYG)**
+2. ~~Markdown preview pane~~ → **DECIDED: Not needed (Crepe is WYSIWYG — edit and view are the same)**
 3. **Image viewer features:** Just zoom/pan (panzoom), or also rotate/flip (PhotoSwipe)?
 4. **SVG handling:** Image-first with source toggle, or code-first with preview toggle?
-5. **Diff mode for markdown:** Use CM6's merge extension, or fall back to Monaco for diffs?
+5. ~~Diff mode for markdown~~ → **DECIDED: Not needed (WYSIWYG editing, no raw source diffs)**
 6. **Scope of "repo workspace":** Only the AgentDetail view, or also the WorkflowBuilder's file interactions?
 
 **Screenshot Inject:**
