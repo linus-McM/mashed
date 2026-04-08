@@ -76,6 +76,8 @@ export function IsExplainAvailable():Promise<boolean>;
 
 export function KillAgent(arg1:string,arg2:number,arg3:string):Promise<void>;
 
+export function KillTerminalSession(arg1:string):Promise<void>;
+
 export function ListBmadAgents():Promise<Array<bmad.BmadAgentConfig>>;
 
 export function ListBmadTemplates():Promise<Array<bmad.WorkflowDef>>;
@@ -91,6 +93,8 @@ export function ListNerdFonts():Promise<Array<main.NerdFontEntry>>;
 export function ListRepoChoices():Promise<Array<main.RepoChoice>>;
 
 export function ListRepoFiles(arg1:string):Promise<Array<string>>;
+
+export function ListRepoSessions(arg1:string):Promise<Array<domain.TerminalSession>>;
 
 export function ListVSCodiumThemes():Promise<Array<main.VSCodeThemeEntry>>;
 
@@ -147,6 +151,8 @@ export function SpawnTerminal(arg1:string):Promise<string>;
 export function StartBmadWorkflow(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function StopBmadWorkflow(arg1:string):Promise<void>;
+
+export function TakeScreenshot():Promise<string>;
 
 export function UpdateStoryStatus(arg1:string,arg2:string,arg3:string):Promise<void>;
 

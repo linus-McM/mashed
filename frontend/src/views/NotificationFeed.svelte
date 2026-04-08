@@ -10,6 +10,7 @@
   import ForcePushModal from './ForcePushModal.svelte';
   import NewSessionModal from './NewSessionModal.svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
+  import { addSession, makeSession } from '../lib/stores/sessions.js';
   import SparkLine from '../components/SparkLine.svelte';
 
   const dispatch = createEventDispatcher();
@@ -305,6 +306,7 @@
     try {
       const target = await SpawnAgentWithCommand(repoPath, command);
       const repoName = repoNameFromDir(repoPath);
+      addSession(repoPath, makeSession(target, repoPath, repoName, 'agent', model));
       const agent = {
         agentId: `spawned-${Date.now()}`,
         agentName: model,
@@ -340,6 +342,7 @@
     spawningTerminal = repo.path;
     try {
       const target = await SpawnTerminal(repo.path);
+      addSession(repo.path, makeSession(target, repo.path, repo.name, 'terminal', ''));
       const termSession = {
         agentId: `term-${Date.now()}`,
         agentName: 'terminal',

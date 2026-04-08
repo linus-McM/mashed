@@ -525,6 +525,51 @@ export namespace domain {
 		    return a;
 		}
 	}
+	export class TerminalSession {
+	    sessionName: string;
+	    paneTarget: string;
+	    repoPath: string;
+	    repoName: string;
+	    sessionType: string;
+	    model: string;
+	    // Go type: time
+	    spawnedAt: any;
+	    isAlive: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new TerminalSession(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.sessionName = source["sessionName"];
+	        this.paneTarget = source["paneTarget"];
+	        this.repoPath = source["repoPath"];
+	        this.repoName = source["repoName"];
+	        this.sessionType = source["sessionType"];
+	        this.model = source["model"];
+	        this.spawnedAt = this.convertValues(source["spawnedAt"], null);
+	        this.isAlive = source["isAlive"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class WorktreeInfo {
 	    path: string;
 	    branch: string;

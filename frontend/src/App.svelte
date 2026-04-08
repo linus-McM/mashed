@@ -15,6 +15,7 @@
   import { applyTheme } from './lib/stores/theme.js';
   import { loadSavedThemes, restoreImportedThemeFromConfig } from './lib/themeInit.js';
   import { applyFont, registerLocalFonts } from './lib/stores/font.js';
+  import { addSession, removeSessionByName } from './lib/stores/sessions.js';
 
   let currentView = 'loading'; // 'loading' | 'setup' | 'feed' | 'detail' | 'settings' | 'workflows'
   let selectedAgent = null;
@@ -93,6 +94,14 @@
     toastMessage = `Screenshot saved: ${filename}`;
     clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => { toastMessage = ''; }, 3000);
+  });
+
+  EventsOn('terminal:session:added', (session) => {
+    addSession(session.repoPath, session);
+  });
+
+  EventsOn('terminal:session:removed', (sessionName) => {
+    removeSessionByName(sessionName);
   });
 
   function onSetupReady() {

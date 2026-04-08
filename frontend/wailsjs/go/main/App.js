@@ -146,6 +146,10 @@ export function KillAgent(arg1, arg2, arg3) {
   return window['go']['main']['App']['KillAgent'](arg1, arg2, arg3);
 }
 
+export function KillTerminalSession(arg1) {
+  return window['go']['main']['App']['KillTerminalSession'](arg1);
+}
+
 export function ListBmadAgents() {
   return window['go']['main']['App']['ListBmadAgents']();
 }
@@ -176,6 +180,10 @@ export function ListRepoChoices() {
 
 export function ListRepoFiles(arg1) {
   return window['go']['main']['App']['ListRepoFiles'](arg1);
+}
+
+export function ListRepoSessions(arg1) {
+  return window['go']['main']['App']['ListRepoSessions'](arg1);
 }
 
 export function ListVSCodiumThemes() {
@@ -288,6 +296,10 @@ export function StartBmadWorkflow(arg1, arg2, arg3) {
 
 export function StopBmadWorkflow(arg1) {
   return window['go']['main']['App']['StopBmadWorkflow'](arg1);
+}
+
+export function TakeScreenshot() {
+  return window['go']['main']['App']['TakeScreenshot']();
 }
 
 export function UpdateStoryStatus(arg1, arg2, arg3) {

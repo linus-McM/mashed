@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** S
 **Depends On:** sessions-01, sessions-03
-**Status:** ready
+**Status:** done
 
 ## Description
 

@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus, RepoMtimes } from '../../wailsjs/go/main/App.js';
+  import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus, RepoMtimes, KillTerminalSession, SpawnTerminal } from '../../wailsjs/go/main/App.js';
+  import { repoSessions, refreshSessions } from '../lib/stores/sessions.js';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
   import { ArrowLeft, GitBranch, GripVertical, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, Download, GitMerge, AlertTriangle } from 'lucide-svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
@@ -80,6 +81,36 @@
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
     if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
     return String(n);
+  }
+
+  // Session tab state
+  let activeSessionIdx = 0;
+  let pendingPaneTarget = null;
+  $: sessions = $repoSessions[agent?.repoPath] || [];
+  $: {
+    if (pendingPaneTarget) {
+      const newIdx = sessions.findIndex(s => s.paneTarget === pendingPaneTarget);
+      if (newIdx >= 0) {
+        activeSessionIdx = newIdx;
+        pendingPaneTarget = null;
+      }
+    } else if (activeSessionIdx === 0 && sessions.length > 0) {
+      const matchIdx = sessions.findIndex(s => s.paneTarget === agent?.tmuxTarget);
+      if (matchIdx >= 0) activeSessionIdx = matchIdx;
+    }
+  }
+  $: activeSession = sessions[activeSessionIdx] || null;
+
+  async function killSession(sessionName) {
+    await KillTerminalSession(sessionName);
+    if (sessions[activeSessionIdx]?.sessionName === sessionName) {
+      activeSessionIdx = 0;
+    }
+  }
+
+  async function spawnNewTerminal() {
+    const target = await SpawnTerminal(agent.repoPath);
+    pendingPaneTarget = target;
   }
 
   // Git action state
@@ -278,6 +309,7 @@
 
     if (agent?.repoPath) {
       // Initial loads
+      refreshSessions(agent.repoPath);
       refreshChangedFiles();
       refreshAllFiles();
 
@@ -374,7 +406,25 @@
       class="terminal-pane"
       style={selectedFile ? `flex: 0 0 calc(100% - ${fileStripWidth}px - ${editorFraction * 100}%)` : `flex: 1 1 0; width: 0`}
     >
-      <Terminal paneTarget={agent?.tmuxTarget || ''} repoPath={agent?.repoPath || ''} />
+      {#if sessions.length > 0}
+      <div class="session-tabs">
+        {#each sessions as session, idx}
+          <button
+            class="session-tab"
+            class:active={idx === activeSessionIdx}
+            on:click={() => activeSessionIdx = idx}
+          >
+            <span class="tab-type">{session.sessionType === 'agent' ? 'Agent' : 'Term'}</span>
+            <span class="tab-name">{session.sessionName.split('-').slice(-1)[0]}</span>
+            <button class="tab-close" on:click|stopPropagation={() => killSession(session.sessionName)}>×</button>
+          </button>
+        {/each}
+        <button class="session-tab add-tab" on:click={spawnNewTerminal}>+</button>
+      </div>
+      {/if}
+      {#key activeSession?.paneTarget}
+        <Terminal paneTarget={activeSession?.paneTarget || agent?.tmuxTarget || ''} repoPath={agent?.repoPath || ''} />
+      {/key}
     </div>
 
     <!-- Resize handle: terminal | file strip -->
@@ -695,6 +745,54 @@
     min-width: 100px;
     overflow: hidden;
   }
+
+  /* Session tab bar */
+  .session-tabs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 8px;
+    height: 32px;
+    background: var(--bg-deeper);
+    border-bottom: 1px solid var(--border-subtle);
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .session-tab {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border: none;
+    background: transparent;
+    color: var(--fg-secondary);
+    font-size: 11px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .session-tab.active {
+    color: var(--fg-primary);
+    border-bottom-color: var(--border-accent);
+  }
+  .session-tab:hover { color: var(--fg-primary); }
+  .tab-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    color: var(--fg-dim);
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 0;
+  }
+  .tab-close:hover { background: rgba(255, 95, 87, 0.2); color: #ff5f57; }
+  .add-tab { color: var(--fg-dim); font-size: 14px; }
+  .add-tab:hover { color: var(--accent-green, #50fa7b); }
 
   /* Resize handle */
   .resize-handle {
