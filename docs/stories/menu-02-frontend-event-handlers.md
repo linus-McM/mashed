@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** S
 **Depends On:** menu-01
-**Status:** ready
+**Status:** done
 
 ## Description
 

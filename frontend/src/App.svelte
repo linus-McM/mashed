@@ -9,6 +9,7 @@
   import Settings from './views/Settings.svelte';
   import WorkflowBuilder from './views/WorkflowBuilder.svelte';
   import NewRepoModal from './components/NewRepoModal.svelte';
+  import AboutModal from './components/AboutModal.svelte';
   import { Hexagon } from 'lucide-svelte';
   import TitleBar from './components/TitleBar.svelte';
   import { applyTheme } from './lib/stores/theme.js';
@@ -20,8 +21,11 @@
   let notifications = [];
   let showSpawnModal = false;
   let showNewRepoModal = false;
+  let showAboutModal = false;
   let builderRepoPath = '';
   let builderRepoBranch = '';
+  let toastMessage = '';
+  let toastTimeout;
 
   onMount(async () => {
     const cfg = await GetConfig();
@@ -62,6 +66,33 @@
     notifications = notifications.filter(n =>
       n.agentId !== agentId && n.parentAgentId !== agentId
     );
+  });
+
+  EventsOn('menu:navigate', (route) => {
+    showSpawnModal = false;
+    showNewRepoModal = false;
+    showAboutModal = false;
+
+    switch (route) {
+      case 'settings': currentView = 'settings'; break;
+      case 'spawn': showSpawnModal = true; break;
+      case 'new-repo': showNewRepoModal = true; break;
+      case 'feed': currentView = 'feed'; selectedAgent = null; break;
+      case 'workflows':
+        if (builderRepoPath) currentView = 'workflows';
+        break;
+    }
+  });
+
+  EventsOn('menu:about', () => {
+    showAboutModal = true;
+  });
+
+  EventsOn('screenshot:taken', (path) => {
+    const filename = path.split('/').pop();
+    toastMessage = `Screenshot saved: ${filename}`;
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => { toastMessage = ''; }, 3000);
   });
 
   function onSetupReady() {
@@ -115,18 +146,15 @@
 
   function handleKeydown(e) {
     if (e.key === 'Escape') {
-      if (showNewRepoModal) {
+      if (showAboutModal) {
+        showAboutModal = false;
+      } else if (showNewRepoModal) {
         showNewRepoModal = false;
       } else if (showSpawnModal) {
         showSpawnModal = false;
       } else if (currentView === 'detail' || currentView === 'settings' || currentView === 'workflows') {
         goBack();
       }
-    }
-    // Ctrl+N or Cmd+N to spawn
-    if ((e.ctrlKey || e.metaKey) && e.key === 'n' && currentView === 'feed') {
-      e.preventDefault();
-      showSpawnModal = true;
     }
   }
 </script>
@@ -170,6 +198,14 @@
       on:cancel={() => showSpawnModal = false}
     />
   {/if}
+
+  {#if showAboutModal}
+    <AboutModal on:close={() => showAboutModal = false} />
+  {/if}
+
+  {#if toastMessage}
+    <div class="toast">{toastMessage}</div>
+  {/if}
 </main>
 
 <style>
@@ -199,5 +235,25 @@
   @keyframes pulse {
     0%, 100% { opacity: 0.3; }
     50% { opacity: 1; }
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    z-index: 200;
+    animation: toast-in 200ms ease-out;
+  }
+
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>
