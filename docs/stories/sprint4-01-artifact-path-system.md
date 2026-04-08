@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** M
 **Depends On:** none
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -155,25 +155,25 @@ Feature: Artifact map completeness
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add ArtifactType and ArtifactSpec to types.go (AC: AC-4)
-  - [ ] Subtask 1a: Define `ArtifactType` string type with 4 constants (ArtifactMarkdown, ArtifactYAML, ArtifactDirectory, ArtifactCode)
-  - [ ] Subtask 1b: Define `ArtifactSpec` struct with Name, Type, Path, Description, Optional fields and JSON tags
-- [ ] Task 2: Create artifacts.go with path map and helpers (AC: AC-1, AC-2, AC-3, AC-5)
-  - [ ] Subtask 2a: Define `artifactPaths` map with all 24 entries from the plan
-  - [ ] Subtask 2b: Implement `ResolveArtifactPath(name, repoPath string) string`
-  - [ ] Subtask 2c: Implement `VerifyArtifacts(repoPath string, outputNames []string) (found, missing []string)`
-- [ ] Task 3: Create artifacts_test.go with comprehensive tests (AC: AC-1, AC-2, AC-3, AC-4, AC-5)
-  - [ ] Subtask 3a: Table-driven tests for `ResolveArtifactPath` (known, unmapped, unknown, directory)
-  - [ ] Subtask 3b: Tests for `VerifyArtifacts` using `t.TempDir()` (mixed, unmapped, empty, missing dir, directory artifact)
-  - [ ] Subtask 3c: Registry completeness test -- iterate all ProcessDefs, assert every artifact name is in `artifactPaths`
+- [x] Task 1: Add ArtifactType and ArtifactSpec to types.go (AC: AC-4)
+  - [x] Subtask 1a: Define `ArtifactType` string type with 4 constants (ArtifactMarkdown, ArtifactYAML, ArtifactDirectory, ArtifactCode)
+  - [x] Subtask 1b: Define `ArtifactSpec` struct with Name, Type, Path, Description, Optional fields and JSON tags
+- [x] Task 2: Create artifacts.go with path map and helpers (AC: AC-1, AC-2, AC-3, AC-5)
+  - [x] Subtask 2a: Define `artifactPaths` map with all 24 entries from the plan
+  - [x] Subtask 2b: Implement `ResolveArtifactPath(name, repoPath string) string`
+  - [x] Subtask 2c: Implement `VerifyArtifacts(repoPath string, outputNames []string) (found, missing []string)`
+- [x] Task 3: Create artifacts_test.go with comprehensive tests (AC: AC-1, AC-2, AC-3, AC-4, AC-5)
+  - [x] Subtask 3a: Table-driven tests for `ResolveArtifactPath` (known, unmapped, unknown, directory)
+  - [x] Subtask 3b: Tests for `VerifyArtifacts` using `t.TempDir()` (mixed, unmapped, empty, missing dir, directory artifact)
+  - [x] Subtask 3c: Registry completeness test -- iterate all ProcessDefs, assert every artifact name is in `artifactPaths`
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ code coverage on `internal/bmad/artifacts.go`
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code
-- [ ] Code review: no CRITICAL/HIGH issues
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ code coverage on `internal/bmad/artifacts.go`
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code
+- [x] Code review: no CRITICAL/HIGH issues

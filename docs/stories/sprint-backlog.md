@@ -44,4 +44,3 @@ Enable the BMAD workflow builder to pass actual file paths between process steps
 - `docs/stories/sprint4-03-registry-expansion.md`
 - `docs/stories/sprint4-04-skill-generation.md`
 - `docs/stories/sprint4-05-artifact-verification-ui.md`
-the

@@ -1,7 +1,7 @@
-# Mashed — Go TUI Specification
+# Mashed — Desktop Application Specification
 
-> Multi-repository Claude agent orchestration dashboard.
-> A terminal-native tool for monitoring and interacting with Claude Code sessions across `~/Development` repos, with live tmux pane embedding and sub-agent drill-down.
+> Notification-first IDE for multi-agent development.
+> A Wails v2 desktop app (Go backend + Svelte frontend) for monitoring, orchestrating, and interacting with Claude Code sessions across `~/Development` repos, with live terminal embedding, workflow automation, and integrated code editing.
 
 ---
 
@@ -9,81 +9,154 @@
 
 ### What It Does
 
-Mashed is a TUI dashboard that:
+Mashed is a desktop application that:
 
-1. **Discovers** all git repos under `~/Development` and detects running Claude Code CLI sessions via process inspection
-2. **Displays** repos in a navigable grid showing agent status, token usage, and activity sparklines
-3. **Organizes** agents into hierarchical workflows — orchestrator sessions spawn sub-agents, forming a DAG
-4. **Streams** live session data by tailing JSONL session files in real-time
-5. **Embeds** live tmux panes directly in the terminal when agents run inside tmux — no browser, no WebSocket bridge
+1. **Discovers** all git repos under a configurable development directory and detects running Claude Code CLI sessions via process inspection
+2. **Displays** agents in a notification feed showing status, token usage, model, and activity sparklines
+3. **Orchestrates** multi-step workflows via the BMAD engine — a visual DAG-based automation system with process nodes, conditions, loops, transforms, and merge nodes
+4. **Streams** live session data by tailing JSONL session files in real-time via fsnotify
+5. **Embeds** live terminal sessions via a WebSocket bridge to xterm.js — agents run in tmux, rendered in the desktop app
+6. **Edits** code with an integrated Monaco editor, diff viewer, and file tree browser
+7. **Manages** git operations — branches, commits, pushes, PRs, merges, worktrees — all from the UI
 
-### Why Go
+### Why Wails + Go
 
-- **Single binary** — `go build` produces one artifact, no runtime dependencies
-- **Native tmux** — the app runs *inside* tmux and can split panes, attach sessions, and capture output directly
-- **Charm ecosystem** — bubbletea (Elm-architecture TUI), lipgloss (styling), bubbles (components) are battle-tested
-- **Goroutines** — concurrent file watching, process scanning, and pane capture map naturally to goroutines
-- **Remote access** — Charm's `wish` library enables `ssh dashboard@host` for team-wide visibility
+- **Single binary** — Wails compiles Go + Svelte into one native app, no runtime dependencies
+- **Native tmux** — Go spawns and manages tmux sessions directly for agent isolation
+- **WebSocket terminal** — `creack/pty` + `gorilla/websocket` bridge real terminal sessions to xterm.js
+- **Goroutines** — concurrent process scanning, file watching, and session parsing map naturally to goroutines
+- **Svelte frontend** — reactive UI with Monaco editor, xyflow canvas, xterm.js terminal, all in a frameless native window
 
-### Navigation
+### Design Philosophy
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  REPOS view                                             │
-│  Grid of repo cards with agent panels + sparklines      │
-│  j/k or ↑↓ to select, Enter to drill in                │
-└──────────────────────┬──────────────────────────────────┘
-                       │ Enter
-┌──────────────────────▼──────────────────────────────────┐
-│  WORKFLOW view                                          │
-│  Left: agent tree (orchestrator + sub-agents)           │
-│  Right: log viewer for selected agent                   │
-│  j/k to select agent, Enter to drill in, Esc to back   │
-└──────────────────────┬──────────────────────────────────┘
-                       │ Enter
-┌──────────────────────▼──────────────────────────────────┐
-│  AGENT view                                             │
-│  Full-screen: metrics strip + live terminal/log         │
-│  If tmux pane exists: split-pane to show live session   │
-│  Esc to back                                            │
-└─────────────────────────────────────────────────────────┘
-```
+Industrial/Utilitarian aesthetic. Linear meets Bloomberg Terminal. Neon green (`#00e57a`) accent, dark-only (`#07080a` base), Geist typography, compact density. See `DESIGN.md` for the full design system.
 
 ---
 
 ## 2. Architecture
 
+### Project Structure
+
 ```
-cmd/conductor/main.go           ← entry point, CLI flags, tea.NewProgram
+main.go                         ← Wails entry point, window config, asset embedding
+app.go                          ← App struct, startup/shutdown, config, theme management
+app_scan.go                     ← Process scanning loop, agent discovery, notification engine
+app_sessions.go                 ← JSONL session watching, parsing, status inference
+app_tmux.go                     ← Agent/terminal spawning, kill, log retrieval
+app_git.go                      ← Git operations (branches, commits, push, PR, merge, diff, worktrees)
+app_bmad.go                     ← BMAD workflow CRUD, execution control, agent/module management
+app_explain.go                  ← AI-powered diff explanation via Claude CLI
+font_scanner.go                 ← Local font discovery + Nerd Fonts catalog
+theme_scanner.go                ← VSCodium theme import + conversion
 internal/
-  tui/
-    model.go                    ← root bubbletea Model (state machine)
-    repos.go                    ← repos grid view
-    workflow.go                 ← split-pane: agent tree + log viewer
-    agent.go                    ← full-screen agent detail + tmux embed
-    chrome.go                   ← header bar, breadcrumb, status bar
-    theme.go                    ← lipgloss styles, color palette
-  scanner/
-    processes.go                ← discover Claude CLI sessions via ps + lsof
-    repos.go                    ← scan ~/Development for git repos + metadata
-    sessions.go                 ← parse JSONL session files for token/log data
-    watcher.go                  ← fsnotify-based live JSONL tailing
-  tmux/
-    panes.go                    ← map agent PIDs to tmux panes
-    control.go                  ← tmux control mode (-C) attach/capture
-    embed.go                    ← split pane to show live agent session
+  agent/
+    engine.go                   ← NotificationEngine — event classification and emission
+  bmad/
+    types.go                    ← WorkflowDef, WorkflowNode, WorkflowEdge, NodeType, etc.
+    storage.go                  ← Workflow/agent persistence to ~/.mashed/
+    executor.go                 ← DAG-based workflow execution (dynamic ready-set algorithm)
+    registry.go                 ← Process catalog (built-in BMAD processes by phase)
+    modules.go                  ← Module catalog (reusable BMAD modules)
+    templates.go                ← Built-in workflow templates
+    condition.go                ← Condition evaluation engine (comparisons, regex, contains)
+    sprint.go                   ← Sprint status YAML parsing/updating
+    artifacts.go                ← Artifact path resolution and verification
   domain/
-    types.go                    ← all domain structs (Agent, Repo, Workflow, etc.)
+    types.go                    ← All domain structs (Agent, Repo, Workflow, SessionData, etc.)
+  explain/
+    explain.go                  ← Diff explanation via Claude CLI subprocess
+  git/
+    diff.go                     ← Git diff parsing, scoped diffs
+    worktree.go                 ← Git worktree management
+    errors.go                   ← Git-specific error types
+  scanner/
+    processes.go                ← Discover Claude CLI sessions via ps + lsof
+    repos.go                    ← Scan dev directory for git repos + metadata
+    sessions.go                 ← Parse JSONL session files for token/log data
+    watcher.go                  ← fsnotify-based live JSONL tailing
+    claude.go                   ← ClaudeCodeProvider (AgentProvider implementation)
+    errors.go                   ← Scanner-specific error types
+  terminal/
+    bridge.go                   ← WebSocket bridge (Go pty ↔ xterm.js in browser)
+    panes.go                    ← tmux pane discovery, PID-to-pane mapping
+frontend/
+  src/
+    App.svelte                  ← Root component, view routing
+    views/
+      Setup.svelte              ← First-run dev directory picker
+      NotificationFeed.svelte   ← Main dashboard — agent notification stream
+      AgentDetail.svelte        ← Agent drill-down with terminal + logs + diff
+      WorkflowBuilder.svelte    ← BMAD visual workflow canvas
+      Settings.svelte           ← Theme, font, path configuration
+      SpawnAgent.svelte         ← New agent session launcher
+      NewSessionModal.svelte    ← Session creation modal
+      BranchModal.svelte        ← Branch creation
+      SwitchBranchModal.svelte  ← Branch switching
+      MergeModal.svelte         ← Branch merge
+      ForcePushModal.svelte     ← Force push confirmation
+    components/
+      TitleBar.svelte           ← Frameless window title bar with controls
+      Terminal.svelte           ← xterm.js terminal (WebSocket to Go bridge)
+      MonacoEditor.svelte       ← Monaco editor integration
+      CodeEditor.svelte         ← Lightweight code editor
+      DiffView.svelte           ← Side-by-side diff viewer
+      FileTree.svelte           ← File browser tree
+      SparkLine.svelte          ← Token burn sparkline (block characters)
+      StatusBadge.svelte        ← Agent status pill badge
+      NewRepoModal.svelte       ← Repository creation dialog
+      bmad/
+        CanvasPane.svelte       ← xyflow DAG canvas for workflow builder
+        ProcessNode.svelte      ← Standard process node
+        ConditionNode.svelte    ← If/else branch node
+        LoopNode.svelte         ← Loop N times node
+        LoopUntilNode.svelte    ← Loop until condition node
+        TransformNode.svelte    ← Data extraction/transform node
+        MergeNode.svelte        ← Branch merge node
+        DeletableEdge.svelte    ← Edge with delete button
+        ProcessSidebar.svelte   ← Process catalog sidebar
+        NodeConfigPanel.svelte  ← Node configuration editor
+        ExecutionBar.svelte     ← Run/pause/stop controls
+        TemplatePicker.svelte   ← Workflow template selection
+        AgentConfigModal.svelte ← Custom agent configuration
+        RepoContextBar.svelte   ← Repository context display
+        SprintPanel.svelte      ← Sprint status panel
+        OutputViewerModal.svelte← Node output inspection
+    lib/
+      stores/theme.js           ← Theme reactive store
+      stores/font.js            ← Font reactive store
+      themes.js                 ← Built-in theme definitions
+      themeConverter.js         ← VSCodium → Mashed theme conversion
+      themeInit.js              ← Theme initialization on startup
+      monacoTheme.js            ← Monaco editor theme adapter
+      fileTree.js               ← File tree data structures
+      sprintColors.js           ← BMAD sprint status colors
 ```
 
 ### Key Dependencies
 
+**Go (go.mod)**
+
 | Package | Purpose |
 |---------|---------|
-| `github.com/charmbracelet/bubbletea` | TUI framework (Elm architecture) |
-| `github.com/charmbracelet/lipgloss` | Terminal styling (colors, borders, layout) |
-| `github.com/charmbracelet/bubbles` | Components (list, viewport, textinput, spinner) |
-| `github.com/fsnotify/fsnotify` | File system watching for JSONL tailing |
+| `github.com/wailsapp/wails/v2` | Desktop app framework (Go ↔ Svelte bridge) |
+| `github.com/creack/pty` | Pseudo-terminal allocation for embedded terminals |
+| `github.com/gorilla/websocket` | WebSocket server for terminal bridge |
+| `github.com/fsnotify/fsnotify` | File system watching for live JSONL tailing |
+| `github.com/stretchr/testify` | Test assertions and mocking |
+| `gopkg.in/yaml.v3` | YAML parsing (sprint status, configs) |
+
+**Frontend (package.json)**
+
+| Package | Purpose |
+|---------|---------|
+| `svelte` ^4.2 | Reactive UI framework |
+| `vite` ^5.0 | Build tool and dev server |
+| `@xyflow/svelte` ^0.1 | Node-based workflow canvas (DAG visualization) |
+| `monaco-editor` ^0.55 | Code editor (syntax highlighting, diff view) |
+| `@xterm/xterm` 5.5 | Terminal emulator in the browser |
+| `@xterm/addon-fit` | Auto-resize terminal to container |
+| `@xterm/addon-canvas` | Canvas-based terminal renderer |
+| `lucide-svelte` | Icon library |
 
 ### Data Flow
 
@@ -91,17 +164,29 @@ internal/
 Process Scanner (goroutine, 5s tick)
   └─ ps -eo pid,ppid,etime,args → parse → AgentSession[]
   └─ lsof -p {pid} → working directory
+  └─ git rev-parse --show-toplevel → repo root
   └─ git branch/status/log → RepoInfo
 
-JSONL Watcher (goroutine per active session)
-  └─ fsnotify on ~/.claude/projects/{key}/*.jsonl
-  └─ tail new lines → parse → token counts + log entries + sub-agents
+JSONL Watcher (goroutine, fsnotify)
+  └─ watches ~/.claude/projects/{repo-key}/*.jsonl
+  └─ on file change → triggers doScan()
+  └─ parse session → token counts + log entries + sub-agents + status inference
 
-tmux Scanner (goroutine, 5s tick)
+NotificationEngine (goroutine, event channel)
+  └─ receives Agent updates from scanner
+  └─ classifies events (needs_response, error, completed, running, started)
+  └─ emits prioritized NotificationEvent to frontend via Wails events
+
+Terminal Bridge (goroutine, WebSocket server)
+  └─ frontend connects xterm.js via WebSocket
+  └─ Go side: creack/pty attaches to tmux pane
+  └─ bidirectional: keystrokes → pty, output → xterm.js
+
+tmux Pane Discovery (on-demand, cached)
   └─ tmux list-panes -a → PID-to-pane mapping
-  └─ walk PPID chain to match agent PIDs
+  └─ walk PPID chain (up to 8 levels) to match agent PIDs
 
-All → tea.Msg → Model.Update() → Model.View() → terminal render
+All → Wails runtime.EventsEmit() → Svelte frontend reactive updates
 ```
 
 ---
@@ -112,106 +197,154 @@ All → tea.Msg → Model.Update() → Model.View() → terminal render
 type AgentStatus string
 
 const (
-    StatusRunning AgentStatus = "running"
-    StatusBlocked AgentStatus = "blocked"
-    StatusError   AgentStatus = "error"
-    StatusQueued  AgentStatus = "queued"
-    StatusDone    AgentStatus = "done"
+    StatusRunning  AgentStatus = "running"  // actively processing (tool calls, generating)
+    StatusOpen     AgentStatus = "open"     // idle — Claude spoke last, not waiting for user
+    StatusFinished AgentStatus = "finished" // task complete, awaiting next instruction
+    StatusWaiting  AgentStatus = "waiting"  // actively waiting for user response (AskUserQuestion)
+    StatusBlocked  AgentStatus = "blocked"  // legacy — maps to waiting
+    StatusError    AgentStatus = "error"
+    StatusQueued   AgentStatus = "queued"
+    StatusDone     AgentStatus = "done"
 )
 
 type LogKind string
 
 const (
-    LogOK     LogKind = "ok"      // green  ✓  — write/edit success
-    LogInfo   LogKind = "info"    // blue   ℹ  — bash commands
-    LogWarn   LogKind = "warn"    // amber  ⚠  — warnings
-    LogErr    LogKind = "err"     // red    ✗  — errors
-    LogDim    LogKind = "dim"     // dim    ·  — reads, searches
-    LogSystem LogKind = "system"  // purple ⬡  — agent/skill calls
+    LogOK     LogKind = "ok"     // green  ✓  — write/edit success
+    LogInfo   LogKind = "info"   // blue   ℹ  — bash commands
+    LogWarn   LogKind = "warn"   // amber  ⚠  — warnings
+    LogErr    LogKind = "err"    // red    ✗  — errors
+    LogDim    LogKind = "dim"    // dim    ·  — reads, searches
+    LogSystem LogKind = "system" // purple ⬡  — agent/skill calls
 )
 
 type LogLine struct {
-    Kind LogKind
-    Text string
-    Ts   time.Time
+    Kind LogKind   `json:"kind"`
+    Text string    `json:"text"`
+    Ts   time.Time `json:"ts"`
 }
 
 type Agent struct {
-    ID           string       // "pid-{pid}" or "{parentID}-sub-{name}"
-    Name         string       // model name or sub-agent name
-    Status       AgentStatus
-    TokensUsed   int64
-    TokensMax    int64        // 1M for opus, 200K for others
-    Model        string       // "claude-opus-4-6", "sonnet", etc.
-    LogLines     []LogLine    // last 50 log entries
-    Elapsed      time.Duration
-    PID          int          // 0 for in-process sub-agents
-    HasTmuxPane  bool
+    ID           string        `json:"id"`          // "pid-{pid}" or "{parentID}-sub-{name}-{toolUseID}"
+    Name         string        `json:"name"`        // model name or sub-agent name
+    Status       AgentStatus   `json:"status"`
+    TokensUsed   int64         `json:"tokensUsed"`
+    TokensMax    int64         `json:"tokensMax"`   // 1M for opus, 200K for others
+    Model        string        `json:"model"`       // "claude-opus-4-6", "sonnet", etc.
+    LogLines     []LogLine     `json:"logLines"`    // last 50 log entries
+    Elapsed      time.Duration `json:"elapsed"`
+    PID          int           `json:"pid"`         // 0 for in-process sub-agents
+    HasTmuxPane  bool          `json:"hasTmuxPane"`
+    TmuxTarget   string        `json:"tmuxTarget"`  // tmux pane target string
+    RepoPath     string        `json:"repoPath"`    // working directory path
+    SubAgentInfo *SubAgentInfo `json:"-"`           // set when this agent represents a sub-agent
 }
 
 type DagEdge struct {
-    From string // parent agent ID
-    To   string // child agent ID
+    From string `json:"from"` // parent agent ID
+    To   string `json:"to"`   // child agent ID
 }
 
 type Workflow struct {
-    ID        string
-    Branch    string
-    Status    AgentStatus
-    Agents    []Agent
-    Edges     []DagEdge
-    StartedAt time.Time
+    ID        string      `json:"id"`
+    Branch    string      `json:"branch"`
+    Status    AgentStatus `json:"status"`
+    Agents    []Agent     `json:"agents"`
+    Edges     []DagEdge   `json:"edges"`
+    StartedAt time.Time   `json:"startedAt"`
 }
 
 type Repo struct {
-    ID               string
-    Name             string
-    Branch           string
-    LastCommit       string
-    LastCommitDate   time.Time
-    Dirty            bool
-    Workflow         *Workflow   // nil if no agents running
-    TokenBurnHistory []int64    // last 60 samples (~60s)
-    Accent           lipgloss.Color
+    ID               string    `json:"id"`
+    Name             string    `json:"name"`
+    Path             string    `json:"path"`
+    Branch           string    `json:"branch"`
+    LastCommit       string    `json:"lastCommit"`
+    LastCommitDate   time.Time `json:"lastCommitDate"`
+    Dirty            bool      `json:"dirty"`
+    Workflow         *Workflow `json:"workflow,omitempty"`
+    TokenBurnHistory [60]int64 `json:"-"` // ring buffer, last 60 samples
+    BurnIndex        int       `json:"-"` // current write position
 }
 
-// Parsed from a single JSONL session file
 type SessionData struct {
-    SessionID         string
-    TotalTokens       int64
-    InputTokens       int64
-    OutputTokens      int64
-    CacheReadTokens   int64
-    CacheCreateTokens int64
-    LogLines          []LogLine
-    SubAgents         []SubAgentInfo
+    SessionID         string         `json:"sessionId"`
+    TotalTokens       int64          `json:"totalTokens"`
+    InputTokens       int64          `json:"inputTokens"`
+    OutputTokens      int64          `json:"outputTokens"`
+    CacheReadTokens   int64          `json:"cacheReadTokens"`
+    CacheCreateTokens int64          `json:"cacheCreateTokens"`
+    LogLines          []LogLine      `json:"logLines"`
+    SubAgents         []SubAgentInfo `json:"subAgents"`
+    LastMessageType   string         `json:"lastMessageType"`   // "assistant" or "user"
+    LastToolName      string         `json:"lastToolName"`      // last tool_use name
+    HasPendingToolUse bool           `json:"hasPendingToolUse"` // tool_use awaiting result
 }
 
 type SubAgentInfo struct {
-    Name        string
-    Description string
-    Status      string // "running" | "done"
-    Result      string // summary text (max 500 chars)
-    OutputFile  string // path to full output JSONL
-    LogLines    []LogLine
+    Name        string    `json:"name"`
+    Description string    `json:"description"`
+    ToolUseID   string    `json:"toolUseId"`
+    Status      string    `json:"status"`      // "running" | "done"
+    Result      string    `json:"result"`      // summary (max 500 chars)
+    OutputFile  string    `json:"outputFile"`  // path to sub-agent JSONL
+    LogLines    []LogLine `json:"logLines"`
 }
 
-// Live process metadata
 type AgentSession struct {
-    PID       int
-    PPID      int
-    Model     string
-    StartedAt time.Time
-    SessionID string // empty if no --session-id flag
+    PID       int       `json:"pid"`
+    PPID      int       `json:"ppid"`
+    Model     string    `json:"model"`
+    StartedAt time.Time `json:"startedAt"`
+    SessionID string    `json:"sessionId"` // empty if no --session-id flag
 }
 
 type RepoInfo struct {
-    Name           string
-    Branch         string
-    LastCommit     string
-    LastCommitDate time.Time
-    Dirty          bool
-    Agents         []AgentSession
+    Name           string         `json:"name"`
+    Path           string         `json:"path"`
+    Branch         string         `json:"branch"`
+    LastCommit     string         `json:"lastCommit"`
+    LastCommitDate time.Time      `json:"lastCommitDate"`
+    Dirty          bool           `json:"dirty"`
+    Agents         []AgentSession `json:"agents"`
+}
+
+// NotificationEvent is a single event surfaced to the developer.
+type NotificationEvent struct {
+    ID         string    `json:"id"`
+    AgentID    string    `json:"agentId"`
+    AgentName  string    `json:"agentName"`
+    Model      string    `json:"model"`
+    RepoName   string    `json:"repoName"`
+    RepoPath   string    `json:"repoPath"`
+    RepoBranch string    `json:"repoBranch"`
+    EventType  EventType `json:"eventType"`
+    Summary    string    `json:"summary"`
+    Timestamp  time.Time `json:"timestamp"`
+    Read       bool      `json:"read"`
+    Priority   int       `json:"priority"`   // 0=needs-response .. 3=running
+    TokensUsed int64     `json:"tokensUsed"`
+    TokensMax  int64     `json:"tokensMax"`
+    TmuxTarget string    `json:"tmuxTarget"`
+    PID        int       `json:"pid"`
+
+    // Sub-agent fields
+    IsSubAgent       bool      `json:"isSubAgent"`
+    ParentAgentID    string    `json:"parentAgentId,omitempty"`
+    SubAgentName     string    `json:"subAgentName,omitempty"`
+    SubAgentDesc     string    `json:"subAgentDesc,omitempty"`
+    SubAgentStatus   string    `json:"subAgentStatus,omitempty"`
+    SubAgentResult   string    `json:"subAgentResult,omitempty"`
+    SubAgentLogLines []LogLine `json:"subAgentLogLines,omitempty"`
+}
+
+// AgentProvider abstracts the agent platform (Claude Code, future: Aider, Codex, Gemini).
+type AgentProvider interface {
+    ScanProcesses() ([]AgentSession, error)
+    GetWorkingDir(pid int) (string, error)
+    ParseSession(path string) (*SessionData, error)
+    WatchSessions(ctx context.Context) (<-chan SessionEvent, error)
+    SessionDir(repoPath string) string
 }
 ```
 
@@ -256,17 +389,28 @@ type RepoInfo struct {
    lsof -p {pid} 2>/dev/null | grep cwd | awk '{print $NF}'
    ```
 
-6. **Group by directory** → `map[string][]AgentSession`
+6. **Resolve to repo root**
+   ```bash
+   git -C {dir} rev-parse --show-toplevel
+   ```
+
+7. **Filter**: Only keep agents whose repo root is under the configured dev directory
 
 ### Repo Scanning (`scanner/repos.go`)
 
-For each directory in `$CONDUCTOR_DEV_DIR` (default `~/Development`):
+For each directory in `$devDir` (configured at first launch):
 - Check `git rev-parse --is-inside-work-tree`
 - Get branch: `git branch --show-current` (fallback: `git rev-parse --short HEAD`)
 - Get last commit: `git log --oneline -1 --format=%s`
 - Get commit date: `git log -1 --format=%ct` (epoch seconds)
 - Get dirty: `git status --porcelain` (non-empty = dirty)
-- Merge with agent sessions by matching repo directory
+
+### Session-to-Agent Pairing
+
+Sessions are sorted newest-first. For each agent:
+1. If agent has `--session-id`: exact match by session ID in the session directory
+2. Fallback: claim the most recently modified unclaimed `.jsonl` file in the session directory
+3. Claimed sessions are tracked per-scan to prevent two agents from sharing one file
 
 ---
 
@@ -311,6 +455,7 @@ Each line is a JSON object with `"type"` field:
 - For `tool_use` blocks: extract tool name + detail → LogLine
 - For `text` blocks: collapse newlines, skip if < 6 chars → LogLine
 - For `Agent` tool_use: track as sub-agent (keyed by `block.id`)
+- Track `LastMessageType`, `LastToolName`, `HasPendingToolUse` for status inference
 
 #### `type: "user"` — Tool results / task notifications
 
@@ -328,6 +473,7 @@ Each line is a JSON object with `"type"` field:
 **Processing**:
 - `tool_result` matching a sub-agent tool_use_id → mark sub-agent as done
 - String content containing `<task-notification>` → parse sub-agent result + output file path
+- Clears `HasPendingToolUse` flag
 
 ### Tool → LogLine Mapping
 
@@ -345,6 +491,20 @@ Each line is a JSON object with `"type"` field:
 
 MCP tool names like `mcp__server__ns__tool` → extract last segment after `__`.
 
+### Status Inference (`app_sessions.go:inferStatus`)
+
+Based on parsed session state:
+
+| Condition | Status |
+|-----------|--------|
+| No log lines | `running` |
+| Last log line is error | `error` |
+| Last tool was `AskUserQuestion` + pending | `waiting` |
+| Has pending tool_use | `running` |
+| Last message from assistant, info log kind | `finished` |
+| Last message from assistant, other | `open` |
+| Default | `running` |
+
 ### Sub-Agent Detection
 
 When `Agent` tool_use is found:
@@ -352,284 +512,358 @@ When `Agent` tool_use is found:
 2. Key by `tool_use.id`
 3. When `tool_result` arrives with matching ID → status = "done"
 4. When `<task-notification>` arrives → parse `<result>`, `<output-file>`
-5. If output file exists, parse its JSONL for sub-agent log lines (last 50)
 
 ### Live Tailing (`scanner/watcher.go`)
 
-Use `fsnotify` to watch `~/.claude/projects/{repo-key}/`:
-- On file modify: read new lines from last known offset
-- Parse incrementally (same logic as full parse)
-- Send `tea.Msg` with updated session data
-- Only watch repos that have active agents (avoid watching all ~50 repos)
+Uses `fsnotify` to watch `~/.claude/projects/{repo-key}/`:
+- On file change: triggers a full scan cycle (`doScan()`)
+- Parse incrementally via the session parser
+- Updated data flows through NotificationEngine → Wails events → Svelte
 
 ---
 
-## 6. DAG Construction
+## 6. Notification Engine
 
-### Edge Detection
+### Overview (`internal/agent/engine.go`)
 
-Two sources of parent→child relationships:
+The NotificationEngine sits between the scanner and the frontend. It:
+- Receives `Agent` updates from `doScan()`
+- Classifies each update into an `EventType` with priority
+- Emits `NotificationEvent` to the Wails frontend via `runtime.EventsEmit()`
+- Maintains a channel-based event stream consumed by `consumeEngineEvents()`
 
-1. **Separate processes** (PPID chain):
-   ```go
-   pidSet := set of all agent PIDs
-   for _, session := range sessions {
-       if pidSet.Contains(session.PPID) {
-           edges = append(edges, DagEdge{
-               From: fmt.Sprintf("pid-%d", session.PPID),
-               To:   fmt.Sprintf("pid-%d", session.PID),
-           })
-       }
-   }
-   ```
+### Event Types and Priority
 
-2. **In-process sub-agents** (Agent tool calls in JSONL):
-   ```go
-   // Only for orchestrator sessions (model == "claude", no explicit --model flag)
-   for _, sub := range sessionData.SubAgents {
-       subID := parentID + "-sub-" + sub.Name
-       agents = append(agents, Agent{ID: subID, Name: sub.Name, ...})
-       edges = append(edges, DagEdge{From: parentID, To: subID})
-   }
-   ```
+| Priority | EventType | Trigger |
+|----------|-----------|---------|
+| 0 | `needs_response` | AskUserQuestion, permission prompt |
+| 1 | `error` | Tool error, test failure |
+| 2 | `completed` | Session ended cleanly |
+| 3 | `running` | Actively producing output |
+| 4 | `started` | New agent detected |
 
-### Session-to-Data Pairing
+### Agent Pruning
 
-1. If session has `--session-id`: exact match by session ID
-2. Fallback: sort sessions by startedAt, sort data by totalTokens desc, pair positionally
+Each scan cycle tracks which agent PIDs are still alive. Agents whose processes have exited are pruned from the notification list. Sub-agents are pruned when their parent is gone.
 
 ---
 
-## 7. UI Views
+## 7. Terminal Bridge
 
-### Color Palette
+### WebSocket Architecture (`internal/terminal/bridge.go`)
 
-```go
-var Theme = struct {
-    BG, BG1, BG2, BG3         lipgloss.Color
-    Border, Border2            lipgloss.Color
-    Green, GreenDim            lipgloss.Color
-    Amber, Red, Blue, Purple   lipgloss.Color
-    Teal                       lipgloss.Color
-    Text, TextDim, TextMuted   lipgloss.Color
-}{
-    BG: "#07080a", BG1: "#0d0f12", BG2: "#12151a", BG3: "#181c23",
-    Border: "#1e2530", Border2: "#2a3340",
-    Green: "#00e57a", GreenDim: "#006636",
-    Amber: "#f0a500", Red: "#e84545", Blue: "#3d9eff", Purple: "#9d6fff",
-    Teal: "#00c4b3",
-    Text: "#c8d4e0", TextDim: "#4a5a6a", TextMuted: "#2e3d4d",
-}
+The terminal bridge enables the Svelte frontend to display live terminal sessions:
 
-// Accent colors rotate per repo
-var Accents = []lipgloss.Color{"#00e57a", "#3d9eff", "#9d6fff", "#f0a500", "#00c4b3", "#e84545"}
-```
+1. **Go side**: Starts a WebSocket server on a dynamic port at startup
+2. **Frontend**: `Terminal.svelte` connects xterm.js to the WebSocket URL
+3. **Connection flow**:
+   - Frontend sends tmux target string on connect
+   - Go attaches to the tmux pane via `creack/pty`
+   - Bidirectional streaming: keystrokes → pty stdin, pty stdout → xterm.js
 
-### Repos View (`tui/repos.go`)
-
-2-column grid of repo cards. Each card contains:
-
-```
-┌─────────────────────────────────────────┐
-│ ━━━━━━━━━━━━━━━━━━━━━━━ (accent bar)   │
-│ repo-name                    [RUNNING]  │
-│ ⎇ main                                 │
-│                                         │
-│ TOKEN BURN / 60s                        │
-│ ▁▂▃▅▆▇█▇▅▃▂▁▂▃▅▆ (sparkline)          │
-│                                         │
-│ ┌─ ● claude-opus-4-6    RUNNING ──────┐ │
-│ │   claude-opus-4-6         109.1M    │ │
-│ └─────────────────────────────────────┘ │
-│ ┌─ ● claude              RUNNING ────┐  │
-│ │   claude                    8.0M   │  │
-│ └────────────────────────────────────┘  │
-│   ┌─ · arch-reviewer          DONE ─┐  │
-│   └──────────────────────────────────┘  │
-│   ┌─ · quality-reviewer       DONE ─┐  │
-│   └──────────────────────────────────┘  │
-│                                         │
-│ 3          116.2M         696m 32s      │
-│ agents     tokens         elapsed       │
-└─────────────────────────────────────────┘
-```
-
-- **Agent panels**: thin border per agent, left accent stripe colored by status
-- **Sub-agents**: indented, smaller, dimmer border
-- **Sparkline**: last 60 token-total samples rendered as block characters (▁▂▃▄▅▆▇█)
-- **Status badge**: colored pill (RUNNING/BLOCKED/ERROR/DONE/QUEUED)
-
-### Workflow View (`tui/workflow.go`)
-
-Split layout using lipgloss `JoinHorizontal`:
-
-```
-┌── AGENTS ──────────────┬── TERMINAL ─────────────────────────────┐
-│                        │                                         │
-│ ▾ ● claude-opus-4-6   │  claude-opus-4-6          RUNNING       │
-│     RUNNING (5)        │  claude-opus-4-6    109.1M / 1M         │
-│   ┃                    │  ─────────────────────────────────────   │
-│   ├─ · arch-reviewer   │                                         │
-│   │    DONE            │  08:15:23  ℹ  Bash: git status          │
-│   ├─ · quality-rev     │  08:15:24  ✓  Edit: main.go             │
-│   │    DONE            │  08:15:25  ·  Read: config.yaml          │
-│   ├─ · security-rev    │  08:15:26  ⬡  Agent: researcher         │
-│   │    DONE            │  08:15:27  ✓  Write: handler.go          │
-│   └─ · ux-reviewer     │  08:15:28  ✗  Bash: go test ./...       │
-│        DONE            │  08:15:30  ✓  Edit: handler_test.go      │
-│                        │  ▊                                       │
-│ ● claude               │                                         │
-│   RUNNING              │                                         │
-│                        │                                         │
-└────────────────────────┴─────────────────────────────────────────┘
-```
-
-- **Left pane** (fixed 30-col width): collapsible agent tree using bubbles `list`
-  - Root agents: expand/collapse chevron + status dot + name + sub-count
-  - Sub-agents: tree connector lines (┃├─└─) + status dot + name
-  - Click/Enter to select, shown highlighted
-- **Right pane**: log viewport for selected agent using bubbles `viewport`
-  - Timestamp (dim) + prefix glyph (colored) + text
-  - Auto-scroll to bottom, scroll up to see history
-  - Blinking cursor block when agent is running
-
-### Agent View (`tui/agent.go`)
-
-Full-screen detail for a single agent:
-
-```
-┌── STATUS ──── MODEL ──────── TOKENS ──────── ELAPSED ────────────┐
-│  RUNNING      opus           109.1M / 1M     1328m 25s           │
-│  ████████████████████████████░░░░░░░░░░░ (progress bar)          │
-├──────────────────────────────────────────────────────────────────┤
-│  [LIVE] TERMINAL                    click to focus / Esc to exit │
-│                                                                   │
-│  (live tmux pane content OR scrollable log lines)                │
-│                                                                   │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-**Two modes**:
-1. **Live tmux** (when agent has a tmux pane): use `tmux capture-pane -t {target} -p -e` polled at 200ms to show real terminal content. On Enter/focus: `tmux select-pane -t {target}` to switch to the live pane.
-2. **Log fallback**: scrollable viewport of parsed JSONL log lines (same as workflow right pane)
-
-### Chrome (`tui/chrome.go`)
-
-- **Header**: `⬡ MASHED` centered, clock right-aligned
-- **Breadcrumb**: `repos › repo-name › agent-name` with navigation
-- **Status bar**: mode badge (REPOS/WORKFLOW/AGENT), keyboard hints, `N agents running` with pulse
-
----
-
-## 8. tmux Integration
-
-### Overview
-
-The Go app runs inside tmux. This is the key advantage over the web-based approach — tmux pane management is native.
-
-### Pane Discovery (`tmux/panes.go`)
+### tmux Pane Discovery (`internal/terminal/panes.go`)
 
 ```bash
 tmux list-panes -a -F '#{pane_pid}:#{pane_id}:#{session_name}:#{window_index}.#{pane_index}'
 ```
 
-Parse into:
-```go
-type PaneInfo struct {
-    PanePID int
-    PaneID  string // e.g. "%3"
-    Target  string // e.g. "work:0.1"
-}
-```
+Agent PIDs are not always direct children of tmux panes (shell → node → claude). The discovery walks the PPID chain up to 8 levels to find a matching pane.
 
-### PID-to-Pane Matching (`tmux/panes.go`)
+Pane list is cached (5s TTL) to avoid repeated `tmux list-panes` calls. Cache is invalidated when new sessions are spawned.
 
-Agent PIDs are not always direct children of tmux panes (shell → node → claude). Walk the PPID chain:
+### Agent Spawning (`app_tmux.go`)
 
 ```go
-func FindPane(pid int, panes []PaneInfo) *PaneInfo {
-    // Direct match
-    for _, p := range panes {
-        if p.PanePID == pid { return &p }
-    }
-    // Walk PPID chain (up to 8 levels)
-    current := pid
-    for i := 0; i < 8; i++ {
-        ppid := getParentPID(current) // ps -o ppid= -p {current}
-        if ppid <= 1 { break }
-        for _, p := range panes {
-            if p.PanePID == ppid { return &p }
-        }
-        current = ppid
-    }
-    return nil
-}
+// SpawnAgent creates a new Claude session in a tmux pane
+func (a *App) SpawnAgent(repoPath, model string) (string, error)
+
+// SpawnTerminal creates a plain shell session
+func (a *App) SpawnTerminal(repoPath string) (string, error)
 ```
 
-Cache pane list for 5 seconds to avoid repeated `tmux list-panes` calls.
-
-### Pane Content Capture (`tmux/control.go`)
-
-For read-only terminal display in the agent view:
-
-```bash
-tmux capture-pane -t {target} -p -e    # -e preserves ANSI escape sequences
-```
-
-Poll every 200ms when the agent view is active. Parse ANSI escapes for colored rendering in lipgloss.
-
-### Live Pane Switching (`tmux/embed.go`)
-
-When the user wants to interact with an agent's terminal:
-
-```bash
-tmux select-pane -t {target}      # switch focus to the agent's pane
-# OR
-tmux split-window -t {target}     # show agent pane alongside dashboard
-```
-
-The dashboard can also create new panes for agents:
-
-```bash
-tmux split-window -h "claude --model opus --dangerously-skip-permissions"
-```
+tmux sessions are named `mashed-{repoName}-{timestamp}` (agents) or `term-{repoName}-{timestamp}` (terminals).
 
 ---
 
-## 9. Keyboard Shortcuts
+## 8. BMAD Workflow Engine
 
-| Key | Repos View | Workflow View | Agent View |
-|-----|-----------|---------------|------------|
-| `j` / `↓` | Next repo | Next agent | Scroll down |
-| `k` / `↑` | Prev repo | Prev agent | Scroll up |
-| `Enter` | → Workflow | → Agent | Focus tmux pane |
-| `Esc` | — | → Repos | → Workflow |
-| `q` | Quit | → Repos | → Workflow |
-| `Tab` | Switch column | Toggle expand | — |
-| `/` | Filter repos | Filter agents | — |
-| `?` | Help overlay | Help overlay | Help overlay |
+### Overview
+
+BMAD (Breakthrough Method of Agile AI-driven Development) is the visual workflow automation system. Users build DAGs of process nodes on an xyflow canvas, then execute them to orchestrate multi-step Claude agent workflows.
+
+### Workflow Definition (`internal/bmad/types.go`)
+
+```go
+type WorkflowDef struct {
+    ID          string         `json:"id"`
+    Name        string         `json:"name"`
+    Description string         `json:"description"`
+    Nodes       []WorkflowNode `json:"nodes"`
+    Edges       []WorkflowEdge `json:"edges"`
+    IsTemplate  bool           `json:"isTemplate"`
+    TemplateID  string         `json:"templateId,omitempty"`
+    RepoPath    string         `json:"repoPath,omitempty"`
+    CreatedAt   string         `json:"createdAt"`
+    UpdatedAt   string         `json:"updatedAt"`
+}
+```
+
+### Node Types
+
+| Type | Purpose | Execution |
+|------|---------|-----------|
+| `process` | Standard BMAD process (analysis, architecture, etc.) | Spawns Claude in tmux |
+| `condition` | If/else branch based on output | Evaluates condition, activates one branch |
+| `loop` | Repeat N times | Mini ready-set loop over body nodes |
+| `loopUntil` | Repeat until condition met | Loop with condition check each iteration |
+| `transform` | Extract/transform data | Synchronous — regex or line extraction |
+| `merge` | Join branches | Waits for all incoming edges |
+
+### Execution Engine (`internal/bmad/executor.go`)
+
+Uses a **dynamic ready-set algorithm** (`runDynamic()`):
+
+1. Build in-degree map from edges
+2. Initialize ready set: nodes with in-degree 0
+3. While ready set is non-empty:
+   - Execute all ready nodes concurrently
+   - On completion: decrement in-degree of downstream nodes
+   - Move newly-ready nodes (in-degree 0) to the ready set
+4. Control flow nodes have special handling:
+   - **Conditions**: `activeOutEdges()` filters by `SourceHandle` to route branches
+   - **Loops**: `executeLoopNode()` runs a mini ready-set loop for body nodes
+   - **Transforms**: synchronous, no tmux session
+   - **Merges**: standard in-degree wait behavior
+
+`topoSort()` is kept only for cycle detection.
+
+### Process Registry (`internal/bmad/registry.go`)
+
+Processes are organized by BMAD lifecycle phase:
+- `analysis` — requirements, stakeholder mapping
+- `architecture` — system design, data modeling
+- `planning` — sprint planning, story creation
+- `implementation` — code generation, testing
+- `review` — code review, QA
+
+### Storage (`internal/bmad/storage.go`)
+
+- Workflows: `~/.mashed/workflows/{id}.json`
+- Agents: `~/.mashed/bmad-agents/{id}.json`
+- Per-repo workflows via `RepoPath` field
+
+### Artifact System (`internal/bmad/artifacts.go`)
+
+- Artifacts resolve to `{repoPath}/_bmad-output/{category}/{artifact}` via a canonical path map
+- `ResolveArtifactPath(name, repoPath)` → full path
+- `VerifyArtifacts(repoPath, outputNames)` → checks existence
+- Unmapped artifacts (`"code"`, `"tests"`) return `""` — handled by callers
+
+### Templates (`internal/bmad/templates.go`)
+
+6 built-in workflow templates that can be deep-copied into user workflows via `CreateFromTemplate()`.
 
 ---
 
-## 10. Configuration
+## 9. UI Views
 
-### Environment Variables
+### Setup View (`Setup.svelte`)
+First-run experience. Native directory picker dialog to select the development root. Persists to `~/.mashed/config.json`.
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `CONDUCTOR_DEV_DIR` | `~/Development` | Root directory to scan for git repos |
-| `HOME` | (system) | Used to locate `~/.claude/projects/` |
+### Notification Feed (`NotificationFeed.svelte`)
+Main dashboard. Priority-sorted list of agent notification events:
+- Left accent stripe colored by status
+- Repo name, agent model, summary text, timestamp
+- Click to drill into agent detail
+- Token usage display, sparklines
 
-### Paths
+### Agent Detail (`AgentDetail.svelte`)
+Full agent view with:
+- Live terminal via xterm.js (WebSocket to Go bridge)
+- Parsed log lines from JSONL session
+- Token usage metrics
+- File tree and diff viewer
+- Monaco editor for code inspection
+- Git operations (commit, push, PR, branch management)
+
+### Workflow Builder (`WorkflowBuilder.svelte`)
+Visual DAG editor powered by `@xyflow/svelte`:
+- **Canvas** (`CanvasPane.svelte`): drag-and-drop node placement, edge connections
+- **Sidebar** (`ProcessSidebar.svelte`): process catalog organized by BMAD phase
+- **Config panel** (`NodeConfigPanel.svelte`): edit node parameters
+- **Execution bar** (`ExecutionBar.svelte`): start/pause/stop workflow execution
+- **Template picker** (`TemplatePicker.svelte`): start from built-in templates
+- **Node types**: ProcessNode, ConditionNode, LoopNode, LoopUntilNode, TransformNode, MergeNode
+- **Sprint panel** (`SprintPanel.svelte`): sprint status from YAML
+
+### Settings (`Settings.svelte`)
+- Theme selection (built-in + VSCodium import)
+- Font selection (system fonts + Nerd Fonts)
+- Font size
+- Dev directory path
+- VSCodium extension path
+
+---
+
+## 10. Wails Bindings (Go → Svelte API)
+
+All public methods on the `App` struct are exposed to the Svelte frontend via Wails bindings.
+
+### Configuration
+| Method | Purpose |
+|--------|---------|
+| `PickDirectory()` | Native OS directory picker dialog |
+| `SetDevDir(dir)` | Save dev directory and start scanning |
+| `GetDevDir()` | Current dev directory |
+| `GetConfig()` | Full persisted config |
+| `SetTheme(id)` | Persist theme selection |
+| `SetMonoFont(family)` | Persist font selection |
+| `SetFontSize(size)` | Persist font size |
+| `SetVSCodiumExtPath(path)` | Persist VSCodium path |
+
+### Theme Management
+| Method | Purpose |
+|--------|---------|
+| `GetSavedThemes()` | All imported themes as JSON |
+| `SaveTheme(id, json)` | Persist converted theme |
+| `RemoveTheme(id)` | Delete saved theme |
+| `ListVSCodiumThemes()` | Discover VSCodium color themes |
+| `ReadThemeFile(path)` | Read raw theme JSON |
+| `SetImportedTheme(path)` | Import a VSCodium theme |
+
+### Font Discovery
+| Method | Purpose |
+|--------|---------|
+| `ListLocalFonts()` | System monospace fonts |
+| `ListNerdFonts()` | Nerd Fonts catalog |
+| `GetFontsDir()` | Font installation directory |
+| `OpenFontsDir()` | Open font dir in Finder |
+
+### Agent Management
+| Method | Purpose |
+|--------|---------|
+| `GetNotifications()` | Priority-sorted notification list |
+| `SpawnAgent(repoPath, model)` | Start Claude in new tmux session |
+| `SpawnAgentWithCommand(repoPath, cmd)` | Start with custom CLI command |
+| `SpawnTerminal(repoPath)` | Start plain shell session |
+| `KillAgent(agentID, pid, tmuxTarget)` | Terminate agent + tmux session |
+| `GetAgentLog(repoPath)` | Parsed log lines for latest session |
+| `MarkRead(agentID)` | Mark notification as read |
+| `GetTerminalPort()` | WebSocket bridge port |
+
+### Git Operations
+| Method | Purpose |
+|--------|---------|
+| `ListRepoChoices()` | Available repos for selection |
+| `CreateRepo(name, isPublic, installBmad)` | Create new git repo |
+| `RepoMtimes(repoPath)` | Cheap change detection (mtime polling) |
+| `RepoStatus(repoPath)` | Dirty, ahead/behind, protected status |
+| `GitListBranches(repoPath)` | Local branch list |
+| `GitSwitchBranch(repoPath, branch, autoCommit)` | Switch branch |
+| `GitCreateBranch(repoPath, prefix, name, autoCommit)` | Create + checkout |
+| `GitCommit(repoPath)` | AI-generated commit |
+| `GitCommitStreaming(repoPath)` | Streaming commit with progress |
+| `GitCommitAndPush(repoPath)` | Commit + push |
+| `GitPush(repoPath)` | Push current branch |
+| `GitForcePush(repoPath)` | Force push (with confirmation) |
+| `GitPull(repoPath)` | Pull from remote |
+| `GitMergeInto(repoPath, target, autoCommit)` | Merge into target branch |
+| `GitCommitPushAndPR(repoPath)` | Full ship: commit + push + create PR |
+| `GetScopedDiff(dir)` | Files changed in directory |
+| `GetWorktrees(repoPath)` | Git worktrees for repo |
+| `ListRepoFiles(repoPath)` | File listing for tree view |
+| `WriteFile(path, content)` | Write file contents |
+| `ReadFile(path)` | Read file contents |
+| `ReadFileDiff(repoPath, filePath)` | Unified diff for file |
+| `ReadFileAtHead(repoPath, filePath)` | File contents at HEAD |
+| `SpawnPRReview(repoPath)` | Launch PR review agent |
+
+### Diff Explanation
+| Method | Purpose |
+|--------|---------|
+| `ExplainDiffHunk(repoPath, filePath, hunk)` | AI explanation of a diff |
+| `IsExplainAvailable()` | Check if claude CLI is on PATH |
+
+### BMAD Workflows
+| Method | Purpose |
+|--------|---------|
+| `ListBmadWorkflows()` | All saved workflows |
+| `GetBmadWorkflow(id)` | Load single workflow |
+| `SaveBmadWorkflow(wf)` | Persist workflow |
+| `DeleteBmadWorkflow(id)` | Remove workflow |
+| `ListBmadWorkflowsByRepo(repoPath)` | Workflows for a repo |
+| `ListBmadTemplates()` | Built-in templates |
+| `CreateFromTemplate(templateID, repoPath)` | Copy template → workflow |
+| `GetBmadProcesses()` | Full process catalog |
+| `GetBmadProcessesByPhase(phase)` | Processes by lifecycle phase |
+| `GetBmadModules()` | Available BMAD modules |
+| `GetControlFlowNodes()` | Control flow node type list |
+
+### BMAD Execution
+| Method | Purpose |
+|--------|---------|
+| `StartBmadWorkflow(workflowID, repoPath, model)` | Begin execution |
+| `PauseBmadWorkflow(execID)` | Pause running execution |
+| `ResumeBmadWorkflow(execID)` | Resume paused execution |
+| `StopBmadWorkflow(execID)` | Cancel execution |
+| `GetBmadExecution(execID)` | Current execution state |
+| `GetNodeOutput(execID, nodeID)` | Captured terminal output for node |
+
+### BMAD Agents
+| Method | Purpose |
+|--------|---------|
+| `ListBmadAgents()` | Custom agent configs |
+| `SaveBmadAgent(agent)` | Persist agent config |
+| `DeleteBmadAgent(id)` | Remove agent config |
+
+### Sprint Management
+| Method | Purpose |
+|--------|---------|
+| `GetSprintStatus(repoPath)` | Parse sprint-status.yaml |
+| `UpdateStoryStatus(repoPath, storyID, status)` | Update story status |
+
+---
+
+## 11. Wails Events (Go → Svelte push)
+
+| Event | Payload | Trigger |
+|-------|---------|---------|
+| `needs-setup` | `bool` | DevDir initialization complete |
+| `repos` | `[]RepoInfo` | Every scan cycle (5s) |
+| `agent:removed` | `string` (agentID) | Agent killed |
+| `notification` | `NotificationEvent` | Via NotificationEngine |
+| `bmad:execution:*` | execution state | Workflow execution updates |
+| `git:commit:progress` | progress data | Streaming commit updates |
+
+---
+
+## 12. Configuration & Persistence
+
+### Config File (`~/.mashed/config.json`)
+
+```json
+{
+  "devDir": "/Users/linus/Development",
+  "theme": "dark-default",
+  "vscodiumExtPath": "/path/to/extensions",
+  "importedTheme": "One Dark Pro",
+  "monoFont": "JetBrains Mono",
+  "fontSize": 13
+}
+```
+
+### Storage Paths
 
 | Path | Purpose |
 |------|---------|
-| `$CONDUCTOR_DEV_DIR/` | Git repos to scan |
-| `~/.claude/projects/` | Claude Code session storage |
-| `~/.claude/projects/{repo-key}/` | Per-repo session directory |
-| `~/.claude/projects/{repo-key}/{uuid}.jsonl` | Single session log |
+| `~/.mashed/config.json` | User preferences |
+| `~/.mashed/themes.json` | Imported VSCodium themes |
+| `~/.mashed/workflows/{id}.json` | BMAD workflow definitions |
+| `~/.mashed/bmad-agents/{id}.json` | Custom agent configurations |
+| `~/.claude/projects/{repo-key}/` | Claude Code session files (read-only) |
 
-**Repo key derivation**:
+### Repo Key Derivation
+
 ```
 /Users/linus/Development/mashed → -Users-linus-Development-mashed
 ```
@@ -637,107 +871,51 @@ tmux split-window -h "claude --model opus --dangerously-skip-permissions"
 
 ---
 
-## 11. Concurrency Model
+## 13. Concurrency Model
 
 ```
 main goroutine
-  └─ tea.NewProgram(model)
-       ├─ Process Scanner (tea.Tick, 5s)
-       │    └─ exec ps, lsof, git commands
-       │    └─ sends ScanResultMsg
-       ├─ JSONL Watcher (long-running goroutine)
-       │    └─ fsnotify watches active session files
-       │    └─ sends SessionUpdateMsg per new line
-       ├─ tmux Pane Scanner (tea.Tick, 5s)
-       │    └─ exec tmux list-panes
-       │    └─ sends PaneUpdateMsg
-       ├─ Pane Capture (tea.Tick, 200ms, only when agent view active)
-       │    └─ exec tmux capture-pane
-       │    └─ sends PaneCaptureMsg
-       └─ Token Burn Sampler (tea.Tick, 1s)
-            └─ samples total tokens per repo
-            └─ sends BurnSampleMsg
+  └─ wails.Run(app)
+       ├─ app.startup()
+       │    ├─ NotificationEngine (goroutine, channel consumer)
+       │    ├─ Terminal Bridge WebSocket server (goroutine)
+       │    └─ initScanning()
+       │         ├─ scanLoop (goroutine, 5s tick)
+       │         │    └─ doScan(): ps, lsof, git, session parse, engine updates
+       │         ├─ watchSessions (goroutine, fsnotify)
+       │         │    └─ on file change → doScan()
+       │         └─ consumeEngineEvents (goroutine, channel reader)
+       │              └─ NotificationEvent → Wails EventsEmit → Svelte
+       └─ BMAD Executor (on-demand goroutines per workflow execution)
+            └─ runDynamic() → concurrent node execution
 ```
 
-All external commands run via `tea.Cmd` returning `tea.Msg` — no shared mutable state, no locks.
+All Wails-bound methods are called from the Svelte frontend on the main thread. Background goroutines communicate via channels and `runtime.EventsEmit()`. The `App.mu` mutex protects the notification list.
 
 ---
 
-## 12. Build & Distribution
+## 14. Build & Distribution
 
 ```bash
-# Development
-go run ./cmd/conductor
+# Development (hot-reload frontend)
+wails dev
 
-# Build
-go build -o conductor ./cmd/conductor
+# Production build
+wails build
 
-# Install
-go install ./cmd/conductor
-
-# Run (must be inside tmux for pane features)
-conductor
-conductor --dev-dir /path/to/repos
+# The output binary embeds all frontend assets via //go:embed
 ```
 
-### CLI Flags
+### Window Configuration
 
-| Flag | Default | Purpose |
-|------|---------|---------|
-| `--dev-dir` | `~/Development` | Override repo scan directory |
-| `--poll-interval` | `5s` | Process/repo scan interval |
-| `--no-tmux` | `false` | Disable tmux features (pure log mode) |
-
----
-
-## 13. Implementation Phases
-
-### Phase 1: Foundation
-- [ ] Project scaffolding (`cmd/conductor/main.go`, `go.mod`)
-- [ ] Domain types (`domain/types.go`)
-- [ ] Process scanner (`scanner/processes.go`)
-- [ ] Repo scanner (`scanner/repos.go`)
-- [ ] Root bubbletea model with view switching
-
-### Phase 2: Repos View
-- [ ] 2-column grid layout with lipgloss
-- [ ] Repo card rendering (name, branch, status badge)
-- [ ] Agent panels with thin borders inside each card
-- [ ] Sparkline component (block characters)
-- [ ] Stats footer (agents, tokens, elapsed)
-- [ ] Keyboard navigation (j/k, Enter to drill in)
-
-### Phase 3: Session Parsing
-- [ ] JSONL parser (`scanner/sessions.go`)
-- [ ] Token accumulation
-- [ ] Tool call → log line extraction
-- [ ] Sub-agent detection (Agent tool_use + task-notification)
-- [ ] DAG edge construction (PPID + in-process)
-
-### Phase 4: Workflow View
-- [ ] Split-pane layout
-- [ ] Agent tree with collapsible groups
-- [ ] Log viewport with colored output
-- [ ] Agent selection + keyboard navigation
-
-### Phase 5: Live Tailing
-- [ ] fsnotify watcher (`scanner/watcher.go`)
-- [ ] Incremental JSONL parsing
-- [ ] Real-time token count updates
-- [ ] Auto-scroll in log viewport
-
-### Phase 6: tmux Integration
-- [ ] Pane discovery + PID mapping (`tmux/panes.go`)
-- [ ] capture-pane polling (`tmux/control.go`)
-- [ ] ANSI rendering in agent view
-- [ ] Pane switching on Enter (`tmux/embed.go`)
-
-### Phase 7: Polish
-- [ ] Chrome (header, breadcrumb, status bar)
-- [ ] Help overlay (`?`)
-- [ ] Filter/search (`/`)
-- [ ] Graceful degradation when not in tmux
-- [ ] Error handling for missing repos, dead sessions
+| Setting | Value |
+|---------|-------|
+| Title | "Mashed" |
+| Default size | 1280 x 800 |
+| Min size | 800 x 600 |
+| Frameless | true (custom TitleBar.svelte) |
+| Background | `#07080a` (design system deepest) |
+| Mac | Hidden inset title bar, transparent webview |
 
 ---
 

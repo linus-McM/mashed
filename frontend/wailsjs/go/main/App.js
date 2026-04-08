@@ -26,6 +26,10 @@ export function GetAgentLog(arg1) {
   return window['go']['main']['App']['GetAgentLog'](arg1);
 }
 
+export function GetArtifactStatus(arg1, arg2) {
+  return window['go']['main']['App']['GetArtifactStatus'](arg1, arg2);
+}
+
 export function GetBmadExecution(arg1) {
   return window['go']['main']['App']['GetBmadExecution'](arg1);
 }

@@ -16,6 +16,8 @@ export function ExplainDiffHunk(arg1:string,arg2:string,arg3:string):Promise<str
 
 export function GetAgentLog(arg1:string):Promise<Array<domain.LogLine>>;
 
+export function GetArtifactStatus(arg1:string,arg2:string):Promise<boolean>;
+
 export function GetBmadExecution(arg1:string):Promise<bmad.WorkflowExecution>;
 
 export function GetBmadModules():Promise<Array<bmad.ModuleDef>>;
@@ -60,7 +62,7 @@ export function GitCreateBranch(arg1:string,arg2:string,arg3:string,arg4:boolean
 
 export function GitForcePush(arg1:string):Promise<string>;
 
-export function GitListBranches(arg1:string):Promise<Array<Record<string, any>>>;
+export function GitListBranches(arg1:string):Promise<Array<main.BranchInfo>>;
 
 export function GitMergeInto(arg1:string,arg2:string,arg3:boolean):Promise<string>;
 
@@ -86,7 +88,7 @@ export function ListLocalFonts():Promise<Array<main.LocalFontFamily>>;
 
 export function ListNerdFonts():Promise<Array<main.NerdFontEntry>>;
 
-export function ListRepoChoices():Promise<Array<Record<string, string>>>;
+export function ListRepoChoices():Promise<Array<main.RepoChoice>>;
 
 export function ListRepoFiles(arg1:string):Promise<Array<string>>;
 
@@ -112,7 +114,7 @@ export function RemoveTheme(arg1:string):Promise<void>;
 
 export function RepoMtimes(arg1:string):Promise<Record<string, number>>;
 
-export function RepoStatus(arg1:string):Promise<Record<string, any>>;
+export function RepoStatus(arg1:string):Promise<main.RepoStatusInfo>;
 
 export function ResumeBmadWorkflow(arg1:string):Promise<void>;
 

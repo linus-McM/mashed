@@ -67,18 +67,20 @@ desloppify exclude build
 desloppify exclude .venv-desloppify
 ```
 
-4. **Set up the git pre-commit hook** for automatic scanning. Read `scripts/pre-commit-hook.sh`
-   from this skill's directory and install it:
+4. **Set up the git pre-commit hook** for automatic scanning. Copy `scripts/pre-commit-hook.sh`
+   from this skill's own directory (the directory containing this SKILL.md) and install it:
 
 ```bash
 mkdir -p .githooks
-cp <skill-dir>/scripts/pre-commit-hook.sh .githooks/pre-commit
+# Use this skill's directory — the one containing this SKILL.md file
+cp ~/.claude/skills/desloppify/scripts/pre-commit-hook.sh .githooks/pre-commit
 chmod +x .githooks/pre-commit
 git config core.hooksPath .githooks
 ```
 
-If `.githooks/pre-commit` already exists, append the desloppify section rather than
-overwriting — there may be other hooks in place.
+If `.githooks/pre-commit` already exists, append only the body of `pre-commit-hook.sh`
+(skip the `#!/usr/bin/env bash` shebang and any `set -euo pipefail` lines to avoid
+duplicating them) after the existing content. This preserves other hooks already in place.
 
 ## Phase 1: Scan — Understand the Codebase
 

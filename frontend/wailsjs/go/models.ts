@@ -546,6 +546,20 @@ export namespace domain {
 
 export namespace main {
 	
+	export class BranchInfo {
+	    name: string;
+	    current: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new BranchInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.current = source["current"];
+	    }
+	}
 	export class LocalFontFile {
 	    fileName: string;
 	    weight: string;
@@ -611,6 +625,42 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.family = source["family"];
 	        this.filePath = source["filePath"];
+	    }
+	}
+	export class RepoChoice {
+	    name: string;
+	    path: string;
+	    branch: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RepoChoice(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.path = source["path"];
+	        this.branch = source["branch"];
+	    }
+	}
+	export class RepoStatusInfo {
+	    dirty: boolean;
+	    openPRs: number;
+	    ahead: number;
+	    behind: number;
+	    protected: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new RepoStatusInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.dirty = source["dirty"];
+	        this.openPRs = source["openPRs"];
+	        this.ahead = source["ahead"];
+	        this.behind = source["behind"];
+	        this.protected = source["protected"];
 	    }
 	}
 	export class VSCodeThemeEntry {
