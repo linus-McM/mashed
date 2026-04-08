@@ -50,12 +50,20 @@ export function GetConfig() {
   return window['go']['main']['App']['GetConfig']();
 }
 
+export function GetControlFlowNodes() {
+  return window['go']['main']['App']['GetControlFlowNodes']();
+}
+
 export function GetDevDir() {
   return window['go']['main']['App']['GetDevDir']();
 }
 
 export function GetFontsDir() {
   return window['go']['main']['App']['GetFontsDir']();
+}
+
+export function GetNodeOutput(arg1, arg2) {
+  return window['go']['main']['App']['GetNodeOutput'](arg1, arg2);
 }
 
 export function GetNotifications() {

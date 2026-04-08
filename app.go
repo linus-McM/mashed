@@ -1827,3 +1827,28 @@ func (a *App) DeleteBmadAgent(id string) error {
 func (a *App) GetBmadModules() []bmad.ModuleDef {
 	return bmad.GetModules()
 }
+
+// ── BMAD Control Flow ──
+
+// GetNodeOutput retrieves captured terminal output for a specific node in an execution.
+func (a *App) GetNodeOutput(execID, nodeID string) (string, error) {
+	if a.bmadExecutor == nil {
+		return "", fmt.Errorf("bmad executor not initialized")
+	}
+	exec, err := a.bmadExecutor.GetExecution(execID)
+	if err != nil {
+		return "", err
+	}
+	return exec.NodeOutputs[nodeID], nil
+}
+
+// GetControlFlowNodes returns the list of available control flow node types for the sidebar.
+func (a *App) GetControlFlowNodes() []bmad.ControlFlowNodeDef {
+	return []bmad.ControlFlowNodeDef{
+		{Type: bmad.NodeTypeCondition, Name: "Condition", Description: "If/else branch based on output", Icon: "GitBranch"},
+		{Type: bmad.NodeTypeLoop, Name: "Loop", Description: "Repeat N times", Icon: "Repeat"},
+		{Type: bmad.NodeTypeLoopUntil, Name: "Loop Until", Description: "Repeat until condition met", Icon: "Target"},
+		{Type: bmad.NodeTypeTransform, Name: "Transform", Description: "Extract/transform data", Icon: "Filter"},
+		{Type: bmad.NodeTypeMerge, Name: "Merge", Description: "Join branches", Icon: "GitMerge"},
+	}
+}

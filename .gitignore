@@ -54,3 +54,5 @@ console-**.log
 nanobanana-output
 docs/repomixer/*
 .wolf
+.playwright-cli
+.playwright-mcp

@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher, onDestroy } from 'svelte';
-  import { ChevronDown, ChevronRight, Trash2 } from 'lucide-svelte';
+  import { ChevronDown, ChevronRight, Trash2, GitBranch, Repeat, Target, Filter, GitMerge } from 'lucide-svelte';
   import SprintPanel from './SprintPanel.svelte';
 
   export let processes = [];
@@ -29,6 +29,21 @@
   };
 
   let openPhase = 'analysis';
+
+  const controlFlowNodes = [
+    { type: 'condition', name: 'Condition', description: 'If/else branch based on output', Icon: GitBranch },
+    { type: 'loop', name: 'Loop', description: 'Repeat N times', Icon: Repeat },
+    { type: 'loopUntil', name: 'Loop Until', description: 'Repeat until condition met', Icon: Target },
+    { type: 'transform', name: 'Transform', description: 'Extract/transform data', Icon: Filter },
+    { type: 'merge', name: 'Merge', description: 'Join branches', Icon: GitMerge },
+  ];
+
+  let controlFlowOpen = true;
+
+  function onControlFlowDragStart(e, item) {
+    e.dataTransfer.setData('application/bmad-controlflow', item.type);
+    e.dataTransfer.effectAllowed = 'move';
+  }
 
   function togglePhase(phase) {
     openPhase = openPhase === phase ? null : phase;
@@ -119,6 +134,37 @@
             </div>
           {/if}
         {/each}
+        <!-- Control Flow Group -->
+        <div class="phase-group control-flow-group">
+          <button class="phase-header" on:click={() => controlFlowOpen = !controlFlowOpen}>
+            <span class="phase-indicator" style="background: var(--accent-green)" />
+            {#if controlFlowOpen}
+              <ChevronDown size={12} />
+            {:else}
+              <ChevronRight size={12} />
+            {/if}
+            <span class="phase-label">Control Flow</span>
+            <span class="phase-count-badge">{controlFlowNodes.length}</span>
+          </button>
+          {#if controlFlowOpen}
+            <div class="phase-items">
+              {#each controlFlowNodes as item}
+                <div
+                  class="process-item"
+                  draggable="true"
+                  on:dragstart={(e) => onControlFlowDragStart(e, item)}
+                  title={item.description}
+                >
+                  <span class="cf-icon" style="color: var(--accent-green)">
+                    <svelte:component this={item.Icon} size={12} />
+                  </span>
+                  <span class="process-name">{item.name}</span>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+
         {#if processes.length === 0}
           <div class="empty-state">No processes registered</div>
         {/if}
@@ -318,6 +364,12 @@
     width: 5px;
     height: 5px;
     border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .cf-icon {
+    display: flex;
+    align-items: center;
     flex-shrink: 0;
   }
 

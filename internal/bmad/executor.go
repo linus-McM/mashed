@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +26,7 @@ type NodeStatusEvent struct {
 	NodeID     string             `json:"nodeId"`
 	Status     WorkflowNodeStatus `json:"status"`
 	TmuxTarget string             `json:"tmuxTarget,omitempty"`
+	Iteration  int                `json:"iteration,omitempty"`
 }
 
 // ExecStatusEvent is emitted on overall execution state changes.
@@ -34,10 +37,12 @@ type ExecStatusEvent struct {
 
 // execState holds the mutable runtime state of a single execution.
 type execState struct {
-	exec   *WorkflowExecution
-	cancel context.CancelFunc
-	paused bool
-	mu     sync.Mutex
+	exec     *WorkflowExecution
+	cancel   context.CancelFunc
+	paused   bool
+	mu       sync.Mutex
+	inDegree map[string]int            // current in-degree per node
+	outEdges map[string][]WorkflowEdge // source -> edges
 }
 
 // Executor manages workflow executions.
@@ -74,8 +79,9 @@ func (e *Executor) StartWorkflow(workflowID, repoPath, model string) (*WorkflowE
 		return nil, err
 	}
 
-	tiers, err := topoSort(wf.Nodes, wf.Edges)
-	if err != nil {
+	// topoSort is called only for cycle detection; the dynamic executor
+	// computes readiness on the fly instead of using static tiers.
+	if _, err := topoSort(wf.Nodes, wf.Edges); err != nil {
 		return nil, err
 	}
 
@@ -88,16 +94,34 @@ func (e *Executor) StartWorkflow(workflowID, repoPath, model string) (*WorkflowE
 
 	execID := fmt.Sprintf("exec-%s-%d", workflowID, time.Now().UnixMilli())
 	execution := &WorkflowExecution{
-		ID:         execID,
-		WorkflowID: workflowID,
-		RepoPath:   repoPath,
-		Status:     ExecRunning,
-		Nodes:      nodes,
-		StartedAt:  time.Now().UTC().Format(time.RFC3339),
+		ID:          execID,
+		WorkflowID:  workflowID,
+		RepoPath:    repoPath,
+		Status:      ExecRunning,
+		Nodes:       nodes,
+		StartedAt:   time.Now().UTC().Format(time.RFC3339),
+		NodeOutputs: make(map[string]string),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	state := &execState{exec: execution, cancel: cancel}
+
+	// Build in-degree and outEdges maps for the dynamic executor.
+	inDegree := make(map[string]int, len(nodes))
+	outEdgesMap := make(map[string][]WorkflowEdge, len(nodes))
+	for _, n := range nodes {
+		inDegree[n.ID] = 0
+	}
+	for _, edge := range wf.Edges {
+		outEdgesMap[edge.Source] = append(outEdgesMap[edge.Source], edge)
+		inDegree[edge.Target]++
+	}
+
+	state := &execState{
+		exec:     execution,
+		cancel:   cancel,
+		inDegree: inDegree,
+		outEdges: outEdgesMap,
+	}
 
 	e.mu.Lock()
 	e.executions[execID] = state
@@ -105,7 +129,7 @@ func (e *Executor) StartWorkflow(workflowID, repoPath, model string) (*WorkflowE
 
 	e.emitEvent("bmad:execution:status", ExecStatusEvent{ExecID: execID, Status: ExecRunning})
 
-	go e.run(ctx, state, tiers, repoPath, model)
+	go e.runDynamic(ctx, state, repoPath, model)
 
 	return execution, nil
 }
@@ -173,6 +197,12 @@ func (e *Executor) GetExecution(execID string) (*WorkflowExecution, error) {
 	cp := *state.exec
 	cp.Nodes = make([]WorkflowNode, len(state.exec.Nodes))
 	copy(cp.Nodes, state.exec.Nodes)
+	if state.exec.NodeOutputs != nil {
+		cp.NodeOutputs = make(map[string]string, len(state.exec.NodeOutputs))
+		for k, v := range state.exec.NodeOutputs {
+			cp.NodeOutputs[k] = v
+		}
+	}
 	return &cp, nil
 }
 
@@ -186,19 +216,38 @@ func (e *Executor) getState(execID string) (*execState, error) {
 	return state, nil
 }
 
-// run drives the execution through topological tiers.
-func (e *Executor) run(ctx context.Context, state *execState, tiers [][]string, repoPath, model string) {
+// runDynamic drives execution using a dynamic ready-set algorithm.
+// It replaces the static tier-based run() with dynamic in-degree tracking
+// that supports condition branching and merge nodes.
+func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, model string) {
 	nodeIndex := buildNodeIndex(state.exec.Nodes)
 
-	for _, tier := range tiers {
+	for {
 		// Wait if paused.
 		if !e.waitWhilePaused(ctx, state) {
 			return // context canceled
 		}
 
+		// Find ready set: nodes where inDegree == 0 AND status == NodePending.
+		state.mu.Lock()
+		var ready []string
+		for _, n := range state.exec.Nodes {
+			if n.Status == NodePending && state.inDegree[n.ID] == 0 {
+				ready = append(ready, n.ID)
+			}
+		}
+		state.mu.Unlock()
+
+		if len(ready) == 0 {
+			break // done or stuck
+		}
+
+		// Execute all ready nodes in parallel.
 		var wg sync.WaitGroup
-		for _, nodeID := range tier {
-			// Check pause/cancel before spawning each node.
+		var completedMu sync.Mutex
+		var completed []string
+
+		for _, nodeID := range ready {
 			if ctx.Err() != nil {
 				return
 			}
@@ -206,7 +255,6 @@ func (e *Executor) run(ctx context.Context, state *execState, tiers [][]string, 
 			paused := state.paused
 			state.mu.Unlock()
 			if paused {
-				// Re-enter the pause wait for remaining tiers.
 				if !e.waitWhilePaused(ctx, state) {
 					return
 				}
@@ -215,20 +263,74 @@ func (e *Executor) run(ctx context.Context, state *execState, tiers [][]string, 
 			wg.Add(1)
 			go func(nID string) {
 				defer wg.Done()
-				e.executeNode(ctx, state, nodeIndex, nID, repoPath, model)
+
+				state.mu.Lock()
+				idx := nodeIndex[nID]
+				effectiveType := state.exec.Nodes[idx].EffectiveType()
+				state.mu.Unlock()
+
+				switch effectiveType {
+				case NodeTypeProcess:
+					e.executeNode(ctx, state, nodeIndex, nID, repoPath, model)
+				case NodeTypeCondition, NodeTypeMerge:
+					e.executeControlNode(ctx, state, nodeIndex, nID, repoPath, model)
+				case NodeTypeTransform:
+					e.executeTransformNode(ctx, state, nodeIndex, nID)
+				case NodeTypeLoop, NodeTypeLoopUntil:
+					e.executeLoopNode(ctx, state, nodeIndex, nID, repoPath, model)
+				default:
+					fmt.Printf("bmad: unknown node type %s, skipping: %s\n", effectiveType, nID)
+					e.skipNode(state, nodeIndex[nID], nID)
+				}
+
+				completedMu.Lock()
+				completed = append(completed, nID)
+				completedMu.Unlock()
 			}(nodeID)
 		}
 		wg.Wait()
 
-		// Check for failures in this tier.
+		// Process completions: update in-degrees and skip inactive branches.
 		state.mu.Lock()
 		anyFailed := false
-		for _, nID := range tier {
-			if idx, ok := nodeIndex[nID]; ok && state.exec.Nodes[idx].Status == NodeFailed {
+		for _, nID := range completed {
+			idx := nodeIndex[nID]
+			nodeStatus := state.exec.Nodes[idx].Status
+
+			if nodeStatus == NodeFailed {
 				anyFailed = true
-				break
+				continue
+			}
+			if nodeStatus != NodeComplete {
+				continue // skipped or other terminal state
+			}
+
+			// Determine which outbound edges are active.
+			result := state.exec.NodeOutputs[nID]
+			effectiveType := state.exec.Nodes[idx].EffectiveType()
+			active := e.activeOutEdges(state, nID, result, effectiveType)
+
+			// Build set of active target IDs.
+			activeTargets := make(map[string]bool, len(active))
+			for _, edge := range active {
+				activeTargets[edge.Target] = true
+			}
+
+			// Decrement in-degree for active targets.
+			for _, edge := range active {
+				state.inDegree[edge.Target]--
+			}
+
+			// For inactive edges: skip those branches.
+			for _, edge := range state.outEdges[nID] {
+				if !activeTargets[edge.Target] {
+					// This edge is inactive — skip the target branch.
+					state.inDegree[edge.Target]--
+					e.skipBranchLocked(state, nodeIndex, edge.Target)
+				}
 			}
 		}
+
 		if anyFailed && state.exec.Status == ExecRunning {
 			state.paused = true
 			state.exec.Status = ExecPaused
@@ -243,13 +345,328 @@ func (e *Executor) run(ctx context.Context, state *execState, tiers [][]string, 
 		}
 	}
 
-	// All tiers done — mark complete if still running.
+	// Mark remaining pending nodes as skipped.
 	state.mu.Lock()
+	for i, n := range state.exec.Nodes {
+		if n.Status == NodePending {
+			state.exec.Nodes[i].Status = NodeSkipped
+			e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: n.ID, Status: NodeSkipped})
+		}
+	}
+
 	if state.exec.Status == ExecRunning {
 		state.exec.Status = ExecComplete
 		e.emitEvent("bmad:execution:status", ExecStatusEvent{ExecID: state.exec.ID, Status: ExecComplete})
 	}
 	state.mu.Unlock()
+}
+
+// activeOutEdges returns the outbound edges that should be activated after a node completes.
+// For condition nodes, only edges matching the result ("true"/"false") are active.
+// For loop nodes, only "loop-exit" edges are active (body edges are managed by executeLoopNode).
+// For all other nodes, all outbound edges are active.
+func (e *Executor) activeOutEdges(state *execState, nodeID, result string, effectiveType NodeType) []WorkflowEdge {
+	edges := state.outEdges[nodeID]
+	if effectiveType == NodeTypeCondition {
+		var active []WorkflowEdge
+		for _, edge := range edges {
+			if edge.SourceHandle == result {
+				active = append(active, edge)
+			}
+		}
+		return active
+	}
+
+	if effectiveType == NodeTypeLoop || effectiveType == NodeTypeLoopUntil {
+		var active []WorkflowEdge
+		for _, edge := range edges {
+			if edge.SourceHandle == "loop-exit" {
+				active = append(active, edge)
+			}
+		}
+		return active
+	}
+
+	return edges
+}
+
+// executeControlNode handles condition and merge nodes without spawning tmux sessions.
+func (e *Executor) executeControlNode(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID, repoPath, model string) {
+	idx := nodeIndex[nodeID]
+
+	state.mu.Lock()
+	node := state.exec.Nodes[idx]
+	effectiveType := node.EffectiveType()
+	state.mu.Unlock()
+
+	switch effectiveType {
+	case NodeTypeCondition:
+		// Mark running.
+		state.mu.Lock()
+		state.exec.Nodes[idx].Status = NodeRunning
+		state.exec.CurrentNode = nodeID
+		state.mu.Unlock()
+		e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+
+		// Parse condition from config.
+		condJSON := node.Config["condition"]
+		cond, err := ParseCondition(condJSON)
+		if err != nil {
+			fmt.Printf("bmad: invalid condition for node %s: %v\n", nodeID, err)
+			e.failNode(state, idx, nodeID)
+			return
+		}
+
+		// Evaluate the condition.
+		state.mu.Lock()
+		nodeOutputsCopy := make(map[string]string, len(state.exec.NodeOutputs))
+		for k, v := range state.exec.NodeOutputs {
+			nodeOutputsCopy[k] = v
+		}
+		state.mu.Unlock()
+
+		result := cond.Evaluate(nodeOutputsCopy, repoPath)
+		resultStr := "false"
+		if result {
+			resultStr = "true"
+		}
+
+		// Store result in NodeOutputs.
+		state.mu.Lock()
+		state.exec.NodeOutputs[nodeID] = resultStr
+		state.mu.Unlock()
+
+		e.completeNode(state, idx, nodeID)
+
+	case NodeTypeMerge:
+		// Merge is a no-op: it completes when in-degree reaches 0.
+		state.mu.Lock()
+		state.exec.Nodes[idx].Status = NodeRunning
+		state.exec.CurrentNode = nodeID
+		state.mu.Unlock()
+		e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+
+		e.completeNode(state, idx, nodeID)
+
+	default:
+		// Loop, LoopUntil, Transform: not yet implemented.
+		fmt.Printf("bmad: control node type %s not yet implemented: %s\n", effectiveType, nodeID)
+		state.mu.Lock()
+		state.exec.Nodes[idx].Status = NodeRunning
+		state.mu.Unlock()
+		e.completeNode(state, idx, nodeID)
+	}
+}
+
+// executeLoopNode handles loop and loopUntil nodes by repeatedly executing
+// body nodes up to maxIterations times. For loopUntil, it checks a condition
+// after each iteration and breaks early when the condition is met.
+func (e *Executor) executeLoopNode(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID, repoPath, model string) {
+	idx := nodeIndex[nodeID]
+
+	state.mu.Lock()
+	node := state.exec.Nodes[idx]
+	effectiveType := node.EffectiveType()
+	state.exec.Nodes[idx].Status = NodeRunning
+	state.exec.CurrentNode = nodeID
+	state.mu.Unlock()
+	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+
+	// Parse maxIterations (default 10, cap at 100).
+	maxIter := 10
+	if v, ok := node.Config["maxIterations"]; ok && v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			maxIter = n
+		}
+	}
+	if maxIter > 100 {
+		maxIter = 100
+	}
+
+	// Parse body node IDs.
+	var bodyNodeIDs []string
+	if v, ok := node.Config["loopBodyNodes"]; ok && v != "" {
+		for _, id := range strings.Split(v, ",") {
+			id = strings.TrimSpace(id)
+			if id != "" {
+				bodyNodeIDs = append(bodyNodeIDs, id)
+			}
+		}
+	}
+
+	// Empty body: complete with 0 iterations.
+	if len(bodyNodeIDs) == 0 {
+		state.mu.Lock()
+		state.exec.NodeOutputs[nodeID+"_iter"] = "0"
+		state.mu.Unlock()
+		e.completeNode(state, idx, nodeID)
+		return
+	}
+
+	// For loopUntil: parse condition.
+	var cond *Condition
+	if effectiveType == NodeTypeLoopUntil {
+		condJSON, ok := node.Config["condition"]
+		if ok && condJSON != "" {
+			var err error
+			cond, err = ParseCondition(condJSON)
+			if err != nil {
+				fmt.Printf("bmad: invalid loop condition for node %s: %v\n", nodeID, err)
+				e.failNode(state, idx, nodeID)
+				return
+			}
+		}
+	}
+
+	// Snapshot initial in-degrees for body nodes (for resetting each iteration).
+	initialInDegrees := make(map[string]int, len(bodyNodeIDs))
+	state.mu.Lock()
+	for _, bodyID := range bodyNodeIDs {
+		initialInDegrees[bodyID] = state.inDegree[bodyID]
+	}
+	state.mu.Unlock()
+
+	// Helper: check if a node ID is a body node.
+	isBody := make(map[string]bool, len(bodyNodeIDs))
+	for _, id := range bodyNodeIDs {
+		isBody[id] = true
+	}
+
+	// Iterate.
+	for iter := 1; iter <= maxIter; iter++ {
+		if ctx.Err() != nil {
+			e.failNode(state, idx, nodeID)
+			return
+		}
+
+		// Reset body nodes to pending and restore in-degrees.
+		state.mu.Lock()
+		for _, bodyID := range bodyNodeIDs {
+			bIdx := nodeIndex[bodyID]
+			state.exec.Nodes[bIdx].Status = NodePending
+			state.inDegree[bodyID] = initialInDegrees[bodyID]
+		}
+		// Ensure the first body node is ready.
+		state.inDegree[bodyNodeIDs[0]] = 0
+		state.mu.Unlock()
+
+		// Mini ready-set loop for body nodes.
+		bodyFailed := false
+		for {
+			if ctx.Err() != nil {
+				e.failNode(state, idx, nodeID)
+				return
+			}
+
+			state.mu.Lock()
+			var bodyReady []string
+			for _, bID := range bodyNodeIDs {
+				bIdx := nodeIndex[bID]
+				if state.exec.Nodes[bIdx].Status == NodePending && state.inDegree[bID] == 0 {
+					bodyReady = append(bodyReady, bID)
+				}
+			}
+			state.mu.Unlock()
+
+			if len(bodyReady) == 0 {
+				break
+			}
+
+			var wg sync.WaitGroup
+			for _, bID := range bodyReady {
+				wg.Add(1)
+				go func(id string) {
+					defer wg.Done()
+					e.executeNode(ctx, state, nodeIndex, id, repoPath, model)
+				}(bID)
+			}
+			wg.Wait()
+
+			// Update in-degrees for body-internal edges and check for failures.
+			state.mu.Lock()
+			for _, bID := range bodyReady {
+				bIdx := nodeIndex[bID]
+				if state.exec.Nodes[bIdx].Status == NodeFailed {
+					bodyFailed = true
+					break
+				}
+				if state.exec.Nodes[bIdx].Status == NodeComplete {
+					for _, edge := range state.outEdges[bID] {
+						if isBody[edge.Target] {
+							state.inDegree[edge.Target]--
+						}
+					}
+				}
+			}
+			state.mu.Unlock()
+
+			if bodyFailed {
+				break
+			}
+		}
+
+		if bodyFailed {
+			e.failNode(state, idx, nodeID)
+			return
+		}
+
+		// Store iteration count.
+		state.mu.Lock()
+		state.exec.NodeOutputs[nodeID+"_iter"] = strconv.Itoa(iter)
+		state.mu.Unlock()
+		e.emitEvent("bmad:node:status", NodeStatusEvent{
+			ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning, Iteration: iter,
+		})
+
+		// For loopUntil: evaluate condition.
+		if effectiveType == NodeTypeLoopUntil && cond != nil {
+			state.mu.Lock()
+			outputsCopy := make(map[string]string, len(state.exec.NodeOutputs))
+			for k, v := range state.exec.NodeOutputs {
+				outputsCopy[k] = v
+			}
+			state.mu.Unlock()
+			if cond.Evaluate(outputsCopy, repoPath) {
+				break
+			}
+		}
+	}
+
+	e.completeNode(state, idx, nodeID)
+}
+
+// skipBranchLocked recursively marks a node and its downstream nodes as skipped.
+// MUST be called with state.mu held.
+func (e *Executor) skipBranchLocked(state *execState, nodeIndex map[string]int, nodeID string) {
+	idx, ok := nodeIndex[nodeID]
+	if !ok {
+		return
+	}
+
+	// Only skip if still pending and in-degree is 0 (no other active inbound edges).
+	if state.exec.Nodes[idx].Status != NodePending {
+		return
+	}
+	if state.inDegree[nodeID] > 0 {
+		return // has other active inbound edges, don't skip
+	}
+
+	state.exec.Nodes[idx].Status = NodeSkipped
+	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeSkipped})
+
+	// Recursively skip downstream nodes.
+	for _, edge := range state.outEdges[nodeID] {
+		state.inDegree[edge.Target]--
+		e.skipBranchLocked(state, nodeIndex, edge.Target)
+	}
+}
+
+// skipNode marks a single node as skipped (without recursion).
+func (e *Executor) skipNode(state *execState, idx int, nodeID string) {
+	state.mu.Lock()
+	state.exec.Nodes[idx].Status = NodeSkipped
+	state.mu.Unlock()
+	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeSkipped})
 }
 
 // waitWhilePaused blocks until unpaused or context is canceled. Returns false if canceled.
@@ -267,6 +684,24 @@ func (e *Executor) waitWhilePaused(ctx context.Context, state *execState) bool {
 		case <-time.After(100 * time.Millisecond):
 		}
 	}
+}
+
+// maxCaptureBytes is the maximum size of captured tmux output per node.
+const maxCaptureBytes = 102400
+
+// captureOutput captures the tmux pane scrollback for the given target.
+// Output is capped at maxCaptureBytes; if larger, the beginning is truncated
+// (keeping the tail which contains the final output).
+func (e *Executor) captureOutput(ctx context.Context, target string) (string, error) {
+	out, err := e.runCmd(ctx, "tmux", "capture-pane", "-t", target, "-p", "-S", "-5000", "-E", "-")
+	if err != nil {
+		return "", err
+	}
+	s := string(out)
+	if len(s) > maxCaptureBytes {
+		s = s[len(s)-maxCaptureBytes:]
+	}
+	return s, nil
 }
 
 func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID, repoPath, model string) {
@@ -287,14 +722,18 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 		return
 	}
 
-	// Snapshot nodes under lock for context string building.
+	// Snapshot nodes and outputs under lock for context string building.
 	state.mu.Lock()
 	nodesCopy := make([]WorkflowNode, len(state.exec.Nodes))
 	copy(nodesCopy, state.exec.Nodes)
+	outputsCopy := make(map[string]string, len(state.exec.NodeOutputs))
+	for k, v := range state.exec.NodeOutputs {
+		outputsCopy[k] = v
+	}
 	state.mu.Unlock()
 
 	// Build command.
-	contextStr := buildContextString(proc, nodesCopy, nodeIndex)
+	contextStr := buildContextStringV2(proc, nodesCopy, nodeIndex, outputsCopy)
 	command := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s "use %s%s"`, model, proc.SkillName, contextStr)
 
 	sessionName := fmt.Sprintf("bmad-%s-%d", nodeID, time.Now().Unix())
@@ -325,11 +764,26 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 		case <-ticker.C:
 			out, err := e.runCmd(ctx, "tmux", "list-panes", "-t", target, "-F", "#{pane_dead}")
 			if err != nil {
-				// Session gone — treat as complete.
+				// Session gone — try to capture output (best-effort).
+				captured, captureErr := e.captureOutput(ctx, target)
+				if captureErr != nil {
+					fmt.Printf("bmad: failed to capture output for node %s: %v\n", nodeID, captureErr)
+				}
+				state.mu.Lock()
+				state.exec.NodeOutputs[nodeID] = captured
+				state.mu.Unlock()
 				e.completeNode(state, idx, nodeID)
 				return
 			}
 			if strings.TrimSpace(string(out)) == "1" {
+				// Capture output before completing (best-effort).
+				captured, captureErr := e.captureOutput(ctx, target)
+				if captureErr != nil {
+					fmt.Printf("bmad: failed to capture output for node %s: %v\n", nodeID, captureErr)
+				}
+				state.mu.Lock()
+				state.exec.NodeOutputs[nodeID] = captured
+				state.mu.Unlock()
 				e.completeNode(state, idx, nodeID)
 				return
 			}
@@ -363,32 +817,157 @@ func (e *Executor) failNode(state *execState, idx int, nodeID string) {
 	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeFailed})
 }
 
-func buildContextString(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[string]int) string {
-	if len(proc.Inputs) == 0 {
+// executeTransformNode reads the output of a source node, applies an extraction
+// (regex or line range), and stores the result. Transform nodes are synchronous.
+func (e *Executor) executeTransformNode(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID string) {
+	idx := nodeIndex[nodeID]
+
+	// Mark running.
+	state.mu.Lock()
+	state.exec.Nodes[idx].Status = NodeRunning
+	state.exec.CurrentNode = nodeID
+	node := state.exec.Nodes[idx]
+	state.mu.Unlock()
+	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+
+	// Read config.
+	sourceNodeID := node.Config["sourceNode"]
+	extractType := node.Config["extractType"]
+	extractPattern := node.Config["extractPattern"]
+
+	// Get source output.
+	state.mu.Lock()
+	sourceOutput := state.exec.NodeOutputs[sourceNodeID]
+	state.mu.Unlock()
+
+	// Apply extraction.
+	var result string
+	switch extractType {
+	case "regex":
+		result = extractRegex(sourceOutput, extractPattern)
+	case "lines":
+		result = extractLines(sourceOutput, extractPattern)
+	default:
+		result = sourceOutput // passthrough if unknown type
+	}
+
+	// Cap at 100KB.
+	if len(result) > maxCaptureBytes {
+		result = result[len(result)-maxCaptureBytes:]
+	}
+
+	// Store result.
+	state.mu.Lock()
+	state.exec.NodeOutputs[nodeID] = result
+	state.mu.Unlock()
+
+	e.completeNode(state, idx, nodeID)
+}
+
+// extractRegex applies a regex to input and returns the first capture group
+// (or the full match if no groups). Returns "" on no match or invalid pattern.
+func extractRegex(input, pattern string) string {
+	re, err := regexp.Compile(pattern)
+	if err != nil {
 		return ""
 	}
+	matches := re.FindStringSubmatch(input)
+	if len(matches) == 0 {
+		return ""
+	}
+	if len(matches) > 1 {
+		return matches[1]
+	}
+	return matches[0]
+}
 
-	// Find completed upstream nodes that produce artifacts matching our inputs.
-	needed := make(map[string]bool)
-	for _, input := range proc.Inputs {
-		needed[input] = true
+// extractLines extracts lines from input by pattern: "2-4" (range), "-3" (last N), "5" (single).
+// Line numbers are 1-indexed.
+func extractLines(input, pattern string) string {
+	lines := strings.Split(input, "\n")
+
+	// Last N lines: "-3".
+	if strings.HasPrefix(pattern, "-") {
+		n, err := strconv.Atoi(pattern[1:])
+		if err != nil || n <= 0 {
+			return ""
+		}
+		if n > len(lines) {
+			n = len(lines)
+		}
+		return strings.Join(lines[len(lines)-n:], "\n")
 	}
 
+	// Range or single: "2-4" or "5".
+	parts := strings.SplitN(pattern, "-", 2)
+	start, err := strconv.Atoi(parts[0])
+	if err != nil || start < 1 {
+		return ""
+	}
+	start-- // convert to 0-indexed
+
+	end := start + 1
+	if len(parts) == 2 {
+		end, err = strconv.Atoi(parts[1])
+		if err != nil {
+			return ""
+		}
+	}
+
+	// Clamp.
+	if start >= len(lines) {
+		return ""
+	}
+	if end > len(lines) {
+		end = len(lines)
+	}
+
+	return strings.Join(lines[start:end], "\n")
+}
+
+// buildContextStringV2 builds the context string for a process node, including
+// both artifact matching (from upstream processes) and extracted transform data.
+func buildContextStringV2(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[string]int, nodeOutputs map[string]string) string {
 	var parts []string
-	for _, n := range nodes {
-		if n.Status != NodeComplete {
-			continue
+
+	// Existing artifact matching.
+	if len(proc.Inputs) > 0 {
+		needed := make(map[string]bool)
+		for _, input := range proc.Inputs {
+			needed[input] = true
 		}
-		upstream, ok := ProcessByID(n.ProcessID)
-		if !ok {
-			continue
-		}
-		for _, output := range upstream.Outputs {
-			if needed[output] {
-				parts = append(parts, fmt.Sprintf(" The upstream process '%s' produced '%s' -- use it as input.", upstream.Name, output))
+		for _, n := range nodes {
+			if n.Status != NodeComplete {
+				continue
+			}
+			upstream, ok := ProcessByID(n.ProcessID)
+			if !ok {
+				continue
+			}
+			for _, output := range upstream.Outputs {
+				if needed[output] {
+					parts = append(parts, fmt.Sprintf(" The upstream process '%s' produced '%s' -- use it as input.", upstream.Name, output))
+				}
 			}
 		}
 	}
+
+	// Include transform data from completed transform nodes.
+	const maxTransformDataLen = 2000
+	for _, n := range nodes {
+		if n.Status != NodeComplete || n.EffectiveType() != NodeTypeTransform {
+			continue
+		}
+		data := nodeOutputs[n.ID]
+		if data == "" {
+			continue
+		}
+		if len(data) > maxTransformDataLen {
+			data = data[:maxTransformDataLen]
+		}
+		parts = append(parts, fmt.Sprintf(" The data transform '%s' extracted: %s", n.Label, data))
+	}
+
 	return strings.Join(parts, "")
 }
 

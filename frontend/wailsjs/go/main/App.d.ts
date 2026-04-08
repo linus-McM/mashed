@@ -28,9 +28,13 @@ export function GetBmadWorkflow(arg1:string):Promise<bmad.WorkflowDef>;
 
 export function GetConfig():Promise<main.mashedConfig>;
 
+export function GetControlFlowNodes():Promise<Array<bmad.ControlFlowNodeDef>>;
+
 export function GetDevDir():Promise<string>;
 
 export function GetFontsDir():Promise<string>;
+
+export function GetNodeOutput(arg1:string,arg2:string):Promise<string>;
 
 export function GetNotifications():Promise<Array<domain.NotificationEvent>>;
 

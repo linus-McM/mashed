@@ -9,6 +9,7 @@
   export let onConnect;
   export let onDropProcess;
   export let onDropStory = null;
+  export let onDropControlFlow = null;
   export let nodeTypes = {};
   export let onNodeClick = null;
   export let onPaneClick = null;
@@ -95,6 +96,12 @@
     if (templateId && onAddTemplate) {
       const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
       onAddTemplate(templateId, position, null);
+      return;
+    }
+    const controlFlowType = e.dataTransfer.getData('application/bmad-controlflow');
+    if (controlFlowType && onDropControlFlow) {
+      const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      onDropControlFlow(controlFlowType, position);
       return;
     }
     const storyJson = e.dataTransfer.getData('application/bmad-story');

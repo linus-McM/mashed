@@ -24,6 +24,24 @@ export namespace bmad {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class ControlFlowNodeDef {
+	    type: string;
+	    name: string;
+	    description: string;
+	    icon: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ControlFlowNodeDef(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.type = source["type"];
+	        this.name = source["name"];
+	        this.description = source["description"];
+	        this.icon = source["icon"];
+	    }
+	}
 	export class ModuleDef {
 	    id: string;
 	    name: string;
@@ -187,6 +205,8 @@ export namespace bmad {
 	    id: string;
 	    source: string;
 	    target: string;
+	    sourceHandle?: string;
+	    targetHandle?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new WorkflowEdge(source);
@@ -197,6 +217,8 @@ export namespace bmad {
 	        this.id = source["id"];
 	        this.source = source["source"];
 	        this.target = source["target"];
+	        this.sourceHandle = source["sourceHandle"];
+	        this.targetHandle = source["targetHandle"];
 	    }
 	}
 	export class WorkflowNode {
@@ -208,6 +230,7 @@ export namespace bmad {
 	    config: Record<string, string>;
 	    tmuxTarget: string;
 	    storyId?: string;
+	    nodeType?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new WorkflowNode(source);
@@ -223,6 +246,7 @@ export namespace bmad {
 	        this.config = source["config"];
 	        this.tmuxTarget = source["tmuxTarget"];
 	        this.storyId = source["storyId"];
+	        this.nodeType = source["nodeType"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -300,6 +324,7 @@ export namespace bmad {
 	    nodes: WorkflowNode[];
 	    startedAt: string;
 	    currentNode: string;
+	    nodeOutputs?: Record<string, string>;
 	
 	    static createFrom(source: any = {}) {
 	        return new WorkflowExecution(source);
@@ -314,6 +339,7 @@ export namespace bmad {
 	        this.nodes = this.convertValues(source["nodes"], WorkflowNode);
 	        this.startedAt = source["startedAt"];
 	        this.currentNode = source["currentNode"];
+	        this.nodeOutputs = source["nodeOutputs"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

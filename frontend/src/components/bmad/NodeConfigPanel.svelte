@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { X, Terminal } from 'lucide-svelte';
+  import { X, Terminal, FileText } from 'lucide-svelte';
 
   export let node = null;
   export let agents = [];
@@ -42,11 +42,36 @@
   let customContext = '';
   let selectedAgent = '';
 
+  $: nodeType = node?.data?.nodeType || '';
+  $: isProcessNode = !nodeType || nodeType === 'process';
+
+  const conditionTypeOptions = [
+    { value: 'contains', label: 'Contains' },
+    { value: 'notContains', label: 'Not Contains' },
+    { value: 'regex', label: 'Regex' },
+    { value: 'exitCode', label: 'Exit Code' },
+    { value: 'fileExists', label: 'File Exists' },
+    { value: 'always', label: 'Always' },
+  ];
+
+  let conditionType = 'contains';
+  let conditionPattern = '';
+  let sourceNode = '';
+  let maxIterations = '10';
+  let extractType = 'regex';
+  let extractPattern = '';
+
   $: if (node) {
     const cfg = node.data?.config || {};
     modelOverride = cfg.model || '';
     customContext = cfg.context || '';
     selectedAgent = cfg.agentId || '';
+    conditionType = cfg.conditionType || 'contains';
+    conditionPattern = cfg.conditionPattern || '';
+    sourceNode = cfg.sourceNode || '';
+    maxIterations = cfg.maxIterations || '10';
+    extractType = cfg.extractType || 'regex';
+    extractPattern = cfg.extractPattern || '';
   }
 
   $: label = node?.data?.label || 'Node';
@@ -55,14 +80,18 @@
   $: hasTerminal = status === 'running' && tmuxTarget;
 
   function emitUpdate() {
-    dispatch('update', {
-      nodeId: node.id,
-      config: {
-        model: modelOverride,
-        context: customContext,
-        agentId: selectedAgent,
-      },
-    });
+    const config = isProcessNode
+      ? { model: modelOverride, context: customContext, agentId: selectedAgent }
+      : nodeType === 'condition'
+      ? { conditionType, conditionPattern, sourceNode }
+      : nodeType === 'loop'
+      ? { maxIterations }
+      : nodeType === 'loopUntil'
+      ? { maxIterations, conditionType, conditionPattern, sourceNode }
+      : nodeType === 'transform'
+      ? { extractType, extractPattern, sourceNode }
+      : {};
+    dispatch('update', { nodeId: node.id, config });
   }
 
   function close() {
@@ -81,36 +110,101 @@
     </div>
 
     <div class="panel-body">
-      <div class="field">
-        <label class="field-label" for="model-override">Model</label>
-        <select id="model-override" class="field-select" bind:value={modelOverride} on:change={emitUpdate}>
-          {#each models as m}
-            <option value={m.value}>{m.label}</option>
-          {/each}
-        </select>
-      </div>
+      {#if isProcessNode}
+        <div class="field">
+          <label class="field-label" for="model-override">Model</label>
+          <select id="model-override" class="field-select" bind:value={modelOverride} on:change={emitUpdate}>
+            {#each models as m}
+              <option value={m.value}>{m.label}</option>
+            {/each}
+          </select>
+        </div>
 
-      <div class="field">
-        <label class="field-label" for="custom-context">Context</label>
-        <textarea
-          id="custom-context"
-          class="field-textarea"
-          bind:value={customContext}
-          on:blur={emitUpdate}
-          placeholder="Additional context for this process..."
-          rows="4"
-        />
-      </div>
+        <div class="field">
+          <label class="field-label" for="custom-context">Context</label>
+          <textarea
+            id="custom-context"
+            class="field-textarea"
+            bind:value={customContext}
+            on:blur={emitUpdate}
+            placeholder="Additional context for this process..."
+            rows="4"
+          />
+        </div>
 
-      <div class="field">
-        <label class="field-label" for="agent-select">Agent</label>
-        <select id="agent-select" class="field-select" bind:value={selectedAgent} on:change={emitUpdate}>
-          <option value="">Default</option>
-          {#each agents as agent}
-            <option value={agent.id}>{agent.name} ({agent.role})</option>
-          {/each}
-        </select>
-      </div>
+        <div class="field">
+          <label class="field-label" for="agent-select">Agent</label>
+          <select id="agent-select" class="field-select" bind:value={selectedAgent} on:change={emitUpdate}>
+            <option value="">Default</option>
+            {#each agents as agent}
+              <option value={agent.id}>{agent.name} ({agent.role})</option>
+            {/each}
+          </select>
+        </div>
+      {:else if nodeType === 'condition'}
+        <div class="field">
+          <label class="field-label">Condition Type</label>
+          <select class="field-select" bind:value={conditionType} on:change={emitUpdate}>
+            {#each conditionTypeOptions as opt}
+              <option value={opt.value}>{opt.label}</option>
+            {/each}
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Pattern</label>
+          <input class="field-input" type="text" bind:value={conditionPattern} on:blur={emitUpdate} placeholder="Pattern to match..." />
+        </div>
+        <div class="field">
+          <label class="field-label">Source Node</label>
+          <input class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
+        </div>
+      {:else if nodeType === 'loop'}
+        <div class="field">
+          <label class="field-label">Max Iterations</label>
+          <input class="field-input" type="number" bind:value={maxIterations} on:change={emitUpdate} min="1" max="100" />
+        </div>
+      {:else if nodeType === 'loopUntil'}
+        <div class="field">
+          <label class="field-label">Max Iterations</label>
+          <input class="field-input" type="number" bind:value={maxIterations} on:change={emitUpdate} min="1" max="100" />
+        </div>
+        <div class="field">
+          <label class="field-label">Condition Type</label>
+          <select class="field-select" bind:value={conditionType} on:change={emitUpdate}>
+            {#each conditionTypeOptions as opt}
+              <option value={opt.value}>{opt.label}</option>
+            {/each}
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Pattern</label>
+          <input class="field-input" type="text" bind:value={conditionPattern} on:blur={emitUpdate} placeholder="Pattern to match..." />
+        </div>
+        <div class="field">
+          <label class="field-label">Source Node</label>
+          <input class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
+        </div>
+      {:else if nodeType === 'transform'}
+        <div class="field">
+          <label class="field-label">Extract Type</label>
+          <select class="field-select" bind:value={extractType} on:change={emitUpdate}>
+            <option value="regex">Regex</option>
+            <option value="lines">Lines</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Extract Pattern</label>
+          <input class="field-input" type="text" bind:value={extractPattern} on:blur={emitUpdate} placeholder="Regex or line range..." />
+        </div>
+        <div class="field">
+          <label class="field-label">Source Node</label>
+          <input class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
+        </div>
+      {:else if nodeType === 'merge'}
+        <div class="field">
+          <label class="field-label" style="color: var(--text-muted)">No configuration needed</label>
+        </div>
+      {/if}
 
       {#if node?.data?.storyId}
         <div class="field">
@@ -126,6 +220,13 @@
         <button class="terminal-btn" on:click={() => dispatch('open-terminal', tmuxTarget)}>
           <Terminal size={13} />
           View Terminal
+        </button>
+      {/if}
+
+      {#if status === 'complete'}
+        <button class="terminal-btn output-btn" on:click={() => dispatch('open-output', node.id)}>
+          <FileText size={13} />
+          View Output
         </button>
       {/if}
     </div>
@@ -239,6 +340,19 @@
 
   .field-select:focus { border-color: var(--accent-green); }
 
+  .field-input {
+    padding: 5px 8px;
+    background: var(--bg-deepest);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    outline: none;
+  }
+
+  .field-input:focus { border-color: var(--accent-green); }
+
   .field-textarea {
     padding: 6px 8px;
     background: var(--bg-deepest);
@@ -275,6 +389,14 @@
   .terminal-btn:hover {
     background: var(--bg-active);
     border-color: var(--accent-green);
+  }
+
+  .output-btn {
+    color: var(--accent-blue, #3d9eff);
+  }
+
+  .output-btn:hover {
+    border-color: var(--accent-blue, #3d9eff);
   }
 
   .story-link {

@@ -9,14 +9,20 @@
            SaveBmadWorkflow, GetBmadWorkflow, CreateFromTemplate,
            DeleteBmadWorkflow, ListBmadAgents, SaveBmadAgent, DeleteBmadAgent,
            StartBmadWorkflow, PauseBmadWorkflow, ResumeBmadWorkflow, StopBmadWorkflow,
-           GetTerminalPort, GetSprintStatus } from '../../wailsjs/go/main/App.js';
+           GetTerminalPort, GetSprintStatus, GetNodeOutput } from '../../wailsjs/go/main/App.js';
   import Terminal from '../components/Terminal.svelte';
   import ProcessSidebar from '../components/bmad/ProcessSidebar.svelte';
   import CanvasPane from '../components/bmad/CanvasPane.svelte';
   import ProcessNode from '../components/bmad/ProcessNode.svelte';
+  import ConditionNode from '../components/bmad/ConditionNode.svelte';
+  import LoopNode from '../components/bmad/LoopNode.svelte';
+  import LoopUntilNode from '../components/bmad/LoopUntilNode.svelte';
+  import TransformNode from '../components/bmad/TransformNode.svelte';
+  import MergeNode from '../components/bmad/MergeNode.svelte';
   import ExecutionBar from '../components/bmad/ExecutionBar.svelte';
   import NodeConfigPanel from '../components/bmad/NodeConfigPanel.svelte';
   import AgentConfigModal from '../components/bmad/AgentConfigModal.svelte';
+  import OutputViewerModal from '../components/bmad/OutputViewerModal.svelte';
   import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
 
   export let repoPath = '';
@@ -24,7 +30,14 @@
 
   const dispatch = createEventDispatcher();
 
-  const nodeTypes = { bmadProcess: ProcessNode };
+  const nodeTypes = {
+    bmadProcess: ProcessNode,
+    condition: ConditionNode,
+    loop: LoopNode,
+    loopUntil: LoopUntilNode,
+    transform: TransformNode,
+    merge: MergeNode,
+  };
 
   const nodes = writable([]);
   const edges = writable([]);
@@ -57,6 +70,12 @@
   let terminalTarget = '';
   $: terminalRepoPath = repoPath;
 
+  // Output viewer modal state
+  let showOutputModal = false;
+  let outputModalContent = '';
+  let outputModalLabel = '';
+  let outputLoading = false;
+
   onMount(async () => {
     try {
       [processes, templates, savedWorkflows, agents] = await Promise.all([
@@ -87,7 +106,12 @@
     if (!event?.nodeId || (executionId && event.execId !== executionId)) return;
     $nodes = $nodes.map(n => {
       if (n.id === event.nodeId) {
-        return { ...n, data: { ...n.data, status: event.status, tmuxTarget: event.tmuxTarget || n.data.tmuxTarget } };
+        return { ...n, data: {
+          ...n.data,
+          status: event.status,
+          tmuxTarget: event.tmuxTarget || n.data.tmuxTarget,
+          iterationCount: event.iteration || n.data.iterationCount,
+        } };
       }
       return n;
     });
@@ -143,13 +167,24 @@
     return !exists;
   }
 
+  function inferEdgeLabel(sourceHandle) {
+    if (sourceHandle === 'true') return 'true';
+    if (sourceHandle === 'false') return 'false';
+    if (sourceHandle === 'loop-body') return 'body';
+    if (sourceHandle === 'loop-exit') return 'exit';
+    return '';
+  }
+
   function onConnect(params) {
+    const label = inferEdgeLabel(params.sourceHandle);
     const newEdge = {
       id: `edge-${Date.now()}`,
       source: params.source,
       target: params.target,
       sourceHandle: params.sourceHandle,
       targetHandle: params.targetHandle,
+      label,
+      data: { label },
     };
     $edges = [...$edges, newEdge];
   }
@@ -180,6 +215,18 @@
         status: 'pending',
         config: { storyId: storyData.storyId },
       },
+    };
+    $nodes = [...$nodes, newNode];
+  }
+
+  const controlFlowNames = { condition: 'Condition', loop: 'Loop', loopUntil: 'Loop Until', transform: 'Transform', merge: 'Merge' };
+
+  function onDropControlFlow(nodeType, position) {
+    const newNode = {
+      id: `cf-${Date.now()}`,
+      type: nodeType,
+      position,
+      data: { nodeType, label: controlFlowNames[nodeType] || nodeType, status: 'pending', config: {} },
     };
     $nodes = [...$nodes, newNode];
   }
@@ -216,12 +263,15 @@
     const { oldEdge, newConnection } = detail;
     $edges = $edges.map(e => {
       if (e.id === oldEdge.id) {
+        const label = inferEdgeLabel(newConnection.sourceHandle);
         return {
           ...e,
           source: newConnection.source,
           target: newConnection.target,
           sourceHandle: newConnection.sourceHandle,
           targetHandle: newConnection.targetHandle,
+          label,
+          data: { label },
         };
       }
       return e;
@@ -320,6 +370,22 @@
     showTerminalModal = true;
   }
 
+  async function handleOpenOutput(e) {
+    const nodeId = e.detail;
+    const node = $nodes.find(n => n.id === nodeId);
+    outputModalLabel = node?.data?.label || nodeId;
+    outputLoading = true;
+    showOutputModal = true;
+    outputModalContent = '';
+
+    try {
+      outputModalContent = await GetNodeOutput(executionId, nodeId);
+    } catch (err) {
+      outputModalContent = 'Error loading output: ' + err;
+    }
+    outputLoading = false;
+  }
+
   async function saveWorkflow() {
     saving = true;
     try {
@@ -330,15 +396,22 @@
         repoPath: repoPath,
         nodes: $nodes.map(n => ({
           id: n.id,
-          processId: n.data.processId,
+          processId: n.data.processId || '',
           label: n.data.label,
           position: n.position,
           status: n.data.status || 'pending',
           config: n.data.config || {},
           tmuxTarget: n.data.tmuxTarget || '',
           storyId: n.data.storyId || '',
+          nodeType: n.data.nodeType || '',
         })),
-        edges: $edges.map(e => ({ id: e.id, source: e.source, target: e.target })),
+        edges: $edges.map(e => ({
+          id: e.id,
+          source: e.source,
+          target: e.target,
+          sourceHandle: e.sourceHandle || '',
+          targetHandle: e.targetHandle || '',
+        })),
         isTemplate: false,
         templateId: currentWorkflow?.templateId || '',
         createdAt: currentWorkflow?.createdAt || new Date().toISOString(),
@@ -356,12 +429,13 @@
   function loadNodesEdges(wf) {
     $nodes = (wf.nodes || []).map(n => ({
       id: n.id,
-      type: 'bmadProcess',
+      type: n.nodeType && n.nodeType !== 'process' ? n.nodeType : 'bmadProcess',
       position: n.position,
       data: {
         label: n.label,
-        processId: n.processId,
-        process: processes.find(p => p.id === n.processId) || null,
+        processId: n.processId || '',
+        nodeType: n.nodeType || '',
+        process: n.processId ? processes.find(p => p.id === n.processId) || null : null,
         status: n.status || 'pending',
         config: n.config || {},
         tmuxTarget: n.tmuxTarget || '',
@@ -369,11 +443,18 @@
         storyStatus: n.storyStatus || '',
       },
     }));
-    $edges = (wf.edges || []).map(e => ({
-      id: e.id,
-      source: e.source,
-      target: e.target,
-    }));
+    $edges = (wf.edges || []).map(e => {
+      const label = inferEdgeLabel(e.sourceHandle);
+      return {
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        sourceHandle: e.sourceHandle || undefined,
+        targetHandle: e.targetHandle || undefined,
+        label,
+        data: { label },
+      };
+    });
     selectedNode = null;
     updateProgress();
   }
@@ -544,6 +625,7 @@
           {onConnect}
           {onDropProcess}
           {onDropStory}
+          {onDropControlFlow}
           {onNodeClick}
           onPaneClick={() => selectedNode = null}
           {onNodesDelete}
@@ -571,6 +653,7 @@
         on:update={onConfigUpdate}
         on:close={() => selectedNode = null}
         on:open-terminal={onOpenTerminal}
+        on:open-output={handleOpenOutput}
       />
     </div>
 
@@ -608,6 +691,14 @@
       on:close={() => { showAgentModal = false; editingAgent = null; }}
     />
   {/if}
+
+  <OutputViewerModal
+    show={showOutputModal}
+    label={outputModalLabel}
+    content={outputModalContent}
+    loading={outputLoading}
+    on:close={() => showOutputModal = false}
+  />
 </div>
 
 <style>

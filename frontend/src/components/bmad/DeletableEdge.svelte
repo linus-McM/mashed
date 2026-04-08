@@ -11,6 +11,8 @@
   export let style = '';
   export let markerEnd = '';
   export let selected = false;
+  export let label = '';
+  export let data = {};
 
   const { deleteElements } = useSvelteFlow();
 
@@ -19,6 +21,8 @@
   $: [edgePath, labelX, labelY] = getBezierPath({
     sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition,
   });
+
+  $: displayLabel = label || data?.label || '';
 
   function onDelete(e) {
     e.stopPropagation();
@@ -34,6 +38,19 @@
 </g>
 
 <EdgeLabelRenderer>
+  {#if displayLabel}
+    <div
+      class="edge-label"
+      class:label-true={displayLabel === 'true'}
+      class:label-false={displayLabel === 'false'}
+      class:label-body={displayLabel === 'body'}
+      class:label-exit={displayLabel === 'exit'}
+      style="position: absolute; transform: translate(-50%, -50%) translate({labelX}px, {labelY - 18}px); pointer-events: none;"
+    >
+      {displayLabel}
+    </div>
+  {/if}
+
   <div
     class="edge-delete-btn"
     class:visible={hovered || selected}
@@ -79,4 +96,23 @@
     border-color: var(--accent-red, #f85149);
     background: rgba(248, 81, 73, 0.12);
   }
+
+  .edge-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--bg-elevated, #2d333b);
+    border: 1px solid var(--border-subtle, #373e47);
+    color: var(--text-muted, #8b949e);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    z-index: 5;
+  }
+
+  .edge-label.label-true { color: var(--accent-green, #00e57a); border-color: var(--accent-green, #00e57a); }
+  .edge-label.label-false { color: var(--accent-red, #f85149); border-color: var(--accent-red, #f85149); }
+  .edge-label.label-body { color: var(--accent-amber, #d29922); border-color: var(--accent-amber, #d29922); }
+  .edge-label.label-exit { color: var(--text-muted, #8b949e); }
 </style>

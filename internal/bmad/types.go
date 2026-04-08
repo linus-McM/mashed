@@ -17,6 +17,7 @@ var (
 	ErrSprintFileNotFound  = errors.New("bmad: sprint status file not found")
 	ErrSprintFileMalformed = errors.New("bmad: sprint status file is malformed")
 	ErrStoryNotFound       = errors.New("bmad: story not found in sprint status")
+	ErrInvalidCondition    = errors.New("bmad: invalid condition")
 )
 
 // BmadPhase groups processes into lifecycle stages.
@@ -68,6 +69,18 @@ const (
 	NodeSkipped  WorkflowNodeStatus = "skipped"
 )
 
+// NodeType discriminates between process nodes and control flow nodes.
+type NodeType string
+
+const (
+	NodeTypeProcess   NodeType = "process"
+	NodeTypeCondition NodeType = "condition"
+	NodeTypeLoop      NodeType = "loop"
+	NodeTypeLoopUntil NodeType = "loopUntil"
+	NodeTypeTransform NodeType = "transform"
+	NodeTypeMerge     NodeType = "merge"
+)
+
 // WorkflowNode is a process instance placed on the canvas.
 type WorkflowNode struct {
 	ID         string             `json:"id"`
@@ -78,6 +91,16 @@ type WorkflowNode struct {
 	Config     map[string]string  `json:"config"`
 	TmuxTarget string             `json:"tmuxTarget"`
 	StoryID    string             `json:"storyId,omitempty"`
+	NodeType   NodeType           `json:"nodeType,omitempty"`
+}
+
+// EffectiveType returns the node's type, defaulting to NodeTypeProcess for
+// legacy nodes that have an empty NodeType field.
+func (n WorkflowNode) EffectiveType() NodeType {
+	if n.NodeType == "" {
+		return NodeTypeProcess
+	}
+	return n.NodeType
 }
 
 // Position is a 2D coordinate for canvas placement.
@@ -88,9 +111,11 @@ type Position struct {
 
 // WorkflowEdge connects two nodes.
 type WorkflowEdge struct {
-	ID     string `json:"id"`
-	Source string `json:"source"`
-	Target string `json:"target"`
+	ID           string `json:"id"`
+	Source       string `json:"source"`
+	Target       string `json:"target"`
+	SourceHandle string `json:"sourceHandle,omitempty"`
+	TargetHandle string `json:"targetHandle,omitempty"`
 }
 
 // WorkflowDef is a saveable/loadable workflow definition.
@@ -127,6 +152,7 @@ type WorkflowExecution struct {
 	Nodes       []WorkflowNode    `json:"nodes"`
 	StartedAt   string            `json:"startedAt"`
 	CurrentNode string            `json:"currentNode"`
+	NodeOutputs map[string]string  `json:"nodeOutputs,omitempty"`
 }
 
 // BmadAgentConfig defines a custom BMAD user agent.
@@ -138,4 +164,12 @@ type BmadAgentConfig struct {
 	Skills    []string      `json:"skills"`
 	Model     string        `json:"model"`
 	CreatedAt string        `json:"createdAt"`
+}
+
+// ControlFlowNodeDef describes a control flow node type for the frontend sidebar.
+type ControlFlowNodeDef struct {
+	Type        NodeType `json:"type"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Icon        string   `json:"icon"`
 }
