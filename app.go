@@ -107,8 +107,9 @@ func saveConfig(cfg mashedConfig) error {
 // NewApp creates a new App instance.
 func NewApp() *App {
 	return &App{
-		bridge: terminal.NewBridge(),
-		panes:  terminal.NewPaneDiscovery(),
+		bridge:           terminal.NewBridge(),
+		panes:            terminal.NewPaneDiscovery(),
+		terminalSessions: make(map[string]domain.TerminalSession),
 	}
 }
 

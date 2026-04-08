@@ -112,6 +112,26 @@ type SubAgentInfo struct {
 	LogLines    []LogLine `json:"logLines"`
 }
 
+// SessionType classifies terminal sessions by origin.
+type SessionType string
+
+const (
+	SessionTerminal SessionType = "terminal"
+	SessionAgent    SessionType = "agent"
+)
+
+// TerminalSession tracks a tmux session spawned by mashed.
+type TerminalSession struct {
+	SessionName string      `json:"sessionName"` // "term-myrepo-1712600000"
+	PaneTarget  string      `json:"paneTarget"`  // "term-myrepo-1712600000:0.0"
+	RepoPath    string      `json:"repoPath"`
+	RepoName    string      `json:"repoName"`
+	SessionType SessionType `json:"sessionType"` // "terminal" | "agent"
+	Model       string      `json:"model"`       // "" for terminals
+	SpawnedAt   time.Time   `json:"spawnedAt"`
+	IsAlive     bool        `json:"isAlive"`     // set at query time from tmux liveness
+}
+
 // AgentSession holds live process metadata for a running Claude CLI instance.
 type AgentSession struct {
 	PID       int       `json:"pid"`
