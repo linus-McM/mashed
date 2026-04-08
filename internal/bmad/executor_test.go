@@ -2057,3 +2057,164 @@ func TestLoop_EmptyBody(t *testing.T) {
 	// Should store 0 iterations.
 	assert.Equal(t, "0", ex.NodeOutputs["L_iter"], "empty body should report 0 iterations")
 }
+
+// ── Artifact Event Emission ──
+
+func TestCompleteNode_EmitsArtifactEvent_ProcessNode(t *testing.T) {
+	h := newHarness(t)
+	h.executor.SetCommandRunner(successRunner())
+
+	// Create a repo dir with the expected artifact for bmad-brainstorming
+	// (outputs: ["brainstorm-notes"] → _bmad-output/analysis-artifacts/brainstorm-notes.md).
+	repoDir := t.TempDir()
+	artifactDir := filepath.Join(repoDir, "_bmad-output", "analysis-artifacts")
+	require.NoError(t, os.MkdirAll(artifactDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(artifactDir, "brainstorm-notes.md"), []byte("notes"), 0o644))
+
+	// Save a single-node workflow with a process node.
+	wf := WorkflowDef{
+		ID:   "wf-artifact-test",
+		Name: "Artifact Test",
+		Nodes: []WorkflowNode{
+			{ID: "N1", ProcessID: "bmad-brainstorming", Label: "Brainstorm", Position: Position{X: 0, Y: 0}, Status: NodePending, Config: map[string]string{}},
+		},
+		Edges:     []WorkflowEdge{},
+		CreatedAt: "2026-04-08T00:00:00Z",
+		UpdatedAt: "2026-04-08T00:00:00Z",
+	}
+	require.NoError(t, h.storage.SaveWorkflow(wf))
+
+	exec, err := h.executor.StartWorkflow(wf.ID, repoDir, "sonnet")
+	require.NoError(t, err)
+
+	// Wait for completion.
+	require.Eventually(t, func() bool {
+		ex, _ := h.executor.GetExecution(exec.ID)
+		return ex != nil && ex.Status == ExecComplete
+	}, 5*time.Second, 50*time.Millisecond)
+
+	// Verify artifact event was emitted.
+	artifactEvents := h.eventsByName("bmad:node:artifacts")
+	require.Len(t, artifactEvents, 1, "should emit exactly one artifact event")
+
+	ae, ok := artifactEvents[0].data.(NodeArtifactEvent)
+	require.True(t, ok, "event data should be NodeArtifactEvent")
+	assert.Equal(t, exec.ID, ae.ExecID)
+	assert.Equal(t, "N1", ae.NodeID)
+	assert.Equal(t, []string{"brainstorm-notes"}, ae.Found)
+	assert.Empty(t, ae.Missing, "artifact was created, so nothing should be missing")
+}
+
+func TestCompleteNode_ArtifactEvent_MissingArtifact(t *testing.T) {
+	h := newHarness(t)
+	h.executor.SetCommandRunner(successRunner())
+
+	// Repo dir WITHOUT the expected artifact file.
+	repoDir := t.TempDir()
+
+	wf := WorkflowDef{
+		ID:   "wf-artifact-missing",
+		Name: "Artifact Missing Test",
+		Nodes: []WorkflowNode{
+			{ID: "N1", ProcessID: "bmad-create-prd", Label: "PRD", Position: Position{X: 0, Y: 0}, Status: NodePending, Config: map[string]string{}},
+		},
+		Edges:     []WorkflowEdge{},
+		CreatedAt: "2026-04-08T00:00:00Z",
+		UpdatedAt: "2026-04-08T00:00:00Z",
+	}
+	require.NoError(t, h.storage.SaveWorkflow(wf))
+
+	exec, err := h.executor.StartWorkflow(wf.ID, repoDir, "sonnet")
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool {
+		ex, _ := h.executor.GetExecution(exec.ID)
+		return ex != nil && ex.Status == ExecComplete
+	}, 5*time.Second, 50*time.Millisecond)
+
+	artifactEvents := h.eventsByName("bmad:node:artifacts")
+	require.Len(t, artifactEvents, 1)
+
+	ae, ok := artifactEvents[0].data.(NodeArtifactEvent)
+	require.True(t, ok)
+	assert.Equal(t, exec.ID, ae.ExecID)
+	assert.Equal(t, "N1", ae.NodeID)
+	assert.Empty(t, ae.Found, "no artifact files exist on disk")
+	assert.Equal(t, []string{"PRD.md"}, ae.Missing)
+}
+
+func TestCompleteNode_NoArtifactEvent_ControlNode(t *testing.T) {
+	h := newHarness(t)
+	h.executor.SetCommandRunner(successRunner())
+
+	// A workflow with one condition node that evaluates to "true" and one merge.
+	// Neither should produce artifact events.
+	wf := WorkflowDef{
+		ID:   "wf-control-no-artifact",
+		Name: "Control No Artifact",
+		Nodes: []WorkflowNode{
+			{ID: "P1", ProcessID: "bmad-brainstorming", Label: "Brainstorm", Position: Position{X: 0, Y: 0}, Status: NodePending, Config: map[string]string{}, NodeType: NodeTypeProcess},
+			{ID: "M1", ProcessID: "", Label: "Merge", Position: Position{X: 250, Y: 0}, Status: NodePending, Config: map[string]string{}, NodeType: NodeTypeMerge},
+		},
+		Edges: []WorkflowEdge{
+			{ID: "e1", Source: "P1", Target: "M1"},
+		},
+		CreatedAt: "2026-04-08T00:00:00Z",
+		UpdatedAt: "2026-04-08T00:00:00Z",
+	}
+	require.NoError(t, h.storage.SaveWorkflow(wf))
+
+	repoDir := t.TempDir()
+	// Create the artifact for P1 so it passes artifact check.
+	artifactDir := filepath.Join(repoDir, "_bmad-output", "analysis-artifacts")
+	require.NoError(t, os.MkdirAll(artifactDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(artifactDir, "brainstorm-notes.md"), []byte("notes"), 0o644))
+
+	exec, err := h.executor.StartWorkflow(wf.ID, repoDir, "sonnet")
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool {
+		ex, _ := h.executor.GetExecution(exec.ID)
+		return ex != nil && ex.Status == ExecComplete
+	}, 5*time.Second, 50*time.Millisecond)
+
+	// Only process node P1 should have emitted an artifact event, NOT the merge node M1.
+	artifactEvents := h.eventsByName("bmad:node:artifacts")
+	require.Len(t, artifactEvents, 1, "only process nodes emit artifact events")
+
+	ae, ok := artifactEvents[0].data.(NodeArtifactEvent)
+	require.True(t, ok)
+	assert.Equal(t, "P1", ae.NodeID, "artifact event should be from process node P1 only")
+}
+
+// ── GetArtifactStatus ──
+
+func TestGetArtifactStatus_Exists(t *testing.T) {
+	repoDir := t.TempDir()
+	artifactDir := filepath.Join(repoDir, "_bmad-output", "planning-artifacts")
+	require.NoError(t, os.MkdirAll(artifactDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(artifactDir, "PRD.md"), []byte("# PRD"), 0o644))
+
+	exists, fullPath, err := GetArtifactStatus(repoDir, "PRD.md")
+	require.NoError(t, err)
+	assert.True(t, exists)
+	assert.Equal(t, filepath.Join(repoDir, "_bmad-output", "planning-artifacts", "PRD.md"), fullPath)
+}
+
+func TestGetArtifactStatus_Missing(t *testing.T) {
+	repoDir := t.TempDir()
+
+	exists, fullPath, err := GetArtifactStatus(repoDir, "PRD.md")
+	require.NoError(t, err)
+	assert.False(t, exists)
+	assert.Equal(t, filepath.Join(repoDir, "_bmad-output", "planning-artifacts", "PRD.md"), fullPath)
+}
+
+func TestGetArtifactStatus_UnmappedArtifact(t *testing.T) {
+	repoDir := t.TempDir()
+
+	exists, fullPath, err := GetArtifactStatus(repoDir, "code")
+	require.NoError(t, err)
+	assert.False(t, exists)
+	assert.Empty(t, fullPath, "unmapped artifact should return empty path")
+}

@@ -52,6 +52,21 @@ func ResolveArtifactPath(name, repoPath string) string {
 	return p
 }
 
+// GetArtifactStatus checks whether a single named artifact exists at its expected
+// path. Returns (exists, resolvedPath, nil). For unmapped artifacts the path is
+// empty and exists is false.
+func GetArtifactStatus(repoPath, artifactName string) (bool, string, error) {
+	resolved := ResolveArtifactPath(artifactName, repoPath)
+	if resolved == "" {
+		return false, "", nil
+	}
+	_, err := os.Stat(resolved)
+	if err != nil {
+		return false, resolved, nil
+	}
+	return true, resolved, nil
+}
+
 // VerifyArtifacts checks which named artifacts exist on disk under repoPath.
 // Unmapped artifacts (empty path) are silently skipped. Non-existence errors
 // and other stat failures (permission denied, symlink loops) are both treated

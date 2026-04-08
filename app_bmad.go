@@ -214,6 +214,12 @@ func (a *App) GetNodeOutput(execID, nodeID string) (string, error) {
 	return exec.NodeOutputs[nodeID], nil
 }
 
+// GetArtifactStatus checks whether a BMAD artifact exists at its expected path.
+// Returns (exists, resolvedPath, error). Unmapped artifacts return (false, "", nil).
+func (a *App) GetArtifactStatus(repoPath, artifactName string) (bool, string, error) {
+	return bmad.GetArtifactStatus(repoPath, artifactName)
+}
+
 // GetControlFlowNodes returns the list of available control flow node types for the sidebar.
 func (a *App) GetControlFlowNodes() []bmad.ControlFlowNodeDef {
 	return []bmad.ControlFlowNodeDef{

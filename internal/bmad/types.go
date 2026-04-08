@@ -185,6 +185,15 @@ type ArtifactSpec struct {
 	Optional    bool         `json:"optional"`
 }
 
+// NodeArtifactEvent reports which expected output artifacts were found after
+// a process node completes execution.
+type NodeArtifactEvent struct {
+	ExecID  string   `json:"execId"`
+	NodeID  string   `json:"nodeId"`
+	Found   []string `json:"found"`
+	Missing []string `json:"missing"`
+}
+
 // ControlFlowNodeDef describes a control flow node type for the frontend sidebar.
 type ControlFlowNodeDef struct {
 	Type        NodeType `json:"type"`

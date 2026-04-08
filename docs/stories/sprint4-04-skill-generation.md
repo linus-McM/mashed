@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** S
 **Depends On:** sprint4-01-artifact-path-system, sprint4-03-registry-expansion
-**Status:** ready
+**Status:** done
 
 ## Description
 

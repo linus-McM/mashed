@@ -790,6 +790,7 @@ func (e *Executor) completeNode(state *execState, idx int, nodeID string) {
 	state.exec.Nodes[idx].Status = NodeComplete
 	storyID := state.exec.Nodes[idx].StoryID
 	repoPath := state.exec.RepoPath
+	node := state.exec.Nodes[idx]
 	state.mu.Unlock()
 	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeComplete})
 
@@ -800,6 +801,20 @@ func (e *Executor) completeNode(state *execState, idx int, nodeID string) {
 			log.Printf("bmad: failed to update story %s status: %v", storyID, err)
 		} else {
 			e.emitEvent("bmad:sprint:updated", map[string]string{"storyId": storyID, "status": targetStatus})
+		}
+	}
+
+	// Artifact verification for process nodes only.
+	if node.EffectiveType() == NodeTypeProcess && node.ProcessID != "" {
+		proc, ok := ProcessByID(node.ProcessID)
+		if ok && len(proc.Outputs) > 0 {
+			found, missing := VerifyArtifacts(repoPath, proc.Outputs)
+			e.emitEvent("bmad:node:artifacts", NodeArtifactEvent{
+				ExecID:  state.exec.ID,
+				NodeID:  nodeID,
+				Found:   found,
+				Missing: missing,
+			})
 		}
 	}
 }
