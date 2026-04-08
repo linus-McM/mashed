@@ -3,6 +3,7 @@ package bmad
 import (
 	"context"
 	"fmt"
+	"log"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -279,7 +280,7 @@ func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, m
 				case NodeTypeLoop, NodeTypeLoopUntil:
 					e.executeLoopNode(ctx, state, nodeIndex, nID, repoPath, model)
 				default:
-					fmt.Printf("bmad: unknown node type %s, skipping: %s\n", effectiveType, nID)
+					log.Printf("bmad: unknown node type %s, skipping: %s", effectiveType, nID)
 					e.skipNode(state, nodeIndex[nID], nID)
 				}
 
@@ -412,7 +413,7 @@ func (e *Executor) executeControlNode(ctx context.Context, state *execState, nod
 		condJSON := node.Config["condition"]
 		cond, err := ParseCondition(condJSON)
 		if err != nil {
-			fmt.Printf("bmad: invalid condition for node %s: %v\n", nodeID, err)
+			log.Printf("bmad: invalid condition for node %s: %v", nodeID, err)
 			e.failNode(state, idx, nodeID)
 			return
 		}
@@ -446,14 +447,6 @@ func (e *Executor) executeControlNode(ctx context.Context, state *execState, nod
 		state.mu.Unlock()
 		e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
 
-		e.completeNode(state, idx, nodeID)
-
-	default:
-		// Loop, LoopUntil, Transform: not yet implemented.
-		fmt.Printf("bmad: control node type %s not yet implemented: %s\n", effectiveType, nodeID)
-		state.mu.Lock()
-		state.exec.Nodes[idx].Status = NodeRunning
-		state.mu.Unlock()
 		e.completeNode(state, idx, nodeID)
 	}
 }
@@ -511,7 +504,7 @@ func (e *Executor) executeLoopNode(ctx context.Context, state *execState, nodeIn
 			var err error
 			cond, err = ParseCondition(condJSON)
 			if err != nil {
-				fmt.Printf("bmad: invalid loop condition for node %s: %v\n", nodeID, err)
+				log.Printf("bmad: invalid loop condition for node %s: %v", nodeID, err)
 				e.failNode(state, idx, nodeID)
 				return
 			}
@@ -733,7 +726,7 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 	state.mu.Unlock()
 
 	// Build command.
-	contextStr := buildContextStringV2(proc, nodesCopy, nodeIndex, outputsCopy)
+	contextStr := buildContextString(proc, nodesCopy, nodeIndex, outputsCopy)
 	command := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s "use %s%s"`, model, proc.SkillName, contextStr)
 
 	sessionName := fmt.Sprintf("bmad-%s-%d", nodeID, time.Now().Unix())
@@ -767,7 +760,7 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 				// Session gone — try to capture output (best-effort).
 				captured, captureErr := e.captureOutput(ctx, target)
 				if captureErr != nil {
-					fmt.Printf("bmad: failed to capture output for node %s: %v\n", nodeID, captureErr)
+					log.Printf("bmad: failed to capture output for node %s: %v", nodeID, captureErr)
 				}
 				state.mu.Lock()
 				state.exec.NodeOutputs[nodeID] = captured
@@ -779,7 +772,7 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 				// Capture output before completing (best-effort).
 				captured, captureErr := e.captureOutput(ctx, target)
 				if captureErr != nil {
-					fmt.Printf("bmad: failed to capture output for node %s: %v\n", nodeID, captureErr)
+					log.Printf("bmad: failed to capture output for node %s: %v", nodeID, captureErr)
 				}
 				state.mu.Lock()
 				state.exec.NodeOutputs[nodeID] = captured
@@ -803,7 +796,7 @@ func (e *Executor) completeNode(state *execState, idx int, nodeID string) {
 	if storyID != "" && repoPath != "" {
 		targetStatus := string(StoryInProgress)
 		if err := UpdateStoryStatus(repoPath, storyID, targetStatus); err != nil {
-			fmt.Printf("bmad: failed to update story %s status: %v\n", storyID, err)
+			log.Printf("bmad: failed to update story %s status: %v", storyID, err)
 		} else {
 			e.emitEvent("bmad:sprint:updated", map[string]string{"storyId": storyID, "status": targetStatus})
 		}
@@ -925,9 +918,9 @@ func extractLines(input, pattern string) string {
 	return strings.Join(lines[start:end], "\n")
 }
 
-// buildContextStringV2 builds the context string for a process node, including
+// buildContextString builds the context string for a process node, including
 // both artifact matching (from upstream processes) and extracted transform data.
-func buildContextStringV2(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[string]int, nodeOutputs map[string]string) string {
+func buildContextString(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[string]int, nodeOutputs map[string]string) string {
 	var parts []string
 
 	// Existing artifact matching.

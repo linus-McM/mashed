@@ -1521,7 +1521,7 @@ func TestTransformNode_Passthrough(t *testing.T) {
 	assert.Equal(t, "raw output data", ex.NodeOutputs["T"], "unknown extractType should passthrough")
 }
 
-// ── buildContextStringV2 Tests ──
+// ── buildContextString Tests ──
 
 func TestBuildContextStringV2_IncludesTransformData(t *testing.T) {
 	nodes := []WorkflowNode{
@@ -1535,7 +1535,7 @@ func TestBuildContextStringV2_IncludesTransformData(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-create-prd")
-	result := buildContextStringV2(proc, nodes, nodeIndex, nodeOutputs)
+	result := buildContextString(proc, nodes, nodeIndex, nodeOutputs)
 	assert.Contains(t, result, "Version Extract")
 	assert.Contains(t, result, "3.4.5")
 }
@@ -1552,7 +1552,7 @@ func TestBuildContextStringV2_TruncatesLongData(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-brainstorming")
-	result := buildContextStringV2(proc, nodes, nodeIndex, nodeOutputs)
+	result := buildContextString(proc, nodes, nodeIndex, nodeOutputs)
 	assert.Contains(t, result, "Big Transform")
 	// The data portion should be capped at 2000 chars.
 	assert.LessOrEqual(t, len(result), 2100, "result should not contain full 3000-char data")
@@ -1569,7 +1569,7 @@ func TestBuildContextStringV2_IncludesArtifactMatching(t *testing.T) {
 	nodeOutputs := map[string]string{}
 
 	proc, _ := ProcessByID("bmad-create-prd")
-	result := buildContextStringV2(proc, nodes, nodeIndex, nodeOutputs)
+	result := buildContextString(proc, nodes, nodeIndex, nodeOutputs)
 	assert.Contains(t, result, "upstream process")
 	assert.Contains(t, result, "product-brief")
 }
@@ -1586,7 +1586,7 @@ func TestBuildContextStringV2_EmptyTransformData(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-brainstorming")
-	result := buildContextStringV2(proc, nodes, nodeIndex, nodeOutputs)
+	result := buildContextString(proc, nodes, nodeIndex, nodeOutputs)
 	assert.NotContains(t, result, "Empty Transform", "empty transform data should not appear")
 }
 
@@ -1601,7 +1601,7 @@ func TestBuildContextStringV2_SkipsNonCompleteTransforms(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-brainstorming")
-	result := buildContextStringV2(proc, nodes, nodeIndex, nodeOutputs)
+	result := buildContextString(proc, nodes, nodeIndex, nodeOutputs)
 	assert.NotContains(t, result, "Pending Transform", "non-complete transform should not appear")
 }
 

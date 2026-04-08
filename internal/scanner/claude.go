@@ -44,7 +44,7 @@ func NewClaudeCodeProvider(devDir string) (*ClaudeCodeProvider, error) {
 	}
 
 	if devDir == "" {
-		devDir = os.Getenv("CONDUCTOR_DEV_DIR")
+		devDir = os.Getenv("MASHED_DEV_DIR")
 	}
 	if devDir == "" {
 		devDir = filepath.Join(home, "Development")

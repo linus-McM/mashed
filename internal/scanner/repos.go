@@ -30,7 +30,7 @@ type repoCacheEntry struct {
 // NewRepoScanner creates a RepoScanner for the given development directory.
 func NewRepoScanner(devDir string) *RepoScanner {
 	if devDir == "" {
-		devDir = os.Getenv("CONDUCTOR_DEV_DIR")
+		devDir = os.Getenv("MASHED_DEV_DIR")
 	}
 	if devDir == "" {
 		home, _ := os.UserHomeDir()

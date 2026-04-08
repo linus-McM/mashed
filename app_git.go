@@ -1,0 +1,736 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"sort"
+	"strings"
+
+	"mashed/internal/domain"
+	"mashed/internal/git"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
+)
+
+// BranchInfo represents a single local branch returned by GitListBranches.
+type BranchInfo struct {
+	Name    string `json:"name"`
+	Current bool   `json:"current"`
+}
+
+// RepoStatusInfo represents the git status of a repository.
+type RepoStatusInfo struct {
+	Dirty     bool `json:"dirty"`
+	OpenPRs   int  `json:"openPRs"`
+	Ahead     int  `json:"ahead"`
+	Behind    int  `json:"behind"`
+	Protected bool `json:"protected"`
+}
+
+// RepoChoice represents a repository available for selection.
+type RepoChoice struct {
+	Name   string `json:"name"`
+	Path   string `json:"path"`
+	Branch string `json:"branch"`
+}
+
+// RepoMtimes returns the modification times of .git/index and the repo root directory.
+// The frontend polls this cheaply to detect when a full refresh is needed.
+func (a *App) RepoMtimes(repoPath string) (map[string]int64, error) {
+	if repoPath == "" {
+		return nil, fmt.Errorf("empty repo path")
+	}
+	result := map[string]int64{"index": 0, "root": 0}
+
+	indexPath := filepath.Join(repoPath, ".git", "index")
+	if fi, err := os.Stat(indexPath); err == nil {
+		result["index"] = fi.ModTime().UnixMilli()
+	}
+
+	if fi, err := os.Stat(repoPath); err == nil {
+		result["root"] = fi.ModTime().UnixMilli()
+	}
+
+	return result, nil
+}
+
+// ListRepoChoices returns the repos available for spawning agents.
+func (a *App) ListRepoChoices() []RepoChoice {
+	if a.repoScanner == nil {
+		return nil
+	}
+	repos, err := a.repoScanner.ScanRepos(nil)
+	if err != nil {
+		return nil
+	}
+	choices := make([]RepoChoice, 0, len(repos))
+	for _, r := range repos {
+		choices = append(choices, RepoChoice{
+			Name:   r.Name,
+			Path:   r.Path,
+			Branch: r.Branch,
+		})
+	}
+	return choices
+}
+
+// CreateRepo creates a new repository in the dev directory with optional GitHub
+// remote and BMAD method installation. Emits repo:create:progress events.
+func (a *App) CreateRepo(name string, isPublic bool, installBmad bool) {
+	emit := func(step, message, errMsg string, done bool) {
+		runtime.EventsEmit(a.ctx, "repo:create:progress", map[string]interface{}{
+			"step":    step,
+			"message": message,
+			"error":   errMsg,
+			"done":    done,
+		})
+	}
+
+	go func() {
+		// Validate name
+		if name == "" || strings.ContainsAny(name, "/\\. ") {
+			emit("validate", "", "Invalid repo name: must be non-empty with no spaces, dots, or slashes", true)
+			return
+		}
+		if a.devDir == "" {
+			emit("validate", "", "No development directory configured — set it in Settings first", true)
+			return
+		}
+		targetDir := filepath.Join(a.devDir, name)
+		if _, err := os.Stat(targetDir); err == nil {
+			emit("validate", "", fmt.Sprintf("Directory %q already exists", name), true)
+			return
+		}
+
+		// Check gh auth
+		emit("gh-auth", "Checking GitHub CLI...", "", false)
+		if out, err := exec.CommandContext(a.ctx, "gh", "auth", "status").CombinedOutput(); err != nil {
+			emit("gh-auth", "", fmt.Sprintf("GitHub CLI not authenticated: %s", strings.TrimSpace(string(out))), true)
+			return
+		}
+
+		// Create repo via gh
+		visibility := "--private"
+		if isPublic {
+			visibility = "--public"
+		}
+		emit("gh-create", fmt.Sprintf("Creating %s repo %q...", visibility[2:], name), "", false)
+		ghCmd := exec.CommandContext(a.ctx, "gh", "repo", "create", name, visibility, "--clone")
+		ghCmd.Dir = a.devDir
+		if out, err := ghCmd.CombinedOutput(); err != nil {
+			emit("gh-create", "", fmt.Sprintf("gh repo create failed: %s", strings.TrimSpace(string(out))), true)
+			return
+		}
+
+		// Install BMAD (best-effort)
+		if installBmad {
+			emit("bmad-install", "Installing BMAD method...", "", false)
+			npxPath, err := exec.LookPath("npx")
+			if err != nil {
+				emit("bmad-install", "npx not found — skipping BMAD install", "", false)
+			} else {
+				bmadCmd := exec.CommandContext(a.ctx, npxPath, "bmad-method", "install", "--tools", "claude-code", "--directory", ".", "-y")
+				bmadCmd.Dir = targetDir
+				if out, err := bmadCmd.CombinedOutput(); err != nil {
+					emit("bmad-install", fmt.Sprintf("BMAD install warning: %s", strings.TrimSpace(string(out))), "", false)
+				} else {
+					emit("bmad-install", "BMAD method installed", "", false)
+				}
+			}
+		}
+
+		// Git add + commit (best-effort)
+		emit("git-commit", "Committing initial scaffold...", "", false)
+		addCmd := exec.CommandContext(a.ctx, "git", "-C", targetDir, "add", "-A")
+		if out, err := addCmd.CombinedOutput(); err != nil {
+			emit("git-commit", fmt.Sprintf("git add warning: %s", strings.TrimSpace(string(out))), "", false)
+		} else {
+			commitCmd := exec.CommandContext(a.ctx, "git", "-C", targetDir, "commit", "-m", "feat: initial BMAD method scaffold")
+			if out, err := commitCmd.CombinedOutput(); err != nil {
+				emit("git-commit", fmt.Sprintf("git commit warning: %s", strings.TrimSpace(string(out))), "", false)
+			} else {
+				emit("git-commit", "Initial commit created", "", false)
+			}
+		}
+
+		// Refresh repo list — rescan and emit the same "repos" event the feed listens for
+		if a.repoScanner != nil {
+			a.repoScanner.InvalidateCache(targetDir)
+			if repos, err := a.repoScanner.ScanRepos(nil); err == nil {
+				runtime.EventsEmit(a.ctx, "repos", repos)
+			}
+		}
+
+		emit("done", fmt.Sprintf("Repository %q created successfully", name), "", true)
+	}()
+}
+
+// GitListBranches returns all local branches for a repo, with the current branch marked.
+func (a *App) GitListBranches(repoPath string) ([]BranchInfo, error) {
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "branch", "--format=%(refname:short)\t%(HEAD)")
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("git branch: %w", err)
+	}
+
+	var branches []BranchInfo
+	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+		if line == "" {
+			continue
+		}
+		parts := strings.SplitN(line, "\t", 2)
+		name := parts[0]
+		current := len(parts) > 1 && strings.TrimSpace(parts[1]) == "*"
+		branches = append(branches, BranchInfo{
+			Name:    name,
+			Current: current,
+		})
+	}
+	return branches, nil
+}
+
+// GitSwitchBranch switches to an existing branch with optional auto-commit.
+func (a *App) GitSwitchBranch(repoPath, branch string, autoCommit bool) error {
+	if repoPath == "" || branch == "" {
+		return fmt.Errorf("repo path and branch name are required")
+	}
+
+	if autoCommit {
+		if _, err := a.GitCommit(repoPath); err != nil {
+			if !strings.Contains(err.Error(), "nothing to commit") {
+				return fmt.Errorf("auto-commit failed: %w", err)
+			}
+		}
+	}
+
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", branch)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("git checkout: %w (%s)", err, string(out))
+	}
+	return nil
+}
+
+// GitCreateBranch creates a new branch with optional auto-commit of current changes.
+// prefix is e.g. "feature", "hotfix"; name is the branch slug.
+func (a *App) GitCreateBranch(repoPath, prefix, name string, autoCommit bool) error {
+	if repoPath == "" || name == "" {
+		return fmt.Errorf("repo path and branch name are required")
+	}
+
+	branchName := name
+	if prefix != "" {
+		branchName = prefix + "/" + name
+	}
+
+	// Auto-commit current changes if requested
+	if autoCommit {
+		if _, err := a.GitCommit(repoPath); err != nil {
+			// Ignore "nothing to commit" — that's fine
+			if !strings.Contains(err.Error(), "nothing to commit") {
+				return fmt.Errorf("auto-commit failed: %w", err)
+			}
+		}
+	}
+
+	// Create and checkout the new branch
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", "-b", branchName)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("git checkout -b: %w (%s)", err, string(out))
+	}
+
+	return nil
+}
+
+// RepoStatus returns git dirty state, open PR count, and ahead/behind counts for a repo.
+func (a *App) RepoStatus(repoPath string) RepoStatusInfo {
+	result := RepoStatusInfo{}
+
+	// Check dirty (uncommitted changes including untracked files)
+	statusCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "status", "--porcelain")
+	if out, err := statusCmd.Output(); err == nil && len(out) > 0 {
+		result.Dirty = true
+	}
+
+	// Check open PRs for the current branch
+	branchCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD")
+	branchOut, err := branchCmd.Output()
+	if err == nil {
+		branch := strings.TrimSpace(string(branchOut))
+		ghCmd := exec.CommandContext(a.ctx, "gh", "pr", "list",
+			"--state", "open",
+			"--head", branch,
+			"--json", "number",
+			"--jq", "length",
+		)
+		ghCmd.Dir = repoPath
+		if prOut, err := ghCmd.Output(); err == nil {
+			count := strings.TrimSpace(string(prOut))
+			if count != "" && count != "0" {
+				n := 0
+				fmt.Sscanf(count, "%d", &n)
+				result.OpenPRs = n
+			}
+		}
+
+		// Check ahead/behind remote tracking branch
+		revCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath,
+			"rev-list", "--left-right", "--count", "HEAD...@{upstream}")
+		if revOut, err := revCmd.Output(); err == nil {
+			parts := strings.Fields(strings.TrimSpace(string(revOut)))
+			if len(parts) == 2 {
+				var ahead, behind int
+				fmt.Sscanf(parts[0], "%d", &ahead)
+				fmt.Sscanf(parts[1], "%d", &behind)
+				result.Ahead = ahead
+				result.Behind = behind
+			}
+		}
+
+		// Check branch protection rules via gh API
+		ghProtCmd := exec.CommandContext(a.ctx, "gh", "api",
+			fmt.Sprintf("repos/{owner}/{repo}/branches/%s/protection", branch),
+			"--jq", ".required_status_checks // empty",
+		)
+		ghProtCmd.Dir = repoPath
+		if protOut, err := ghProtCmd.Output(); err == nil && len(strings.TrimSpace(string(protOut))) > 0 {
+			result.Protected = true
+		}
+	}
+
+	return result
+}
+
+// gitCommitCore stages all changes, generates an AI commit message, and commits.
+// It returns the commit message. The onProgress callback, if non-nil, is called
+// at each step so callers can stream status to the frontend.
+func (a *App) gitCommitCore(repoPath string, onProgress func(step, detail string)) (string, error) {
+	progress := func(step, detail string) {
+		if onProgress != nil {
+			onProgress(step, detail)
+		}
+	}
+
+	// Stage all changes
+	progress("Staging changes...", "")
+	addCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "add", "-A")
+	if out, err := addCmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("git add: %w (%s)", err, string(out))
+	}
+	progress("Staged all changes", "")
+
+	// Check there's something to commit
+	statusCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--cached", "--stat")
+	statusOut, err := statusCmd.Output()
+	if err != nil || len(statusOut) == 0 {
+		return "", fmt.Errorf("nothing to commit")
+	}
+	progress("Changes found", strings.TrimSpace(string(statusOut)))
+
+	// Get the diff for the AI to summarize
+	progress("Generating commit message...", "")
+	diffCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--cached")
+	diffOut, _ := diffCmd.Output()
+	diffText := string(diffOut)
+	if len(diffText) > 8000 {
+		diffText = diffText[:8000] + "\n... (truncated)"
+	}
+
+	// Generate commit message using Claude CLI
+	prompt := fmt.Sprintf("Write a concise git commit message (1-2 lines max, no quotes, no markdown) for this diff:\n\n%s", diffText)
+	claudeCmd := exec.CommandContext(a.ctx, "claude", "-p", prompt)
+	claudeCmd.Dir = repoPath
+	msgOut, err := claudeCmd.Output()
+	commitMsg := strings.TrimSpace(string(msgOut))
+	if err != nil || commitMsg == "" {
+		// Fallback: use the stat summary
+		commitMsg = "update: " + strings.TrimSpace(string(statusOut))
+		// Keep first line only
+		if idx := strings.IndexByte(commitMsg, '\n'); idx > 0 {
+			commitMsg = commitMsg[:idx]
+		}
+		progress("Using fallback commit message", commitMsg)
+	} else {
+		progress("Commit message ready", commitMsg)
+	}
+
+	// Commit
+	progress("Committing...", "")
+	commitCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "commit", "-m", commitMsg)
+	if out, err := commitCmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("git commit: %w (%s)", err, string(out))
+	}
+
+	return commitMsg, nil
+}
+
+// GitCommit stages all changes, generates an AI commit message, and commits.
+// Returns the commit message used.
+func (a *App) GitCommit(repoPath string) (string, error) {
+	return a.gitCommitCore(repoPath, nil)
+}
+
+// GitCommitStreaming stages, generates an AI commit message, and commits,
+// emitting progress events to the frontend at each step. On failure, calls
+// Claude to explain what went wrong.
+func (a *App) GitCommitStreaming(repoPath string) {
+	emit := func(step, output, errMsg, explanation string, done bool) {
+		runtime.EventsEmit(a.ctx, "git:commit:progress", map[string]interface{}{
+			"repoPath":    repoPath,
+			"step":        step,
+			"output":      output,
+			"error":       errMsg,
+			"explanation": explanation,
+			"done":        done,
+		})
+	}
+
+	go func() {
+		msg, err := a.gitCommitCore(repoPath, func(step, detail string) {
+			emit(step, detail, "", "", false)
+		})
+		if err != nil {
+			errMsg := err.Error()
+
+			// "nothing to commit" is not worth explaining via Claude
+			if strings.Contains(errMsg, "nothing to commit") {
+				emit("Nothing to commit", "", "Nothing to commit — working tree clean", "", true)
+				return
+			}
+
+			// Ask Claude to explain the failure
+			explanation := ""
+			prompt := fmt.Sprintf(
+				"A git commit operation failed. Explain this error concisely (2-3 sentences) and suggest a fix.\n\nError:\n%s",
+				errMsg,
+			)
+			claudeCmd := exec.CommandContext(a.ctx, "claude", "-p", prompt)
+			claudeCmd.Dir = repoPath
+			if expOut, expErr := claudeCmd.Output(); expErr == nil {
+				explanation = strings.TrimSpace(string(expOut))
+			}
+
+			emit("Error", "", errMsg, explanation, true)
+			return
+		}
+
+		emit("Committed", msg, "", "", true)
+	}()
+}
+
+// GitCommitAndPush commits (via GitCommit) then pushes to origin.
+// Creates the remote branch if it doesn't exist.
+func (a *App) GitCommitAndPush(repoPath string) (string, error) {
+	msg, err := a.GitCommit(repoPath)
+	if err != nil {
+		return "", err
+	}
+
+	// Push with -u to set upstream, creating branch if needed
+	pushCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "push", "-u", "origin", "HEAD")
+	if out, err := pushCmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("git push: %w (%s)", err, string(out))
+	}
+
+	return msg, nil
+}
+
+// GitPush pushes the current branch to origin without committing first.
+// Returns a structured result: "ok" on success, or "conflict:<message>" when
+// the push is rejected due to diverged history (non-fast-forward).
+func (a *App) GitPush(repoPath string) (string, error) {
+	if repoPath == "" {
+		return "", fmt.Errorf("repo path is required")
+	}
+
+	pushCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "push", "-u", "origin", "HEAD")
+	out, err := pushCmd.CombinedOutput()
+	if err != nil {
+		outStr := string(out)
+		// Detect non-fast-forward (diverged history) vs other errors
+		if strings.Contains(outStr, "non-fast-forward") ||
+			strings.Contains(outStr, "rejected") ||
+			strings.Contains(outStr, "fetch first") {
+			return "conflict:" + strings.TrimSpace(outStr), nil
+		}
+		return "", fmt.Errorf("git push: %w (%s)", err, outStr)
+	}
+	return "ok", nil
+}
+
+// GitForcePush force-pushes the current branch to origin with --force-with-lease
+// for safety (fails if someone else pushed since your last fetch).
+func (a *App) GitForcePush(repoPath string) (string, error) {
+	if repoPath == "" {
+		return "", fmt.Errorf("repo path is required")
+	}
+
+	pushCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "push", "--force-with-lease", "-u", "origin", "HEAD")
+	out, err := pushCmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("git force push: %w (%s)", err, string(out))
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// GitPull pulls remote changes into the current branch.
+func (a *App) GitPull(repoPath string) (string, error) {
+	if repoPath == "" {
+		return "", fmt.Errorf("repo path is required")
+	}
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "pull")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("git pull: %w (%s)", err, string(out))
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// GitMergeInto merges the current branch into targetBranch.
+// If autoCommit is true, commits current changes before merging.
+// On merge failure, aborts the merge and checks out the original branch.
+func (a *App) GitMergeInto(repoPath, targetBranch string, autoCommit bool) (string, error) {
+	if repoPath == "" || targetBranch == "" {
+		return "", fmt.Errorf("repo path and target branch are required")
+	}
+
+	// Get current branch name
+	branchCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD")
+	branchOut, err := branchCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("get current branch: %w", err)
+	}
+	sourceBranch := strings.TrimSpace(string(branchOut))
+
+	if sourceBranch == targetBranch {
+		return "", fmt.Errorf("already on %s — nothing to merge", targetBranch)
+	}
+
+	// Auto-commit current changes if requested
+	if autoCommit {
+		if _, err := a.GitCommit(repoPath); err != nil {
+			if !strings.Contains(err.Error(), "nothing to commit") {
+				return "", fmt.Errorf("auto-commit failed: %w", err)
+			}
+		}
+	}
+
+	// Switch to target branch
+	checkoutCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", targetBranch)
+	if out, err := checkoutCmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("checkout %s: %w (%s)", targetBranch, err, string(out))
+	}
+
+	// Merge source into target
+	mergeCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "merge", sourceBranch)
+	mergeOut, mergeErr := mergeCmd.CombinedOutput()
+	if mergeErr != nil {
+		// Abort the failed merge and return to the original branch
+		_ = exec.CommandContext(a.ctx, "git", "-C", repoPath, "merge", "--abort").Run()
+		_ = exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", sourceBranch).Run()
+		return "", fmt.Errorf("merge %s into %s failed: %w (%s)", sourceBranch, targetBranch, mergeErr, string(mergeOut))
+	}
+
+	return fmt.Sprintf("Merged %s into %s", sourceBranch, targetBranch), nil
+}
+
+// GitCommitPushAndPR commits, pushes, and creates a PR with an extensive description.
+// Returns the PR URL.
+func (a *App) GitCommitPushAndPR(repoPath string) (string, error) {
+	_, err := a.GitCommitAndPush(repoPath)
+	if err != nil {
+		return "", err
+	}
+
+	// Get the current branch
+	branchCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD")
+	branchOut, err := branchCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("get branch: %w", err)
+	}
+	branch := strings.TrimSpace(string(branchOut))
+
+	// Get the full diff against main/master for the PR body
+	var baseBranch string
+	for _, candidate := range []string{"main", "master"} {
+		checkCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "rev-parse", "--verify", candidate)
+		if checkCmd.Run() == nil {
+			baseBranch = candidate
+			break
+		}
+	}
+	if baseBranch == "" {
+		baseBranch = "main"
+	}
+
+	diffCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", baseBranch+"...HEAD")
+	diffOut, _ := diffCmd.Output()
+	diffText := string(diffOut)
+	if len(diffText) > 12000 {
+		diffText = diffText[:12000] + "\n... (truncated)"
+	}
+
+	// Generate extensive PR description using Claude CLI
+	prompt := fmt.Sprintf(`Write an extensive pull request description for this diff from branch "%s". Include:
+- A clear title (first line, under 70 chars)
+- ## Summary section with bullet points
+- ## Changes section describing each file changed
+- ## Test Plan section
+Keep it factual based on the diff.
+
+%s`, branch, diffText)
+	claudeCmd := exec.CommandContext(a.ctx, "claude", "-p", prompt)
+	claudeCmd.Dir = repoPath
+	prOut, err := claudeCmd.Output()
+	prBody := strings.TrimSpace(string(prOut))
+	if err != nil || prBody == "" {
+		prBody = fmt.Sprintf("Changes from branch %s", branch)
+	}
+
+	// Extract title (first line) and body (rest)
+	prTitle := branch
+	if idx := strings.IndexByte(prBody, '\n'); idx > 0 {
+		prTitle = strings.TrimSpace(prBody[:idx])
+		prBody = strings.TrimSpace(prBody[idx+1:])
+		// Strip markdown heading prefix from title
+		prTitle = strings.TrimLeft(prTitle, "# ")
+	}
+	if len(prTitle) > 70 {
+		prTitle = prTitle[:67] + "..."
+	}
+
+	// Create PR using gh CLI
+	ghCmd := exec.CommandContext(a.ctx, "gh", "pr", "create",
+		"--title", prTitle,
+		"--body", prBody,
+		"--base", baseBranch,
+	)
+	ghCmd.Dir = repoPath
+	ghOut, err := ghCmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("gh pr create: %w (%s)", err, string(ghOut))
+	}
+
+	return strings.TrimSpace(string(ghOut)), nil
+}
+
+// GetScopedDiff returns the changed files for a directory.
+func (a *App) GetScopedDiff(dir string) (*domain.ScopedDiff, error) {
+	return git.ScopedDiff(dir)
+}
+
+// GetWorktrees returns worktrees for a repo.
+func (a *App) GetWorktrees(repoPath string) ([]domain.WorktreeInfo, error) {
+	return git.DetectWorktrees(repoPath)
+}
+
+// ListRepoFiles returns all tracked (and untracked non-ignored) files in a repo.
+func (a *App) ListRepoFiles(repoPath string) ([]string, error) {
+	if repoPath == "" {
+		return nil, fmt.Errorf("empty repo path")
+	}
+	// git ls-files returns tracked files; --others --exclude-standard adds untracked non-ignored
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "ls-files", "--cached", "--others", "--exclude-standard")
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("git ls-files: %w", err)
+	}
+	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+	var files []string
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			files = append(files, line)
+		}
+	}
+	sort.Strings(files)
+	return files, nil
+}
+
+// WriteFile writes content to a file on disk.
+func (a *App) WriteFile(path, content string) error {
+	if path == "" {
+		return fmt.Errorf("empty file path")
+	}
+	return os.WriteFile(path, []byte(content), 0644)
+}
+
+// ReadFile returns the contents of a file as a string.
+func (a *App) ReadFile(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("read file %s: %w", path, err)
+	}
+	// Cap at 1MB to avoid sending huge files to frontend
+	if len(data) > 1024*1024 {
+		return string(data[:1024*1024]) + "\n... (truncated at 1MB)", nil
+	}
+	return string(data), nil
+}
+
+// ReadFileDiff returns the git diff for a specific file.
+func (a *App) ReadFileDiff(repoPath, filePath string) (string, error) {
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "HEAD", "--", filePath)
+	out, err := cmd.Output()
+	if err != nil {
+		// Try without HEAD for untracked files
+		cmd2 := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--no-index", "/dev/null", filepath.Join(repoPath, filePath))
+		out2, _ := cmd2.Output()
+		if len(out2) > 0 {
+			return string(out2), nil
+		}
+		return "", fmt.Errorf("git diff %s: %w", filePath, err)
+	}
+	return string(out), nil
+}
+
+// ReadFileAtHead returns the content of a file at the HEAD commit.
+func (a *App) ReadFileAtHead(repoPath, filePath string) (string, error) {
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "show", "HEAD:"+filePath)
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("git show HEAD:%s: %w", filePath, err)
+	}
+	if len(out) > 1024*1024 {
+		return string(out[:1024*1024]) + "\n... (truncated at 1MB)", nil
+	}
+	return string(out), nil
+}
+
+// MarkRead marks a notification as read.
+func (a *App) MarkRead(agentID string) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	for i, n := range a.notifications {
+		if n.AgentID == agentID {
+			a.notifications[i].Read = true
+			break
+		}
+	}
+}
+
+// SpawnPRReview spawns a Claude agent to do an adversarial review of the latest PR.
+// Returns the tmux pane target.
+func (a *App) SpawnPRReview(repoPath string) (string, error) {
+	// Find the latest PR number for this repo
+	ghCmd := exec.CommandContext(a.ctx, "gh", "pr", "list", "--state", "open", "--limit", "1", "--json", "number", "--jq", ".[0].number")
+	ghCmd.Dir = repoPath
+	prOut, err := ghCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("no open PRs found: %w", err)
+	}
+	prNumber := strings.TrimSpace(string(prOut))
+	if prNumber == "" {
+		return "", fmt.Errorf("no open PRs found")
+	}
+
+	prompt := fmt.Sprintf(`You are an adversarial code reviewer. Review PR #%s in this repo thoroughly.
+Look for: bugs, security vulnerabilities, race conditions, edge cases, performance issues,
+missing error handling, breaking changes, and any code that could fail in production.
+Be specific — cite file names and line numbers. Don't be nice, be thorough.
+Start by running: gh pr diff %s`, prNumber, prNumber)
+
+	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model claude-opus-4-6 -p %q", prompt)
+	return a.spawnTmuxSession("review", repoPath, cmd)
+}

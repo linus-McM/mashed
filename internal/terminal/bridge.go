@@ -21,8 +21,8 @@ import (
 
 // Sentinel errors for the terminal bridge.
 var (
-	ErrBridgeClosed    = errors.New("terminal bridge closed")
-	ErrPaneTargetEmpty = errors.New("pane target is empty")
+	ErrBridgeClosed    = errors.New("terminal: bridge closed")
+	ErrPaneTargetEmpty = errors.New("terminal: pane target is empty")
 )
 
 const (

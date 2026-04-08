@@ -185,8 +185,8 @@ func parseDevelopmentStatus(node *yaml.Node) ([]SprintEpic, error) {
 			continue
 		}
 
-		// Story entry: either matches digit pattern or ends with -retrospective.
-		if storyKeyPattern.MatchString(key) || strings.HasSuffix(key, retrospectiveSuffix) {
+		// Story entry: matches digit pattern (retrospective keys are handled above).
+		if storyKeyPattern.MatchString(key) {
 			if currentEpic == nil {
 				return nil, fmt.Errorf("%w: story %q appears before any epic", ErrSprintFileMalformed, key)
 			}

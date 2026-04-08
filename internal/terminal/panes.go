@@ -13,9 +13,9 @@ import (
 
 // Sentinel errors for pane discovery.
 var (
-	ErrTmuxNotRunning = errors.New("tmux server not running")
-	ErrPaneNotFound   = errors.New("pane not found for agent PID")
-	ErrPPIDWalkLimit  = errors.New("PPID chain exceeded max depth")
+	ErrTmuxNotRunning = errors.New("terminal: tmux server not running")
+	ErrPaneNotFound   = errors.New("terminal: pane not found for agent PID")
+	ErrPPIDWalkLimit  = errors.New("terminal: PPID chain exceeded max depth")
 )
 
 // TerminalError provides structured error context for terminal operations.
