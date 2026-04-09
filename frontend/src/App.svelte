@@ -13,7 +13,7 @@
   import { Hexagon } from 'lucide-svelte';
   import TitleBar from './components/TitleBar.svelte';
   import { applyTheme } from './lib/stores/theme.js';
-  import { loadSavedThemes, restoreImportedThemeFromConfig } from './lib/themeInit.js';
+  import { loadSavedThemes, restoreImportedThemeFromConfig, loadBundledThemes } from './lib/themeInit.js';
   import { applyFont, registerLocalFonts } from './lib/stores/font.js';
   import { addSession, removeSessionByName } from './lib/stores/sessions.js';
 
@@ -54,6 +54,9 @@
       registerLocalFonts(localFonts);
       applyFont(cfg.monoFont || '', cfg.fontSize || 0);
     } catch {}
+
+    // Auto-import bundled themes (after loadSavedThemes so duplicates are skipped)
+    try { await loadBundledThemes(); } catch (e) { console.warn('Bundled theme import failed:', e); }
 
     const dir = await GetDevDir();
     if (dir && dir.length > 0) {

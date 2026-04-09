@@ -2,9 +2,10 @@
 // Shared module for theme activation logic used by both Settings.svelte and App.svelte.
 // Handles reading, converting, registering, applying, and persisting imported VSCodium themes.
 
-import { ReadThemeFile, SetImportedTheme, SetTheme, GetSavedThemes, SaveTheme, RemoveTheme } from '../../wailsjs/go/main/App.js';
+import { ReadThemeFile, SetImportedTheme, SetTheme, GetSavedThemes, SaveTheme, RemoveTheme, ListBundledThemes, ReadBundledThemeFile } from '../../wailsjs/go/main/App.js';
 import { convertVSCodeTheme, validateConvertedTheme } from './themeConverter.js';
-import { registerImportedTheme, registerSavedThemes, applyTheme, DEFAULT_THEME } from './stores/theme.js';
+import { registerImportedTheme, registerSavedThemes, applyTheme, DEFAULT_THEME, allThemes } from './stores/theme.js';
+import { get } from 'svelte/store';
 
 // Cache of already-converted themes: { themePath: { id, theme } }
 // Exported so Settings.svelte can render preview thumbnails for activated themes.
@@ -173,5 +174,46 @@ export async function restoreImportedThemeFromConfig(cfg) {
     // Restoration failed (file missing, corrupt, etc.) -- fall back silently
     console.warn('Imported theme restore failed, falling back to built-in theme');
     applyTheme(cfg.theme || DEFAULT_THEME);
+  }
+}
+
+/**
+ * Load bundled themes from ./themes/ directory on startup.
+ * Imports each theme that isn't already in the allThemes store (idempotent).
+ * Individual failures are logged and skipped without aborting the batch.
+ *
+ * @returns {Promise<void>}
+ */
+export async function loadBundledThemes() {
+  const entries = await ListBundledThemes();
+  if (!entries || entries.length === 0) return;
+
+  const existing = get(allThemes);
+  const batch = {};
+
+  for (const entry of entries) {
+    const themeId = makeThemeId(entry.themePath, entry.extensionId);
+
+    if (existing[themeId]) continue;
+
+    try {
+      const raw = await ReadBundledThemeFile(entry.themePath);
+      const vsTheme = JSON.parse(raw);
+      const converted = convertVSCodeTheme(vsTheme, themeId);
+
+      if (!validateConvertedTheme(converted)) {
+        console.warn(`Bundled theme ${entry.label} failed validation, skipping`);
+        continue;
+      }
+
+      batch[themeId] = converted;
+      await SaveTheme(themeId, JSON.stringify(converted));
+    } catch (err) {
+      console.warn(`Failed to load bundled theme ${entry.label}:`, err);
+    }
+  }
+
+  if (Object.keys(batch).length > 0) {
+    registerSavedThemes(batch);
   }
 }

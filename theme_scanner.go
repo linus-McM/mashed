@@ -200,30 +200,12 @@ type packageJSON struct {
 	} `json:"contributes"`
 }
 
-// ListVSCodiumThemes scans the configured VSCodium extension directory for
-// installed color themes and returns them sorted alphabetically by label.
-func (a *App) ListVSCodiumThemes() ([]VSCodeThemeEntry, error) {
-	cfg := loadConfig()
-	extDir := cfg.VSCodiumExtPath
-	if extDir == "" {
-		return nil, fmt.Errorf("VSCodium extension path not configured")
-	}
-
-	// Expand tilde
-	extDir = expandTilde(extDir)
-
-	// Verify directory is accessible
-	info, err := os.Stat(extDir)
+// scanVSIXDirectory scans a directory for .vsix files and returns all color
+// theme entries found inside them, sorted alphabetically by label.
+func scanVSIXDirectory(dir string) ([]VSCodeThemeEntry, error) {
+	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, fmt.Errorf("extensions directory not accessible: %w", err)
-	}
-	if !info.IsDir() {
-		return nil, fmt.Errorf("extensions path is not a directory: %s", extDir)
-	}
-
-	entries, err := os.ReadDir(extDir)
-	if err != nil {
-		return nil, fmt.Errorf("reading extensions directory: %w", err)
+		return nil, fmt.Errorf("reading directory: %w", err)
 	}
 
 	var themes []VSCodeThemeEntry
@@ -236,7 +218,7 @@ func (a *App) ListVSCodiumThemes() ([]VSCodeThemeEntry, error) {
 			continue
 		}
 
-		vsixPath := filepath.Join(extDir, entry.Name())
+		vsixPath := filepath.Join(dir, entry.Name())
 		extensionID := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
 
 		zr, err := zip.OpenReader(vsixPath)
@@ -276,12 +258,138 @@ func (a *App) ListVSCodiumThemes() ([]VSCodeThemeEntry, error) {
 		}
 	}
 
-	// Sort alphabetically by label
 	sort.Slice(themes, func(i, j int) bool {
 		return themes[i].Label < themes[j].Label
 	})
 
 	return themes, nil
+}
+
+// ListVSCodiumThemes scans the configured VSCodium extension directory for
+// installed color themes and returns them sorted alphabetically by label.
+func (a *App) ListVSCodiumThemes() ([]VSCodeThemeEntry, error) {
+	cfg := loadConfig()
+	extDir := cfg.VSCodiumExtPath
+	if extDir == "" {
+		return nil, fmt.Errorf("VSCodium extension path not configured")
+	}
+
+	// Expand tilde
+	extDir = expandTilde(extDir)
+
+	// Verify directory is accessible
+	info, err := os.Stat(extDir)
+	if err != nil {
+		return nil, fmt.Errorf("extensions directory not accessible: %w", err)
+	}
+	if !info.IsDir() {
+		return nil, fmt.Errorf("extensions path is not a directory: %s", extDir)
+	}
+
+	return scanVSIXDirectory(extDir)
+}
+
+// bundledThemesDir returns the absolute path to the bundled themes directory.
+// It checks next to the executable first (production), then falls back to CWD
+// (dev mode). Returns empty string if neither location has a themes directory.
+func bundledThemesDir() string {
+	// Check relative to executable
+	if exe, err := os.Executable(); err == nil {
+		dir := filepath.Join(filepath.Dir(exe), "themes")
+		if info, err := os.Stat(dir); err == nil && info.IsDir() {
+			return dir
+		}
+	}
+
+	// Fall back to CWD
+	if wd, err := os.Getwd(); err == nil {
+		dir := filepath.Join(wd, "themes")
+		if info, err := os.Stat(dir); err == nil && info.IsDir() {
+			return dir
+		}
+	}
+
+	return ""
+}
+
+// ListBundledThemes scans the bundled themes directory for .vsix files and
+// returns all color theme entries found. Returns empty slice (not error) if the
+// themes directory doesn't exist.
+func (a *App) ListBundledThemes() ([]VSCodeThemeEntry, error) {
+	dir := bundledThemesDir()
+	if dir == "" {
+		return []VSCodeThemeEntry{}, nil
+	}
+	return scanVSIXDirectory(dir)
+}
+
+// ReadBundledThemeFile reads a theme file from a bundled VSIX archive.
+// The themePath must be a VSIX-encoded path (e.g. /path/file.vsix::vsix::extension/themes/dark.json).
+// Unlike ReadThemeFile, this does not require VSCodiumExtPath to be configured.
+func (a *App) ReadBundledThemeFile(themePath string) (string, error) {
+	if themePath == "" {
+		return "", fmt.Errorf("empty theme path")
+	}
+
+	vsixPath, internalPath, ok := parseVSIXThemePath(themePath)
+	if !ok {
+		return "", fmt.Errorf("invalid vsix theme path: %s", themePath)
+	}
+
+	return readAndResolveVSIXTheme(vsixPath, internalPath, 0)
+}
+
+// readAndResolveVSIXTheme reads a theme file from inside a .vsix zip archive,
+// strips JSONC comments, resolves include directives within the zip (up to
+// depth 5), and returns clean JSON. This is the shared core used by both
+// readThemeFromVSIX (with security check) and ReadBundledThemeFile (without).
+func readAndResolveVSIXTheme(vsixPath, internalPath string, depth int) (string, error) {
+	if depth > 5 {
+		log.Printf("theme include depth limit reached (>5) for %s in %s", internalPath, vsixPath)
+		return "", fmt.Errorf("include depth limit exceeded")
+	}
+
+	zr, err := zip.OpenReader(vsixPath)
+	if err != nil {
+		return "", fmt.Errorf("opening vsix: %w", err)
+	}
+	defer zr.Close()
+
+	data, err := readFileFromZip(zr, internalPath)
+	if err != nil {
+		return "", fmt.Errorf("reading %s from vsix: %w", internalPath, err)
+	}
+
+	clean := stripJSONC(data)
+
+	var theme rawTheme
+	if err := json.Unmarshal(clean, &theme); err != nil {
+		return string(clean), nil
+	}
+
+	if theme.Include != "" {
+		// Use path (not filepath) since zip entries use forward slashes.
+		includeDir := path.Dir(internalPath)
+		includePath := path.Join(includeDir, theme.Include)
+		includePath = path.Clean(includePath)
+
+		baseJSON, err := readAndResolveVSIXTheme(vsixPath, includePath, depth+1)
+		if err != nil {
+			log.Printf("failed to resolve include %q in vsix: %v", theme.Include, err)
+		} else {
+			var baseTheme rawTheme
+			if err := json.Unmarshal([]byte(baseJSON), &baseTheme); err == nil {
+				mergeThemes(&theme, &baseTheme)
+			}
+		}
+	}
+
+	theme.Include = ""
+	result, err := json.Marshal(theme)
+	if err != nil {
+		return string(clean), nil
+	}
+	return string(result), nil
 }
 
 // rawTheme is the intermediate representation used for include resolution.
@@ -388,15 +496,9 @@ func (a *App) readThemeFileWithDepth(themePath, extDir string, depth int) (strin
 	return string(result), nil
 }
 
-// readThemeFromVSIX reads a theme file from inside a .vsix zip archive,
-// strips JSONC comments, resolves include directives within the zip, and
-// returns clean JSON.
+// readThemeFromVSIX validates that vsixPath is inside extDir, then delegates
+// to readAndResolveVSIXTheme for the actual reading and include resolution.
 func (a *App) readThemeFromVSIX(vsixPath, internalPath, extDir string, depth int) (string, error) {
-	if depth > 5 {
-		log.Printf("theme include depth limit reached (>5) for %s in %s", internalPath, vsixPath)
-		return "", fmt.Errorf("include depth limit exceeded")
-	}
-
 	// Security: verify vsix is inside the extensions directory
 	absVsix, err := filepath.EvalSymlinks(vsixPath)
 	if err != nil {
@@ -410,48 +512,7 @@ func (a *App) readThemeFromVSIX(vsixPath, internalPath, extDir string, depth int
 		return "", fmt.Errorf("vsix path outside extensions directory")
 	}
 
-	zr, err := zip.OpenReader(absVsix)
-	if err != nil {
-		return "", fmt.Errorf("opening vsix: %w", err)
-	}
-	defer zr.Close()
-
-	data, err := readFileFromZip(zr, internalPath)
-	if err != nil {
-		return "", fmt.Errorf("reading %s from vsix: %w", internalPath, err)
-	}
-
-	clean := stripJSONC(data)
-
-	var theme rawTheme
-	if err := json.Unmarshal(clean, &theme); err != nil {
-		return string(clean), nil
-	}
-
-	if theme.Include != "" {
-		// Resolve relative to the current file's directory within the zip.
-		// Use path (not filepath) since zip entries use forward slashes.
-		includeDir := path.Dir(internalPath)
-		includePath := path.Join(includeDir, theme.Include)
-		includePath = path.Clean(includePath)
-
-		baseJSON, err := a.readThemeFromVSIX(vsixPath, includePath, extDir, depth+1)
-		if err != nil {
-			log.Printf("failed to resolve include %q in vsix: %v", theme.Include, err)
-		} else {
-			var baseTheme rawTheme
-			if err := json.Unmarshal([]byte(baseJSON), &baseTheme); err == nil {
-				mergeThemes(&theme, &baseTheme)
-			}
-		}
-	}
-
-	theme.Include = ""
-	result, err := json.Marshal(theme)
-	if err != nil {
-		return string(clean), nil
-	}
-	return string(result), nil
+	return readAndResolveVSIXTheme(absVsix, internalPath, depth)
 }
 
 // SetImportedTheme persists the selected imported theme path to config.
