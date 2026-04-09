@@ -4,7 +4,7 @@
 **Domain:** fullstack
 **Estimated Complexity:** M
 **Depends On:** Story 4 (ptyhelper-04-client), Story 5 (ptyhelper-05-session-manager-rework)
-**Status:** ready
+**Status:** done
 
 ## Description
 

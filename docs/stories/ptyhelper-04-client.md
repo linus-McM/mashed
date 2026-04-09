@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** M
 **Depends On:** Story 1 (ptyhelper-01-protocol-types)
-**Status:** ready
+**Status:** done
 
 ## Description
 

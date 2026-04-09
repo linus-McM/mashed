@@ -4,7 +4,7 @@
 **Domain:** fullstack
 **Estimated Complexity:** M
 **Depends On:** Story 6 (ptyhelper-06-main-integration)
-**Status:** ready
+**Status:** done
 
 ## Description
 

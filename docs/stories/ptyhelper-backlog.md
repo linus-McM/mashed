@@ -17,7 +17,7 @@
 | 7 | Build System & Cleanup | P1 | fullstack | M | Story 6 | `ptyhelper-07-build-system-and-cleanup.md` |
 
 **Total Stories:** 7
-**Ready for Sprint:** Stories 1, 2, 3, 4, 5, 6, 7 (all status: ready)
+**Sprint Complete:** Stories 1, 2, 3, 4, 5, 6, 7 (all status: done)
 
 ## Recommended Sprint Order
 
