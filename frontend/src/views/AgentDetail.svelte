@@ -6,7 +6,7 @@
   import { ArrowLeft, GitBranch, GripVertical, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, Download, GitMerge, AlertTriangle } from 'lucide-svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
   import Terminal from '../components/Terminal.svelte';
-  import MonacoEditor from '../components/MonacoEditor.svelte';
+  import EditorRouter from '../components/EditorRouter.svelte';
   import FileTree from '../components/FileTree.svelte';
   import BranchModal from './BranchModal.svelte';
   import MergeModal from './MergeModal.svelte';
@@ -546,7 +546,7 @@
     <!-- Code editor (visible when file selected) -->
     {#if selectedFile}
       <div class="editor-pane" style="flex: 0 0 {editorFraction * 100}%">
-        <MonacoEditor
+        <EditorRouter
           filePath={selectedFile.path}
           repoPath={agent.repoPath}
           mode={selectedFile.isBinary ? 'source' : (fileTab === 'all' ? 'source' : 'diff')}
