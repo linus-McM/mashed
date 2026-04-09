@@ -15,7 +15,6 @@ import (
 	"net/http/httptest"
 	"os/exec"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
@@ -72,7 +71,6 @@ func wsTestPair(t *testing.T) (server *websocket.Conn, client *websocket.Conn) {
 // canPTYSpawn checks if PTY spawning works in the current environment.
 func canPTYSpawn() bool {
 	cmd := exec.Command("/bin/sh", "-c", "true")
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	ptmx, err := pty.Start(cmd)
 	if err != nil {
 		return false
@@ -83,7 +81,7 @@ func canPTYSpawn() bool {
 }
 
 // startTestSession starts a real PTY process and wraps it in a ManagedSession.
-// Cleanup kills the process group and closes the PTY even if the stub Kill is a no-op.
+// Cleanup kills the process and closes the PTY even if the stub Kill is a no-op.
 func startTestSession(t *testing.T, shellCmd string) *ManagedSession {
 	t.Helper()
 	if !canPTYSpawn() {
@@ -91,19 +89,12 @@ func startTestSession(t *testing.T, shellCmd string) *ManagedSession {
 	}
 
 	cmd := exec.Command("/bin/sh", "-c", shellCmd)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	ptmx, err := pty.Start(cmd)
 	require.NoError(t, err, "pty start")
 
 	sess := newManagedSession("test", cmd, ptmx)
 	t.Cleanup(func() {
-		sess.Kill() // may be a stub no-op
-		// Fallback: ensure the real process is killed even with stubs.
-		if cmd.Process != nil {
-			_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
-		}
-		ptmx.Close()
-		_ = cmd.Wait()
+		sess.Kill() // signals process, closes ptmx, readLoop calls cmd.Wait()
 	})
 	return sess
 }

@@ -27,6 +27,7 @@ type helperSession struct {
 type Server struct {
 	sessions  sync.Map // map[string]*helperSession
 	parentPID int
+	spawnWg   sync.WaitGroup // tracks in-flight spawn operations only
 }
 
 // NewServer creates a new helper Server that monitors the given parent PID.
@@ -83,6 +84,8 @@ func (s *Server) handleConn(conn *net.UnixConn) {
 
 // handleSpawn creates a new PTY session and sends back the response + fd.
 func (s *Server) handleSpawn(conn *net.UnixConn, req SpawnRequest) {
+	s.spawnWg.Add(1)
+	defer s.spawnWg.Done()
 	shell := req.Shell
 	if shell == "" {
 		shell = os.Getenv("SHELL")
@@ -97,7 +100,9 @@ func (s *Server) handleSpawn(conn *net.UnixConn, req SpawnRequest) {
 	if len(req.Env) > 0 {
 		cmd.Env = req.Env
 	}
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	// NOTE: Setpgid is intentionally omitted. macOS Sequoia blocks setpgid()
+	// combined with PTY fork/exec (EPERM). The shell's own process group is
+	// sufficient — Kill sends SIGHUP to the PTY which propagates to the child.
 
 	cols := req.Cols
 	if cols == 0 {
@@ -168,17 +173,17 @@ func (s *Server) handleKill(conn *net.UnixConn, req KillRequest) {
 
 	session := val.(*helperSession)
 
-	// Kill the process group.
+	// Signal the process directly (not process group — Setpgid is not used
+	// on macOS Sequoia due to EPERM). Closing ptmx sends SIGHUP to the child.
 	if session.cmd.Process != nil {
 		sig := syscall.Signal(req.Signal)
 		if sig == 0 {
 			sig = syscall.SIGTERM
 		}
-		// Kill process group (negative PID).
-		syscall.Kill(-session.cmd.Process.Pid, sig)
+		session.cmd.Process.Signal(sig)
 	}
 
-	// Close the pty master.
+	// Close the pty master — sends SIGHUP to child and all its descendants.
 	session.ptmx.Close()
 
 	// Remove from map.
@@ -192,12 +197,13 @@ func (s *Server) handleKill(conn *net.UnixConn, req KillRequest) {
 	WriteMessage(conn, MsgKill, resp)
 }
 
-// Shutdown kills all active sessions and cleans up.
+// Shutdown waits for in-flight spawn operations to finish, then kills all sessions.
 func (s *Server) Shutdown() {
+	s.spawnWg.Wait() // let in-flight handleSpawn finish before closing ptmx
 	s.sessions.Range(func(key, val any) bool {
 		session := val.(*helperSession)
 		if session.cmd.Process != nil {
-			syscall.Kill(-session.cmd.Process.Pid, syscall.SIGTERM)
+			session.cmd.Process.Signal(syscall.SIGTERM)
 		}
 		session.ptmx.Close()
 		s.sessions.Delete(key)

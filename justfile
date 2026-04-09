@@ -22,16 +22,17 @@ opus:
 # Start Claude with Haiku model in tmux
 haiku:
     @tmux new-session -d -s {{repo}}-haiku-{{rand}} 'claude --dangerously-skip-permissions --model "haiku"' && tmux attach -t {{repo}}-haiku-{{rand}}
-dev:
+dev: build-helper
     PATH="$HOME/go/bin:$PATH" wails dev
 
 # Build and launch Mashed
 run: build
     open build/bin/mashed.app
 
-# Build the PTY helper binary
+# Build and sign the PTY helper binary (entitlements required for PTY on macOS Sequoia)
 build-helper:
     go build -o build/bin/mashed-pty-helper ./cmd/pty-helper
+    codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist build/bin/mashed-pty-helper
 
 # Full build: helper + wails + bundle + sign
 build: build-helper

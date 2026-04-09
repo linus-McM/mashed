@@ -97,17 +97,18 @@ func buildMenu(app *App) *menu.Menu {
 	return appMenu
 }
 
-// resolveHelperPath finds the mashed-pty-helper binary next to the main
-// executable (production) or under build/bin/ (development).
+// resolveHelperPath finds the mashed-pty-helper binary. Development path
+// (build/bin/) is checked first so the freshly-signed binary is preferred
+// over a potentially stale copy inside the .app bundle.
 func resolveHelperPath() string {
-	if exe, err := os.Executable(); err == nil {
-		candidate := filepath.Join(filepath.Dir(exe), "mashed-pty-helper")
+	if wd, err := os.Getwd(); err == nil {
+		candidate := filepath.Join(wd, "build", "bin", "mashed-pty-helper")
 		if _, err := os.Stat(candidate); err == nil {
 			return candidate
 		}
 	}
-	if wd, err := os.Getwd(); err == nil {
-		candidate := filepath.Join(wd, "build", "bin", "mashed-pty-helper")
+	if exe, err := os.Executable(); err == nil {
+		candidate := filepath.Join(filepath.Dir(exe), "mashed-pty-helper")
 		if _, err := os.Stat(candidate); err == nil {
 			return candidate
 		}

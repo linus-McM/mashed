@@ -35,7 +35,6 @@ func testSockPath(t *testing.T) string {
 func canPTYSpawn(t *testing.T) bool {
 	t.Helper()
 	cmd := exec.Command("/bin/echo", "probe")
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	ptmx, err := pty.StartWithSize(cmd, &pty.Winsize{Cols: 80, Rows: 24})
 	if err != nil {
 		return false
@@ -68,8 +67,8 @@ func startTestServer(t *testing.T) (*Server, string) {
 	go srv.Serve(ln)
 
 	t.Cleanup(func() {
-		srv.Shutdown()
-		ln.Close()
+		ln.Close()    // stop accepting; unblocks Serve and handleConn reads
+		srv.Shutdown() // wait for in-flight handlers, then kill sessions
 	})
 
 	return srv, sockPath

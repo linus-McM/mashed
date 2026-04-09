@@ -275,12 +275,12 @@ func (ms *ManagedSession) clientReader(ws *websocket.Conn) {
 	}
 }
 
-// Kill terminates the process group, closes the PTY, and signals done.
-// For remote sessions (cmd == nil), it sends SIGTERM to the process group directly.
+// Kill terminates the session process, closes the PTY, and signals done.
+// Closing ptmx sends SIGHUP to the child and its descendants via the TTY.
 func (ms *ManagedSession) Kill() {
 	ms.killOnce.Do(func() {
 		if ms.pid > 0 {
-			if err := syscall.Kill(-ms.pid, syscall.SIGTERM); err != nil && !errors.Is(err, syscall.ESRCH) {
+			if err := syscall.Kill(ms.pid, syscall.SIGTERM); err != nil && !errors.Is(err, syscall.ESRCH) {
 				log.Printf("terminal: kill(%s, pid=%d): %v", ms.name, ms.pid, err)
 			}
 		}
