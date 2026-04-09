@@ -106,6 +106,8 @@ export function PauseBmadWorkflow(arg1:string):Promise<void>;
 
 export function PickDirectory():Promise<string>;
 
+export function PickFile(arg1:string):Promise<string>;
+
 export function ReadFile(arg1:string):Promise<string>;
 
 export function ReadFileAtHead(arg1:string,arg2:string):Promise<string>;
