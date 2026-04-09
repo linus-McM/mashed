@@ -53,11 +53,6 @@ func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath strin
 		}
 	}
 
-	cmd := exec.CommandContext(ctx, parts[0], parts[1:]...)
-	cmd.Dir = repoPath
-	cmd.Env = append(os.Environ(), "TERM=xterm-256color")
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-
 	sm.mu.Lock()
 	if _, exists := sm.sessions[name]; exists {
 		sm.mu.Unlock()
@@ -65,6 +60,11 @@ func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath strin
 	}
 	sm.sessions[name] = nil // reserve slot
 	sm.mu.Unlock()
+
+	cmd := exec.CommandContext(ctx, parts[0], parts[1:]...)
+	cmd.Dir = repoPath
+	cmd.Env = append(os.Environ(), "TERM=xterm-256color")
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
 	ptmx, err := pty.StartWithSize(cmd, &pty.Winsize{Cols: 80, Rows: 24})
 	if err != nil {
