@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { EventsOn } from '../wailsjs/runtime/runtime.js';
-  import { GetNotifications, GetDevDir, GetConfig, ListLocalFonts, SetActiveContext, WriteConsoleLog } from '../wailsjs/go/main/App.js';
+  import { GetNotifications, GetDevDir, GetConfig, ListLocalFonts, SetActiveContext, WriteConsoleLog, GetEditorSettings } from '../wailsjs/go/main/App.js';
   import Setup from './views/Setup.svelte';
   import NotificationFeed from './views/NotificationFeed.svelte';
   import AgentDetail from './views/AgentDetail.svelte';
@@ -15,6 +15,7 @@
   import { applyTheme } from './lib/stores/theme.js';
   import { loadSavedThemes, restoreImportedThemeFromConfig, loadBundledThemes } from './lib/themeInit.js';
   import { applyFont, registerLocalFonts } from './lib/stores/font.js';
+  import { initEditorSettings } from './lib/stores/editorSettings.js';
   import { addSession, removeSessionByName } from './lib/stores/sessions.js';
 
   let currentView = 'loading'; // 'loading' | 'setup' | 'feed' | 'detail' | 'settings' | 'workflows'
@@ -57,6 +58,8 @@
 
     // Auto-import bundled themes (after loadSavedThemes so duplicates are skipped)
     try { await loadBundledThemes(); } catch (e) { console.warn('Bundled theme import failed:', e); }
+
+    try { const es = await GetEditorSettings(); initEditorSettings(es); } catch {}
 
     const dir = await GetDevDir();
     if (dir && dir.length > 0) {

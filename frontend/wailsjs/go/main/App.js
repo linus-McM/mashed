@@ -10,6 +10,10 @@ export function CreateRepo(arg1, arg2, arg3) {
   return window['go']['main']['App']['CreateRepo'](arg1, arg2, arg3);
 }
 
+export function DefaultEditorSettings() {
+  return window['go']['main']['App']['DefaultEditorSettings']();
+}
+
 export function DeleteBmadAgent(arg1) {
   return window['go']['main']['App']['DeleteBmadAgent'](arg1);
 }
@@ -60,6 +64,10 @@ export function GetControlFlowNodes() {
 
 export function GetDevDir() {
   return window['go']['main']['App']['GetDevDir']();
+}
+
+export function GetEditorSettings() {
+  return window['go']['main']['App']['GetEditorSettings']();
 }
 
 export function GetFontsDir() {
@@ -170,6 +178,10 @@ export function ListBmadWorkflowsByRepo(arg1) {
   return window['go']['main']['App']['ListBmadWorkflowsByRepo'](arg1);
 }
 
+export function ListBundledThemes() {
+  return window['go']['main']['App']['ListBundledThemes']();
+}
+
 export function ListLocalFonts() {
   return window['go']['main']['App']['ListLocalFonts']();
 }
@@ -212,6 +224,10 @@ export function PickDirectory() {
 
 export function PickFile(arg1) {
   return window['go']['main']['App']['PickFile'](arg1);
+}
+
+export function ReadBundledThemeFile(arg1) {
+  return window['go']['main']['App']['ReadBundledThemeFile'](arg1);
 }
 
 export function ReadFile(arg1) {
@@ -268,6 +284,10 @@ export function SetActiveContext(arg1, arg2) {
 
 export function SetDevDir(arg1) {
   return window['go']['main']['App']['SetDevDir'](arg1);
+}
+
+export function SetEditorSettings(arg1) {
+  return window['go']['main']['App']['SetEditorSettings'](arg1);
 }
 
 export function SetFontSize(arg1) {

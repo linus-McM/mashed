@@ -6,6 +6,7 @@
   import { activateImportedTheme, removeImportedTheme, convertedCache, makeThemeId } from '../lib/themeInit.js';
   import { builtInThemeIds } from '../lib/stores/theme.js';
   import { currentMonoFont, currentFontSize, applyFont, registerLocalFonts } from '../lib/stores/font.js';
+  import { editorSettings, updateEditorSetting } from '../lib/stores/editorSettings.js';
 
   const dispatch = createEventDispatcher();
 
@@ -238,6 +239,135 @@
           <button class="size-btn" on:click={() => changeSidebarWidth(Math.min(500, selectedSidebarWidth + 10))} disabled={selectedSidebarWidth >= 500}>+</button>
           <input type="range" min="200" max="500" step="10" bind:value={selectedSidebarWidth}
                  on:input={() => changeSidebarWidth(selectedSidebarWidth)} class="size-slider" />
+        </div>
+      </section>
+
+      <!-- Editor -->
+      <section class="settings-section">
+        <h2 class="section-title">Editor</h2>
+
+        <!-- Cursor -->
+        <h3 class="subsection-title">Cursor</h3>
+        <div class="setting-row">
+          <label class="setting-label" for="cursorStyle">Cursor Style</label>
+          <select id="cursorStyle" class="setting-select" value={$editorSettings.cursorStyle}
+            on:change={(e) => updateEditorSetting('cursorStyle', e.target.value)}>
+            <option value="line">line</option>
+            <option value="line-thin">line-thin</option>
+            <option value="block">block</option>
+            <option value="block-outline">block-outline</option>
+            <option value="underline">underline</option>
+            <option value="underline-thin">underline-thin</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="cursorBlinking">Cursor Blinking</label>
+          <select id="cursorBlinking" class="setting-select" value={$editorSettings.cursorBlinking}
+            on:change={(e) => updateEditorSetting('cursorBlinking', e.target.value)}>
+            <option value="blink">blink</option>
+            <option value="smooth">smooth</option>
+            <option value="phase">phase</option>
+            <option value="expand">expand</option>
+            <option value="solid">solid</option>
+          </select>
+        </div>
+
+        <!-- Display -->
+        <h3 class="subsection-title">Display</h3>
+        <div class="setting-row">
+          <label class="setting-label" for="wordWrap">Word Wrap</label>
+          <select id="wordWrap" class="setting-select" value={$editorSettings.wordWrap}
+            on:change={(e) => updateEditorSetting('wordWrap', e.target.value)}>
+            <option value="off">off</option>
+            <option value="on">on</option>
+            <option value="wordWrapColumn">wordWrapColumn</option>
+            <option value="bounded">bounded</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="lineNumbers">Line Numbers</label>
+          <select id="lineNumbers" class="setting-select" value={$editorSettings.lineNumbers}
+            on:change={(e) => updateEditorSetting('lineNumbers', e.target.value)}>
+            <option value="on">on</option>
+            <option value="off">off</option>
+            <option value="relative">relative</option>
+            <option value="interval">interval</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="renderLineHighlight">Line Highlight</label>
+          <select id="renderLineHighlight" class="setting-select" value={$editorSettings.renderLineHighlight}
+            on:change={(e) => updateEditorSetting('renderLineHighlight', e.target.value)}>
+            <option value="none">none</option>
+            <option value="gutter">gutter</option>
+            <option value="line">line</option>
+            <option value="all">all</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="renderWhitespace">Whitespace</label>
+          <select id="renderWhitespace" class="setting-select" value={$editorSettings.renderWhitespace}
+            on:change={(e) => updateEditorSetting('renderWhitespace', e.target.value)}>
+            <option value="none">none</option>
+            <option value="boundary">boundary</option>
+            <option value="selection">selection</option>
+            <option value="trailing">trailing</option>
+            <option value="all">all</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="minimapEnabled">Minimap</label>
+          <button id="minimapEnabled" class="setting-toggle" class:active={$editorSettings.minimapEnabled}
+            on:click={() => updateEditorSetting('minimapEnabled', !$editorSettings.minimapEnabled)}>
+            {$editorSettings.minimapEnabled ? 'On' : 'Off'}
+          </button>
+        </div>
+
+        <!-- Editing -->
+        <h3 class="subsection-title">Editing</h3>
+        <div class="setting-row">
+          <label class="setting-label" for="tabSize">Tab Size</label>
+          <input id="tabSize" class="setting-number" type="number" min="2" max="8"
+            value={$editorSettings.tabSize}
+            on:change={(e) => updateEditorSetting('tabSize', Math.min(8, Math.max(2, parseInt(e.target.value) || 2)))} />
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="insertSpaces">Insert Spaces</label>
+          <button id="insertSpaces" class="setting-toggle" class:active={$editorSettings.insertSpaces}
+            on:click={() => updateEditorSetting('insertSpaces', !$editorSettings.insertSpaces)}>
+            {$editorSettings.insertSpaces ? 'On' : 'Off'}
+          </button>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="bracketPairColorization">Bracket Colors</label>
+          <button id="bracketPairColorization" class="setting-toggle" class:active={$editorSettings.bracketPairColorization}
+            on:click={() => updateEditorSetting('bracketPairColorization', !$editorSettings.bracketPairColorization)}>
+            {$editorSettings.bracketPairColorization ? 'On' : 'Off'}
+          </button>
+        </div>
+
+        <!-- Behavior -->
+        <h3 class="subsection-title">Behavior</h3>
+        <div class="setting-row">
+          <label class="setting-label" for="fontLigatures">Font Ligatures</label>
+          <button id="fontLigatures" class="setting-toggle" class:active={$editorSettings.fontLigatures}
+            on:click={() => updateEditorSetting('fontLigatures', !$editorSettings.fontLigatures)}>
+            {$editorSettings.fontLigatures ? 'On' : 'Off'}
+          </button>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="scrollBeyondLastLine">Scroll Beyond End</label>
+          <button id="scrollBeyondLastLine" class="setting-toggle" class:active={$editorSettings.scrollBeyondLastLine}
+            on:click={() => updateEditorSetting('scrollBeyondLastLine', !$editorSettings.scrollBeyondLastLine)}>
+            {$editorSettings.scrollBeyondLastLine ? 'On' : 'Off'}
+          </button>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="smoothScrolling">Smooth Scrolling</label>
+          <button id="smoothScrolling" class="setting-toggle" class:active={$editorSettings.smoothScrolling}
+            on:click={() => updateEditorSetting('smoothScrolling', !$editorSettings.smoothScrolling)}>
+            {$editorSettings.smoothScrolling ? 'On' : 'Off'}
+          </button>
         </div>
       </section>
 
@@ -759,6 +889,102 @@
   .error-text {
     color: var(--accent-red);
     font-size: 11px;
+  }
+
+  /* Editor settings: subsections, rows, controls */
+  .subsection-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: var(--sp-lg) 0 var(--sp-sm);
+  }
+
+  .subsection-title:first-of-type {
+    margin-top: 0;
+  }
+
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    gap: var(--sp-md);
+  }
+
+  .setting-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .setting-select {
+    padding: 4px 8px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    outline: none;
+    cursor: pointer;
+    min-width: 120px;
+    transition: border-color 100ms ease;
+  }
+
+  .setting-select:focus {
+    border-color: var(--accent-green);
+  }
+
+  .setting-select:hover {
+    border-color: var(--border-emphasis);
+  }
+
+  .setting-number {
+    width: 60px;
+    padding: 4px 8px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    outline: none;
+    text-align: center;
+    transition: border-color 100ms ease;
+  }
+
+  .setting-number:focus {
+    border-color: var(--accent-green);
+  }
+
+  .setting-toggle {
+    padding: 4px 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    min-width: 48px;
+    text-align: center;
+    transition: all 100ms ease;
+  }
+
+  .setting-toggle:hover {
+    border-color: var(--border-emphasis);
+    color: var(--text-dim);
+  }
+
+  .setting-toggle.active {
+    background: var(--bg-active);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
   }
 
   /* Footer */

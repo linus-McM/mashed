@@ -4,6 +4,7 @@
   import { defineAllThemes, getEditorFont, toMonacoId } from '../lib/monacoTheme.js';
   import { currentMonoFont, currentFontSize } from '../lib/stores/font.js';
   import { allThemes, currentThemeId, builtInThemeIds } from '../lib/stores/theme.js';
+  import { editorSettings } from '../lib/stores/editorSettings.js';
 
   export let filePath = '';
   export let repoPath = '';
@@ -58,20 +59,34 @@
     return map[ext] || 'plaintext';
   }
 
+  function mapSettingsToMonaco(s) {
+    return {
+      minimap: { enabled: s.minimapEnabled },
+      scrollBeyondLastLine: s.scrollBeyondLastLine,
+      renderLineHighlight: s.renderLineHighlight,
+      wordWrap: s.wordWrap,
+      lineNumbers: s.lineNumbers,
+      renderWhitespace: s.renderWhitespace,
+      tabSize: s.tabSize,
+      insertSpaces: s.insertSpaces,
+      cursorStyle: s.cursorStyle,
+      cursorBlinking: s.cursorBlinking,
+      bracketPairColorization: { enabled: s.bracketPairColorization },
+      fontLigatures: s.fontLigatures,
+      smoothScrolling: s.smoothScrolling,
+    };
+  }
+
   function getEditorOptions() {
     return {
       theme: toMonacoId($currentThemeId),
       fontFamily: getEditorFont(),
       fontSize: $currentFontSize,
-      lineHeight: 1.5 * 13,
-      minimap: { enabled: false },
-      scrollBeyondLastLine: false,
-      renderLineHighlight: 'line',
+      lineHeight: 1.5 * $currentFontSize,
+      ...mapSettingsToMonaco($editorSettings),
       padding: { top: 8 },
       automaticLayout: false,
       readOnly: !editable,
-      wordWrap: 'off',
-      lineNumbers: 'on',
       glyphMargin: false,
       folding: true,
       lineDecorationsWidth: 0,
@@ -478,7 +493,12 @@
     editor.updateOptions({ fontFamily: $currentMonoFont });
   }
   $: if (editor && $currentFontSize) {
-    editor.updateOptions({ fontSize: $currentFontSize });
+    editor.updateOptions({ fontSize: $currentFontSize, lineHeight: 1.5 * $currentFontSize });
+  }
+
+  // Live editor settings switching
+  $: if (editor && $editorSettings) {
+    editor.updateOptions(mapSettingsToMonaco($editorSettings));
   }
 </script>
 

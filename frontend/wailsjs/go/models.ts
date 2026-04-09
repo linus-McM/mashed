@@ -653,6 +653,42 @@ export namespace main {
 	        this.current = source["current"];
 	    }
 	}
+	export class EditorSettings {
+	    minimapEnabled: boolean;
+	    wordWrap: string;
+	    lineNumbers: string;
+	    renderWhitespace: string;
+	    tabSize: number;
+	    insertSpaces: boolean;
+	    cursorStyle: string;
+	    cursorBlinking: string;
+	    bracketPairColorization: boolean;
+	    renderLineHighlight: string;
+	    fontLigatures: boolean;
+	    scrollBeyondLastLine: boolean;
+	    smoothScrolling: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new EditorSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.minimapEnabled = source["minimapEnabled"];
+	        this.wordWrap = source["wordWrap"];
+	        this.lineNumbers = source["lineNumbers"];
+	        this.renderWhitespace = source["renderWhitespace"];
+	        this.tabSize = source["tabSize"];
+	        this.insertSpaces = source["insertSpaces"];
+	        this.cursorStyle = source["cursorStyle"];
+	        this.cursorBlinking = source["cursorBlinking"];
+	        this.bracketPairColorization = source["bracketPairColorization"];
+	        this.renderLineHighlight = source["renderLineHighlight"];
+	        this.fontLigatures = source["fontLigatures"];
+	        this.scrollBeyondLastLine = source["scrollBeyondLastLine"];
+	        this.smoothScrolling = source["smoothScrolling"];
+	    }
+	}
 	export class LocalFontFile {
 	    fileName: string;
 	    weight: string;
@@ -782,6 +818,7 @@ export namespace main {
 	    monoFont?: string;
 	    fontSize?: number;
 	    sidebarWidth?: number;
+	    editorSettings?: EditorSettings;
 	
 	    static createFrom(source: any = {}) {
 	        return new mashedConfig(source);
@@ -796,7 +833,26 @@ export namespace main {
 	        this.monoFont = source["monoFont"];
 	        this.fontSize = source["fontSize"];
 	        this.sidebarWidth = source["sidebarWidth"];
+	        this.editorSettings = this.convertValues(source["editorSettings"], EditorSettings);
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }
