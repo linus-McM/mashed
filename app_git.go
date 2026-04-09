@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"os/exec"
@@ -667,6 +668,53 @@ func (a *App) ReadFile(path string) (string, error) {
 		return string(data[:1024*1024]) + "\n... (truncated at 1MB)", nil
 	}
 	return string(data), nil
+}
+
+const maxImageFileSize = 10 * 1024 * 1024 // 10 MB
+
+// mimeForExt returns a MIME type for the given file extension.
+func mimeForExt(ext string) string {
+	switch strings.ToLower(ext) {
+	case ".png":
+		return "image/png"
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".gif":
+		return "image/gif"
+	case ".svg":
+		return "image/svg+xml"
+	case ".webp":
+		return "image/webp"
+	case ".bmp":
+		return "image/bmp"
+	case ".ico":
+		return "image/x-icon"
+	default:
+		return "application/octet-stream"
+	}
+}
+
+// ReadFileBase64 reads a file and returns it as a base64-encoded data URI.
+func (a *App) ReadFileBase64(path string) (string, error) {
+	if path == "" {
+		return "", fmt.Errorf("empty file path")
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		return "", fmt.Errorf("ReadFileBase64 %s: %w", path, err)
+	}
+	if info.Size() > maxImageFileSize {
+		return "", fmt.Errorf("file too large: %s (%d bytes)", path, info.Size())
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("ReadFileBase64 %s: %w", path, err)
+	}
+
+	mime := mimeForExt(filepath.Ext(path))
+	return fmt.Sprintf("data:%s;base64,%s", mime, base64.StdEncoding.EncodeToString(data)), nil
 }
 
 // ReadFileDiff returns the git diff for a specific file.
