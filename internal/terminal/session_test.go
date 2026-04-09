@@ -69,10 +69,26 @@ func wsTestPair(t *testing.T) (server *websocket.Conn, client *websocket.Conn) {
 	return sc, c
 }
 
+// canPTYSpawn checks if PTY spawning works in the current environment.
+func canPTYSpawn() bool {
+	cmd := exec.Command("/bin/sh", "-c", "true")
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	ptmx, err := pty.Start(cmd)
+	if err != nil {
+		return false
+	}
+	ptmx.Close()
+	cmd.Wait()
+	return true
+}
+
 // startTestSession starts a real PTY process and wraps it in a ManagedSession.
 // Cleanup kills the process group and closes the PTY even if the stub Kill is a no-op.
 func startTestSession(t *testing.T, shellCmd string) *ManagedSession {
 	t.Helper()
+	if !canPTYSpawn() {
+		t.Skip("PTY fork/exec not available in this environment")
+	}
 
 	cmd := exec.Command("/bin/sh", "-c", shellCmd)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}

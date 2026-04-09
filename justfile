@@ -29,11 +29,18 @@ dev:
 run: build
     open build/bin/mashed.app
 
-# Build Mashed production binary
-build:
+# Build the PTY helper binary
+build-helper:
+    go build -o build/bin/mashed-pty-helper ./cmd/pty-helper
+
+# Full build: helper + wails + bundle + sign
+build: build-helper
     cd frontend && npm install && cd ..
     PATH="$HOME/go/bin:$PATH" wails build
     cp -r fonts build/bin/mashed.app/Contents/Resources/fonts
+    cp build/bin/mashed-pty-helper "build/bin/mashed.app/Contents/MacOS/mashed-pty-helper"
+    codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app/Contents/MacOS/mashed-pty-helper"
+    codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app"
 
 # Run Go tests
 test:

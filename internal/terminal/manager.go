@@ -5,37 +5,45 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 	"sync"
 	"syscall"
 
-	"github.com/creack/pty"
+	"mashed/internal/terminal/helper"
 )
 
 // Sentinel errors for SessionManager.
 var (
-	ErrSessionExists   = errors.New("terminal: session already exists")
-	ErrSessionNotFound = errors.New("terminal: session not found")
+	ErrSessionExists      = errors.New("terminal: session already exists")
+	ErrSessionNotFound    = errors.New("terminal: session not found")
+	ErrHelperNotRunning   = errors.New("terminal: PTY helper not running")
 )
 
 // SessionManager owns a map of named ManagedSession instances and provides
 // Spawn/Get/Kill/List/FindByPID/Shutdown operations.
 type SessionManager struct {
-	mu       sync.Mutex
-	sessions map[string]*ManagedSession
+	mu           sync.Mutex
+	sessions     map[string]*ManagedSession
+	helperClient *helper.Client
 }
 
-// NewSessionManager creates a new SessionManager.
-func NewSessionManager() *SessionManager {
+// NewSessionManager creates a new SessionManager. The client may be nil;
+// Spawn will return ErrHelperNotRunning in that case.
+func NewSessionManager(client *helper.Client) *SessionManager {
 	return &SessionManager{
-		sessions: make(map[string]*ManagedSession),
+		sessions:     make(map[string]*ManagedSession),
+		helperClient: client,
 	}
 }
 
 // Spawn creates a new PTY session with the given name, working directory, and command.
 // If command is empty, the user's default shell is used.
+// The helper client must be non-nil; otherwise ErrHelperNotRunning is returned.
 func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath string, command string) (*ManagedSession, error) {
+	if sm.helperClient == nil {
+		return nil, ErrHelperNotRunning
+	}
+
 	var parts []string
 	if command == "" {
 		shell := os.Getenv("SHELL")
@@ -61,28 +69,23 @@ func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath strin
 	sm.sessions[name] = nil // reserve slot
 	sm.mu.Unlock()
 
-	cmd := exec.CommandContext(ctx, parts[0], parts[1:]...)
-	cmd.Dir = repoPath
-	cmd.Env = append(os.Environ(), "TERM=xterm-256color")
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-
-	ptmx, err := pty.StartWithSize(cmd, &pty.Winsize{Cols: 80, Rows: 24})
+	ptmx, pid, err := sm.helperClient.Spawn(ctx, helper.SpawnRequest{
+		ID:    name,
+		Shell: parts[0],
+		Args:  parts[1:],
+		Env:   append(os.Environ(), "TERM=xterm-256color"),
+		Cwd:   repoPath,
+		Cols:  80,
+		Rows:  24,
+	})
 	if err != nil {
 		sm.mu.Lock()
 		delete(sm.sessions, name)
 		sm.mu.Unlock()
-		return nil, &TerminalError{Op: "spawn", Err: fmt.Errorf("pty start %q: %w", name, err)}
+		return nil, &TerminalError{Op: "spawn", Err: fmt.Errorf("helper spawn %q: %w", name, err)}
 	}
 
-	if cmd.Process == nil || cmd.Process.Pid <= 0 {
-		ptmx.Close()
-		sm.mu.Lock()
-		delete(sm.sessions, name)
-		sm.mu.Unlock()
-		return nil, &TerminalError{Op: "spawn", Err: fmt.Errorf("invalid PID for session %q", name)}
-	}
-
-	ms := newManagedSession(name, cmd, ptmx)
+	ms := newRemoteManagedSession(name, pid, ptmx)
 	sm.mu.Lock()
 	sm.sessions[name] = ms
 	sm.mu.Unlock()
@@ -109,9 +112,13 @@ func (sm *SessionManager) Kill(name string) error {
 		sm.mu.Unlock()
 		return fmt.Errorf("session %q: %w", name, ErrSessionNotFound)
 	}
+	client := sm.helperClient
 	delete(sm.sessions, name)
 	sm.mu.Unlock()
 
+	if client != nil {
+		_ = client.Kill(name, syscall.SIGTERM)
+	}
 	ms.Kill()
 	return nil
 }
@@ -153,26 +160,34 @@ func (sm *SessionManager) FindByPID(pid int) (*ManagedSession, bool) {
 		if ms == nil {
 			continue
 		}
-		if ms.cmd.Process != nil && ms.cmd.Process.Pid == pid {
+		if ms.pid == pid {
 			return ms, true
 		}
 	}
 	return nil, false
 }
 
-// Shutdown kills all sessions and clears the session map.
+// Shutdown kills all sessions, clears the session map, and closes the helper client.
 func (sm *SessionManager) Shutdown() {
 	sm.mu.Lock()
-	sessions := make([]*ManagedSession, 0, len(sm.sessions))
-	for _, ms := range sm.sessions {
+	sessions := make(map[string]*ManagedSession, len(sm.sessions))
+	for name, ms := range sm.sessions {
 		if ms != nil {
-			sessions = append(sessions, ms)
+			sessions[name] = ms
 		}
 	}
+	client := sm.helperClient
 	sm.sessions = make(map[string]*ManagedSession)
 	sm.mu.Unlock()
 
-	for _, ms := range sessions {
+	for name, ms := range sessions {
+		if client != nil {
+			_ = client.Kill(name, syscall.SIGTERM)
+		}
 		ms.Kill()
+	}
+
+	if client != nil {
+		_ = client.Close()
 	}
 }

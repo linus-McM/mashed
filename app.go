@@ -19,6 +19,7 @@ import (
 	"mashed/internal/explain"
 	"mashed/internal/scanner"
 	"mashed/internal/terminal"
+	"mashed/internal/terminal/helper"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -117,9 +118,10 @@ func saveConfig(cfg mashedConfig) error {
 	return os.WriteFile(configPath(), data, 0644)
 }
 
-// NewApp creates a new App instance.
-func NewApp() *App {
-	sm := terminal.NewSessionManager()
+// NewApp creates a new App instance. The helperClient may be nil; Spawn will
+// return terminal.ErrHelperNotRunning until a client is provided.
+func NewApp(helperClient *helper.Client) *App {
+	sm := terminal.NewSessionManager(helperClient)
 	return &App{
 		bridge:           terminal.NewBridge(sm),
 		manager:          sm,

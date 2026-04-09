@@ -325,7 +325,7 @@ func TestStory1_RegisterOverwrite(t *testing.T) {
 }
 
 func TestStory1_NewAppInitializesMap(t *testing.T) {
-	app := NewApp()
+	app := NewApp(nil)
 	require.NotNil(t, app.terminalSessions, "terminalSessions map must be initialized")
 	assert.Empty(t, app.terminalSessions)
 }

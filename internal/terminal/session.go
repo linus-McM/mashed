@@ -133,6 +133,21 @@ func newManagedSession(name string, cmd *exec.Cmd, ptmx *os.File) *ManagedSessio
 	return ms
 }
 
+// newRemoteManagedSession creates a session for a PTY fd received from the
+// helper process. There is no local exec.Cmd — the child is managed by the helper.
+func newRemoteManagedSession(name string, pid int, ptmx *os.File) *ManagedSession {
+	ms := &ManagedSession{
+		name:    name,
+		ptmx:    ptmx,
+		scroll:  newScrollBuffer(scrollBufferDefaultCap),
+		clients: make(map[*websocket.Conn]*sync.Mutex),
+		done:    make(chan struct{}),
+		pid:     pid,
+	}
+	go ms.readLoop()
+	return ms
+}
+
 // readLoop reads PTY output in chunks, writes to scrollBuffer, and fans out to clients.
 func (ms *ManagedSession) readLoop() {
 	defer ms.cleanupClients()
@@ -179,7 +194,9 @@ func (ms *ManagedSession) readLoop() {
 			ms.killOnce.Do(func() {
 				ms.ptmx.Close()
 				close(ms.done)
-				go ms.cmd.Wait()
+				if ms.cmd != nil {
+					go ms.cmd.Wait()
+				}
 			})
 			return
 		}
@@ -259,6 +276,7 @@ func (ms *ManagedSession) clientReader(ws *websocket.Conn) {
 }
 
 // Kill terminates the process group, closes the PTY, and signals done.
+// For remote sessions (cmd == nil), it sends SIGTERM to the process group directly.
 func (ms *ManagedSession) Kill() {
 	ms.killOnce.Do(func() {
 		if ms.pid > 0 {
@@ -268,7 +286,9 @@ func (ms *ManagedSession) Kill() {
 		}
 		ms.ptmx.Close()
 		close(ms.done)
-		go ms.cmd.Wait()
+		if ms.cmd != nil {
+			go ms.cmd.Wait()
+		}
 	})
 }
 
