@@ -2,6 +2,7 @@
 .desloppify/
 scorecard.png
 build/bin
+mashed
 node_modules
 frontend/dist
 images/*

@@ -210,12 +210,12 @@ export function ReadFile(arg1) {
   return window['go']['main']['App']['ReadFile'](arg1);
 }
 
-export function ReadFileBase64(arg1) {
-  return window['go']['main']['App']['ReadFileBase64'](arg1);
-}
-
 export function ReadFileAtHead(arg1, arg2) {
   return window['go']['main']['App']['ReadFileAtHead'](arg1, arg2);
+}
+
+export function ReadFileBase64(arg1) {
+  return window['go']['main']['App']['ReadFileBase64'](arg1);
 }
 
 export function ReadFileDiff(arg1, arg2) {
@@ -306,8 +306,8 @@ export function StopBmadWorkflow(arg1) {
   return window['go']['main']['App']['StopBmadWorkflow'](arg1);
 }
 
-export function TakeScreenshot() {
-  return window['go']['main']['App']['TakeScreenshot']();
+export function TakeScreenshot(arg1, arg2) {
+  return window['go']['main']['App']['TakeScreenshot'](arg1, arg2);
 }
 
 export function UpdateStoryStatus(arg1, arg2, arg3) {

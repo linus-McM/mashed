@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1775701476418" clover="3.2.0">
+  <project timestamp="1775701476418" name="All files">
+    <metrics statements="16" coveredstatements="16" conditionals="6" coveredconditionals="6" methods="6" coveredmethods="6" elements="28" coveredelements="28" complexity="0" loc="16" ncloc="16" packages="1" files="1" classes="1"/>
+    <file name="markdownEditorUtils.ts" path="/Users/linus/Development/mashed/frontend/src/components/markdownEditorUtils.ts">
+      <metrics statements="16" coveredstatements="16" conditionals="6" coveredconditionals="6" methods="6" coveredmethods="6"/>
+      <line num="14" count="13" type="stmt"/>
+      <line num="15" count="13" type="stmt"/>
+      <line num="18" count="19" type="cond" truecount="2" falsecount="0"/>
+      <line num="19" count="5" type="stmt"/>
+      <line num="20" count="5" type="stmt"/>
+      <line num="24" count="13" type="stmt"/>
+      <line num="26" count="11" type="cond" truecount="2" falsecount="0"/>
+      <line num="27" count="10" type="stmt"/>
+      <line num="28" count="10" type="stmt"/>
+      <line num="29" count="4" type="stmt"/>
+      <line num="30" count="4" type="stmt"/>
+      <line num="34" count="4" type="cond" truecount="2" falsecount="0"/>
+      <line num="35" count="3" type="stmt"/>
+      <line num="36" count="3" type="stmt"/>
+      <line num="40" count="3" type="stmt"/>
+      <line num="41" count="3" type="stmt"/>
+    </file>
+  </project>
+</coverage>

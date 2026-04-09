@@ -108,9 +108,9 @@ export function PickDirectory():Promise<string>;
 
 export function ReadFile(arg1:string):Promise<string>;
 
-export function ReadFileBase64(arg1:string):Promise<string>;
-
 export function ReadFileAtHead(arg1:string,arg2:string):Promise<string>;
+
+export function ReadFileBase64(arg1:string):Promise<string>;
 
 export function ReadFileDiff(arg1:string,arg2:string):Promise<string>;
 
@@ -156,7 +156,7 @@ export function StartBmadWorkflow(arg1:string,arg2:string,arg3:string):Promise<s
 
 export function StopBmadWorkflow(arg1:string):Promise<void>;
 
-export function TakeScreenshot():Promise<string>;
+export function TakeScreenshot(arg1:string,arg2:string):Promise<string>;
 
 export function UpdateStoryStatus(arg1:string,arg2:string,arg3:string):Promise<void>;
 
