@@ -1,6 +1,7 @@
 <script lang="ts">
   import { getEditorType } from './editorUtils';
   import MonacoEditor from './MonacoEditor.svelte';
+  import ImageViewer from './ImageViewer.svelte';
 
   export let filePath = '';
   export let repoPath = '';
@@ -17,11 +18,7 @@
     <p class="coming-soon">Coming soon</p>
   </div>
 {:else if editorType === 'image'}
-  <div class="placeholder">
-    <p>Image Viewer</p>
-    <p class="file-path">{filePath}</p>
-    <p class="coming-soon">Coming soon</p>
-  </div>
+  <ImageViewer {filePath} {repoPath} />
 {:else}
   <MonacoEditor {filePath} {repoPath} {mode} {editable} />
 {/if}

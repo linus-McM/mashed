@@ -210,6 +210,10 @@ export function ReadFile(arg1) {
   return window['go']['main']['App']['ReadFile'](arg1);
 }
 
+export function ReadFileBase64(arg1) {
+  return window['go']['main']['App']['ReadFileBase64'](arg1);
+}
+
 export function ReadFileAtHead(arg1, arg2) {
   return window['go']['main']['App']['ReadFileAtHead'](arg1, arg2);
 }

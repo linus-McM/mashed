@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** S
 **Depends On:** none
-**Status:** ready
+**Status:** done
 
 ## Description
 
