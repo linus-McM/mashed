@@ -4,6 +4,29 @@
   import { EventsOn, EventsOff, ClipboardGetText, ClipboardSetText } from '../../wailsjs/runtime/runtime.js';
   import { currentTheme } from '../lib/stores/theme.js';
   import { currentMonoFont, currentFontSize } from '../lib/stores/font.js';
+  import { editorSettings } from '../lib/stores/editorSettings.js';
+
+  /** Map Monaco cursorStyle values to xterm.js cursorStyle. */
+  function mapMonacoCursorToXterm(monacoStyle) {
+    switch (monacoStyle) {
+      case 'line':
+      case 'line-thin':
+        return 'bar';
+      case 'underline':
+      case 'underline-thin':
+        return 'underline';
+      case 'block':
+      case 'block-outline':
+        return 'block';
+      default:
+        return 'bar';
+    }
+  }
+
+  /** Map Monaco cursorBlinking values to xterm.js cursorBlink boolean. */
+  function mapCursorBlinkToXterm(monacoBlinking) {
+    return monacoBlinking !== 'solid';
+  }
 
   export let paneTarget = '';
   export let repoPath = '';
@@ -78,8 +101,8 @@
       fontFamily: $currentMonoFont,
       fontSize: $currentFontSize,
       theme: $currentTheme.xterm,
-      cursorBlink: true,
-      cursorStyle: 'block',
+      cursorBlink: mapCursorBlinkToXterm($editorSettings.cursorBlinking),
+      cursorStyle: mapMonacoCursorToXterm($editorSettings.cursorStyle),
       cursorInactiveStyle: 'outline',
       scrollback: 5000,
       disableStdin: !paneTarget, // Read-only when showing log view
@@ -253,6 +276,14 @@
   }
   $: if (term && $currentFontSize) {
     term.options.fontSize = $currentFontSize;
+  }
+
+  // Live cursor style/blink switching from editor settings
+  $: if (term && $editorSettings) {
+    const newStyle = mapMonacoCursorToXterm($editorSettings.cursorStyle);
+    const newBlink = mapCursorBlinkToXterm($editorSettings.cursorBlinking);
+    if (term.options.cursorStyle !== newStyle) term.options.cursorStyle = newStyle;
+    if (term.options.cursorBlink !== newBlink) term.options.cursorBlink = newBlink;
   }
 </script>
 

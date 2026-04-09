@@ -4,7 +4,7 @@
 **Domain:** fullstack
 **Estimated Complexity:** L
 **Depends On:** edset-01
-**Status:** ready
+**Status:** done
 
 ## Description
 
