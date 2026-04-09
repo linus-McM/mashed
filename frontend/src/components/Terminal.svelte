@@ -147,8 +147,8 @@
     resizeObserver.observe(terminalEl);
 
     if (paneTarget) {
-      // Live terminal via WebSocket
-      term.write('\x1b[90mConnecting...\x1b[0m');
+      // Live terminal via WebSocket — don't write anything before connect
+      // to avoid scroll offset that misaligns the selection overlay.
       const port = await GetTerminalPort();
       if (port) {
         const url = `ws://127.0.0.1:${port}/ws/${encodeURIComponent(paneTarget)}`;
@@ -156,29 +156,34 @@
         ws.binaryType = 'arraybuffer';
 
         ws.onopen = () => {
-          // Send initial resize so the PTY knows the real terminal size
+          // Send resize FIRST so PTY learns the real dimensions.
           sendResize();
-          // Clear the "Connecting..." message and any stale 1x1 rendering
-          term.clear();
+
+          // Defer the message handler — drop any output the shell sent at the
+          // initial (wrong) size.  After a short delay, attach the handler and
+          // send Ctrl+L to trigger a clean prompt redraw at the correct size.
+          setTimeout(() => {
+            const decoder = new TextDecoder();
+            ws.onmessage = (evt) => {
+              const raw = evt.data instanceof ArrayBuffer
+                ? decoder.decode(evt.data)
+                : evt.data;
+              term.write(raw);
+            };
+            // Ctrl+L redraws the prompt at the correct terminal dimensions
+            const encoder = new TextEncoder();
+            ws.send(encoder.encode('\x0c'));
+          }, 150);
 
           // Listen for screenshot path injection scoped to this terminal's pane
           if (unsubScreenshot) unsubScreenshot();
           unsubScreenshot = EventsOn('screenshot:inject', (data) => {
             if (data.paneTarget !== paneTarget) return;
             pasteToTerminal(data.path);
-            // Send Enter to submit the pasted path
             if (ws && ws.readyState === WebSocket.OPEN) {
               ws.send(new TextEncoder().encode('\r'));
             }
           });
-        };
-
-        const decoder = new TextDecoder();
-        ws.onmessage = (evt) => {
-          const raw = evt.data instanceof ArrayBuffer
-            ? decoder.decode(evt.data)
-            : evt.data;
-          term.write(raw);
         };
 
         ws.onclose = () => {
@@ -248,10 +253,13 @@
   }
 </script>
 
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <div
   class="terminal-wrapper"
+  role="application"
   bind:this={terminalEl}
   on:click={() => term && term.focus()}
+  on:keydown={() => {}}
 ></div>
 
 <style>
@@ -271,5 +279,27 @@
   }
   .terminal-wrapper :global(.xterm .xterm-screen) {
     cursor: text;
+  }
+  /* Hide xterm.js selection overlay — it renders one row above the actual text
+     in WKWebView due to layout offset from internal measurement elements.
+     The native browser selection is used instead, styled to match the theme. */
+  .terminal-wrapper :global(.xterm-selection) {
+    display: none !important;
+  }
+  .terminal-wrapper :global(.xterm *::selection) {
+    background: var(--border-emphasis, #2a3340) !important;
+  }
+  /* Hide internal xterm.js measurement/input helpers that render visibly in WKWebView */
+  .terminal-wrapper :global(.xterm-helper-textarea) {
+    position: absolute !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+  }
+  .terminal-wrapper :global(.xterm-width-cache-measure-container) {
+    position: absolute !important;
+    top: -9999px !important;
+    visibility: hidden !important;
   }
 </style>
