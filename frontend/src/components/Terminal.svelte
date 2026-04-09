@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { GetTerminalPort, GetAgentLog } from '../../wailsjs/go/main/App.js';
-  import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
+  import { EventsOn, EventsOff, ClipboardGetText, ClipboardSetText } from '../../wailsjs/runtime/runtime.js';
   import { currentTheme } from '../lib/stores/theme.js';
   import { currentMonoFont, currentFontSize } from '../lib/stores/font.js';
 
@@ -88,14 +88,8 @@
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
 
-    // Try canvas addon but don't fail if unavailable
-    try {
-      const { CanvasAddon } = await import('@xterm/addon-canvas');
-      const canvasAddon = new CanvasAddon();
-      term.loadAddon(canvasAddon);
-    } catch (e) {
-      // Fall back to default renderer
-    }
+    // NOTE: @xterm/addon-canvas removed — it breaks text selection and scrolling
+    // in macOS WKWebView. xterm.js 5.x default renderer handles both correctly.
 
     term.open(terminalEl);
     fitAddon.fit();
@@ -107,24 +101,9 @@
     onWindowFocus = () => { if (term) term.focus(); };
     window.addEventListener('focus', onWindowFocus);
 
-    // Clipboard helpers with fallback for non-secure contexts
+    // Clipboard helpers using Wails native API (bypasses webview restrictions)
     function copyText(text) {
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(text).catch(() => copyFallback(text));
-      } else {
-        copyFallback(text);
-      }
-    }
-
-    function copyFallback(text) {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
+      ClipboardSetText(text).catch(() => {});
     }
 
     function pasteToTerminal(text) {
@@ -135,14 +114,20 @@
       }
     }
 
-    // Strip mouse-tracking enable sequences from terminal output so xterm.js
-    // never enters mouse-reporting mode. This lets click+drag select text
-    // instead of forwarding mouse events to tmux.
-    // Matches: \x1b[?1000h \x1b[?1002h \x1b[?1003h \x1b[?1006h
-    //          \x1b[?1015h \x1b[?1005h
-    const mouseTrackingRe = /\x1b\[\?10(?:0[0-6]|15)h/g;
-    function stripMouseTracking(data) {
-      return data.replace(mouseTrackingRe, '');
+    // Strip escape sequences that would break xterm.js behavior in the webview:
+    // 1. Mouse tracking: prevents xterm.js from entering mouse-reporting mode,
+    //    letting click+drag select text instead of forwarding events to tmux
+    // 2. Alternate screen (smcup/rmcup): keeps xterm.js in normal buffer mode
+    //    so mouse wheel scrolls the scrollback buffer instead of sending arrows
+    // 3. Bracketed paste mode from tmux: we handle paste ourselves via Wails clipboard
+    const stripRe = new RegExp(
+      '\\x1b\\[\\?10(?:0[0-6]|15)[hl]' +  // mouse tracking on/off
+      '|\\x1b\\[\\?1049[hl]' +              // alternate screen enter/exit
+      '|\\x1b\\[\\?2004[hl]',               // bracketed paste on/off
+      'g'
+    );
+    function stripControlSequences(data) {
+      return data.replace(stripRe, '');
     }
 
     // Cmd+C copies selection (or sends ^C if nothing selected),
@@ -162,11 +147,9 @@
       }
 
       if (isMeta && ev.key === 'v') {
-        if (navigator.clipboard?.readText) {
-          navigator.clipboard.readText()
-            .then(pasteToTerminal)
-            .catch(() => {});
-        }
+        ClipboardGetText()
+          .then(pasteToTerminal)
+          .catch(() => {});
         return false;
       }
 
@@ -198,7 +181,7 @@
           const raw = evt.data instanceof ArrayBuffer
             ? new TextDecoder().decode(evt.data)
             : evt.data;
-          term.write(stripMouseTracking(raw));
+          term.write(stripControlSequences(raw));
         };
 
         ws.onclose = () => {
@@ -271,10 +254,6 @@
   class="terminal-wrapper"
   bind:this={terminalEl}
   on:click={() => term && term.focus()}
-  on:keydown={() => {}}
-  role="textbox"
-  tabindex="0"
-  aria-label="Terminal"
 ></div>
 
 <style>
@@ -284,18 +263,15 @@
     background: var(--bg-deepest);
     border-radius: 0;
     overflow: hidden;
-    user-select: text;
-    -webkit-user-select: text;
+    user-select: none;
+    -webkit-user-select: none;
+    /* Prevent Wails frameless window from intercepting mouse events */
+    --wails-draggable: no-drag;
   }
   .terminal-wrapper :global(.xterm) {
-    padding: 8px;
-    cursor: text;
+    padding: 0;
   }
   .terminal-wrapper :global(.xterm .xterm-screen) {
     cursor: text;
-  }
-  .terminal-wrapper :global(.xterm-selection div) {
-    background: var(--accent-green) !important;
-    opacity: 0.25;
   }
 </style>

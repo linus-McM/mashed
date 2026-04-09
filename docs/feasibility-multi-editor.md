@@ -446,15 +446,17 @@ Claude Code CLI accepts image file paths pasted into the input prompt. When it r
 
 ### 8.8 Implementation Estimate
 
-| Task | Effort |
-|---|---|
-| Modify `TakeScreenshot` (save to repo, emit scoped event) | 30 min |
-| Add `SetActiveContext` Go method + menu wiring | 30 min |
-| Terminal.svelte scoped listener | 15 min |
-| AgentDetail.svelte context tracking | 15 min |
-| Auto-append `.gitignore` | 15 min |
-| Testing (manual: screenshot → verify path appears in Claude Code) | 30 min |
-| **Total** | **~2 hours** |
+| Task | Effort | tmux dependency |
+|---|---|---|
+| Modify `TakeScreenshot` (save to repo, emit scoped event) | 30 min | None |
+| Add `SetActiveContext` Go method + menu wiring | 30 min | None |
+| Terminal.svelte scoped `screenshot:inject` listener | 15 min | None — uses existing `ws.send()` |
+| AgentDetail.svelte context tracking (`$: SetActiveContext(...)`) | 15 min | None |
+| Auto-append `.screenshots/` to `.gitignore` | 15 min | None |
+| Testing (manual: screenshot → verify path appears in Claude Code) | 30 min | None |
+| **Total** | **~2 hours** | **Zero tmux dependency** |
+
+**Note:** This feature is fully decoupled from the tmux-to-pty migration. It uses the WebSocket bridge (`ws.send()` → Go bridge → pty write) which is the same regardless of whether the underlying process runs in tmux or a direct pty. The `paneTarget` identifier is used solely as a session matching key, not as a tmux address.
 
 ---
 
@@ -481,10 +483,10 @@ Claude Code CLI accepts image file paths pasted into the input prompt. When it r
 
 The current architecture already has clean separation between file selection and editor rendering. The `selectedFile` → `<MonacoEditor>` pattern in AgentDetail.svelte is the single integration point. Inserting an EditorRouter component between them is a minimal, non-breaking change.
 
-The screenshot-to-Claude-Code injection is straightforward: the WebSocket bridge already handles terminal input, the session tab system already tracks `paneTarget` IDs, and `screencapture -i` blocks until the user finishes selecting. The scoped Wails event pattern (`screenshot:inject` with `paneTarget` matching) ensures only the correct terminal responds.
+The screenshot-to-Claude-Code injection is straightforward and **completely independent of tmux**: the WebSocket bridge already handles terminal input via `ws.send()` → Go bridge → pty write. The session tab system already tracks `paneTarget` IDs as matching keys. `screencapture -i` blocks until the user finishes selecting. The scoped Wails event pattern (`screenshot:inject` with `paneTarget` matching) ensures only the correct terminal responds. This feature works identically whether the underlying session runs in tmux or a direct pty — it only depends on the WebSocket bridge layer.
 
 **Combined implementation estimate:**
 - Multi-editor (Phases 1-3): 4-7 sessions
-- Screenshot inject: ~2 hours
+- Screenshot inject: ~2 hours (zero tmux dependency)
 - Go backend: `ReadFileBase64` + modified `TakeScreenshot` + `SetActiveContext`
-- Frontend: `EditorRouter.svelte` + `MarkdownEditor.svelte` + `ImageViewer.svelte` + Terminal.svelte listener
+- Frontend: `EditorRouter.svelte` + `MarkdownEditor.svelte` + `ImageViewer.svelte` + Terminal.svelte `screenshot:inject` listener

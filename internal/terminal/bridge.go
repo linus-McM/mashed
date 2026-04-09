@@ -173,6 +173,10 @@ func (b *Bridge) servePane(ctx context.Context, ws *websocket.Conn, target strin
 	// This is session-scoped and doesn't affect other terminal emulators.
 	_ = exec.CommandContext(ctx, "tmux", "set-option", "-t", target, "mouse", "off").Run()
 
+	// NOTE: alternate screen sequences are stripped client-side in Terminal.svelte
+	// (via stripControlSequences) so xterm.js stays in normal buffer mode and
+	// mouse wheel scrolls the scrollback buffer instead of sending arrow keys.
+
 	// Send scroll history above the visible pane so the frontend has scrollback.
 	// -p prints to stdout, -e preserves ANSI escape sequences for colors,
 	// -S -5000 captures up to 5000 lines of history (matches xterm.js scrollback),
