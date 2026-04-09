@@ -2,6 +2,7 @@
   import { getEditorType } from './editorUtils';
   import MonacoEditor from './MonacoEditor.svelte';
   import ImageViewer from './ImageViewer.svelte';
+  import MarkdownEditor from './MarkdownEditor.svelte';
 
   export let filePath = '';
   export let repoPath = '';
@@ -12,35 +13,10 @@
 </script>
 
 {#if editorType === 'markdown'}
-  <div class="placeholder">
-    <p>Markdown Editor</p>
-    <p class="file-path">{filePath}</p>
-    <p class="coming-soon">Coming soon</p>
-  </div>
+  <MarkdownEditor {filePath} {repoPath} {editable} />
 {:else if editorType === 'image'}
   <ImageViewer {filePath} {repoPath} />
 {:else}
   <MonacoEditor {filePath} {repoPath} {mode} {editable} />
 {/if}
 
-<style>
-  .placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    background: var(--bg-deepest);
-    gap: 0.5rem;
-  }
-
-  .placeholder .file-path {
-    font-family: monospace;
-    font-size: 0.85rem;
-  }
-
-  .placeholder .coming-soon {
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-  }
-</style>

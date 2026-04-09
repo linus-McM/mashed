@@ -1,0 +1,44 @@
+/*
+ * Mashed theme bridge for @milkdown/crepe
+ * Maps Crepe CSS variables to mashed design tokens from DESIGN.md.
+ * Import AFTER @milkdown/crepe/theme/classic-dark.css to override.
+ */
+
+.milkdown {
+  /* Backgrounds */
+  --crepe-color-background: var(--bg-deepest, #07080a);
+  --crepe-color-surface: var(--bg-surface, #0d0f12);
+  --crepe-color-secondary: var(--bg-elevated, #12151a);
+
+  /* Text */
+  --crepe-color-on-background: var(--text-primary, #c8d4e0);
+  --crepe-color-on-surface: var(--text-primary, #c8d4e0);
+  --crepe-color-on-secondary: var(--text-dim, #4a5a6a);
+
+  /* Accent */
+  --crepe-color-primary: var(--accent-green, #00e57a);
+  --crepe-color-on-primary: var(--bg-deepest, #07080a);
+
+  /* Borders */
+  --crepe-color-outline: var(--border-default, #1e2530);
+  --crepe-color-border: var(--border-default, #1e2530);
+
+  /* Typography */
+  --crepe-font-family: var(--font-ui, 'Geist', sans-serif);
+  --crepe-font-code: var(--font-mono, 'JetBrains Mono', monospace);
+
+  /* Sizing */
+  --crepe-font-size: 14px;
+  --crepe-line-height: 1.6;
+  --crepe-radius: 4px;
+
+  /* Semantic colors for inline code / highlights */
+  --crepe-color-inline-code: var(--bg-elevated, #12151a);
+  --crepe-color-solid: var(--bg-active, #181c23);
+
+  /* Selection */
+  --crepe-color-selection: rgba(0, 229, 122, 0.15);
+
+  /* Scrollbar blend */
+  --crepe-color-scrollbar: var(--border-emphasized, #2a3340);
+}
