@@ -18,8 +18,12 @@ import (
 // ErrSessionDead is returned when an operation is attempted on a dead session.
 var ErrSessionDead = errors.New("terminal: session is not alive")
 
-// scrollBufferDefaultCap is the default scrollback buffer capacity (1MB).
-const scrollBufferDefaultCap = 1 << 20
+const (
+	// scrollBufferDefaultCap is the default scrollback buffer capacity (1MB).
+	scrollBufferDefaultCap = 1 << 20
+	// ptyReadSize is the read buffer size for PTY output.
+	ptyReadSize = 4096
+)
 
 // ---------------------------------------------------------------------------
 // scrollBuffer — circular byte buffer

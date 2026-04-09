@@ -37,6 +37,7 @@ type App struct {
 	repoScanner *scanner.RepoScanner
 	engine      *agent.NotificationEngine
 	bridge      *terminal.Bridge
+	manager     *terminal.SessionManager
 	panes       paneDiscoverer
 	explainer   *explain.Explainer
 	mu          sync.Mutex
@@ -106,8 +107,10 @@ func saveConfig(cfg mashedConfig) error {
 
 // NewApp creates a new App instance.
 func NewApp() *App {
+	sm := terminal.NewSessionManager()
 	return &App{
-		bridge:           terminal.NewBridge(),
+		bridge:           terminal.NewBridge(sm),
+		manager:          sm,
 		panes:            terminal.NewPaneDiscovery(),
 		terminalSessions: make(map[string]domain.TerminalSession),
 	}

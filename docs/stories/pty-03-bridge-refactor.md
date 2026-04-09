@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** L
 **Depends On:** pty-01, pty-02
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -159,37 +159,37 @@ Feature: Bridge start and stop
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Update `Bridge` struct and constructor (AC: AC-1)
-  - [ ] Subtask 1a: Add `manager *SessionManager` field to `Bridge`
-  - [ ] Subtask 1b: Change `NewBridge()` signature to `NewBridge(manager *SessionManager) *Bridge`
-  - [ ] Subtask 1c: Remove `conns` map field and related `trackConn`/`untrackConn` methods
+- [x] Task 1: Update `Bridge` struct and constructor (AC: AC-1)
+  - [x] Subtask 1a: Add `manager *SessionManager` field to `Bridge`
+  - [x] Subtask 1b: Change `NewBridge()` signature to `NewBridge(manager *SessionManager) *Bridge`
+  - [x] Subtask 1c: Remove `conns` map field and related `trackConn`/`untrackConn` methods
 
-- [ ] Task 2: Rewrite `handleWS` to use SessionManager (AC: AC-2, AC-3, AC-5)
-  - [ ] Subtask 2a: Extract session name from `/ws/{name}` path
-  - [ ] Subtask 2b: Call `manager.Get(name)`, return 404 if not found
-  - [ ] Subtask 2c: Upgrade WebSocket, call `session.AddClient(ws)`
-  - [ ] Subtask 2d: Remove old pane target extraction and query parameter fallback
+- [x] Task 2: Rewrite `handleWS` to use SessionManager (AC: AC-2, AC-3, AC-5)
+  - [x] Subtask 2a: Extract session name from `/ws/{name}` path
+  - [x] Subtask 2b: Call `manager.Get(name)`, return 404 if not found
+  - [x] Subtask 2c: Upgrade WebSocket, call `session.AddClient(ws)`
+  - [x] Subtask 2d: Remove old pane target extraction and query parameter fallback
 
-- [ ] Task 3: Remove all tmux-specific code (AC: AC-4)
-  - [ ] Subtask 3a: Delete `servePane()` method entirely
-  - [ ] Subtask 3b: Delete `outputBuf` type, `newOutputBuf`, `Append`, `Drain` methods
-  - [ ] Subtask 3c: Delete `ErrPaneTargetEmpty` sentinel
-  - [ ] Subtask 3d: Remove tmux-related imports (`bytes`, unused `exec`, `os`)
-  - [ ] Subtask 3e: Simplify `shutdown()` -- remove per-connection cleanup (sessions own clients)
+- [x] Task 3: Remove all tmux-specific code (AC: AC-4)
+  - [x] Subtask 3a: Delete `servePane()` method entirely
+  - [x] Subtask 3b: Delete `outputBuf` type, `newOutputBuf`, `Append`, `Drain` methods
+  - [x] Subtask 3c: Delete `ErrPaneTargetEmpty` sentinel
+  - [x] Subtask 3d: Remove tmux-related imports (`bytes`, unused `exec`, `os`)
+  - [x] Subtask 3e: Simplify `shutdown()` -- remove per-connection cleanup (sessions own clients)
 
-- [ ] Task 4: Write tests for refactored bridge (AC: AC-2, AC-3, AC-5)
-  - [ ] Subtask 4a: Test: WS connects to valid session, receives data
-  - [ ] Subtask 4b: Test: WS to unknown session gets 404
-  - [ ] Subtask 4c: Test: Two WS clients to same session both receive output
-  - [ ] Subtask 4d: Test: Bridge start/stop lifecycle
+- [x] Task 4: Write tests for refactored bridge (AC: AC-2, AC-3, AC-5)
+  - [x] Subtask 4a: Test: WS connects to valid session, receives data
+  - [x] Subtask 4b: Test: WS to unknown session gets 404
+  - [x] Subtask 4c: Test: Two WS clients to same session both receive output
+  - [x] Subtask 4d: Test: Bridge start/stop lifecycle
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ code coverage on `internal/terminal/bridge.go`
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code
-- [ ] Code review: no CRITICAL/HIGH issues
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ code coverage on `internal/terminal/bridge.go`
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code
+- [x] Code review: no CRITICAL/HIGH issues
