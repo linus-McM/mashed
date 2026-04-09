@@ -432,8 +432,9 @@
       {/key}
     </div>
 
+    <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
     <!-- Resize handle: terminal | file strip -->
-    <div class="resize-handle" on:mousedown={onMouseDown('file-strip')}>
+    <div class="resize-handle" role="separator" on:mousedown={onMouseDown('file-strip')}>
       <div class="resize-grip"><GripVertical size={10} /></div>
     </div>
 
@@ -543,7 +544,8 @@
 
     <!-- Resize handle: file strip | editor -->
     {#if selectedFile}
-      <div class="resize-handle" on:mousedown={onMouseDown('editor')}>
+      <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+      <div class="resize-handle" role="separator" on:mousedown={onMouseDown('editor')}>
         <div class="resize-grip"><GripVertical size={10} /></div>
       </div>
     {/if}
@@ -885,32 +887,6 @@
     color: var(--accent-green);
   }
 
-  .file-search {
-    padding: 4px 6px;
-    border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-  }
-
-  .file-search-input {
-    width: 100%;
-    padding: 3px 6px;
-    background: var(--bg-deepest);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    outline: none;
-  }
-
-  .file-search-input:focus {
-    border-color: var(--accent-green);
-  }
-
-  .file-search-input::placeholder {
-    color: var(--text-muted);
-  }
-
   .file-strip-empty {
     padding: 12px 8px;
     font-size: 11px;
@@ -918,15 +894,6 @@
     text-align: center;
   }
 
-  .file-dir {
-    font-size: 9px;
-    color: var(--text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex-shrink: 1;
-    min-width: 0;
-  }
 
   .file-strip-list {
     flex: 1;

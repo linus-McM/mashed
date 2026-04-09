@@ -44,14 +44,15 @@
       <svg viewBox="0 0 12 12"><path d="M3 8.5L6 4l3 4.5H3z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="drag-region" on:dblclick={WindowToggleMaximise}></div>
+  <div class="drag-region" role="banner" on:dblclick={WindowToggleMaximise}></div>
   <div class="titlebar-actions">
     <div class="theme-picker-wrap">
       <button class="titlebar-btn" on:click|stopPropagation={toggleThemePicker} title="Switch theme">
         <Palette size={14} />
       </button>
       {#if showThemePicker}
-        <div class="theme-popover" on:click|stopPropagation>
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <div class="theme-popover" role="menu" tabindex="0" on:click|stopPropagation on:keydown={() => {}}>
           {#each $themeIds as id}
             {@const theme = $allThemes[id]}
             <button

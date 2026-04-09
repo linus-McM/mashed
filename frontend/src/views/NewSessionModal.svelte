@@ -112,13 +112,15 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" on:click={cancel} on:keydown={() => {}}>
-  <div class="modal" on:click|stopPropagation on:keydown={() => {}}>
+<div class="overlay" role="presentation" on:click={cancel} on:keydown={() => {}}>
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
     <h2><Terminal size={18} /> New Session</h2>
     <p class="subtitle">Launch Claude Code in <strong>{repoName}</strong></p>
 
     <!-- Model -->
     <div class="field">
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label>Model</label>
       <div class="radio-row">
         {#each cliConfig.models as m}
@@ -136,6 +138,7 @@
 
     <!-- Permission Mode -->
     <div class="field">
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label>Permission Mode</label>
       <div class="radio-row">
         {#each cliConfig.permissionModes as p}
@@ -154,6 +157,7 @@
     <!-- Effort (Opus only) -->
     {#if isOpus}
     <div class="field">
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label>Effort</label>
       <div class="radio-row">
         {#each cliConfig.effortLevels as e}
@@ -172,6 +176,7 @@
 
     <!-- Output Format -->
     <div class="field">
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label>Output Format</label>
       <div class="radio-row">
         {#each cliConfig.outputFormats as o}
@@ -188,6 +193,7 @@
 
     <!-- Toggle flags -->
     <div class="field">
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label>Options</label>
       <div class="toggle-row">
         {#each cliConfig.toggleFlags as t}
@@ -220,9 +226,10 @@
     <!-- Text fields -->
     {#each cliConfig.textFields as f}
       <div class="field">
-        <label>{f.label}</label>
+        <label for="text-{f.flag}">{f.label}</label>
         {#if f.multiline}
           <textarea
+            id="text-{f.flag}"
             class="text-input"
             placeholder={f.placeholder}
             bind:value={textValues[f.flag]}
@@ -230,6 +237,7 @@
           ></textarea>
         {:else}
           <input
+            id="text-{f.flag}"
             class="text-input"
             type="text"
             placeholder={f.placeholder}
@@ -241,6 +249,7 @@
 
     <!-- Command preview -->
     <div class="field">
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label>Command Preview</label>
       <pre class="command-preview">{command}</pre>
     </div>

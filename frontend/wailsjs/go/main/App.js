@@ -314,6 +314,10 @@ export function UpdateStoryStatus(arg1, arg2, arg3) {
   return window['go']['main']['App']['UpdateStoryStatus'](arg1, arg2, arg3);
 }
 
+export function WriteConsoleLog(arg1, arg2) {
+  return window['go']['main']['App']['WriteConsoleLog'](arg1, arg2);
+}
+
 export function WriteFile(arg1, arg2) {
   return window['go']['main']['App']['WriteFile'](arg1, arg2);
 }

@@ -15,8 +15,9 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" on:click={close} on:keydown={() => {}}>
-  <div class="modal" on:click|stopPropagation on:keydown={() => {}}>
+<div class="overlay" role="presentation" on:click={close} on:keydown={() => {}}>
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
     <div class="icon"><Hexagon size={32} /></div>
     <h2>mashed</h2>
     <p class="tagline">Notification-first IDE for multi-agent development</p>

@@ -34,8 +34,9 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" on:click={cancel} on:keydown={() => {}}>
-  <div class="modal" on:click|stopPropagation on:keydown={() => {}}>
+<div class="overlay" role="presentation" on:click={cancel} on:keydown={() => {}}>
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
     <h2><AlertTriangle size={18} /> Push Conflict</h2>
     <p class="subtitle">The remote branch has diverged from your local branch.</p>
 

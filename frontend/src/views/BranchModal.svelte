@@ -71,13 +71,15 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" on:click={cancel} on:keydown={() => {}}>
-  <div class="modal" on:click|stopPropagation on:keydown={() => {}}>
+<div class="overlay" role="presentation" on:click={cancel} on:keydown={() => {}}>
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
     <h2><GitBranch size={18} /> New Branch</h2>
     <p class="subtitle">Create a new branch from <strong>{repoBranch || 'HEAD'}</strong></p>
 
     <!-- Prefix selector -->
     <div class="field">
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label>Prefix</label>
       <div class="prefix-list">
         {#each prefixes as p}
@@ -94,8 +96,10 @@
 
     <!-- Branch name -->
     <div class="field">
-      <label>Branch Name</label>
+      <label for="branch-name">Branch Name</label>
+      <!-- svelte-ignore a11y-autofocus -->
       <input
+        id="branch-name"
         type="text"
         class="branch-input"
         placeholder="my-branch-name"

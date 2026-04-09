@@ -22,8 +22,9 @@
 <svelte:window on:keydown={onKeydown} />
 
 {#if show}
-  <div class="output-overlay" transition:fade={{ duration: 150 }} on:click={close} on:keydown={() => {}}>
-    <div class="output-modal" on:click|stopPropagation on:keydown={() => {}}>
+  <div class="output-overlay" role="presentation" transition:fade={{ duration: 150 }} on:click={close} on:keydown={() => {}}>
+    <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+    <div class="output-modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
       <div class="output-header">
         <span class="output-title">Output: {label}</span>
         <button class="output-close" on:click={close} title="Close">

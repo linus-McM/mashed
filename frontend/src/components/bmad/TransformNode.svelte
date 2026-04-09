@@ -3,6 +3,7 @@
   import { Wand2 } from 'lucide-svelte';
 
   export let data = {};
+  // svelte-ignore unused-export-let
   export let id = '';
   export let selected = false;
 

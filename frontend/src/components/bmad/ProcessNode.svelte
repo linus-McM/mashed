@@ -3,6 +3,7 @@
   import { Search, Briefcase, Palette, Building2, Code, FileText, TestTube } from 'lucide-svelte';
 
   export let data = {};
+  // svelte-ignore unused-export-let
   export let id = '';
   export let selected = false;
 

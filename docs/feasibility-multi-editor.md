@@ -4,16 +4,18 @@
 > **Scope:** Replace single Monaco editor with context-aware editor switching (Markdown / Code / Image)
 > **Current branch:** `feature/xyflow_design`
 
----
+***
 
 ## 1. Current Architecture
 
 **File selection flow:**
+
 ```
 FileTree.svelte → dispatch('select', {path}) → AgentDetail.svelte → selectedFile state → MonacoEditor.svelte
 ```
 
 **Key integration point:** `AgentDetail.svelte:497-504`
+
 ```svelte
 {#if selectedFile}
   <div class="editor-pane" style="flex: 0 0 {editorFraction * 100}%">
@@ -31,7 +33,7 @@ FileTree.svelte → dispatch('select', {path}) → AgentDetail.svelte → select
 
 **No existing markdown or image viewer components exist.**
 
----
+***
 
 ## 2. Proposed Architecture
 
@@ -81,15 +83,18 @@ selectedFile.path
 ### 2.2 Change in AgentDetail.svelte
 
 Minimal — replace:
+
 ```svelte
 <MonacoEditor filePath={selectedFile.path} ... />
 ```
+
 with:
+
 ```svelte
 <EditorRouter filePath={selectedFile.path} ... />
 ```
 
----
+***
 
 ## 3. Markdown Editor: Milkdown Crepe (DECIDED)
 
@@ -99,14 +104,21 @@ Full WYSIWYG markdown editing — no raw source view, no split pane. Users edit 
 
 ### Why Crepe
 
-- **Single package**: `npm install @milkdown/crepe` — batteries-included editor built on Milkdown
-- **WYSIWYG**: Headers render large, links are clickable, images inline, code blocks have syntax highlighting
-- **Simple API**: Mount with `new Crepe({ root, defaultValue })`, destroy with `crepe.destroy()`
-- **Plugin system**: Slash commands, tables, math (KaTeX), diagrams (Mermaid) available via Milkdown plugins
-- **Framework-agnostic**: No Svelte adapter needed — mount to a DOM node, Svelte manages lifecycle
-- **Bundle**: ~40-50 kB gzip (core + theme), lazy-loaded on first `.md` file
-- **License**: MIT
-- **Active maintenance**: Milkdown ecosystem actively maintained
+* **Single package**: `npm install @milkdown/crepe` — batteries-included editor built on Milkdown
+
+* **WYSIWYG**: Headers render large, links are clickable, images inline, code blocks have syntax highlighting
+
+* **Simple API**: Mount with `new Crepe({ root, defaultValue })`, destroy with `crepe.destroy()`
+
+* **Plugin system**: Slash commands, tables, math (KaTeX), diagrams (Mermaid) available via Milkdown plugins
+
+* **Framework-agnostic**: No Svelte adapter needed — mount to a DOM node, Svelte manages lifecycle
+
+* **Bundle**: ~40-50 kB gzip (core + theme), lazy-loaded on first `.md` file
+
+* **License**: MIT
+
+* **Active maintenance**: Milkdown ecosystem actively maintained
 
 ### Integration Pattern
 
@@ -138,21 +150,21 @@ Since Crepe is WYSIWYG, the Source/Diff toggle in the editor header is irrelevan
 
 Crepe provides `crepe.getMarkdown()` which returns the current document as a markdown string. Wire this to the same `WriteFile` Wails binding with 800ms debounce, matching Monaco's auto-save behavior.
 
----
+***
 
 ## 4. Image Viewer Options
 
 ### Recommendation: **panzoom** (minimal) or **PhotoSwipe v5** (full-featured)
 
-| Criterion | panzoom | PhotoSwipe v5 | Viewer.js |
-|---|---|---|---|
-| Bundle (gzip) | ~3 kB | ~15 kB | ~20 kB |
-| Features | Zoom + pan only | Zoom, pan, gestures, swipe | Zoom, pan, rotate, flip |
-| Svelte integration | Trivial (Svelte `use:action`) | Easy wrapper | Wrappable |
-| Dark mode | Inherits (no UI) | Themed | Themed |
-| License | MIT | MIT | MIT |
+| Criterion          | panzoom                       | PhotoSwipe v5              | Viewer.js               |
+| ------------------ | ----------------------------- | -------------------------- | ----------------------- |
+| Bundle (gzip)      | \~3 kB                        | \~15 kB                    | \~20 kB                 |
+| Features           | Zoom + pan only               | Zoom, pan, gestures, swipe | Zoom, pan, rotate, flip |
+| Svelte integration | Trivial (Svelte `use:action`) | Easy wrapper               | Wrappable               |
+| Dark mode          | Inherits (no UI)              | Themed                     | Themed                  |
+| License            | MIT                           | MIT                        | MIT                     |
 
-**Recommendation: Start with panzoom** (~3 kB). It gives zoom/pan which covers 90% of the use case. Wrap it as a Svelte action:
+**Recommendation: Start with panzoom** (\~3 kB). It gives zoom/pan which covers 90% of the use case. Wrap it as a Svelte action:
 
 ```svelte
 <script>
@@ -170,13 +182,13 @@ Crepe provides `crepe.getMarkdown()` which returns the current document as a mar
 
 If users later need rotate/flip/metadata, upgrade to PhotoSwipe v5 or Viewer.js.
 
----
+***
 
 ## 5. Technical Concerns & Mitigations
 
 ### 5.1 Monaco Memory Management
 
-**Risk:** Monaco is heavy (~2 MB). If the user switches rapidly between .md → .ts → .md → .ts, you don't want Monaco re-initializing each time.
+**Risk:** Monaco is heavy (\~2 MB). If the user switches rapidly between .md → .ts → .md → .ts, you don't want Monaco re-initializing each time.
 
 **Mitigation:** Keep the `monacoModule` import cached at module scope (it already is — line 410 of MonacoEditor.svelte does `monacoModule = await import(...)`). The module itself stays in memory after first load. Only the editor *instance* is created/destroyed per file. This is already the current behavior.
 
@@ -193,7 +205,7 @@ await import('@milkdown/crepe/theme/common/style.css');
 // crepe-mashed.css is a static import (tiny, just variable mappings)
 ```
 
-**Bundle impact:** Crepe adds ~40-50 kB gzip. Since it's lazy-loaded, zero impact on initial app load.
+**Bundle impact:** Crepe adds \~40-50 kB gzip. Since it's lazy-loaded, zero impact on initial app load.
 
 **Theme bridge:** A single `crepe-mashed.css` file maps Crepe's internal CSS to mashed design tokens:
 
@@ -218,38 +230,42 @@ Unlike Monaco (which needs imperative `defineTheme()` + `setTheme()` calls), Cre
 
 ### 5.3 Shared Concerns Across All Editors
 
-| Concern | Current (Monaco) | Crepe (Markdown) | panzoom (Image) |
-|---|---|---|---|
-| Auto-save (800ms debounce) | Yes | `crepe.getMarkdown()` → `WriteFile` | N/A (read-only) |
-| Theme integration | `defineAllThemes` (imperative) | CSS variable cascade (automatic) | CSS vars only |
-| Font settings | `$currentMonoFont` store | CSS `--crepe-font-*` vars | N/A |
-| Resize handling | `ResizeObserver` | ProseMirror handles internally | CSS `object-fit` |
-| Cmd+S save | `editor.addCommand` | Keymap plugin or DOM `keydown` | N/A |
-| Diff mode | `createDiffEditor` | Not needed (WYSIWYG) | N/A |
-| Editable toggle | `readOnly` option | `crepe.setReadonly(bool)` | N/A (always read-only) |
+| Concern                    | Current (Monaco)               | Crepe (Markdown)                    | panzoom (Image)        |
+| -------------------------- | ------------------------------ | ----------------------------------- | ---------------------- |
+| Auto-save (800ms debounce) | Yes                            | `crepe.getMarkdown()` → `WriteFile` | N/A (read-only)        |
+| Theme integration          | `defineAllThemes` (imperative) | CSS variable cascade (automatic)    | CSS vars only          |
+| Font settings              | `$currentMonoFont` store       | CSS `--crepe-font-*` vars           | N/A                    |
+| Resize handling            | `ResizeObserver`               | ProseMirror handles internally      | CSS `object-fit`       |
+| Cmd+S save                 | `editor.addCommand`            | Keymap plugin or DOM `keydown`      | N/A                    |
+| Diff mode                  | `createDiffEditor`             | Not needed (WYSIWYG)                | N/A                    |
+| Editable toggle            | `readOnly` option              | `crepe.setReadonly(bool)`           | N/A (always read-only) |
 
 ### 5.4 SVG Files — Ambiguity
 
 SVGs are both images and code. Options:
-- **Default to image viewer** for visual preview, with a "View Source" toggle that switches to Monaco
-- Add a toggle in the editor header (like the existing Source/Diff toggle)
+
+* **Default to image viewer** for visual preview, with a "View Source" toggle that switches to Monaco
+
+* Add a toggle in the editor header (like the existing Source/Diff toggle)
 
 ### 5.5 Binary/Unknown Files
 
 Current behavior: Monaco opens with `isBinary` flag → read-only. This should remain the fallback for unrecognized file types. EditorRouter's `else` branch handles this naturally.
 
----
+***
 
 ## 6. Implementation Phases
 
 ### Phase 1: EditorRouter + Image Viewer (Low risk, high impact)
+
 1. Create `EditorRouter.svelte` with extension-based routing
-2. Create `ImageViewer.svelte` with panzoom (~3 kB)
+2. Create `ImageViewer.svelte` with panzoom (\~3 kB)
 3. Swap `<MonacoEditor>` for `<EditorRouter>` in AgentDetail.svelte
 4. Add `ReadFileBase64` or equivalent Wails binding for image data (or use file:// protocol if Wails allows)
 5. **Estimated effort:** 1-2 sessions
 
 ### Phase 2: Markdown Editor with Crepe (Medium risk, medium effort)
+
 1. Install `@milkdown/crepe`
 2. Create `crepe-mashed.css` theme bridge (map Crepe vars → mashed design tokens)
 3. Create `MarkdownEditor.svelte` with lazy-loaded Crepe — WYSIWYG, no raw source
@@ -258,25 +274,26 @@ Current behavior: Monaco opens with `isBinary` flag → read-only. This should r
 6. **Estimated effort:** 2-3 sessions
 
 ### Phase 3: Polish & Edge Cases
+
 1. SVG dual-mode (image + source toggle)
 2. Keyboard shortcut parity (Cmd+S, Escape to close)
 3. Crepe plugin additions (slash commands, tables, code block highlighting)
 4. **Estimated effort:** 1-2 sessions
 
----
+***
 
 ## 7. Bundle Size Impact
 
-| Component | Size (gzip) | Loading |
-|---|---|---|
-| Monaco (current) | ~800 kB (tree-shaken ESM) | Lazy on first code file |
-| Milkdown Crepe | ~40-50 kB | Lazy on first .md file |
-| panzoom | ~3 kB | Lazy on first image |
-| **Total new** | **~43-53 kB** | **All lazy-loaded** |
+| Component        | Size (gzip)                | Loading                 |
+| ---------------- | -------------------------- | ----------------------- |
+| Monaco (current) | \~800 kB (tree-shaken ESM) | Lazy on first code file |
+| Milkdown Crepe   | \~40-50 kB                 | Lazy on first .md file  |
+| panzoom          | \~3 kB                     | Lazy on first image     |
+| **Total new**    | **\~43-53 kB**             | **All lazy-loaded**     |
 
 Net impact on initial load: **zero** (all dynamic imports).
 
----
+***
 
 ## 8. Screenshot-to-Claude-Code Auto-Inject
 
@@ -286,14 +303,21 @@ When the user takes a screenshot via the OS menu (`Cmd+Shift+S`), the image is s
 
 ### 8.2 Current State
 
-- `TakeScreenshot()` in `app.go:182` calls `screencapture -i -x`, saves to `~/Desktop/`
-- Menu item wired at `main.go:53` (`Cmd+Shift+S`)
-- Emits `screenshot:taken` Wails event with path
-- `App.svelte:92` shows a toast on receipt
-- Terminal input flows via **WebSocket** (no tmux dependency for injection): `xterm.js onData → ws.send(binary) → Go bridge → pty`
-- `pasteToTerminal()` in `Terminal.svelte:130` wraps text in bracketed paste sequences (`\x1b[200~` ... `\x1b[201~`)
-- Session tab bar (Stories 1-5 done) tracks sessions per repo with `paneTarget` IDs
-- Terminal sessions are moving away from tmux to direct pty-backed sessions
+* `TakeScreenshot()` in `app.go:182` calls `screencapture -i -x`, saves to `~/Desktop/`
+
+* Menu item wired at `main.go:53` (`Cmd+Shift+S`)
+
+* Emits `screenshot:taken` Wails event with path
+
+* `App.svelte:92` shows a toast on receipt
+
+* Terminal input flows via **WebSocket** (no tmux dependency for injection): `xterm.js onData → ws.send(binary) → Go bridge → pty`
+
+* `pasteToTerminal()` in `Terminal.svelte:130` wraps text in bracketed paste sequences (`\x1b[200~` ... `\x1b[201~`)
+
+* Session tab bar (Stories 1-5 done) tracks sessions per repo with `paneTarget` IDs
+
+* Terminal sessions are moving away from tmux to direct pty-backed sessions
 
 ### 8.3 Architecture — Path-Based Auto-Insert via WebSocket (No tmux)
 
@@ -316,7 +340,7 @@ Cmd+Shift+S
 
 ### 8.4 Go Backend Changes
 
-**Modify `TakeScreenshot` signature** — accept `repoPath` and `paneTarget`:
+**Modify** **`TakeScreenshot`** **signature** — accept `repoPath` and `paneTarget`:
 
 ```go
 func (a *App) TakeScreenshot(repoPath, paneTarget string) (string, error) {
@@ -356,8 +380,9 @@ func (a *App) TakeScreenshot(repoPath, paneTarget string) (string, error) {
 
 **Track active repo/pane** — the menu callback needs the current repo and terminal context. Two approaches:
 
-- **Option A (recommended):** Frontend sends `activeRepoPath` and `activePaneTarget` to Go via a setter method called when the view changes. Menu callback reads these cached values.
-- **Option B:** Menu emits a Wails event requesting screenshot, frontend handles calling `TakeScreenshot` with the right args. Downside: extra round-trip.
+* **Option A (recommended):** Frontend sends `activeRepoPath` and `activePaneTarget` to Go via a setter method called when the view changes. Menu callback reads these cached values.
+
+* **Option B:** Menu emits a Wails event requesting screenshot, frontend handles calling `TakeScreenshot` with the right args. Downside: extra round-trip.
 
 ```go
 // Option A: cached active context
@@ -446,23 +471,24 @@ Claude Code CLI accepts image file paths pasted into the input prompt. When it r
 
 ### 8.8 Implementation Estimate
 
-| Task | Effort | tmux dependency |
-|---|---|---|
-| Modify `TakeScreenshot` (save to repo, emit scoped event) | 30 min | None |
-| Add `SetActiveContext` Go method + menu wiring | 30 min | None |
-| Terminal.svelte scoped `screenshot:inject` listener | 15 min | None — uses existing `ws.send()` |
-| AgentDetail.svelte context tracking (`$: SetActiveContext(...)`) | 15 min | None |
-| Auto-append `.screenshots/` to `.gitignore` | 15 min | None |
-| Testing (manual: screenshot → verify path appears in Claude Code) | 30 min | None |
-| **Total** | **~2 hours** | **Zero tmux dependency** |
+| Task                                                              | Effort        | tmux dependency                  |
+| ----------------------------------------------------------------- | ------------- | -------------------------------- |
+| Modify `TakeScreenshot` (save to repo, emit scoped event)         | 30 min        | None                             |
+| Add `SetActiveContext` Go method + menu wiring                    | 30 min        | None                             |
+| Terminal.svelte scoped `screenshot:inject` listener               | 15 min        | None — uses existing `ws.send()` |
+| AgentDetail.svelte context tracking (`$: SetActiveContext(...)`)  | 15 min        | None                             |
+| Auto-append `.screenshots/` to `.gitignore`                       | 15 min        | None                             |
+| Testing (manual: screenshot → verify path appears in Claude Code) | 30 min        | None                             |
+| **Total**                                                         | **\~2 hours** | **Zero tmux dependency**         |
 
 **Note:** This feature is fully decoupled from the tmux-to-pty migration. It uses the WebSocket bridge (`ws.send()` → Go bridge → pty write) which is the same regardless of whether the underlying process runs in tmux or a direct pty. The `paneTarget` identifier is used solely as a session matching key, not as a tmux address.
 
----
+***
 
 ## 9. Open Questions for User Decision
 
 **Multi-Editor (decided: Crepe WYSIWYG for markdown, panzoom for images, Monaco for code):**
+
 1. ~~Markdown editing mode~~ → **DECIDED: Milkdown Crepe (WYSIWYG)**
 2. ~~Markdown preview pane~~ → **DECIDED: Not needed (Crepe is WYSIWYG — edit and view are the same)**
 3. **Image viewer features:** Just zoom/pan (panzoom), or also rotate/flip (PhotoSwipe)?
@@ -475,7 +501,7 @@ Claude Code CLI accepts image file paths pasted into the input prompt. When it r
 8. **Multiple terminals open:** If the user has multiple Terminal tabs, should the screenshot inject into the active tab only, or offer a quick-picker?
 9. **Non-agent terminals:** Should screenshot inject work for plain shell terminals too, or only Claude Code agent sessions?
 
----
+***
 
 ## 10. Verdict
 
@@ -486,7 +512,12 @@ The current architecture already has clean separation between file selection and
 The screenshot-to-Claude-Code injection is straightforward and **completely independent of tmux**: the WebSocket bridge already handles terminal input via `ws.send()` → Go bridge → pty write. The session tab system already tracks `paneTarget` IDs as matching keys. `screencapture -i` blocks until the user finishes selecting. The scoped Wails event pattern (`screenshot:inject` with `paneTarget` matching) ensures only the correct terminal responds. This feature works identically whether the underlying session runs in tmux or a direct pty — it only depends on the WebSocket bridge layer.
 
 **Combined implementation estimate:**
-- Multi-editor (Phases 1-3): 4-7 sessions
-- Screenshot inject: ~2 hours (zero tmux dependency)
-- Go backend: `ReadFileBase64` + modified `TakeScreenshot` + `SetActiveContext`
-- Frontend: `EditorRouter.svelte` + `MarkdownEditor.svelte` + `ImageViewer.svelte` + Terminal.svelte `screenshot:inject` listener
+
+* Multi-editor (Phases 1-3): 4-7 sessions
+
+* Screenshot inject: \~2 hours (zero tmux dependency)
+
+* Go backend: `ReadFileBase64` + modified `TakeScreenshot` + `SetActiveContext`
+
+* Frontend: `EditorRouter.svelte` + `MarkdownEditor.svelte` + `ImageViewer.svelte` + Terminal.svelte `screenshot:inject` listener
+

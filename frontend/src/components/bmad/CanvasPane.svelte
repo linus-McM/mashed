@@ -150,7 +150,8 @@
 
 <svelte:window on:click={closeContextMenu} />
 
-<div class="flow-wrap" on:drop={onDrop} on:dragover={onDragOver}>
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div class="flow-wrap" on:drop={onDrop} on:dragover={onDragOver} role="application">
   <slot name="empty-hint" />
   <SvelteFlow
     {nodes}
@@ -192,11 +193,14 @@
   </button>
 
   {#if contextMenu}
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
       class="context-menu"
       style="left: {contextMenu.x}px; top: {contextMenu.y}px;"
       on:click|stopPropagation
       on:keydown={() => {}}
+      role="menu"
+      tabindex="0"
     >
       {#if contextMenu.nodeId}
         <button
@@ -210,9 +214,12 @@
         <div class="context-divider" />
       {/if}
 
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div class="context-submenu-wrap"
         on:mouseenter={() => showTemplateSub = true}
         on:mouseleave={() => showTemplateSub = false}
+        role="menuitem"
+        tabindex="0"
       >
         <button class="context-item">
           <LayoutTemplate size={13} />

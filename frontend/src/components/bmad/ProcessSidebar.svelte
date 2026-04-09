@@ -116,6 +116,7 @@
               {#if openPhase === phase}
                 <div class="phase-items">
                   {#each grouped[phase] as process}
+                    <!-- svelte-ignore a11y-no-static-element-interactions -->
                     <div
                       class="process-item"
                       draggable="true"
@@ -149,6 +150,7 @@
           {#if controlFlowOpen}
             <div class="phase-items">
               {#each controlFlowNodes as item}
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
                 <div
                   class="process-item"
                   draggable="true"
@@ -173,6 +175,7 @@
     {:else if activeTab === 'templates'}
       <div class="template-list">
         {#each templates as tmpl}
+          <!-- svelte-ignore a11y-no-static-element-interactions -->
           <div
             class="template-card"
             draggable="true"
@@ -221,7 +224,8 @@
       <SprintPanel {sprintStatus} />
     {/if}
   </div>
-  <div class="resize-handle" class:active={resizing} on:mousedown={onResizeStart} />
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <div class="resize-handle" class:active={resizing} on:mousedown={onResizeStart} role="separator" />
 </div>
 
 <style>

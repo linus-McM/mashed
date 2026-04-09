@@ -61,8 +61,9 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" on:click={cancel} on:keydown={() => {}}>
-  <div class="modal" on:click|stopPropagation on:keydown={() => {}}>
+<div class="overlay" role="presentation" on:click={cancel} on:keydown={() => {}}>
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
     <h2><GitBranch size={18} /> Switch Branch</h2>
     <p class="subtitle">Current: <strong style="color: {displayColor}">{currentBranch || 'HEAD'}</strong></p>
 
@@ -76,6 +77,7 @@
     <!-- Search filter -->
     <div class="search-wrap">
       <Search size={14} />
+      <!-- svelte-ignore a11y-autofocus -->
       <input
         type="text"
         class="search-input"

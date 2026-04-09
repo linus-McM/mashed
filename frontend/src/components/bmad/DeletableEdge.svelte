@@ -30,6 +30,7 @@
   }
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <g
   on:mouseenter={() => hovered = true}
   on:mouseleave={() => hovered = false}

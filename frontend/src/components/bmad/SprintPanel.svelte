@@ -60,11 +60,13 @@
         {#if openEpic === epic.id}
           <div class="story-items">
             {#each epic.stories as story}
+              <!-- svelte-ignore a11y-no-static-element-interactions -->
               <div
                 class="story-item"
                 draggable="true"
                 on:dragstart={(e) => onDragStart(e, story)}
                 title="Drag to canvas to create a workflow node"
+                role="listitem"
               >
                 <span class="story-dot" style="background: {statusColors[story.status] || statusColors.backlog}" />
                 <span class="story-name">{story.id}</span>

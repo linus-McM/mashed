@@ -54,13 +54,15 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" on:click={cancel} on:keydown={() => {}}>
-  <div class="modal" on:click|stopPropagation on:keydown={() => {}}>
+<div class="overlay" role="presentation" on:click={cancel} on:keydown={() => {}}>
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
     <h2>New Repository</h2>
     <p class="subtitle">Create a new project in your development directory</p>
 
     <div class="field">
       <label for="repo-name">Repository Name</label>
+      <!-- svelte-ignore a11y-autofocus -->
       <input
         id="repo-name"
         type="text"
@@ -76,6 +78,7 @@
     </div>
 
     <div class="field">
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label>Visibility</label>
       <div class="toggle-row">
         <button

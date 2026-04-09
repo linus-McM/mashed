@@ -160,4 +160,6 @@ export function TakeScreenshot(arg1:string,arg2:string):Promise<string>;
 
 export function UpdateStoryStatus(arg1:string,arg2:string,arg3:string):Promise<void>;
 
+export function WriteConsoleLog(arg1:string,arg2:string):Promise<void>;
+
 export function WriteFile(arg1:string,arg2:string):Promise<void>;

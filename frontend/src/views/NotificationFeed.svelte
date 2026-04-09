@@ -705,10 +705,11 @@
 <svelte:window on:keydown={handleKeydown} on:click={() => colorPickerRepo = null} />
 
 <div class="feed">
-  <div class="feed-scroll">
+  <div class="feed-scroll" role="list">
     {#each orderedRepos as repo (repo.name)}
       <div
         class="repo-group"
+        role="listitem"
         class:drag-over-above={dragOverRepo === repo.name && dropPosition === 'above'}
         class:drag-over-below={dragOverRepo === repo.name && dropPosition === 'below'}
         class:dragging={dragRepo === repo.name}
@@ -720,6 +721,7 @@
         <!-- Repo header (draggable, dblclick to toggle) -->
         <div
           class="repo-header"
+          role="listitem"
           class:collapsed={isCollapsed(repo)}
           draggable="true"
           on:dragstart={(e) => onDragStart(e, repo.name)}

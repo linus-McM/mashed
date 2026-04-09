@@ -4,6 +4,7 @@
   import { formatIterationDisplay } from './nodeUtils.js';
 
   export let data = {};
+  // svelte-ignore unused-export-let
   export let id = '';
   export let selected = false;
 

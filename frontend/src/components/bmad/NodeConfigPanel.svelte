@@ -101,7 +101,8 @@
 
 {#if node}
   <div class="config-panel" class:visible={!!node} style="width: {panelWidth}px;">
-    <div class="resize-handle" class:active={resizing} on:mousedown={onResizeStart} />
+    <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+    <div class="resize-handle" class:active={resizing} on:mousedown={onResizeStart} role="separator" />
     <div class="panel-header">
       <span class="panel-title">Configure: {label}</span>
       <button class="close-btn" on:click={close} title="Close">
@@ -143,72 +144,72 @@
         </div>
       {:else if nodeType === 'condition'}
         <div class="field">
-          <label class="field-label">Condition Type</label>
-          <select class="field-select" bind:value={conditionType} on:change={emitUpdate}>
+          <label class="field-label" for="cond-type">Condition Type</label>
+          <select id="cond-type" class="field-select" bind:value={conditionType} on:change={emitUpdate}>
             {#each conditionTypeOptions as opt}
               <option value={opt.value}>{opt.label}</option>
             {/each}
           </select>
         </div>
         <div class="field">
-          <label class="field-label">Pattern</label>
-          <input class="field-input" type="text" bind:value={conditionPattern} on:blur={emitUpdate} placeholder="Pattern to match..." />
+          <label class="field-label" for="cond-pattern">Pattern</label>
+          <input id="cond-pattern" class="field-input" type="text" bind:value={conditionPattern} on:blur={emitUpdate} placeholder="Pattern to match..." />
         </div>
         <div class="field">
-          <label class="field-label">Source Node</label>
-          <input class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
+          <label class="field-label" for="cond-source">Source Node</label>
+          <input id="cond-source" class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
         </div>
       {:else if nodeType === 'loop'}
         <div class="field">
-          <label class="field-label">Max Iterations</label>
-          <input class="field-input" type="number" bind:value={maxIterations} on:change={emitUpdate} min="1" max="100" />
+          <label class="field-label" for="loop-max">Max Iterations</label>
+          <input id="loop-max" class="field-input" type="number" bind:value={maxIterations} on:change={emitUpdate} min="1" max="100" />
         </div>
       {:else if nodeType === 'loopUntil'}
         <div class="field">
-          <label class="field-label">Max Iterations</label>
-          <input class="field-input" type="number" bind:value={maxIterations} on:change={emitUpdate} min="1" max="100" />
+          <label class="field-label" for="lu-max">Max Iterations</label>
+          <input id="lu-max" class="field-input" type="number" bind:value={maxIterations} on:change={emitUpdate} min="1" max="100" />
         </div>
         <div class="field">
-          <label class="field-label">Condition Type</label>
-          <select class="field-select" bind:value={conditionType} on:change={emitUpdate}>
+          <label class="field-label" for="lu-cond-type">Condition Type</label>
+          <select id="lu-cond-type" class="field-select" bind:value={conditionType} on:change={emitUpdate}>
             {#each conditionTypeOptions as opt}
               <option value={opt.value}>{opt.label}</option>
             {/each}
           </select>
         </div>
         <div class="field">
-          <label class="field-label">Pattern</label>
-          <input class="field-input" type="text" bind:value={conditionPattern} on:blur={emitUpdate} placeholder="Pattern to match..." />
+          <label class="field-label" for="lu-pattern">Pattern</label>
+          <input id="lu-pattern" class="field-input" type="text" bind:value={conditionPattern} on:blur={emitUpdate} placeholder="Pattern to match..." />
         </div>
         <div class="field">
-          <label class="field-label">Source Node</label>
-          <input class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
+          <label class="field-label" for="lu-source">Source Node</label>
+          <input id="lu-source" class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
         </div>
       {:else if nodeType === 'transform'}
         <div class="field">
-          <label class="field-label">Extract Type</label>
-          <select class="field-select" bind:value={extractType} on:change={emitUpdate}>
+          <label class="field-label" for="tx-extract-type">Extract Type</label>
+          <select id="tx-extract-type" class="field-select" bind:value={extractType} on:change={emitUpdate}>
             <option value="regex">Regex</option>
             <option value="lines">Lines</option>
           </select>
         </div>
         <div class="field">
-          <label class="field-label">Extract Pattern</label>
-          <input class="field-input" type="text" bind:value={extractPattern} on:blur={emitUpdate} placeholder="Regex or line range..." />
+          <label class="field-label" for="tx-extract-pattern">Extract Pattern</label>
+          <input id="tx-extract-pattern" class="field-input" type="text" bind:value={extractPattern} on:blur={emitUpdate} placeholder="Regex or line range..." />
         </div>
         <div class="field">
-          <label class="field-label">Source Node</label>
-          <input class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
+          <label class="field-label" for="tx-source">Source Node</label>
+          <input id="tx-source" class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
         </div>
       {:else if nodeType === 'merge'}
         <div class="field">
-          <label class="field-label" style="color: var(--text-muted)">No configuration needed</label>
+          <span class="field-label" style="color: var(--text-muted)">No configuration needed</span>
         </div>
       {/if}
 
       {#if node?.data?.storyId}
         <div class="field">
-          <label class="field-label">Linked Story</label>
+          <span class="field-label">Linked Story</span>
           <div class="story-link">
             <span class="story-link-id">{node.data.storyId}</span>
             <span class="story-link-status">{node.data.storyStatus || 'unknown'}</span>
@@ -220,7 +221,7 @@
         {@const artifacts = node.data.artifactStatus}
         {#if artifacts.found?.length > 0 || artifacts.missing?.length > 0}
           <div class="field">
-            <label class="field-label">Artifacts</label>
+            <span class="field-label">Artifacts</span>
             <div class="artifact-list">
               {#each artifacts.found || [] as name}
                 <div class="artifact-item found">

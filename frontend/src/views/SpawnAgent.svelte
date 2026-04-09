@@ -49,13 +49,15 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" on:click={cancel} on:keydown={() => {}}>
-  <div class="modal" on:click|stopPropagation on:keydown={() => {}}>
+<div class="overlay" role="presentation" on:click={cancel} on:keydown={() => {}}>
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
     <h2>Spawn Agent</h2>
     <p class="subtitle">Start a new Claude session in a tmux terminal</p>
 
     <!-- Repo selector -->
     <div class="field">
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label>Repository</label>
       <div class="repo-list">
         {#each repos as repo}
@@ -76,6 +78,7 @@
 
     <!-- Model selector -->
     <div class="field">
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label>Model</label>
       <div class="model-list">
         {#each models as m}

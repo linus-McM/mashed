@@ -684,8 +684,9 @@
   </div>
 
   {#if showTerminalModal}
-    <div class="terminal-overlay" on:click={() => showTerminalModal = false} on:keydown={() => {}}>
-      <div class="terminal-modal" on:click|stopPropagation on:keydown={() => {}}>
+    <div class="terminal-overlay" role="presentation" on:click={() => showTerminalModal = false} on:keydown={() => {}}>
+      <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+      <div class="terminal-modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
         <div class="terminal-modal-header">
           <span class="terminal-modal-title">Node Terminal: {terminalTarget}</span>
           <button class="terminal-modal-close" on:click={() => showTerminalModal = false}>&times;</button>

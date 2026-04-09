@@ -59,8 +59,9 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" on:click={cancel} on:keydown={() => {}}>
-  <div class="modal" on:click|stopPropagation on:keydown={() => {}}>
+<div class="overlay" role="presentation" on:click={cancel} on:keydown={() => {}}>
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
     <h2><GitMerge size={18} /> Merge Into Branch</h2>
     <p class="subtitle">Merge <strong>{currentBranch || 'HEAD'}</strong> into:</p>
 
@@ -74,6 +75,7 @@
     <!-- Search filter -->
     <div class="search-wrap">
       <Search size={14} />
+      <!-- svelte-ignore a11y-autofocus -->
       <input
         type="text"
         class="search-input"

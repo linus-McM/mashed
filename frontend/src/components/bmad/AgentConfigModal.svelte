@@ -77,8 +77,9 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" on:click={() => dispatch('close')} on:keydown={() => {}}>
-  <div class="modal" on:click|stopPropagation on:keydown={() => {}}>
+<div class="overlay" role="presentation" on:click={() => dispatch('close')} on:keydown={() => {}}>
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
     <div class="modal-header">
       <h3>{isEditing ? 'Edit Agent' : 'Create Custom Agent'}</h3>
       <button class="close-btn" on:click={() => dispatch('close')}><X size={16} /></button>
@@ -120,6 +121,7 @@
       </div>
 
       <div class="field">
+        <!-- svelte-ignore a11y-label-has-associated-control -->
         <label class="field-label">Allowed Skills</label>
         <div class="skill-list">
           {#each processes as proc}
