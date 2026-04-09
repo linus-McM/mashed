@@ -62,6 +62,7 @@ type App struct {
 	bmadExecutor *bmad.Executor
 
 	terminalSessions map[string]domain.TerminalSession
+	logFile          *os.File
 }
 
 // VSCodeThemeEntry represents a single color theme found in a VSCodium extension.
@@ -133,6 +134,8 @@ func NewApp(helperClient *helper.Client) *App {
 // startup is called by Wails when the app starts.
 func (a *App) startup(ctx context.Context) {
 	a.ctx, a.cancel = context.WithCancel(ctx)
+
+	a.initSessionLog()
 
 	// Engine needs Wails context for event emission
 	a.engine = agent.NewNotificationEngine(a.ctx)
@@ -405,6 +408,28 @@ func (a *App) GetNotifications() []domain.NotificationEvent {
 // GetTerminalPort returns the WebSocket terminal bridge port.
 func (a *App) GetTerminalPort() int {
 	return a.bridge.GetTerminalPort()
+}
+
+// initSessionLog creates a timestamped log file in .logs/ for this session.
+func (a *App) initSessionLog() {
+	dir := filepath.Join(".", ".logs")
+	os.MkdirAll(dir, 0755)
+	name := fmt.Sprintf("session-%s.log", time.Now().Format("2006-01-02T15-04-05"))
+	f, err := os.Create(filepath.Join(dir, name))
+	if err != nil {
+		log.Printf("WARNING: could not create session log: %v", err)
+		return
+	}
+	a.logFile = f
+	fmt.Fprintf(f, "=== mashed session started %s ===\n", time.Now().Format(time.RFC3339))
+}
+
+// WriteConsoleLog receives a frontend console message and appends it to the session log.
+func (a *App) WriteConsoleLog(level, message string) {
+	if a.logFile == nil {
+		return
+	}
+	fmt.Fprintf(a.logFile, "[%s] %s %s\n", time.Now().Format("15:04:05.000"), level, message)
 }
 
 // sanitizeID removes characters that would break agent ID parsing.

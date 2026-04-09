@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { EventsOn } from '../wailsjs/runtime/runtime.js';
-  import { GetNotifications, GetDevDir, GetConfig, ListLocalFonts, SetActiveContext } from '../wailsjs/go/main/App.js';
+  import { GetNotifications, GetDevDir, GetConfig, ListLocalFonts, SetActiveContext, WriteConsoleLog } from '../wailsjs/go/main/App.js';
   import Setup from './views/Setup.svelte';
   import NotificationFeed from './views/NotificationFeed.svelte';
   import AgentDetail from './views/AgentDetail.svelte';
@@ -29,6 +29,17 @@
   let toastTimeout;
 
   onMount(async () => {
+    // Intercept console.error/warn/log and forward to Go session log file
+    const _error = console.error;
+    const _warn = console.warn;
+    const _log = console.log;
+    console.error = (...args) => { _error(...args); WriteConsoleLog('ERROR', args.map(String).join(' ')).catch(() => {}); };
+    console.warn = (...args) => { _warn(...args); WriteConsoleLog('WARN', args.map(String).join(' ')).catch(() => {}); };
+    console.log = (...args) => { _log(...args); WriteConsoleLog('LOG', args.map(String).join(' ')).catch(() => {}); };
+    // Also catch unhandled errors
+    window.addEventListener('error', (e) => WriteConsoleLog('UNCAUGHT', `${e.message} @ ${e.filename}:${e.lineno}`).catch(() => {}));
+    window.addEventListener('unhandledrejection', (e) => WriteConsoleLog('UNHANDLED_REJECTION', String(e.reason)).catch(() => {}));
+
     const cfg = await GetConfig();
 
     // Load themes + fonts before rendering

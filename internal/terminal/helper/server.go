@@ -156,18 +156,13 @@ func (s *Server) handleSpawn(conn *net.UnixConn, req SpawnRequest) {
 	}()
 }
 
-// handleKill signals a session's process group and cleans up.
+// handleKill signals a session and cleans up. Fire-and-forget — no response is
+// sent because the client doesn't read one. Sending a response would leave stale
+// data on the connection that corrupts the next Spawn's ReadMessage call.
 func (s *Server) handleKill(conn *net.UnixConn, req KillRequest) {
 	val, ok := s.sessions.Load(req.ID)
 	if !ok {
-		resp := struct {
-			ID    string `json:"id"`
-			Error string `json:"error,omitempty"`
-		}{
-			ID:    req.ID,
-			Error: fmt.Sprintf("session %q not found", req.ID),
-		}
-		WriteMessage(conn, MsgKill, resp)
+		log.Printf("helper: kill: session %q not found", req.ID)
 		return
 	}
 
@@ -188,13 +183,6 @@ func (s *Server) handleKill(conn *net.UnixConn, req KillRequest) {
 
 	// Remove from map.
 	s.sessions.Delete(req.ID)
-
-	resp := struct {
-		ID string `json:"id"`
-	}{
-		ID: req.ID,
-	}
-	WriteMessage(conn, MsgKill, resp)
 }
 
 // Shutdown waits for in-flight spawn operations to finish, then kills all sessions.

@@ -90,16 +90,14 @@ func sendSpawn(t *testing.T, conn *net.UnixConn, req SpawnRequest) SpawnResponse
 	return resp
 }
 
-// sendKill sends a KillRequest and reads back a response envelope.
-func sendKill(t *testing.T, conn *net.UnixConn, req KillRequest) Envelope {
+// sendKill sends a KillRequest. Kill is fire-and-forget — no response.
+func sendKill(t *testing.T, conn *net.UnixConn, req KillRequest) {
 	t.Helper()
 
 	err := WriteMessage(conn, MsgKill, req)
 	require.NoError(t, err, "write kill request")
-
-	env, err := ReadMessage(conn)
-	require.NoError(t, err, "read kill response")
-	return env
+	// Brief pause to let the server process the kill asynchronously.
+	time.Sleep(50 * time.Millisecond)
 }
 
 func TestServerSpawnSuccess(t *testing.T) {
@@ -178,11 +176,10 @@ func TestServerKillSuccess(t *testing.T) {
 	err = syscall.Kill(resp.PID, 0)
 	require.NoError(t, err, "process should be alive before kill")
 
-	killEnv := sendKill(t, conn, KillRequest{
+	sendKill(t, conn, KillRequest{
 		ID:     "killme",
 		Signal: int(syscall.SIGTERM),
 	})
-	assert.Equal(t, MsgKill, killEnv.Type)
 
 	time.Sleep(200 * time.Millisecond)
 
@@ -194,20 +191,11 @@ func TestServerKillNotFound(t *testing.T) {
 	_, sockPath := startTestServer(t)
 	conn := dialHelper(t, sockPath)
 
-	killEnv := sendKill(t, conn, KillRequest{
+	// Kill is fire-and-forget — no response. Just verify it doesn't crash.
+	sendKill(t, conn, KillRequest{
 		ID:     "nonexistent",
 		Signal: int(syscall.SIGTERM),
 	})
-	assert.Equal(t, MsgKill, killEnv.Type)
-
-	// Parse the response to verify error message.
-	var resp struct {
-		ID    string `json:"id"`
-		Error string `json:"error,omitempty"`
-	}
-	require.NoError(t, json.Unmarshal(killEnv.Data, &resp))
-	assert.Equal(t, "nonexistent", resp.ID)
-	assert.Contains(t, resp.Error, "not found")
 }
 
 func TestServerMultipleConcurrentSessions(t *testing.T) {
@@ -387,12 +375,11 @@ func TestServerKillWithMockSession(t *testing.T) {
 		ptmx: f,
 	})
 
-	// Send kill request via IPC.
-	killEnv := sendKill(t, conn, KillRequest{
+	// Send kill request via IPC (fire-and-forget).
+	sendKill(t, conn, KillRequest{
 		ID:     "mock-kill",
 		Signal: int(syscall.SIGTERM),
 	})
-	assert.Equal(t, MsgKill, killEnv.Type)
 
 	// Session should be removed from the map.
 	_, loaded := srv.sessions.Load("mock-kill")

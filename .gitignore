@@ -1,5 +1,6 @@
 .claude*
 .desloppify/
+.logs/
 scorecard.png
 build/bin
 mashed
@@ -57,3 +58,8 @@ docs/repomixer/*
 .wolf
 .playwright-cli
 .playwright-mcp
+.DS_Store
+docs/.DS_Store
+
+# mashed screenshots
+.screenshots/
