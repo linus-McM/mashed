@@ -159,35 +159,16 @@
           // Send resize FIRST so PTY learns the real dimensions.
           sendResize();
 
-          // Attach message handler immediately but write through a gate.
-          // Early output (before resize takes effect) is buffered, then
-          // replayed after a short delay + Ctrl+L to redraw cleanly.
-          let gate = false;
-          const pending = [];
+          // The bridge replays the scroll buffer on connect, giving us the
+          // session's full history. Write everything directly — no gating needed
+          // since the resize was already sent above.
           const decoder = new TextDecoder();
           ws.onmessage = (evt) => {
             const raw = evt.data instanceof ArrayBuffer
               ? decoder.decode(evt.data)
               : evt.data;
-            if (gate) {
-              term.write(raw);
-            } else {
-              pending.push(raw);
-            }
+            term.write(raw);
           };
-          setTimeout(() => {
-            // Clear any garbled pre-resize output, replay buffered data, open gate
-            term.reset();
-            for (const chunk of pending) term.write(chunk);
-            pending.length = 0;
-            gate = true;
-            // Send Ctrl+L to ask the running application to redraw at the
-            // correct terminal dimensions (the resize was sent on connect but
-            // early output may have been formatted for the default 80×24).
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(new TextEncoder().encode('\x0c'));
-            }
-          }, 150);
 
           // Listen for screenshot path injection scoped to this terminal's pane
           if (unsubScreenshot) unsubScreenshot();
