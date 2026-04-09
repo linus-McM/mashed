@@ -150,6 +150,10 @@ export function KillTerminalSession(arg1) {
   return window['go']['main']['App']['KillTerminalSession'](arg1);
 }
 
+export function ListAllAgents(arg1) {
+  return window['go']['main']['App']['ListAllAgents'](arg1);
+}
+
 export function ListBmadAgents() {
   return window['go']['main']['App']['ListBmadAgents']();
 }
@@ -276,6 +280,10 @@ export function SetImportedTheme(arg1) {
 
 export function SetMonoFont(arg1) {
   return window['go']['main']['App']['SetMonoFont'](arg1);
+}
+
+export function SetSidebarWidth(arg1) {
+  return window['go']['main']['App']['SetSidebarWidth'](arg1);
 }
 
 export function SetTheme(arg1) {

@@ -4,7 +4,7 @@
   import { PickFile, ReadFile } from '../../../wailsjs/go/main/App.js';
 
   export let node = null;
-  export let agents = [];
+  export let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
 
   const dispatch = createEventDispatcher();
 
@@ -42,6 +42,26 @@
   let modelOverride = '';
   let customContext = '';
   let selectedAgent = '';
+
+  // Deduplicate agents: BMAD agents take priority, then local, then global.
+  $: dedupedAgents = (() => {
+    const seen = new Set();
+    const bmad = (groupedAgents.bmadAgents || []).map(a => {
+      seen.add(a.id);
+      return a;
+    });
+    const local = (groupedAgents.localAgents || []).filter(a => {
+      if (seen.has(a.id)) return false;
+      seen.add(a.id);
+      return true;
+    });
+    const global = (groupedAgents.globalAgents || []).filter(a => {
+      if (seen.has(a.id)) return false;
+      seen.add(a.id);
+      return true;
+    });
+    return { bmad, local, global };
+  })();
 
   $: nodeType = node?.data?.nodeType || '';
   $: isProcessNode = !nodeType || nodeType === 'process';
@@ -205,9 +225,27 @@
           <label class="field-label" for="agent-select">Agent</label>
           <select id="agent-select" class="field-select" bind:value={selectedAgent} on:change={emitUpdate}>
             <option value="">Default</option>
-            {#each agents as agent}
-              <option value={agent.id}>{agent.name} ({agent.role})</option>
-            {/each}
+            {#if dedupedAgents.bmad.length > 0}
+              <optgroup label="BMAD Agents">
+                {#each dedupedAgents.bmad as agent}
+                  <option value={agent.id}>{agent.name} ({agent.role})</option>
+                {/each}
+              </optgroup>
+            {/if}
+            {#if dedupedAgents.local.length > 0}
+              <optgroup label="Local Project Agents">
+                {#each dedupedAgents.local as agent}
+                  <option value={agent.id}>{agent.name}</option>
+                {/each}
+              </optgroup>
+            {/if}
+            {#if dedupedAgents.global.length > 0}
+              <optgroup label="Global Agents">
+                {#each dedupedAgents.global as agent}
+                  <option value={agent.id}>{agent.name}</option>
+                {/each}
+              </optgroup>
+            {/if}
           </select>
         </div>
       {:else if nodeType === 'condition'}
@@ -431,6 +469,23 @@
   }
 
   .field-select:focus { border-color: var(--accent-green); }
+
+  .field-select optgroup {
+    font-weight: 600;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--text-dim);
+    padding-top: 4px;
+  }
+
+  .field-select optgroup option {
+    font-weight: 400;
+    font-size: 11px;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--text-primary);
+  }
 
   .field-input {
     padding: 5px 8px;

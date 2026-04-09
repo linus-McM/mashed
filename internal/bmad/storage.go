@@ -191,6 +191,36 @@ func (s *Storage) DeleteAgent(id string) error {
 	return nil
 }
 
+// ListClaudeAgents scans a .claude/agents/ directory and returns AgentInfo
+// entries for each .md file found. Returns nil (not error) if the directory
+// does not exist.
+func ListClaudeAgents(dir string) []AgentInfo {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
+	}
+	var out []AgentInfo
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".md") {
+			continue
+		}
+		id := strings.TrimSuffix(e.Name(), ".md")
+		name := strings.ReplaceAll(id, "-", " ")
+		// Title-case each word
+		words := strings.Fields(name)
+		for i, w := range words {
+			if len(w) > 0 {
+				words[i] = strings.ToUpper(w[:1]) + w[1:]
+			}
+		}
+		out = append(out, AgentInfo{
+			ID:   id,
+			Name: strings.Join(words, " "),
+		})
+	}
+	return out
+}
+
 // atomicWriteJSON marshals v as indented JSON and writes it atomically.
 func atomicWriteJSON(path string, v any) error {
 	data, err := json.MarshalIndent(v, "", "  ")

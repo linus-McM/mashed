@@ -167,6 +167,19 @@ type BmadAgentConfig struct {
 	CreatedAt string        `json:"createdAt"`
 }
 
+// AgentInfo is a lightweight agent reference for local/global Claude agents.
+type AgentInfo struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// GroupedAgents contains agents organized by source for the UI dropdown.
+type GroupedAgents struct {
+	BmadAgents   []BmadAgentConfig `json:"bmadAgents"`
+	LocalAgents  []AgentInfo       `json:"localAgents"`
+	GlobalAgents []AgentInfo       `json:"globalAgents"`
+}
+
 // ArtifactType classifies the format of a BMAD artifact.
 type ArtifactType string
 

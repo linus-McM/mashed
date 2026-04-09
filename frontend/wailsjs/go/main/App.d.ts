@@ -78,6 +78,8 @@ export function KillAgent(arg1:string,arg2:number,arg3:string):Promise<void>;
 
 export function KillTerminalSession(arg1:string):Promise<void>;
 
+export function ListAllAgents(arg1:string):Promise<bmad.GroupedAgents>;
+
 export function ListBmadAgents():Promise<Array<bmad.BmadAgentConfig>>;
 
 export function ListBmadTemplates():Promise<Array<bmad.WorkflowDef>>;
@@ -141,6 +143,8 @@ export function SetFontSize(arg1:number):Promise<void>;
 export function SetImportedTheme(arg1:string):Promise<void>;
 
 export function SetMonoFont(arg1:string):Promise<void>;
+
+export function SetSidebarWidth(arg1:number):Promise<void>;
 
 export function SetTheme(arg1:string):Promise<void>;
 

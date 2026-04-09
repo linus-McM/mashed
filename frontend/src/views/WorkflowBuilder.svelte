@@ -7,7 +7,7 @@
   import { EventsOn } from '../../wailsjs/runtime/runtime.js';
   import { GetBmadProcesses, ListBmadTemplates, ListBmadWorkflowsByRepo,
            SaveBmadWorkflow, GetBmadWorkflow, CreateFromTemplate,
-           DeleteBmadWorkflow, ListBmadAgents, SaveBmadAgent, DeleteBmadAgent,
+           DeleteBmadWorkflow, ListBmadAgents, ListAllAgents, SaveBmadAgent, DeleteBmadAgent,
            StartBmadWorkflow, PauseBmadWorkflow, ResumeBmadWorkflow, StopBmadWorkflow,
            GetTerminalPort, GetSprintStatus, GetNodeOutput } from '../../wailsjs/go/main/App.js';
   import Terminal from '../components/Terminal.svelte';
@@ -45,7 +45,8 @@
   let processes = [];
   let templates = [];
   let savedWorkflows = [];
-  let agents = [];
+  /** @type {{ bmadAgents: any[], localAgents: any[], globalAgents: any[] }} */
+  let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
   let sprintStatus = null;
   let currentWorkflow = null;
   let workflowName = 'Untitled Workflow';
@@ -78,18 +79,18 @@
 
   onMount(async () => {
     try {
-      [processes, templates, savedWorkflows, agents] = await Promise.all([
+      [processes, templates, savedWorkflows, groupedAgents] = await Promise.all([
         GetBmadProcesses(),
         ListBmadTemplates(),
         repoPath ? ListBmadWorkflowsByRepo(repoPath) : Promise.resolve([]),
-        ListBmadAgents(),
+        ListAllAgents(repoPath || ''),
       ]);
     } catch (e) {
       console.error('Failed to load BMAD data:', e);
       processes = processes || [];
       templates = templates || [];
       savedWorkflows = savedWorkflows || [];
-      agents = agents || [];
+      groupedAgents = groupedAgents || { bmadAgents: [], localAgents: [], globalAgents: [] };
     }
 
     if (repoPath) {
@@ -363,7 +364,7 @@
   async function handleAgentSave(e) {
     try {
       await SaveBmadAgent(e.detail);
-      agents = await ListBmadAgents();
+      groupedAgents = await ListAllAgents(repoPath || '');
       showAgentModal = false;
       editingAgent = null;
     } catch (err) {
@@ -374,7 +375,7 @@
   async function handleAgentDelete(e) {
     try {
       await DeleteBmadAgent(e.detail);
-      agents = await ListBmadAgents();
+      groupedAgents = await ListAllAgents(repoPath || '');
       showAgentModal = false;
       editingAgent = null;
     } catch (err) {
@@ -594,10 +595,13 @@
     {templates}
     {savedWorkflows}
     {sprintStatus}
+    {repoPath}
+    {repoBranch}
     on:use-template={useTemplate}
     on:load-workflow={loadWorkflow}
     on:delete-workflow={deleteWorkflow}
     on:create-custom-template={newWorkflow}
+    on:branch-changed={(e) => { if (e.detail?.branch) repoBranch = e.detail.branch; }}
   />
 
   <div class="canvas-area">
@@ -665,7 +669,7 @@
 
       <NodeConfigPanel
         node={selectedNode}
-        {agents}
+        {groupedAgents}
         bind:panelWidth={configPanelWidth}
         on:update={onConfigUpdate}
         on:close={() => selectedNode = null}

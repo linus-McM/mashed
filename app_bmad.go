@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"mashed/internal/bmad"
@@ -191,6 +193,34 @@ func (a *App) DeleteBmadAgent(id string) error {
 		return fmt.Errorf("bmad storage not initialized")
 	}
 	return a.bmadStorage.DeleteAgent(id)
+}
+
+// ListAllAgents returns agents grouped by source: BMAD agents, local project
+// agents (from repoPath/.claude/agents/), and global agents (~/.claude/agents/).
+func (a *App) ListAllAgents(repoPath string) (bmad.GroupedAgents, error) {
+	var result bmad.GroupedAgents
+
+	// BMAD agents from ~/.mashed/bmad-agents/
+	if a.bmadStorage != nil {
+		agents, err := a.bmadStorage.ListAgents()
+		if err != nil {
+			return result, err
+		}
+		result.BmadAgents = agents
+	}
+
+	// Local project agents from {repoPath}/.claude/agents/
+	if repoPath != "" {
+		result.LocalAgents = bmad.ListClaudeAgents(filepath.Join(repoPath, ".claude", "agents"))
+	}
+
+	// Global agents from ~/.claude/agents/
+	home, err := os.UserHomeDir()
+	if err == nil {
+		result.GlobalAgents = bmad.ListClaudeAgents(filepath.Join(home, ".claude", "agents"))
+	}
+
+	return result, nil
 }
 
 // ── BMAD Modules ──
