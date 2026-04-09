@@ -4,7 +4,7 @@
 **Domain:** full-stack (backend + frontend)
 **Estimated Complexity:** M
 **Depends On:** none (but should land AFTER pty-04 to avoid Terminal.svelte merge conflicts)
-**Status:** ready
+**Status:** done
 
 ---
 
