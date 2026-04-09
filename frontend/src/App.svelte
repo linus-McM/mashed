@@ -65,7 +65,14 @@
   });
 
   EventsOn('agent:notification', (event) => {
-    const idx = notifications.findIndex(n => n.agentId === event.agentId);
+    // Dedup by agentId, or by tmuxTarget for non-terminal sessions (the frontend
+    // spawn uses "spawned-{ts}" as agentId while the backend scanner uses a
+    // PID-based ID, but both share the same tmuxTarget for the same session).
+    // Don't match terminal sessions — they're only managed by the frontend.
+    const idx = notifications.findIndex(n =>
+      n.agentId === event.agentId ||
+      (event.tmuxTarget && n.tmuxTarget === event.tmuxTarget && n.eventType !== 'terminal')
+    );
     if (idx >= 0) {
       notifications[idx] = event;
     } else {
@@ -121,7 +128,10 @@
 
   function addNotification(event) {
     const n = event.detail;
-    const idx = notifications.findIndex(x => x.agentId === n.agentId);
+    const idx = notifications.findIndex(x =>
+      x.agentId === n.agentId ||
+      (n.tmuxTarget && x.tmuxTarget === n.tmuxTarget)
+    );
     if (idx >= 0) {
       notifications[idx] = n;
     } else {

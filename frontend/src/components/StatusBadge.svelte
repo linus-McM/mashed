@@ -5,11 +5,11 @@
   const colors = {
     running: '#39ff14',
     open: '#00c4b3',
-    finished: 'var(--accent-amber)',
+    finished: 'var(--accent-red)',
     needs_response: 'var(--accent-red)',
     waiting: 'var(--accent-red)',
     error: 'var(--accent-red)',
-    completed: 'var(--accent-blue)',
+    completed: 'var(--accent-red)',
     started: 'var(--accent-purple)',
     blocked: 'var(--accent-red)',
     done: 'var(--accent-blue)',

@@ -428,7 +428,14 @@
       </div>
       {/if}
       {#key activeSession?.paneTarget}
-        <Terminal paneTarget={activeSession?.paneTarget || agent?.tmuxTarget || ''} repoPath={agent?.repoPath || ''} />
+        {#if (activeSession?.paneTarget || agent?.tmuxTarget) && agent?.eventType !== 'completed' && agent?.eventType !== 'finished'}
+          <Terminal paneTarget={activeSession?.paneTarget || agent?.tmuxTarget || ''} repoPath={agent?.repoPath || ''} />
+        {:else}
+          <div class="session-ended">
+            <span class="session-ended-icon">&#x25CB;</span>
+            <span>Session ended</span>
+          </div>
+        {/if}
       {/key}
     </div>
 
@@ -751,6 +758,20 @@
     flex-direction: column;
     min-width: 100px;
     overflow: hidden;
+  }
+  .session-ended {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .session-ended-icon {
+    font-size: 24px;
+    opacity: 0.4;
   }
 
   /* Session tab bar */

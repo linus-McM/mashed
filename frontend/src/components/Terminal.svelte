@@ -156,12 +156,10 @@
         ws.binaryType = 'arraybuffer';
 
         ws.onopen = () => {
-          // Send resize FIRST so PTY learns the real dimensions.
+          // Send resize so PTY learns the real dimensions.
           sendResize();
 
-          // The bridge replays the scroll buffer on connect, giving us the
-          // session's full history. Write everything directly — no gating needed
-          // since the resize was already sent above.
+          // The bridge replays the scroll buffer on connect. Write directly.
           const decoder = new TextDecoder();
           ws.onmessage = (evt) => {
             const raw = evt.data instanceof ArrayBuffer
@@ -169,6 +167,16 @@
               : evt.data;
             term.write(raw);
           };
+
+          // After scroll buffer replay + resize propagation, send Ctrl+L to
+          // trigger a clean redraw. The replay may contain output formatted
+          // for different dimensions — Ctrl+L makes the running application
+          // (shell, Claude Code, etc.) repaint at the correct size.
+          setTimeout(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(new TextEncoder().encode('\x0c'));
+            }
+          }, 200);
 
           // Listen for screenshot path injection scoped to this terminal's pane
           if (unsubScreenshot) unsubScreenshot();

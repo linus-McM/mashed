@@ -830,7 +830,7 @@
                       >
                         <div class="sub-content">
                           <span class="tree-line">{i < agent.subAgents.length - 1 ? '├─' : '└─'}</span>
-                          <span class="sub-indicator">
+                          <span class="sub-indicator" class:done={sub.subAgentStatus === 'done'}>
                             {#if sub.subAgentStatus === 'done'}
                               <Circle size={6} />
                             {:else}
@@ -1445,6 +1445,9 @@
     color: var(--accent-green);
     font-size: 6px;
     flex-shrink: 0;
+  }
+  .sub-indicator.done {
+    color: var(--accent-red);
   }
 
   .sub-pulse {
