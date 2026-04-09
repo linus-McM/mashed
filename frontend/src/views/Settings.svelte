@@ -2,7 +2,7 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { ArrowLeft } from 'lucide-svelte';
   import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
-  import { GetConfig, SetTheme, SetImportedTheme, SetVSCodiumExtPath, PickDirectory, ListVSCodiumThemes, ListLocalFonts, SetMonoFont, SetFontSize } from '../../wailsjs/go/main/App.js';
+  import { GetConfig, SetTheme, SetImportedTheme, SetVSCodiumExtPath, PickDirectory, ListVSCodiumThemes, ListLocalFonts, SetMonoFont, SetFontSize, SetSidebarWidth } from '../../wailsjs/go/main/App.js';
   import { activateImportedTheme, removeImportedTheme, convertedCache, makeThemeId } from '../lib/themeInit.js';
   import { builtInThemeIds } from '../lib/stores/theme.js';
   import { currentMonoFont, currentFontSize, applyFont, registerLocalFonts } from '../lib/stores/font.js';
@@ -21,6 +21,7 @@
   let loadingFonts = false;
   let selectedFont = '';
   let selectedFontSize = 13;
+  let selectedSidebarWidth = 280;
 
   onMount(async () => {
     try {
@@ -28,6 +29,7 @@
       vscodiumPath = cfg.vscodiumExtPath || '';
       selectedFont = cfg.monoFont || '';
       selectedFontSize = cfg.fontSize || 13;
+      selectedSidebarWidth = cfg.sidebarWidth || 280;
       if (vscodiumPath) {
         await scanThemes();
       }
@@ -125,6 +127,11 @@
     try { await SetFontSize(size); } catch {}
   }
 
+  async function changeSidebarWidth(width) {
+    selectedSidebarWidth = width;
+    try { await SetSidebarWidth(width); } catch {}
+  }
+
   function handleKeydown(e) {
     if (e.key === 'Escape') {
       dispatch('back');
@@ -219,6 +226,19 @@
             {/each}
           </div>
         {/if}
+      </section>
+
+      <!-- Sidebar Width -->
+      <section class="settings-section">
+        <h2 class="section-title">Sidebar Width</h2>
+        <p class="section-desc">Default width for the workflow process sidebar.</p>
+        <div class="font-size-control">
+          <button class="size-btn" on:click={() => changeSidebarWidth(Math.max(200, selectedSidebarWidth - 10))} disabled={selectedSidebarWidth <= 200}>-</button>
+          <span class="size-value">{selectedSidebarWidth}px</span>
+          <button class="size-btn" on:click={() => changeSidebarWidth(Math.min(500, selectedSidebarWidth + 10))} disabled={selectedSidebarWidth >= 500}>+</button>
+          <input type="range" min="200" max="500" step="10" bind:value={selectedSidebarWidth}
+                 on:input={() => changeSidebarWidth(selectedSidebarWidth)} class="size-slider" />
+        </div>
       </section>
 
       <!-- VSCodium Extension path -->

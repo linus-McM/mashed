@@ -81,6 +81,7 @@ type mashedConfig struct {
 	ImportedTheme   string `json:"importedTheme,omitempty"`
 	MonoFont        string `json:"monoFont,omitempty"`
 	FontSize        int    `json:"fontSize,omitempty"`
+	SidebarWidth    int    `json:"sidebarWidth,omitempty"`
 }
 
 // configPath returns the path to the mashed config file.
@@ -351,6 +352,15 @@ func (a *App) SetFontSize(size int) error {
 	defer a.mu.Unlock()
 	cfg := loadConfig()
 	cfg.FontSize = size
+	return saveConfig(cfg)
+}
+
+// SetSidebarWidth persists the sidebar width to config.
+func (a *App) SetSidebarWidth(width int) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	cfg := loadConfig()
+	cfg.SidebarWidth = width
 	return saveConfig(cfg)
 }
 

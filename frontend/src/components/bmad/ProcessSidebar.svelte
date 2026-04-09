@@ -1,12 +1,16 @@
 <script>
-  import { createEventDispatcher, onDestroy } from 'svelte';
+  import { createEventDispatcher, onDestroy, onMount } from 'svelte';
   import { ChevronDown, ChevronRight, Trash2, GitBranch, Repeat, Target, Filter, GitMerge } from 'lucide-svelte';
   import SprintPanel from './SprintPanel.svelte';
+  import GitPanel from './GitPanel.svelte';
+  import { GetConfig, SetSidebarWidth } from '../../../wailsjs/go/main/App.js';
 
   export let processes = [];
   export let templates = [];
   export let savedWorkflows = [];
   export let sprintStatus = null;
+  export let repoPath = '';
+  export let repoBranch = '';
 
   const dispatch = createEventDispatcher();
 
@@ -70,6 +74,15 @@
   let sidebarWidth = 280;
   let resizing = false;
 
+  onMount(async () => {
+    try {
+      const cfg = await GetConfig();
+      if (cfg.sidebarWidth && cfg.sidebarWidth >= 200 && cfg.sidebarWidth <= 500) {
+        sidebarWidth = cfg.sidebarWidth;
+      }
+    } catch {}
+  });
+
   function onResizeStart(e) {
     e.preventDefault();
     resizing = true;
@@ -84,6 +97,7 @@
       resizing = false;
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      SetSidebarWidth(sidebarWidth).catch(() => {});
     }
 
     window.addEventListener('mousemove', onMouseMove);
@@ -98,6 +112,7 @@
     <button class="tab" class:active={activeTab === 'processes'} on:click={() => activeTab = 'processes'}>Processes</button>
     <button class="tab" class:active={activeTab === 'skills'} on:click={() => activeTab = 'skills'}>Skills</button>
     <button class="tab" class:active={activeTab === 'saved'} on:click={() => activeTab = 'saved'}>Saved</button>
+    <button class="tab" class:active={activeTab === 'git'} on:click={() => activeTab = 'git'}>Git</button>
   </div>
 
   <div class="tab-content">
@@ -230,6 +245,9 @@
 
     {:else if activeTab === 'sprint'}
       <SprintPanel {sprintStatus} />
+
+    {:else if activeTab === 'git'}
+      <GitPanel {repoPath} {repoBranch} on:branch-changed />
     {/if}
   </div>
   <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->

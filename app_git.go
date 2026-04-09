@@ -306,6 +306,10 @@ func (a *App) RepoStatus(repoPath string) RepoStatusInfo {
 // gitCommitCore stages all changes, generates an AI commit message, and commits.
 // It returns the commit message. The onProgress callback, if non-nil, is called
 // at each step so callers can stream status to the frontend.
+//
+// On commit failure (e.g. pre-commit hooks, lint errors), it spawns a Claude
+// session to auto-fix the issues and retries. The stat-based fallback commit
+// message is only used as an absolute last resort.
 func (a *App) gitCommitCore(repoPath string, onProgress func(step, detail string)) (string, error) {
 	progress := func(step, detail string) {
 		if onProgress != nil {
@@ -338,32 +342,119 @@ func (a *App) gitCommitCore(repoPath string, onProgress func(step, detail string
 		diffText = diffText[:8000] + "\n... (truncated)"
 	}
 
-	// Generate commit message using Claude CLI
-	prompt := fmt.Sprintf("Write a concise git commit message (1-2 lines max, no quotes, no markdown) for this diff:\n\n%s", diffText)
-	claudeCmd := exec.CommandContext(a.ctx, "claude", "-p", prompt)
-	claudeCmd.Dir = repoPath
-	msgOut, err := claudeCmd.Output()
-	commitMsg := strings.TrimSpace(string(msgOut))
-	if err != nil || commitMsg == "" {
-		// Fallback: use the stat summary
-		commitMsg = "update: " + strings.TrimSpace(string(statusOut))
-		// Keep first line only
-		if idx := strings.IndexByte(commitMsg, '\n'); idx > 0 {
-			commitMsg = commitMsg[:idx]
-		}
-		progress("Using fallback commit message", commitMsg)
-	} else {
-		progress("Commit message ready", commitMsg)
-	}
+	// Generate commit message using Claude CLI — retry with simpler prompt before falling back
+	commitMsg := a.generateCommitMessage(repoPath, diffText, strings.TrimSpace(string(statusOut)), progress)
 
-	// Commit
-	progress("Committing...", "")
-	commitCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "commit", "-m", commitMsg)
-	if out, err := commitCmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("git commit: %w (%s)", err, string(out))
+	// Attempt commit — on failure, auto-fix with Claude and retry
+	const maxFixAttempts = 2
+	for attempt := 0; attempt <= maxFixAttempts; attempt++ {
+		progress("Committing...", "")
+		commitCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "commit", "-m", commitMsg)
+		commitOut, commitErr := commitCmd.CombinedOutput()
+		if commitErr == nil {
+			return commitMsg, nil
+		}
+
+		errText := strings.TrimSpace(string(commitOut))
+
+		// Don't retry "nothing to commit"
+		if strings.Contains(errText, "nothing to commit") {
+			return "", fmt.Errorf("nothing to commit")
+		}
+
+		if attempt >= maxFixAttempts {
+			return "", fmt.Errorf("git commit: %w (%s)", commitErr, errText)
+		}
+
+		// Auto-fix: ask Claude to diagnose and fix the issues
+		progress(fmt.Sprintf("Commit failed (attempt %d/%d), auto-fixing...", attempt+1, maxFixAttempts+1), errText)
+
+		fixPrompt := fmt.Sprintf(
+			"A git commit in this repository failed with this error:\n\n%s\n\n"+
+				"Diagnose and fix the issue. Common causes: pre-commit hook failures, "+
+				"lint errors, formatting issues, type errors. Fix the source files directly. "+
+				"Do NOT run git commit — just fix the code so the next commit will succeed.",
+			errText,
+		)
+		fixCmd := exec.CommandContext(a.ctx, "claude", "--dangerously-skip-permissions", "-p", fixPrompt)
+		fixCmd.Dir = repoPath
+		fixOut, fixErr := fixCmd.Output()
+		fixSummary := strings.TrimSpace(string(fixOut))
+
+		if fixErr != nil {
+			progress("Auto-fix failed, retrying commit as-is...", "")
+		} else {
+			// Truncate for display
+			if len(fixSummary) > 500 {
+				fixSummary = fixSummary[:500] + "..."
+			}
+			progress("Auto-fix applied", fixSummary)
+		}
+
+		// Re-stage everything (including Claude's fixes)
+		reAddCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "add", "-A")
+		if out, err := reAddCmd.CombinedOutput(); err != nil {
+			progress("Re-staging failed", strings.TrimSpace(string(out)))
+		}
+
+		// Regenerate commit message to cover the fixes
+		progress("Regenerating commit message...", "")
+		reDiffCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--cached")
+		reDiffOut, _ := reDiffCmd.Output()
+		reDiffText := string(reDiffOut)
+		if len(reDiffText) > 8000 {
+			reDiffText = reDiffText[:8000] + "\n... (truncated)"
+		}
+		reStatCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--cached", "--stat")
+		reStatOut, _ := reStatCmd.Output()
+
+		commitMsg = a.generateCommitMessage(repoPath, reDiffText, strings.TrimSpace(string(reStatOut)), progress)
 	}
 
 	return commitMsg, nil
+}
+
+// generateCommitMessage tries Claude CLI to produce a commit message with retries.
+// Falls back to a stat-based message only as an absolute last resort.
+func (a *App) generateCommitMessage(repoPath, diffText, statSummary string, progress func(string, string)) string {
+	// Primary attempt: full diff context
+	prompt := fmt.Sprintf(
+		"Write a concise git commit message (1-2 lines max, no quotes, no markdown) for this diff:\n\n%s",
+		diffText,
+	)
+	claudeCmd := exec.CommandContext(a.ctx, "claude", "-p", prompt)
+	claudeCmd.Dir = repoPath
+	if msgOut, err := claudeCmd.Output(); err == nil {
+		msg := strings.TrimSpace(string(msgOut))
+		if msg != "" {
+			progress("Commit message ready", msg)
+			return msg
+		}
+	}
+
+	// Retry: simpler prompt with just the stat summary
+	progress("Retrying commit message generation...", "")
+	retryPrompt := fmt.Sprintf(
+		"Write a one-line git commit message (no quotes, no markdown) summarising these changes:\n\n%s",
+		statSummary,
+	)
+	retryCmd := exec.CommandContext(a.ctx, "claude", "-p", retryPrompt)
+	retryCmd.Dir = repoPath
+	if retryOut, err := retryCmd.Output(); err == nil {
+		msg := strings.TrimSpace(string(retryOut))
+		if msg != "" {
+			progress("Commit message ready (retry)", msg)
+			return msg
+		}
+	}
+
+	// Absolute last resort: stat-based fallback
+	fallback := "update: " + statSummary
+	if idx := strings.IndexByte(fallback, '\n'); idx > 0 {
+		fallback = fallback[:idx]
+	}
+	progress("Using fallback commit message", fallback)
+	return fallback
 }
 
 // GitCommit stages all changes, generates an AI commit message, and commits.
@@ -373,8 +464,9 @@ func (a *App) GitCommit(repoPath string) (string, error) {
 }
 
 // GitCommitStreaming stages, generates an AI commit message, and commits,
-// emitting progress events to the frontend at each step. On failure, calls
-// Claude to explain what went wrong.
+// emitting progress events to the frontend at each step. The core function
+// auto-fixes errors via Claude and retries. If all attempts fail, Claude
+// explains the remaining issue to the user.
 func (a *App) GitCommitStreaming(repoPath string) {
 	emit := func(step, output, errMsg, explanation string, done bool) {
 		runtime.EventsEmit(a.ctx, "git:commit:progress", map[string]interface{}{
