@@ -108,4 +108,22 @@ repomixer:
     repomix --remote https://github.com/xyflow/xyflow  --compress -o ./docs/repomixer/xyflow/xyflow.xml --style xml
     repomix --remote https://github.com/bmad-code-org/BMAD-METHOD  --compress -o ./docs/repomixer/bmad-method/bmad-method.xml --style xml
 
+# Run Go tests then frontend tests
+test-all: test
+    cd frontend && npx vitest run
 
+# Run per-package Go coverage threshold enforcement
+test-cover:
+    bash scripts/check-coverage.sh
+
+# Run Go static analysis
+lint:
+    go vet ./...
+
+# Install lefthook git hooks
+hooks-install:
+    lefthook install --force
+
+# Manually run pre-commit hooks without committing
+pre-check:
+    lefthook run pre-commit

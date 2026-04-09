@@ -1,0 +1,56 @@
+# lefthook.yml — git hooks for mashed (Go + Svelte Wails app)
+# Docs: https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true
+  commands:
+    go-vet:
+      glob: "*.go"
+      run: go vet ./...
+      fail_text: "go vet found issues"
+
+    go-build:
+      glob: "*.go"
+      run: go build ./...
+      fail_text: "go build failed"
+
+    go-test-changed:
+      glob: "*.go"
+      run: |
+        packages=$(git diff --cached --name-only -- '*.go' | xargs -I{} dirname {} | sort -u | grep -v 'internal/terminal' | sed 's|^|./|' | paste -sd' ' -)
+        if [ -n "$packages" ]; then
+          go test -short -count=1 $packages
+        fi
+      fail_text: "go tests failed for changed packages"
+
+    frontend-build:
+      glob: "frontend/**/*.{svelte,ts,js,css}"
+      root: "frontend/"
+      run: npx vite build --mode development 2>&1 | tail -5
+      fail_text: "frontend build failed"
+
+    desloppify:
+      glob: "*.{go,svelte,ts,js}"
+      run: |
+        REPO_ROOT="$(git rev-parse --show-toplevel)"
+        DESLOPPIFY="$REPO_ROOT/.venv-desloppify/bin/desloppify"
+        if [ -x "$DESLOPPIFY" ]; then
+          "$DESLOPPIFY" scan --skip-slow
+        fi
+      fail_text: "desloppify scan found issues"
+
+pre-push:
+  parallel: true
+  commands:
+    go-test-all:
+      run: go test -short -count=1 ./internal/...
+      fail_text: "go tests failed"
+
+    go-coverage:
+      run: bash scripts/check-coverage.sh
+      fail_text: "coverage below threshold"
+
+    frontend-test:
+      root: "frontend/"
+      run: npx vitest run
+      fail_text: "frontend tests failed"

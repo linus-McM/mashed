@@ -6,6 +6,9 @@
 
 package terminal
 
+// All tests in this file require a real PTY (creack/pty fork/exec).
+// Add testing.Short() skip guard to any new test functions.
+
 import (
 	"context"
 	"fmt"
@@ -75,6 +78,9 @@ func readWSMessage(t *testing.T, ws *websocket.Conn, timeout time.Duration) []by
 // ---------------------------------------------------------------------------
 
 func TestBridge_AC1_NewBridgeWithManager(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	defer sm.Shutdown()
 
@@ -98,6 +104,9 @@ func TestBridge_AC1_NewBridgeWithManager(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestBridge_AC2_WSRoutesToSession(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	if os.Getenv("CI") != "" {
 		t.Skip("requires real PTY, skipping in CI")
 	}
@@ -124,6 +133,9 @@ func TestBridge_AC2_WSRoutesToSession(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestBridge_AC3_ErrorResponses(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -166,6 +178,9 @@ func TestBridge_AC3_ErrorResponses(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestBridge_AC4_NoTmuxReferences(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	bridgeSrc, err := os.ReadFile("bridge.go")
 	require.NoError(t, err, "should be able to read bridge.go")
 
@@ -198,6 +213,9 @@ func TestBridge_AC4_NoTmuxReferences(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestBridge_AC5_MultipleClients(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	if os.Getenv("CI") != "" {
 		t.Skip("requires real PTY, skipping in CI")
 	}
@@ -258,6 +276,9 @@ func TestBridge_AC5_MultipleClients(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestBridge_StartStop(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	defer sm.Shutdown()
 
@@ -287,6 +308,9 @@ func TestBridge_StartStop(t *testing.T) {
 }
 
 func TestBridge_StopIdempotent(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	defer sm.Shutdown()
 

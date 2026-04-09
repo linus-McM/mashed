@@ -6,6 +6,9 @@
 
 package terminal
 
+// All tests in this file require a real PTY (creack/pty fork/exec).
+// Add testing.Short() skip guard to any new test functions.
+
 import (
 	"bytes"
 	"net/http"
@@ -102,6 +105,9 @@ func readWSTimeout(t *testing.T, conn *websocket.Conn, timeout time.Duration) ([
 // ---------------------------------------------------------------------------
 
 func TestScrollBuffer_AC1_WriteAndSnapshot(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	t.Parallel()
 
 	tests := []struct {
@@ -172,6 +178,9 @@ func TestScrollBuffer_AC1_WriteAndSnapshot(t *testing.T) {
 }
 
 func TestScrollBuffer_AC1_LargeOverCapacity(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	t.Parallel()
 
 	// Write 2MB to a 1MB buffer — only the second 1MB should survive.
@@ -190,6 +199,9 @@ func TestScrollBuffer_AC1_LargeOverCapacity(t *testing.T) {
 }
 
 func TestScrollBuffer_AC1_SnapshotIndependentCopy(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	t.Parallel()
 
 	sb := newScrollBuffer(1024)
@@ -214,6 +226,9 @@ func TestScrollBuffer_AC1_SnapshotIndependentCopy(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestManagedSession_AC2_TwoClientsReceiveOutput(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 2: Two clients receive same output
 	sess := startTestSession(t, "echo hello")
 
@@ -237,6 +252,9 @@ func TestManagedSession_AC2_TwoClientsReceiveOutput(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestManagedSession_AC3_NewClientGetsSnapshot(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 3: New client gets scrollback then live data
 	sess := startTestSession(t, "printf 'line1\\nline2\\n'; sleep 10")
 
@@ -256,6 +274,9 @@ func TestManagedSession_AC3_NewClientGetsSnapshot(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestManagedSession_AC4_KillTerminatesProcess(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 4: Kill terminates process group
 	sess := startTestSession(t, "sleep 300")
 
@@ -268,6 +289,9 @@ func TestManagedSession_AC4_KillTerminatesProcess(t *testing.T) {
 }
 
 func TestManagedSession_AC4_DoubleKillNoPanic(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 4: Calling Kill again does not panic
 	sess := startTestSession(t, "sleep 300")
 
@@ -278,6 +302,9 @@ func TestManagedSession_AC4_DoubleKillNoPanic(t *testing.T) {
 }
 
 func TestManagedSession_AC4_NaturalExitDetected(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 4: Session cleanup after process exits naturally
 	sess := startTestSession(t, "echo done")
 
@@ -291,6 +318,9 @@ func TestManagedSession_AC4_NaturalExitDetected(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestManagedSession_AC5_FailedClientIsolation(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 2: Failed client is removed without killing session
 	sess := startTestSession(t, "while true; do echo tick; sleep 0.1; done")
 

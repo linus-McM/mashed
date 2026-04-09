@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
+import { describe, it, expect } from 'vitest';
 import {
   convertVSCodeTheme,
   validateConvertedTheme,
@@ -108,94 +107,94 @@ describe('convertVSCodeTheme — Dracula dark theme', () => {
   const result = convertVSCodeTheme(DRACULA_THEME, 'imported-dracula');
 
   it('has the correct label', () => {
-    assert.equal(result.label, 'Dracula');
+    expect(result.label).toBe('Dracula');
   });
 
   it('maps --bg-deepest from editor.background', () => {
-    assert.equal(result.css['--bg-deepest'], '#282a36');
+    expect(result.css['--bg-deepest']).toBe('#282a36');
   });
 
   it('maps --bg-surface from editorWidget.background', () => {
-    assert.equal(result.css['--bg-surface'], '#21222c');
+    expect(result.css['--bg-surface']).toBe('#21222c');
   });
 
   it('maps --accent-green from terminal.ansiGreen', () => {
-    assert.equal(result.css['--accent-green'], '#50fa7b');
+    expect(result.css['--accent-green']).toBe('#50fa7b');
   });
 
   it('maps --accent-green-dim as dimmed ansiGreen', () => {
     // 0x50=80 -> 80*0.4=32 -> 0x20, 0xfa=250 -> 250*0.4=100 -> 0x64, 0x7b=123 -> 123*0.4=49 -> 0x31
-    assert.equal(result.css['--accent-green-dim'], '#206431');
+    expect(result.css['--accent-green-dim']).toBe('#206431');
   });
 
   it('maps --text-primary from editor.foreground', () => {
-    assert.equal(result.css['--text-primary'], '#f8f8f2');
+    expect(result.css['--text-primary']).toBe('#f8f8f2');
   });
 
   it('maps --text-dim from editorLineNumber.foreground', () => {
-    assert.equal(result.css['--text-dim'], '#6272a4');
+    expect(result.css['--text-dim']).toBe('#6272a4');
   });
 
   it('produces all 16 CSS variables', () => {
     const keys = Object.keys(result.css);
-    assert.equal(keys.length, 16);
+    expect(keys.length).toBe(16);
   });
 
   it('sets Monaco base to vs-dark', () => {
-    assert.equal(result.monaco.base, 'vs-dark');
+    expect(result.monaco.base).toBe('vs-dark');
   });
 
   it('sets Monaco inherit to true', () => {
-    assert.equal(result.monaco.inherit, true);
+    expect(result.monaco.inherit).toBe(true);
   });
 
   it('generates Monaco token rules for comment', () => {
     const commentRule = result.monaco.rules.find(r => r.token === 'comment');
-    assert.ok(commentRule, 'Expected a comment rule');
-    assert.equal(commentRule.foreground, '6272A4');
-    assert.equal(commentRule.fontStyle, 'italic');
+    expect(commentRule).toBeTruthy();
+    expect(commentRule.foreground).toBe('6272A4');
+    expect(commentRule.fontStyle).toBe('italic');
   });
 
   it('generates Monaco token rules for keyword with bold', () => {
     const kw = result.monaco.rules.find(r => r.token === 'keyword');
-    assert.ok(kw);
-    assert.equal(kw.foreground, 'FF79C6');
-    assert.equal(kw.fontStyle, 'bold');
+    expect(kw).toBeTruthy();
+    expect(kw.foreground).toBe('FF79C6');
+    expect(kw.fontStyle).toBe('bold');
   });
 
   it('generates Monaco token rules for string', () => {
     const str = result.monaco.rules.find(r => r.token === 'string');
-    assert.ok(str);
-    assert.equal(str.foreground, 'F1FA8C');
+    expect(str).toBeTruthy();
+    expect(str.foreground).toBe('F1FA8C');
   });
 
   it('strips # prefix from Monaco foreground values', () => {
     for (const rule of result.monaco.rules) {
       if (rule.foreground) {
-        assert.ok(!rule.foreground.startsWith('#'), `Rule ${rule.token} foreground should not start with #`);
+        expect(rule.foreground).not.toMatch(/^#/);
       }
     }
   });
 
   it('generates xterm theme with correct green', () => {
-    assert.equal(result.xterm.green, '#50fa7b');
+    expect(result.xterm.green).toBe('#50fa7b');
   });
 
   it('generates xterm theme with background', () => {
-    assert.equal(result.xterm.background, '#282a36');
+    expect(result.xterm.background).toBe('#282a36');
   });
 
   it('generates xterm theme with foreground', () => {
-    assert.equal(result.xterm.foreground, '#f8f8f2');
+    expect(result.xterm.foreground).toBe('#f8f8f2');
   });
 
   it('generates xterm theme with cursor', () => {
-    assert.equal(result.xterm.cursor, '#f8f8f2');
+    expect(result.xterm.cursor).toBe('#f8f8f2');
   });
 
   it('generates xterm theme with all 8 ANSI colors', () => {
     for (const key of ['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white']) {
-      assert.ok(result.xterm[key], `xterm.${key} should be defined`);
+      expect(result.xterm[key]).toBeTruthy();
     }
   });
 });
@@ -216,8 +215,8 @@ describe('convertVSCodeTheme — token specificity', () => {
     };
     const result = convertVSCodeTheme(theme, 'spec-test');
     const commentRule = result.monaco.rules.find(r => r.token === 'comment');
-    assert.ok(commentRule, 'Expected a comment rule');
-    assert.equal(commentRule.foreground, 'bbbbbb');
+    expect(commentRule).toBeTruthy();
+    expect(commentRule.foreground).toBe('bbbbbb');
   });
 
   it('scope as comma-separated string produces rules', () => {
@@ -231,8 +230,8 @@ describe('convertVSCodeTheme — token specificity', () => {
     };
     const result = convertVSCodeTheme(theme, 'comma-test');
     const kw = result.monaco.rules.find(r => r.token === 'keyword');
-    assert.ok(kw, 'Expected a keyword rule from comma-separated scope');
-    assert.equal(kw.foreground, 'FF79C6');
+    expect(kw).toBeTruthy();
+    expect(kw.foreground).toBe('FF79C6');
   });
 
   it('scope as array produces rules', () => {
@@ -246,8 +245,8 @@ describe('convertVSCodeTheme — token specificity', () => {
     };
     const result = convertVSCodeTheme(theme, 'array-test');
     const str = result.monaco.rules.find(r => r.token === 'string');
-    assert.ok(str);
-    assert.equal(str.foreground, 'E5C07B');
+    expect(str).toBeTruthy();
+    expect(str.foreground).toBe('E5C07B');
   });
 });
 
@@ -265,7 +264,7 @@ describe('convertVSCodeTheme — hex normalization', () => {
       tokenColors: [],
     };
     const result = convertVSCodeTheme(theme, 'short-hex');
-    assert.equal(result.css['--bg-deepest'], '#2288aa');
+    expect(result.css['--bg-deepest']).toBe('#2288aa');
   });
 
   it('strips alpha from #RRGGBBAA in background CSS vars', () => {
@@ -278,7 +277,7 @@ describe('convertVSCodeTheme — hex normalization', () => {
       tokenColors: [],
     };
     const result = convertVSCodeTheme(theme, 'alpha-hex');
-    assert.equal(result.css['--bg-deepest'], '#282a36');
+    expect(result.css['--bg-deepest']).toBe('#282a36');
   });
 
   it('dimColor handles #RGB input', () => {
@@ -293,7 +292,7 @@ describe('convertVSCodeTheme — hex normalization', () => {
     };
     const result = convertVSCodeTheme(theme, 'dim-short');
     // #5f7 -> #55ff77, dimmed by 0.4: R=85*0.4=34=0x22, G=255*0.4=102=0x66, B=119*0.4=48=0x30
-    assert.equal(result.css['--accent-green-dim'], '#226630');
+    expect(result.css['--accent-green-dim']).toBe('#226630');
   });
 
   it('dimColor handles #RRGGBBAA input', () => {
@@ -307,7 +306,7 @@ describe('convertVSCodeTheme — hex normalization', () => {
     };
     const result = convertVSCodeTheme(theme, 'dim-alpha');
     // normalized to #50fa7b, then dimmed by 0.4
-    assert.equal(result.css['--accent-green-dim'], '#206431');
+    expect(result.css['--accent-green-dim']).toBe('#206431');
   });
 });
 
@@ -318,24 +317,24 @@ describe('convertVSCodeTheme — light theme', () => {
   const result = convertVSCodeTheme(LIGHT_THEME, 'quiet-light');
 
   it('uses vs base', () => {
-    assert.equal(result.monaco.base, 'vs');
+    expect(result.monaco.base).toBe('vs');
   });
 
   it('maps --bg-deepest from editor.background', () => {
-    assert.equal(result.css['--bg-deepest'], '#fafafa');
+    expect(result.css['--bg-deepest']).toBe('#fafafa');
   });
 
   it('uses light fallback for --bg-surface when not in colors', () => {
     // editorWidget.background not in LIGHT_THEME.colors, should fall back to #ffffff
-    assert.equal(result.css['--bg-surface'], '#ffffff');
+    expect(result.css['--bg-surface']).toBe('#ffffff');
   });
 
   it('uses light fallback for --accent-green when not in colors', () => {
-    assert.equal(result.css['--accent-green'], '#059a50');
+    expect(result.css['--accent-green']).toBe('#059a50');
   });
 
   it('produces 16 CSS variables', () => {
-    assert.equal(Object.keys(result.css).length, 16);
+    expect(Object.keys(result.css).length).toBe(16);
   });
 });
 
@@ -344,31 +343,31 @@ describe('convertVSCodeTheme — light theme', () => {
 // ---------------------------------------------------------------------------
 describe('getMonacoBase', () => {
   it('maps dark type to vs-dark', () => {
-    assert.equal(getMonacoBase({ type: 'dark' }), 'vs-dark');
+    expect(getMonacoBase({ type: 'dark' })).toBe('vs-dark');
   });
 
   it('maps light type to vs', () => {
-    assert.equal(getMonacoBase({ type: 'light' }), 'vs');
+    expect(getMonacoBase({ type: 'light' })).toBe('vs');
   });
 
   it('maps vs to vs', () => {
-    assert.equal(getMonacoBase({ type: 'vs' }), 'vs');
+    expect(getMonacoBase({ type: 'vs' })).toBe('vs');
   });
 
   it('maps hc-black type to hc-black', () => {
-    assert.equal(getMonacoBase({ type: 'hc-black' }), 'hc-black');
+    expect(getMonacoBase({ type: 'hc-black' })).toBe('hc-black');
   });
 
   it('maps hc-black uiTheme to hc-black', () => {
-    assert.equal(getMonacoBase({ uiTheme: 'hc-black' }), 'hc-black');
+    expect(getMonacoBase({ uiTheme: 'hc-black' })).toBe('hc-black');
   });
 
   it('maps hc-light type to hc-light', () => {
-    assert.equal(getMonacoBase({ type: 'hc-light' }), 'hc-light');
+    expect(getMonacoBase({ type: 'hc-light' })).toBe('hc-light');
   });
 
   it('defaults to vs-dark for unknown type', () => {
-    assert.equal(getMonacoBase({}), 'vs-dark');
+    expect(getMonacoBase({})).toBe('vs-dark');
   });
 });
 
@@ -376,12 +375,12 @@ describe('convertVSCodeTheme — hc-black theme', () => {
   const result = convertVSCodeTheme(HC_BLACK_THEME, 'hc-test');
 
   it('sets Monaco base to hc-black', () => {
-    assert.equal(result.monaco.base, 'hc-black');
+    expect(result.monaco.base).toBe('hc-black');
   });
 
   it('uses dark defaults for missing CSS vars (hc-black is dark)', () => {
     // hc-black is treated as dark, so accent-green falls back to dark default
-    assert.equal(result.css['--accent-green'], '#00e57a');
+    expect(result.css['--accent-green']).toBe('#00e57a');
   });
 });
 
@@ -389,7 +388,7 @@ describe('convertVSCodeTheme — hc-light theme', () => {
   const result = convertVSCodeTheme(HC_LIGHT_THEME, 'hc-light-test');
 
   it('sets Monaco base to hc-light', () => {
-    assert.equal(result.monaco.base, 'hc-light');
+    expect(result.monaco.base).toBe('hc-light');
   });
 });
 
@@ -401,11 +400,11 @@ describe('convertVSCodeTheme — missing tokenColors', () => {
   const result = convertVSCodeTheme(theme, 'no-tokens');
 
   it('returns empty rules array', () => {
-    assert.deepEqual(result.monaco.rules, []);
+    expect(result.monaco.rules).toEqual([]);
   });
 
   it('sets inherit to true', () => {
-    assert.equal(result.monaco.inherit, true);
+    expect(result.monaco.inherit).toBe(true);
   });
 });
 
@@ -420,16 +419,16 @@ describe('convertVSCodeTheme — missing colors object', () => {
   const result = convertVSCodeTheme(theme, 'no-colors');
 
   it('uses all fallback defaults for CSS vars', () => {
-    assert.equal(result.css['--bg-deepest'], '#07080a');
-    assert.equal(result.css['--text-primary'], '#c8d4e0');
+    expect(result.css['--bg-deepest']).toBe('#07080a');
+    expect(result.css['--text-primary']).toBe('#c8d4e0');
   });
 
   it('still generates token rules', () => {
-    assert.ok(result.monaco.rules.length > 0);
+    expect(result.monaco.rules.length).toBeGreaterThan(0);
   });
 
   it('produces an empty Monaco colors object', () => {
-    assert.deepEqual(result.monaco.colors, {});
+    expect(result.monaco.colors).toEqual({});
   });
 });
 
@@ -446,10 +445,10 @@ describe('convertVSCodeTheme — tokenColor entries with no scope (global)', () 
   const result = convertVSCodeTheme(theme, 'global-token');
 
   it('skips entries with no scope without crashing', () => {
-    assert.ok(result.monaco.rules.length >= 1);
+    expect(result.monaco.rules.length).toBeGreaterThanOrEqual(1);
     const commentRule = result.monaco.rules.find(r => r.token === 'comment');
-    assert.ok(commentRule);
-    assert.equal(commentRule.foreground, '608b4e');
+    expect(commentRule).toBeTruthy();
+    expect(commentRule.foreground).toBe('608b4e');
   });
 });
 
@@ -468,8 +467,8 @@ describe('convertVSCodeTheme — tokenColor with empty settings', () => {
   it('skips entries with empty settings gracefully', () => {
     // comment has no foreground, should not produce a rule (or produce one without foreground)
     const kwRule = result.monaco.rules.find(r => r.token === 'keyword');
-    assert.ok(kwRule);
-    assert.equal(kwRule.foreground, 'c586c0');
+    expect(kwRule).toBeTruthy();
+    expect(kwRule.foreground).toBe('c586c0');
   });
 });
 
@@ -479,28 +478,28 @@ describe('convertVSCodeTheme — tokenColor with empty settings', () => {
 describe('validateConvertedTheme', () => {
   it('returns true for a fully converted theme', () => {
     const result = convertVSCodeTheme(DRACULA_THEME, 'dracula');
-    assert.equal(validateConvertedTheme(result), true);
+    expect(validateConvertedTheme(result)).toBe(true);
   });
 
   it('returns false when --bg-deepest is missing', () => {
     const result = convertVSCodeTheme(DRACULA_THEME, 'dracula');
     delete result.css['--bg-deepest'];
-    assert.equal(validateConvertedTheme(result), false);
+    expect(validateConvertedTheme(result)).toBe(false);
   });
 
   it('returns false when --text-primary is missing', () => {
     const result = convertVSCodeTheme(DRACULA_THEME, 'dracula');
     delete result.css['--text-primary'];
-    assert.equal(validateConvertedTheme(result), false);
+    expect(validateConvertedTheme(result)).toBe(false);
   });
 
   it('returns false when css property is missing entirely', () => {
-    assert.equal(validateConvertedTheme({ label: 'x', monaco: {}, xterm: {} }), false);
+    expect(validateConvertedTheme({ label: 'x', monaco: {}, xterm: {} })).toBe(false);
   });
 
   it('returns false when theme is null/undefined', () => {
-    assert.equal(validateConvertedTheme(null), false);
-    assert.equal(validateConvertedTheme(undefined), false);
+    expect(validateConvertedTheme(null)).toBe(false);
+    expect(validateConvertedTheme(undefined)).toBe(false);
   });
 });
 
@@ -525,19 +524,19 @@ describe('convertVSCodeTheme — alpha stripping on background CSS vars', () => 
   const result = convertVSCodeTheme(theme, 'alpha-bg');
 
   it('strips alpha from --bg-deepest', () => {
-    assert.equal(result.css['--bg-deepest'], '#282a36');
+    expect(result.css['--bg-deepest']).toBe('#282a36');
   });
 
   it('strips alpha from --bg-surface', () => {
-    assert.equal(result.css['--bg-surface'], '#21222c');
+    expect(result.css['--bg-surface']).toBe('#21222c');
   });
 
   it('strips alpha from --bg-elevated', () => {
-    assert.equal(result.css['--bg-elevated'], '#21222c');
+    expect(result.css['--bg-elevated']).toBe('#21222c');
   });
 
   it('strips alpha from --bg-active', () => {
-    assert.equal(result.css['--bg-active'], '#44475a');
+    expect(result.css['--bg-active']).toBe('#44475a');
   });
 });
 
@@ -547,8 +546,8 @@ describe('convertVSCodeTheme — alpha stripping on background CSS vars', () => 
 describe('convertVSCodeTheme — Monaco colors', () => {
   it('passes through VSCode colors to Monaco colors object', () => {
     const result = convertVSCodeTheme(DRACULA_THEME, 'dracula');
-    assert.equal(result.monaco.colors['editor.background'], '#282a36');
-    assert.equal(result.monaco.colors['editor.foreground'], '#f8f8f2');
+    expect(result.monaco.colors['editor.background']).toBe('#282a36');
+    expect(result.monaco.colors['editor.foreground']).toBe('#f8f8f2');
   });
 });
 
@@ -559,6 +558,6 @@ describe('convertVSCodeTheme — label fallback', () => {
   it('uses themeId when name is missing', () => {
     const theme = { type: 'dark', colors: {}, tokenColors: [] };
     const result = convertVSCodeTheme(theme, 'my-custom-theme');
-    assert.equal(result.label, 'my-custom-theme');
+    expect(result.label).toBe('my-custom-theme');
   });
 });

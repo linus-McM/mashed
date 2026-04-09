@@ -6,6 +6,9 @@
 
 package terminal
 
+// All tests in this file require a real PTY (creack/pty fork/exec).
+// Add testing.Short() skip guard to any new test functions.
+
 import (
 	"context"
 	"errors"
@@ -41,6 +44,9 @@ func spawnShell(t *testing.T, sm *SessionManager, name string) *ManagedSession {
 // ---------------------------------------------------------------------------
 
 func TestSessionManager_AC1_SpawnDefaultShell(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 1: Spawn and retrieve a session
 	// BDD Scenario 3: Empty command uses SHELL env
 	sm := NewSessionManager()
@@ -64,6 +70,9 @@ func TestSessionManager_AC1_SpawnDefaultShell(t *testing.T) {
 }
 
 func TestSessionManager_AC1_SpawnWithRepoPath(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	defer sm.Shutdown()
 
@@ -77,6 +86,9 @@ func TestSessionManager_AC1_SpawnWithRepoPath(t *testing.T) {
 }
 
 func TestSessionManager_AC1_SpawnSetsTermEnv(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	defer sm.Shutdown()
 
@@ -96,6 +108,9 @@ func TestSessionManager_AC1_SpawnSetsTermEnv(t *testing.T) {
 }
 
 func TestSessionManager_AC1_SpawnSetsProcessGroup(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	defer sm.Shutdown()
 
@@ -112,6 +127,9 @@ func TestSessionManager_AC1_SpawnSetsProcessGroup(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestSessionManager_AC2_DuplicateName(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 2: Reject duplicate name
 	sm := NewSessionManager()
 	defer sm.Shutdown()
@@ -140,6 +158,9 @@ func TestSessionManager_AC2_DuplicateName(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestSessionManager_AC3_GetKillLifecycle(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 1: Kill removes session from manager
 	sm := NewSessionManager()
 	defer sm.Shutdown()
@@ -164,6 +185,9 @@ func TestSessionManager_AC3_GetKillLifecycle(t *testing.T) {
 }
 
 func TestSessionManager_AC3_KillNonExistent(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 1: Kill non-existent session returns error
 	sm := NewSessionManager()
 	defer sm.Shutdown()
@@ -174,6 +198,9 @@ func TestSessionManager_AC3_KillNonExistent(t *testing.T) {
 }
 
 func TestSessionManager_AC3_GetNonExistent(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 
 	got, ok := sm.Get("nope")
@@ -182,6 +209,9 @@ func TestSessionManager_AC3_GetNonExistent(t *testing.T) {
 }
 
 func TestSessionManager_AC3_IsAliveNonExistent(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 
 	assert.False(t, sm.IsAlive("nope"), "IsAlive should be false for non-existent session")
@@ -192,6 +222,9 @@ func TestSessionManager_AC3_IsAliveNonExistent(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestSessionManager_AC4_FindByPID(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 5: Find existing session by PID
 	sm := NewSessionManager()
 	defer sm.Shutdown()
@@ -207,6 +240,9 @@ func TestSessionManager_AC4_FindByPID(t *testing.T) {
 }
 
 func TestSessionManager_AC4_FindByPID_Unknown(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 5: FindByPID returns nil for unknown PID
 	sm := NewSessionManager()
 	defer sm.Shutdown()
@@ -219,6 +255,9 @@ func TestSessionManager_AC4_FindByPID_Unknown(t *testing.T) {
 }
 
 func TestSessionManager_AC4_FindByPID_EmptyManager(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 
 	found, ok := sm.FindByPID(1)
@@ -231,6 +270,9 @@ func TestSessionManager_AC4_FindByPID_EmptyManager(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestSessionManager_AC5_Shutdown(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	// BDD Scenario 4: Shutdown kills all sessions
 	sm := NewSessionManager()
 
@@ -259,6 +301,9 @@ func TestSessionManager_AC5_Shutdown(t *testing.T) {
 }
 
 func TestSessionManager_AC5_ShutdownIdempotent(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	_ = spawnShell(t, sm, "x")
 
@@ -272,6 +317,9 @@ func TestSessionManager_AC5_ShutdownIdempotent(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestSessionManager_AC6_SpawnWithCommand(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	defer sm.Shutdown()
 
@@ -292,6 +340,9 @@ func TestSessionManager_AC6_SpawnWithCommand(t *testing.T) {
 }
 
 func TestSessionManager_AC6_SpawnWithCommandArgs(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	defer sm.Shutdown()
 
@@ -311,6 +362,9 @@ func TestSessionManager_AC6_SpawnWithCommandArgs(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestSessionManager_List_All(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	defer sm.Shutdown()
 
@@ -323,6 +377,9 @@ func TestSessionManager_List_All(t *testing.T) {
 }
 
 func TestSessionManager_List_WithFilter(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	defer sm.Shutdown()
 
@@ -337,6 +394,9 @@ func TestSessionManager_List_WithFilter(t *testing.T) {
 }
 
 func TestSessionManager_List_Empty(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	sm := NewSessionManager()
 	list := sm.List(nil)
 	assert.Empty(t, list)
@@ -347,6 +407,9 @@ func TestSessionManager_List_Empty(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestSessionManager_ConcurrentSpawnAndKill(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
 	t.Parallel()
 
 	sm := NewSessionManager()
