@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** S
 **Depends On:** pty-02, pty-04
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -124,28 +124,28 @@ Feature: BMAD executor compatibility
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add `Name()` getter to ManagedSession if not present (AC: AC-1)
-  - [ ] Subtask 1a: Verify `ManagedSession` has a `Name() string` method; add if missing
-  - [ ] Subtask 1b: Ensure the name matches the key used in `SessionManager.sessions` map
+- [x] Task 1: Add `Name()` getter to ManagedSession if not present (AC: AC-1)
+  - [x] Subtask 1a: Verify `ManagedSession` has a `Name() string` method; add if missing
+  - [x] Subtask 1b: Ensure the name matches the key used in `SessionManager.sessions` map
 
-- [ ] Task 2: Update `doScan()` with dual PID lookup (AC: AC-1, AC-2, AC-3, AC-4)
-  - [ ] Subtask 2a: Add `a.manager.FindByPID(s.PID)` check before tmux fallback
-  - [ ] Subtask 2b: Use `sess.Name()` as `tmuxTarget` for managed sessions
-  - [ ] Subtask 2c: Keep existing `a.panes.FindPaneForPID(s.PID)` as fallback
-  - [ ] Subtask 2d: Keep `continue` for agents without any session
+- [x] Task 2: Update `doScan()` with dual PID lookup (AC: AC-1, AC-2, AC-3, AC-4)
+  - [x] Subtask 2a: Add `a.manager.FindByPID(s.PID)` check before tmux fallback
+  - [x] Subtask 2b: Use `sess.Name()` as `tmuxTarget` for managed sessions
+  - [x] Subtask 2c: Keep existing `a.panes.FindPaneForPID(s.PID)` as fallback
+  - [x] Subtask 2d: Keep `continue` for agents without any session
 
-- [ ] Task 3: Write tests for dual lookup (AC: AC-1, AC-2, AC-3)
-  - [ ] Subtask 3a: Test with mock manager that returns a session for known PID
-  - [ ] Subtask 3b: Test fallback to pane discovery when manager returns nil
-  - [ ] Subtask 3c: Test skip when neither manager nor panes match
+- [x] Task 3: Write tests for dual lookup (AC: AC-1, AC-2, AC-3)
+  - [x] Subtask 3a: Test with mock manager that returns a session for known PID
+  - [x] Subtask 3b: Test fallback to pane discovery when manager returns nil
+  - [x] Subtask 3c: Test skip when neither manager nor panes match
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ code coverage on modified `doScan()` code paths
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code
-- [ ] Code review: no CRITICAL/HIGH issues
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ code coverage on modified `doScan()` code paths
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code
+- [x] Code review: no CRITICAL/HIGH issues
