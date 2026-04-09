@@ -51,7 +51,15 @@ func buildMenu(app *App) *menu.Menu {
 	})
 	file.AddSeparator()
 	file.AddText("Take Screenshot", keys.Combo("s", keys.CmdOrCtrlKey, keys.ShiftKey), func(cd *menu.CallbackData) {
-		if _, err := app.TakeScreenshot(); err != nil {
+		app.mu.Lock()
+		rp := app.activeRepoPath
+		pt := app.activePaneTarget
+		app.mu.Unlock()
+		if rp == "" {
+			log.Println("screenshot: no active context, skipping")
+			return
+		}
+		if _, err := app.TakeScreenshot(rp, pt); err != nil {
 			log.Printf("screenshot failed: %v", err)
 		}
 	})

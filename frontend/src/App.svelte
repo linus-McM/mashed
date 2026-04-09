@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { EventsOn } from '../wailsjs/runtime/runtime.js';
-  import { GetNotifications, GetDevDir, GetConfig, ListLocalFonts } from '../wailsjs/go/main/App.js';
+  import { GetNotifications, GetDevDir, GetConfig, ListLocalFonts, SetActiveContext } from '../wailsjs/go/main/App.js';
   import Setup from './views/Setup.svelte';
   import NotificationFeed from './views/NotificationFeed.svelte';
   import AgentDetail from './views/AgentDetail.svelte';
@@ -125,6 +125,7 @@
   }
 
   function goBack() {
+    SetActiveContext('', '');
     currentView = 'feed';
     selectedAgent = null;
   }

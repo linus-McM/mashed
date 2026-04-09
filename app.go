@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -49,7 +50,9 @@ type App struct {
 	manager     sessionManager
 	panes       paneDiscoverer
 	explainer   *explain.Explainer
-	mu          sync.Mutex
+	mu               sync.Mutex
+	activeRepoPath   string
+	activePaneTarget string
 
 	devDir        string // root directory to scan for repos
 	notifications []domain.NotificationEvent
@@ -192,15 +195,31 @@ func (a *App) PickDirectory() (string, error) {
 	return dir, nil
 }
 
-// TakeScreenshot launches macOS screencapture and returns the saved file path.
-func (a *App) TakeScreenshot() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
+// SetActiveContext stores the current repo path and pane target for screenshot routing.
+func (a *App) SetActiveContext(repoPath, paneTarget string) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.activeRepoPath = repoPath
+	a.activePaneTarget = paneTarget
+}
+
+// TakeScreenshot launches macOS screencapture and saves under {repoPath}/.screenshots/.
+func (a *App) TakeScreenshot(repoPath, paneTarget string) (string, error) {
+	if repoPath == "" {
+		return "", fmt.Errorf("empty repoPath")
+	}
+
+	screenshotDir := filepath.Join(repoPath, ".screenshots")
+	if err := os.MkdirAll(screenshotDir, 0755); err != nil {
 		return "", fmt.Errorf("screencapture: %w", err)
 	}
 
-	filename := fmt.Sprintf("mashed-screenshot-%s.png", time.Now().Format("20060102-150405"))
-	path := filepath.Join(home, "Desktop", filename)
+	if err := ensureGitignoreEntry(repoPath, ".screenshots/"); err != nil {
+		return "", fmt.Errorf("screencapture: %w", err)
+	}
+
+	filename := fmt.Sprintf("screenshot-%s.png", time.Now().Format("20060102-150405"))
+	path := filepath.Join(screenshotDir, filename)
 
 	ctx := a.ctx
 	if ctx == nil {
@@ -217,9 +236,32 @@ func (a *App) TakeScreenshot() (string, error) {
 	}
 
 	if a.cancel != nil {
+		runtime.EventsEmit(a.ctx, "screenshot:inject", map[string]string{"path": path, "paneTarget": paneTarget})
 		runtime.EventsEmit(a.ctx, "screenshot:taken", path)
 	}
 	return path, nil
+}
+
+// ensureGitignoreEntry appends entry to .gitignore if not already present.
+func ensureGitignoreEntry(repoPath, entry string) error {
+	gitignorePath := filepath.Join(repoPath, ".gitignore")
+	content, err := os.ReadFile(gitignorePath)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("read .gitignore: %w", err)
+	}
+	if strings.Contains(string(content), entry) {
+		return nil
+	}
+	f, err := os.OpenFile(gitignorePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("open .gitignore: %w", err)
+	}
+	defer f.Close()
+	if len(content) > 0 && !strings.HasSuffix(string(content), "\n") {
+		fmt.Fprintln(f)
+	}
+	fmt.Fprintf(f, "\n# mashed screenshots\n%s\n", entry)
+	return nil
 }
 
 // SetDevDir saves the chosen directory and starts scanning.

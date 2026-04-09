@@ -12,11 +12,12 @@ import (
 
 func TestTakeScreenshot_AC3_FilenameFormat(t *testing.T) {
 	pattern := regexp.MustCompile(
-		`^.*/Desktop/mashed-screenshot-\d{8}-\d{6}\.png$`,
+		`^.*/\.screenshots/screenshot-\d{8}-\d{6}\.png$`,
 	)
 
+	tmpDir := t.TempDir()
 	app := &App{ctx: context.Background()}
-	path, err := app.TakeScreenshot()
+	path, err := app.TakeScreenshot(tmpDir, "test:agent")
 
 	if err != nil {
 		// screencapture unavailable (CI, Linux) — verify error mentions the tool
@@ -26,7 +27,7 @@ func TestTakeScreenshot_AC3_FilenameFormat(t *testing.T) {
 
 	if path != "" {
 		assert.Regexp(t, pattern, path,
-			"screenshot path must match mashed-screenshot-YYYYMMDD-HHMMSS.png format")
+			"screenshot path must match screenshot-YYYYMMDD-HHMMSS.png format")
 	}
 }
 
@@ -34,8 +35,9 @@ func TestTakeScreenshot_AC6_Cancellation(t *testing.T) {
 	// Cancellation (Escape) returns ("", nil). Full test requires macOS interaction;
 	// here we verify the method compiles and returns correct types.
 
+	tmpDir := t.TempDir()
 	app := &App{ctx: context.Background()}
-	path, err := app.TakeScreenshot()
+	path, err := app.TakeScreenshot(tmpDir, "test:agent")
 
 	if err != nil {
 		t.Skipf("screencapture not available: %v", err)
@@ -47,8 +49,9 @@ func TestTakeScreenshot_AC6_Cancellation(t *testing.T) {
 }
 
 func TestTakeScreenshot_AC3_ErrorWrapping(t *testing.T) {
+	tmpDir := t.TempDir()
 	app := &App{ctx: context.Background()}
-	_, err := app.TakeScreenshot()
+	_, err := app.TakeScreenshot(tmpDir, "test:agent")
 
 	if err == nil {
 		t.Skip("screencapture succeeded or user cancelled; cannot test error wrapping")
@@ -63,8 +66,9 @@ func TestTakeScreenshot_AC3_ErrorWrapping(t *testing.T) {
 
 func TestTakeScreenshot_NilContext(t *testing.T) {
 	app := &App{}
+	tmpDir := t.TempDir()
 
 	require.NotPanics(t, func() {
-		_, _ = app.TakeScreenshot()
+		_, _ = app.TakeScreenshot(tmpDir, "test:agent")
 	}, "TakeScreenshot must not panic with nil context")
 }

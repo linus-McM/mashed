@@ -254,6 +254,10 @@ export function SaveTheme(arg1, arg2) {
   return window['go']['main']['App']['SaveTheme'](arg1, arg2);
 }
 
+export function SetActiveContext(arg1, arg2) {
+  return window['go']['main']['App']['SetActiveContext'](arg1, arg2);
+}
+
 export function SetDevDir(arg1) {
   return window['go']['main']['App']['SetDevDir'](arg1);
 }

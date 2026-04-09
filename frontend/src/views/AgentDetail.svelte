@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus, RepoMtimes, KillTerminalSession, SpawnTerminal } from '../../wailsjs/go/main/App.js';
+  import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus, RepoMtimes, KillTerminalSession, SpawnTerminal, SetActiveContext } from '../../wailsjs/go/main/App.js';
   import { repoSessions, refreshSessions } from '../lib/stores/sessions.js';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
   import { ArrowLeft, GitBranch, GripVertical, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, Download, GitMerge, AlertTriangle } from 'lucide-svelte';
@@ -100,6 +100,11 @@
     }
   }
   $: activeSession = sessions[activeSessionIdx] || null;
+
+  // Keep backend aware of which terminal is active (used for screenshot routing)
+  $: if (agent?.repoPath && activeSession?.paneTarget) {
+    SetActiveContext(agent.repoPath, activeSession.paneTarget);
+  }
 
   async function killSession(sessionName) {
     await KillTerminalSession(sessionName);

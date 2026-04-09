@@ -13,6 +13,7 @@
   let ws;
   let logPollInterval;
   let resizeObserver;
+  let unsubScreenshot;
 
   const KIND_COLORS = {
     ok:     '\x1b[32m',  // green
@@ -159,6 +160,17 @@
           sendResize();
           // Clear the "Connecting..." message and any stale 1x1 rendering
           term.clear();
+
+          // Listen for screenshot path injection scoped to this terminal's pane
+          if (unsubScreenshot) unsubScreenshot();
+          unsubScreenshot = EventsOn('screenshot:inject', (data) => {
+            if (data.paneTarget !== paneTarget) return;
+            pasteToTerminal(data.path);
+            // Send Enter to submit the pasted path
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              ws.send(new TextEncoder().encode('\r'));
+            }
+          });
         };
 
         const decoder = new TextDecoder();
@@ -214,6 +226,7 @@
   });
 
   onDestroy(() => {
+    if (unsubScreenshot) unsubScreenshot();
     if (resizeObserver) resizeObserver.disconnect();
     if (onWindowFocus) window.removeEventListener('focus', onWindowFocus);
     if (ws) ws.close();

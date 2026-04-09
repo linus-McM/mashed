@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** L
 **Depends On:** Story 1 (meditor-01)
-**Status:** ready
+**Status:** done
 
 ## Description
 

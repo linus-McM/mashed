@@ -130,6 +130,8 @@ export function SaveBmadWorkflow(arg1:bmad.WorkflowDef):Promise<void>;
 
 export function SaveTheme(arg1:string,arg2:string):Promise<void>;
 
+export function SetActiveContext(arg1:string,arg2:string):Promise<void>;
+
 export function SetDevDir(arg1:string):Promise<void>;
 
 export function SetFontSize(arg1:number):Promise<void>;
