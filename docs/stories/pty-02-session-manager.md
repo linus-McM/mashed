@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** M
 **Depends On:** pty-01
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -174,41 +174,41 @@ Feature: Find session by PID
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Implement `SessionManager` struct and constructor (AC: AC-1)
-  - [ ] Subtask 1a: Define `SessionManager` struct with `mu`, `sessions` map
-  - [ ] Subtask 1b: Implement `NewSessionManager()` constructor
-  - [ ] Subtask 1c: Add sentinel errors `ErrSessionExists`, `ErrSessionNotFound`
+- [x] Task 1: Implement `SessionManager` struct and constructor (AC: AC-1)
+  - [x] Subtask 1a: Define `SessionManager` struct with `mu`, `sessions` map
+  - [x] Subtask 1b: Implement `NewSessionManager()` constructor
+  - [x] Subtask 1c: Add sentinel errors `ErrSessionExists`, `ErrSessionNotFound`
 
-- [ ] Task 2: Implement `Spawn` method (AC: AC-1, AC-2, AC-6)
-  - [ ] Subtask 2a: Shell detection logic (`$SHELL` env, `/bin/zsh` fallback)
-  - [ ] Subtask 2b: Command parsing with `strings.Fields`
-  - [ ] Subtask 2c: `exec.CommandContext` setup with `Dir`, `Env`, `SysProcAttr`
-  - [ ] Subtask 2d: PTY start via `pty.StartWithSize`, construct `ManagedSession`, store in map, start `readLoop`
-  - [ ] Subtask 2e: Duplicate name check under lock; cleanup on PTY start failure
+- [x] Task 2: Implement `Spawn` method (AC: AC-1, AC-2, AC-6)
+  - [x] Subtask 2a: Shell detection logic (`$SHELL` env, `/bin/zsh` fallback)
+  - [x] Subtask 2b: Command parsing with `strings.Fields`
+  - [x] Subtask 2c: `exec.CommandContext` setup with `Dir`, `Env`, `SysProcAttr`
+  - [x] Subtask 2d: PTY start via `pty.StartWithSize`, construct `ManagedSession`, store in map, start `readLoop`
+  - [x] Subtask 2e: Duplicate name check under lock; cleanup on PTY start failure
 
-- [ ] Task 3: Implement query methods (AC: AC-3, AC-4)
-  - [ ] Subtask 3a: `Get(name)` -- lock, lookup, unlock
-  - [ ] Subtask 3b: `IsAlive(name)` -- lock, lookup + `session.IsAlive()`, unlock
-  - [ ] Subtask 3c: `FindByPID(pid)` -- lock, iterate, match `cmd.Process.Pid`, unlock
-  - [ ] Subtask 3d: `List(filter)` -- lock, iterate with filter, return snapshot
+- [x] Task 3: Implement query methods (AC: AC-3, AC-4)
+  - [x] Subtask 3a: `Get(name)` -- lock, lookup, unlock
+  - [x] Subtask 3b: `IsAlive(name)` -- lock, lookup + `session.IsAlive()`, unlock
+  - [x] Subtask 3c: `FindByPID(pid)` -- lock, iterate, match `cmd.Process.Pid`, unlock
+  - [x] Subtask 3d: `List(filter)` -- lock, iterate with filter, return snapshot
 
-- [ ] Task 4: Implement `Kill` and `Shutdown` (AC: AC-3, AC-5)
-  - [ ] Subtask 4a: `Kill(name)` -- lock, lookup, call `session.Kill()`, delete from map
-  - [ ] Subtask 4b: `Shutdown()` -- lock, collect all sessions, unlock, kill each, clear map
-  - [ ] Subtask 4c: Write tests for concurrent Kill and Shutdown
+- [x] Task 4: Implement `Kill` and `Shutdown` (AC: AC-3, AC-5)
+  - [x] Subtask 4a: `Kill(name)` -- lock, lookup, call `session.Kill()`, delete from map
+  - [x] Subtask 4b: `Shutdown()` -- lock, collect all sessions, unlock, kill each, clear map
+  - [x] Subtask 4c: Write tests for concurrent Kill and Shutdown
 
-- [ ] Task 5: Write comprehensive tests (AC: all)
-  - [ ] Subtask 5a: Table-driven tests for Spawn (valid, duplicate, empty command, with command)
-  - [ ] Subtask 5b: Integration test: spawn real shell, verify PID lookup, kill, verify dead
-  - [ ] Subtask 5c: Race condition test: concurrent Spawn + Kill + Get
+- [x] Task 5: Write comprehensive tests (AC: all)
+  - [x] Subtask 5a: Table-driven tests for Spawn (valid, duplicate, empty command, with command)
+  - [x] Subtask 5b: Integration test: spawn real shell, verify PID lookup, kill, verify dead
+  - [x] Subtask 5c: Race condition test: concurrent Spawn + Kill + Get
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ code coverage on `internal/terminal/manager.go`
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code
-- [ ] Code review: no CRITICAL/HIGH issues
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ code coverage on `internal/terminal/manager.go`
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code
+- [x] Code review: no CRITICAL/HIGH issues
