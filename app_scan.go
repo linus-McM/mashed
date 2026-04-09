@@ -53,6 +53,19 @@ func (a *App) scanLoop() {
 	}
 }
 
+// resolveTmuxTarget returns the terminal target for a process PID.
+// Managed PTY sessions take priority; tmux panes are the fallback for
+// externally spawned sessions (BMAD, manual tmux).
+func (a *App) resolveTmuxTarget(pid int) string {
+	if sess, ok := a.manager.FindByPID(pid); ok {
+		return sess.Name()
+	}
+	if pane, err := a.panes.FindPaneForPID(pid); err == nil && pane != nil {
+		return pane.Target()
+	}
+	return ""
+}
+
 // doScan performs one round of process scanning and feeds updates to the engine.
 func (a *App) doScan() {
 	sessions, err := a.provider.ScanProcesses()
@@ -131,11 +144,7 @@ func (a *App) doScan() {
 			status = a.inferStatus(sessionData)
 		}
 
-		// Look up tmux pane target — skip agents without a tmux session
-		var tmuxTarget string
-		if pane, err := a.panes.FindPaneForPID(s.PID); err == nil && pane != nil {
-			tmuxTarget = pane.Target()
-		}
+		tmuxTarget := a.resolveTmuxTarget(s.PID)
 		if tmuxTarget == "" {
 			continue
 		}

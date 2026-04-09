@@ -18,8 +18,9 @@ import (
 // ── fakePaneDiscovery satisfies paneDiscoverer for testing ──
 
 type fakePaneDiscovery struct {
-	panes []terminal.TmuxPane
-	err   error
+	panes    []terminal.TmuxPane
+	err      error
+	pidPanes map[int]*terminal.TmuxPane
 }
 
 func (f *fakePaneDiscovery) ListPanes() ([]terminal.TmuxPane, error) {
@@ -28,21 +29,30 @@ func (f *fakePaneDiscovery) ListPanes() ([]terminal.TmuxPane, error) {
 
 func (f *fakePaneDiscovery) InvalidateCache() {}
 
-func (f *fakePaneDiscovery) FindPaneForPID(_ int) (*terminal.TmuxPane, error) {
+func (f *fakePaneDiscovery) FindPaneForPID(pid int) (*terminal.TmuxPane, error) {
+	if f.pidPanes != nil {
+		if pane, ok := f.pidPanes[pid]; ok {
+			return pane, nil
+		}
+	}
 	return nil, nil
 }
 
 // ── fakeSessionManager satisfies sessionManager for testing ──
 
 type fakeSessionManager struct {
-	mu       sync.Mutex
-	alive    map[string]bool
-	killed   []string
-	shutdown bool
+	mu        sync.Mutex
+	alive     map[string]bool
+	killed    []string
+	shutdown  bool
+	pidToSess map[int]*terminal.ManagedSession
 }
 
 func newFakeManager(aliveNames ...string) *fakeSessionManager {
-	m := &fakeSessionManager{alive: make(map[string]bool)}
+	m := &fakeSessionManager{
+		alive:     make(map[string]bool),
+		pidToSess: make(map[int]*terminal.ManagedSession),
+	}
 	for _, n := range aliveNames {
 		m.alive[n] = true
 	}
@@ -71,6 +81,13 @@ func (f *fakeSessionManager) IsAlive(name string) bool {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return f.alive[name]
+}
+
+func (f *fakeSessionManager) FindByPID(pid int) (*terminal.ManagedSession, bool) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	ms, ok := f.pidToSess[pid]
+	return ms, ok
 }
 
 func (f *fakeSessionManager) Shutdown() {
@@ -565,4 +582,62 @@ func TestStory4_AC7_RecoverSessionsIsNoOp(t *testing.T) {
 	count := len(app.terminalSessions)
 	app.mu.Unlock()
 	assert.Equal(t, 0, count, "recoverSessions must be a no-op")
+}
+
+// ── Story 5: Dual PID Lookup in Scan ──
+
+func TestStory5_ResolveTmuxTarget(t *testing.T) {
+	tests := []struct {
+		name       string
+		pid        int
+		mgrSess    map[int]*terminal.ManagedSession
+		paneSess   map[int]*terminal.TmuxPane
+		wantTarget string
+	}{
+		{
+			name:       "AC1_manager_spawned_agent_found",
+			pid:        1234,
+			mgrSess:    map[int]*terminal.ManagedSession{1234: terminal.NewStubSession("mashed-repo-100")},
+			wantTarget: "mashed-repo-100",
+		},
+		{
+			name: "AC2_external_tmux_fallback",
+			pid:  5678,
+			paneSess: map[int]*terminal.TmuxPane{5678: {
+				PanePID: 5678, SessionName: "external-sess", WindowIndex: 0, PaneIndex: 0,
+			}},
+			wantTarget: "external-sess:0.0",
+		},
+		{
+			name:    "AC3_manager_takes_priority_over_tmux",
+			pid:     1234,
+			mgrSess: map[int]*terminal.ManagedSession{1234: terminal.NewStubSession("mashed-repo-100")},
+			paneSess: map[int]*terminal.TmuxPane{1234: {
+				PanePID: 1234, SessionName: "tmux-sess", WindowIndex: 0, PaneIndex: 0,
+			}},
+			wantTarget: "mashed-repo-100",
+		},
+		{
+			name:       "AC4_no_session_skipped",
+			pid:        9999,
+			wantTarget: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mgr := newFakeManager()
+			for pid, sess := range tt.mgrSess {
+				mgr.pidToSess[pid] = sess
+			}
+
+			app := &App{
+				manager: mgr,
+				panes:   &fakePaneDiscovery{pidPanes: tt.paneSess},
+			}
+
+			got := app.resolveTmuxTarget(tt.pid)
+			assert.Equal(t, tt.wantTarget, got)
+		})
+	}
 }

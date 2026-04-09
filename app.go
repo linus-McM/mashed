@@ -34,6 +34,7 @@ type sessionManager interface {
 	Spawn(ctx context.Context, name, repoPath, command string) (*terminal.ManagedSession, error)
 	Kill(name string) error
 	IsAlive(name string) bool
+	FindByPID(pid int) (*terminal.ManagedSession, bool)
 	Shutdown()
 }
 
