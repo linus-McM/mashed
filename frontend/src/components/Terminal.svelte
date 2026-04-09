@@ -159,20 +159,34 @@
           // Send resize FIRST so PTY learns the real dimensions.
           sendResize();
 
-          // Defer the message handler — drop any output the shell sent at the
-          // initial (wrong) size.  After a short delay, attach the handler and
-          // send Ctrl+L to trigger a clean prompt redraw at the correct size.
-          setTimeout(() => {
-            const decoder = new TextDecoder();
-            ws.onmessage = (evt) => {
-              const raw = evt.data instanceof ArrayBuffer
-                ? decoder.decode(evt.data)
-                : evt.data;
+          // Attach message handler immediately but write through a gate.
+          // Early output (before resize takes effect) is buffered, then
+          // replayed after a short delay + Ctrl+L to redraw cleanly.
+          let gate = false;
+          const pending = [];
+          const decoder = new TextDecoder();
+          ws.onmessage = (evt) => {
+            const raw = evt.data instanceof ArrayBuffer
+              ? decoder.decode(evt.data)
+              : evt.data;
+            if (gate) {
               term.write(raw);
-            };
-            // Ctrl+L redraws the prompt at the correct terminal dimensions
-            const encoder = new TextEncoder();
-            ws.send(encoder.encode('\x0c'));
+            } else {
+              pending.push(raw);
+            }
+          };
+          setTimeout(() => {
+            // Clear any garbled pre-resize output, replay buffered data, open gate
+            term.reset();
+            for (const chunk of pending) term.write(chunk);
+            pending.length = 0;
+            gate = true;
+            // Send Ctrl+L to ask the running application to redraw at the
+            // correct terminal dimensions (the resize was sent on connect but
+            // early output may have been formatted for the default 80×24).
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(new TextEncoder().encode('\x0c'));
+            }
           }, 150);
 
           // Listen for screenshot path injection scoped to this terminal's pane
