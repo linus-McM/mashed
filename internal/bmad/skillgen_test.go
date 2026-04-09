@@ -38,6 +38,9 @@ func TestGenerateSkillFiles_DirectoryNamesMatchSkillNames(t *testing.T) {
 	procs := AllProcesses()
 	expected := make(map[string]bool, len(procs))
 	for _, p := range procs {
+		if p.SkillName == "" {
+			continue
+		}
 		expected[p.SkillName] = true
 	}
 

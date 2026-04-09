@@ -200,6 +200,17 @@ func (a *App) PickDirectory() (string, error) {
 	return dir, nil
 }
 
+// PickFile opens the native OS file picker dialog and returns the selected file path.
+func (a *App) PickFile(title string) (string, error) {
+	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: title,
+	})
+	if err != nil {
+		return "", fmt.Errorf("file dialog: %w", err)
+	}
+	return path, nil
+}
+
 // SetActiveContext stores the current repo path and pane target for screenshot routing.
 func (a *App) SetActiveContext(repoPath, paneTarget string) {
 	a.mu.Lock()

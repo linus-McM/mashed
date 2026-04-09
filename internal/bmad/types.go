@@ -29,6 +29,7 @@ const (
 	PhaseSolutioning    BmadPhase = "solutioning"
 	PhaseImplementation BmadPhase = "implementation"
 	PhaseSupport        BmadPhase = "support"
+	PhaseUtilities      BmadPhase = "utilities"
 )
 
 // BmadAgentRole is the agent persona that executes a process.

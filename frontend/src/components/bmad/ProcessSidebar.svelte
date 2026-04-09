@@ -12,13 +12,14 @@
 
   let activeTab = 'templates';
 
-  const phaseOrder = ['analysis', 'planning', 'solutioning', 'implementation', 'support'];
+  const phaseOrder = ['analysis', 'planning', 'solutioning', 'implementation', 'support', 'utilities'];
   const phaseLabels = {
     analysis: 'Analysis',
     planning: 'Planning',
     solutioning: 'Solutioning',
     implementation: 'Implementation',
     support: 'Support',
+    utilities: 'Utilities',
   };
   const phaseColors = {
     analysis: 'var(--accent-blue, #58a6ff)',
@@ -26,6 +27,7 @@
     solutioning: 'var(--accent-purple, #bc8cff)',
     implementation: 'var(--accent-amber, #d29922)',
     support: 'var(--text-muted, #8b949e)',
+    utilities: 'var(--accent-teal, #00c4b3)',
   };
 
   let openPhase = 'analysis';
@@ -94,6 +96,7 @@
     <button class="tab" class:active={activeTab === 'templates'} on:click={() => activeTab = 'templates'}>Templates</button>
     <button class="tab" class:active={activeTab === 'sprint'} on:click={() => activeTab = 'sprint'}>Sprint</button>
     <button class="tab" class:active={activeTab === 'processes'} on:click={() => activeTab = 'processes'}>Processes</button>
+    <button class="tab" class:active={activeTab === 'skills'} on:click={() => activeTab = 'skills'}>Skills</button>
     <button class="tab" class:active={activeTab === 'saved'} on:click={() => activeTab = 'saved'}>Saved</button>
   </div>
 
@@ -218,6 +221,11 @@
         {#if savedWorkflows.length === 0}
           <div class="empty-state">No saved workflows</div>
         {/if}
+      </div>
+
+    {:else if activeTab === 'skills'}
+      <div class="skills-placeholder">
+        <span class="empty-hint">Skills panel coming soon</span>
       </div>
 
     {:else if activeTab === 'sprint'}

@@ -401,6 +401,19 @@ func init() {
 			ModuleID:    "bmgd",
 			Version:     "1.0.0",
 		},
+		// ── Utilities ──
+		{
+			ID:          "util-file-loader",
+			Name:        "File Loader",
+			Phase:       PhaseUtilities,
+			AgentRole:   "",
+			SkillName:   "",
+			Description: "Open a file picker dialog and output the selected file path for downstream processes to read.",
+			Inputs:      []string{},
+			Outputs:     []string{"file-path"},
+			ModuleID:    "core",
+			Version:     "1.0.0",
+		},
 	}
 }
 

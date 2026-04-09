@@ -66,6 +66,9 @@ Write all artifacts to ` + "`_bmad-output/`" + ` using the exact paths above.
 // calling it multiple times with the same baseDir overwrites existing files without error.
 func GenerateSkillFiles(baseDir string) error {
 	for _, proc := range AllProcesses() {
+		if proc.SkillName == "" {
+			continue // utility processes (e.g. File Loader) don't have skills
+		}
 		data := buildSkillData(proc)
 
 		dir := filepath.Join(baseDir, proc.SkillName)

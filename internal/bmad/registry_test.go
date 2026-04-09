@@ -17,8 +17,10 @@ func TestAllProcesses_CountAndFields(t *testing.T) {
 		assert.NotEmpty(t, p.ID, "ID must not be empty")
 		assert.NotEmpty(t, p.Name, "Name must not be empty")
 		assert.NotEmpty(t, string(p.Phase), "Phase must not be empty")
-		assert.NotEmpty(t, string(p.AgentRole), "AgentRole must not be empty")
-		assert.NotEmpty(t, p.SkillName, "SkillName must not be empty")
+		if p.Phase != PhaseUtilities {
+			assert.NotEmpty(t, string(p.AgentRole), "AgentRole must not be empty for %s", p.ID)
+			assert.NotEmpty(t, p.SkillName, "SkillName must not be empty for %s", p.ID)
+		}
 		assert.NotEmpty(t, p.Description, "Description must not be empty")
 		assert.NotEmpty(t, p.ModuleID, "ModuleID must not be empty")
 		assert.NotEmpty(t, p.Version, "Version must not be empty")
@@ -31,7 +33,7 @@ func TestAllProcesses_UniqueIDs(t *testing.T) {
 	procs := AllProcesses()
 	seen := make(map[string]bool, len(procs))
 	for _, p := range procs {
-		assert.True(t, strings.HasPrefix(p.ID, "bmad-"), "ID %q must start with bmad-", p.ID)
+		assert.True(t, strings.HasPrefix(p.ID, "bmad-") || strings.HasPrefix(p.ID, "util-"), "ID %q must start with bmad- or util-", p.ID)
 		assert.False(t, seen[p.ID], "duplicate ID: %s", p.ID)
 		seen[p.ID] = true
 	}
@@ -62,7 +64,7 @@ func TestProcessesByPhase(t *testing.T) {
 }
 
 func TestProcessesByPhase_UnionEqualsAll(t *testing.T) {
-	phases := []BmadPhase{PhaseAnalysis, PhasePlanning, PhaseSolutioning, PhaseImplementation, PhaseSupport}
+	phases := []BmadPhase{PhaseAnalysis, PhasePlanning, PhaseSolutioning, PhaseImplementation, PhaseSupport, PhaseUtilities}
 	var union []ProcessDef
 	for _, ph := range phases {
 		union = append(union, ProcessesByPhase(ph)...)
@@ -191,7 +193,7 @@ func TestWorkflowDef_OmitsEmptyTemplateID(t *testing.T) {
 
 func TestAC1_RegistryExpansion_ProcessCount(t *testing.T) {
 	procs := AllProcesses()
-	assert.Len(t, procs, 32, "registry must contain 32 processes (25 existing + 7 new)")
+	assert.Len(t, procs, 33, "registry must contain 33 processes (25 existing + 7 new + 1 utility)")
 }
 
 func TestAC1_RegistryExpansion_NewProcesses(t *testing.T) {

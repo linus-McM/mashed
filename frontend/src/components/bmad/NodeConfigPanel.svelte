@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { X, Terminal, FileText } from 'lucide-svelte';
+  import { X, Terminal, FileText, FolderOpen } from 'lucide-svelte';
+  import { PickFile, ReadFile } from '../../../wailsjs/go/main/App.js';
 
   export let node = null;
   export let agents = [];
@@ -44,6 +45,29 @@
 
   $: nodeType = node?.data?.nodeType || '';
   $: isProcessNode = !nodeType || nodeType === 'process';
+  $: isFileLoader = node?.data?.processId === 'util-file-loader';
+
+  let filePath = '';
+  let filePreview = '';
+  let fileError = '';
+
+  // Load preview when filePath changes
+  $: if (isFileLoader && filePath) {
+    ReadFile(filePath).then(content => {
+      fileError = '';
+      // Show first 50 lines, truncated
+      const lines = content.split('\n');
+      filePreview = lines.slice(0, 50).join('\n');
+      if (lines.length > 50) filePreview += '\n... (' + lines.length + ' lines total)';
+    }).catch(err => {
+      filePreview = '';
+      fileError = String(err);
+    });
+  } else if (isFileLoader) {
+    filePreview = '';
+    fileError = '';
+  }
+
 
   const conditionTypeOptions = [
     { value: 'contains', label: 'Contains' },
@@ -72,6 +96,7 @@
     maxIterations = cfg.maxIterations || '10';
     extractType = cfg.extractType || 'regex';
     extractPattern = cfg.extractPattern || '';
+    filePath = cfg.filePath || '';
   }
 
   $: label = node?.data?.label || 'Node';
@@ -79,8 +104,22 @@
   $: tmuxTarget = node?.data?.tmuxTarget || '';
   $: hasTerminal = status === 'running' && tmuxTarget;
 
+  async function browseFile() {
+    try {
+      const path = await PickFile('Select a file');
+      if (path) {
+        filePath = path;
+        emitUpdate();
+      }
+    } catch (e) {
+      console.error('File picker failed:', e);
+    }
+  }
+
   function emitUpdate() {
-    const config = isProcessNode
+    const config = isFileLoader
+      ? { filePath }
+      : isProcessNode
       ? { model: modelOverride, context: customContext, agentId: selectedAgent }
       : nodeType === 'condition'
       ? { conditionType, conditionPattern, sourceNode }
@@ -111,7 +150,36 @@
     </div>
 
     <div class="panel-body">
-      {#if isProcessNode}
+      {#if isFileLoader}
+        <div class="field">
+          <label class="field-label">File Path</label>
+          <div class="file-picker-row">
+            <input
+              class="field-input file-path-input"
+              type="text"
+              bind:value={filePath}
+              on:blur={emitUpdate}
+              placeholder="No file selected..."
+              readonly
+            />
+          </div>
+          <button class="browse-btn" on:click={browseFile}>
+            <FolderOpen size={14} />
+            Browse...
+          </button>
+        </div>
+        {#if filePreview}
+          <div class="field">
+            <label class="field-label">Preview</label>
+            <pre class="file-preview">{filePreview}</pre>
+          </div>
+        {/if}
+        {#if fileError}
+          <div class="field">
+            <span class="file-error">{fileError}</span>
+          </div>
+        {/if}
+      {:else if isProcessNode}
         <div class="field">
           <label class="field-label" for="model-override">Model</label>
           <select id="model-override" class="field-select" bind:value={modelOverride} on:change={emitUpdate}>
@@ -394,6 +462,50 @@
 
   .field-textarea::placeholder { color: var(--text-muted); }
 
+  .browse-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 12px;
+    margin-top: 6px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--accent-teal, #00c4b3);
+    border-radius: var(--radius-sm);
+    color: var(--accent-teal, #00c4b3);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 100ms ease;
+  }
+  .browse-btn:hover {
+    background: var(--bg-active);
+  }
+  .file-path-input {
+    font-size: 11px;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .file-preview {
+    background: var(--bg-deepest);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    line-height: 1.4;
+    color: var(--text-dim);
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre;
+    margin: 0;
+  }
+  .file-error {
+    font-size: 10px;
+    color: var(--accent-red);
+  }
   .terminal-btn {
     display: flex;
     align-items: center;

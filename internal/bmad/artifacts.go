@@ -27,6 +27,7 @@ var artifactPaths = map[string]string{
 	"sprint-status.yaml": "implementation-artifacts/sprint-status.yaml",
 	"code":              "",
 	"tests":             "",
+	"file-path":         "",
 	"review-report":     "implementation-artifacts/reviews/",
 	"retro-notes":       "implementation-artifacts/retro-notes.md",
 	"any-doc":           "",
