@@ -73,15 +73,33 @@ type VSCodeThemeEntry struct {
 	UITheme     string `json:"uiTheme"`
 }
 
+// EditorSettings holds Monaco editor configuration options.
+type EditorSettings struct {
+	MinimapEnabled          bool   `json:"minimapEnabled"`
+	WordWrap                string `json:"wordWrap"`
+	LineNumbers             string `json:"lineNumbers"`
+	RenderWhitespace        string `json:"renderWhitespace"`
+	TabSize                 int    `json:"tabSize"`
+	InsertSpaces            bool   `json:"insertSpaces"`
+	CursorStyle             string `json:"cursorStyle"`
+	CursorBlinking          string `json:"cursorBlinking"`
+	BracketPairColorization bool   `json:"bracketPairColorization"`
+	RenderLineHighlight     string `json:"renderLineHighlight"`
+	FontLigatures           bool   `json:"fontLigatures"`
+	ScrollBeyondLastLine    bool   `json:"scrollBeyondLastLine"`
+	SmoothScrolling         bool   `json:"smoothScrolling"`
+}
+
 // mashedConfig persists user settings between launches.
 type mashedConfig struct {
-	DevDir          string `json:"devDir"`
-	Theme           string `json:"theme,omitempty"`
-	VSCodiumExtPath string `json:"vscodiumExtPath,omitempty"`
-	ImportedTheme   string `json:"importedTheme,omitempty"`
-	MonoFont        string `json:"monoFont,omitempty"`
-	FontSize        int    `json:"fontSize,omitempty"`
-	SidebarWidth    int    `json:"sidebarWidth,omitempty"`
+	DevDir          string          `json:"devDir"`
+	Theme           string          `json:"theme,omitempty"`
+	VSCodiumExtPath string          `json:"vscodiumExtPath,omitempty"`
+	ImportedTheme   string          `json:"importedTheme,omitempty"`
+	MonoFont        string          `json:"monoFont,omitempty"`
+	FontSize        int             `json:"fontSize,omitempty"`
+	SidebarWidth    int             `json:"sidebarWidth,omitempty"`
+	EditorSettings  *EditorSettings `json:"editorSettings,omitempty"`
 }
 
 // configPath returns the path to the mashed config file.
@@ -361,6 +379,85 @@ func (a *App) SetSidebarWidth(width int) error {
 	defer a.mu.Unlock()
 	cfg := loadConfig()
 	cfg.SidebarWidth = width
+	return saveConfig(cfg)
+}
+
+// DefaultEditorSettings returns sensible defaults for all editor options.
+func (a *App) DefaultEditorSettings() EditorSettings {
+	return EditorSettings{
+		MinimapEnabled:          false,
+		WordWrap:                "off",
+		LineNumbers:             "on",
+		RenderWhitespace:        "none",
+		TabSize:                 2,
+		InsertSpaces:            true,
+		CursorStyle:             "line",
+		CursorBlinking:          "blink",
+		BracketPairColorization: true,
+		RenderLineHighlight:     "line",
+		FontLigatures:           false,
+		ScrollBeyondLastLine:    false,
+		SmoothScrolling:         false,
+	}
+}
+
+// GetEditorSettings returns persisted editor settings, or defaults if none saved.
+func (a *App) GetEditorSettings() EditorSettings {
+	cfg := loadConfig()
+	if cfg.EditorSettings == nil {
+		return a.DefaultEditorSettings()
+	}
+	return *cfg.EditorSettings
+}
+
+// validateEditorSettings checks that all enum and range fields are valid.
+func validateEditorSettings(es EditorSettings) error {
+	if es.TabSize < 2 || es.TabSize > 8 {
+		return fmt.Errorf("tabSize must be between 2 and 8, got %d", es.TabSize)
+	}
+
+	validWordWrap := map[string]bool{"off": true, "on": true, "wordWrapColumn": true, "bounded": true}
+	if !validWordWrap[es.WordWrap] {
+		return fmt.Errorf("wordWrap must be one of off, on, wordWrapColumn, bounded; got %q", es.WordWrap)
+	}
+
+	validLineNumbers := map[string]bool{"on": true, "off": true, "relative": true, "interval": true}
+	if !validLineNumbers[es.LineNumbers] {
+		return fmt.Errorf("lineNumbers must be one of on, off, relative, interval; got %q", es.LineNumbers)
+	}
+
+	validCursorStyle := map[string]bool{"line": true, "block": true, "underline": true, "line-thin": true, "block-outline": true, "underline-thin": true}
+	if !validCursorStyle[es.CursorStyle] {
+		return fmt.Errorf("cursorStyle must be one of line, block, underline, line-thin, block-outline, underline-thin; got %q", es.CursorStyle)
+	}
+
+	validCursorBlinking := map[string]bool{"blink": true, "smooth": true, "phase": true, "expand": true, "solid": true}
+	if !validCursorBlinking[es.CursorBlinking] {
+		return fmt.Errorf("cursorBlinking must be one of blink, smooth, phase, expand, solid; got %q", es.CursorBlinking)
+	}
+
+	validRenderWhitespace := map[string]bool{"none": true, "boundary": true, "selection": true, "trailing": true, "all": true}
+	if !validRenderWhitespace[es.RenderWhitespace] {
+		return fmt.Errorf("renderWhitespace must be one of none, boundary, selection, trailing, all; got %q", es.RenderWhitespace)
+	}
+
+	validRenderLineHighlight := map[string]bool{"none": true, "gutter": true, "line": true, "all": true}
+	if !validRenderLineHighlight[es.RenderLineHighlight] {
+		return fmt.Errorf("renderLineHighlight must be one of none, gutter, line, all; got %q", es.RenderLineHighlight)
+	}
+
+	return nil
+}
+
+// SetEditorSettings validates and persists editor settings to config.
+func (a *App) SetEditorSettings(settings EditorSettings) error {
+	if err := validateEditorSettings(settings); err != nil {
+		return err
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	cfg := loadConfig()
+	cfg.EditorSettings = &settings
 	return saveConfig(cfg)
 }
 
