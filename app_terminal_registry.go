@@ -1,63 +1,19 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
-	"os/exec"
 	"sort"
 	"strings"
 	"time"
 
 	"mashed/internal/domain"
-	"mashed/internal/terminal"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// recoverSessions scans tmux for existing sessions matching mashed's naming
-// convention and registers them in the terminal session registry.
-func (a *App) recoverSessions() {
-	out, err := exec.Command("tmux", "list-sessions", "-F", "#{session_name}").Output()
-	if err != nil {
-		log.Printf("session recovery: tmux list-sessions failed (tmux may not be running): %v", err)
-		return
-	}
-	n := a.recoverSessionsFromOutput(string(out))
-	if n == 0 {
-		return
-	}
-
-	// Enrich recovered sessions with working directory from tmux.
-	a.mu.Lock()
-	names := make([]string, 0, len(a.terminalSessions))
-	for name, sess := range a.terminalSessions {
-		if sess.RepoPath == "" {
-			names = append(names, name)
-		}
-	}
-	a.mu.Unlock()
-
-	for _, name := range names {
-		pathOut, err := exec.Command("tmux", "display-message", "-t", name, "-p", "#{pane_current_path}").Output()
-		if err != nil {
-			continue
-		}
-		repoPath := strings.TrimSpace(string(pathOut))
-		if repoPath == "" {
-			continue
-		}
-		a.mu.Lock()
-		if sess, ok := a.terminalSessions[name]; ok {
-			sess.RepoPath = repoPath
-			sess.RepoName = repoNameFromDir(repoPath)
-			a.terminalSessions[name] = sess
-		}
-		a.mu.Unlock()
-	}
-
-	log.Printf("session recovery: recovered %d session(s)", n)
-}
+// recoverSessions is a no-op. PTY sessions do not survive app restart.
+func (a *App) recoverSessions() {}
 
 // recoverSessionsFromOutput parses tmux list-sessions output and registers sessions.
 // Returns the number of sessions recovered.
@@ -85,7 +41,7 @@ func (a *App) recoverSessionsFromOutput(sessionOutput string) int {
 
 		session := domain.TerminalSession{
 			SessionName: name,
-			PaneTarget:  name + ":0.0",
+			PaneTarget:  name,
 			RepoName:    repoName,
 			SessionType: sessionType,
 			SpawnedAt:   time.Now(),
@@ -107,7 +63,7 @@ func parseRepoName(sessionName, prefix string) string {
 	return rest[:lastDash]
 }
 
-// Session name prefixes used by spawnTmuxSession and recovery.
+// Session name prefixes used by spawnSession and recovery.
 const (
 	prefixTerminal = "term-"
 	prefixAgent    = "mashed-"
@@ -136,56 +92,55 @@ func (a *App) deregisterSession(sessionName string) {
 }
 
 // ListRepoSessions returns all live terminal sessions for the given repo path.
-// Dead sessions (whose tmux session no longer exists) are pruned from the registry.
+// Dead sessions (whose managed session is no longer alive) are pruned from the registry.
 func (a *App) ListRepoSessions(repoPath string) []domain.TerminalSession {
 	if repoPath == "" {
 		return []domain.TerminalSession{}
 	}
 
-	// Call ListPanes outside the lock to avoid holding a.mu while shelling out.
-	panes, err := a.panes.ListPanes()
-	aliveSet := make(map[string]bool)
-	if err != nil {
-		var termErr *terminal.TerminalError
-		if errors.As(err, &termErr) && errors.Is(termErr.Err, terminal.ErrTmuxNotRunning) {
-			// tmux not running — all sessions are dead
-		} else {
-			log.Printf("ListPanes failed: %v", err)
+	// Snapshot matching sessions under lock, then release before calling IsAlive
+	// (which acquires its own mutex) to avoid nested lock acquisition.
+	a.mu.Lock()
+	candidates := make([]domain.TerminalSession, 0, len(a.terminalSessions))
+	for _, sess := range a.terminalSessions {
+		if sess.RepoPath == repoPath {
+			candidates = append(candidates, sess)
 		}
-	} else {
-		for _, p := range panes {
-			aliveSet[p.SessionName] = true
+	}
+	a.mu.Unlock()
+
+	var alive []domain.TerminalSession
+	var dead []string
+	for _, sess := range candidates {
+		if a.manager.IsAlive(sess.SessionName) {
+			sess.IsAlive = true
+			alive = append(alive, sess)
+		} else {
+			dead = append(dead, sess.SessionName)
 		}
 	}
 
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
-	var result []domain.TerminalSession
-	for name, sess := range a.terminalSessions {
-		if sess.RepoPath != repoPath {
-			continue
-		}
-		if aliveSet[name] {
-			sess.IsAlive = true
-			result = append(result, sess)
-		} else {
+	// Prune dead sessions under lock.
+	if len(dead) > 0 {
+		a.mu.Lock()
+		for _, name := range dead {
 			delete(a.terminalSessions, name)
 		}
+		a.mu.Unlock()
 	}
 
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].SpawnedAt.Before(result[j].SpawnedAt)
+	sort.Slice(alive, func(i, j int) bool {
+		return alive[i].SpawnedAt.Before(alive[j].SpawnedAt)
 	})
 
-	if result == nil {
+	if alive == nil {
 		return []domain.TerminalSession{}
 	}
-	return result
+	return alive
 }
 
-// KillTerminalSession removes a session from the registry and kills its tmux session.
-// Returns an error only if the session is not found in the registry; a tmux kill
+// KillTerminalSession removes a session from the registry and kills its managed PTY.
+// Returns an error only if the session is not found in the registry; a kill
 // failure (e.g., session already dead) is logged but not treated as an error.
 func (a *App) KillTerminalSession(sessionName string) error {
 	a.mu.Lock()
@@ -195,8 +150,8 @@ func (a *App) KillTerminalSession(sessionName string) error {
 		return fmt.Errorf("session %q not found in registry", sessionName)
 	}
 
-	if err := exec.Command("tmux", "kill-session", "-t", sessionName).Run(); err != nil {
-		log.Printf("tmux kill-session %s (may already be dead): %v", sessionName, err)
+	if err := a.manager.Kill(sessionName); err != nil {
+		log.Printf("kill session %s (may already be dead): %v", sessionName, err)
 	}
 
 	a.deregisterSession(sessionName)

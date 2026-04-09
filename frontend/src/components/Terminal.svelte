@@ -114,22 +114,6 @@
       }
     }
 
-    // Strip escape sequences that would break xterm.js behavior in the webview:
-    // 1. Mouse tracking: prevents xterm.js from entering mouse-reporting mode,
-    //    letting click+drag select text instead of forwarding events to tmux
-    // 2. Alternate screen (smcup/rmcup): keeps xterm.js in normal buffer mode
-    //    so mouse wheel scrolls the scrollback buffer instead of sending arrows
-    // 3. Bracketed paste mode from tmux: we handle paste ourselves via Wails clipboard
-    const stripRe = new RegExp(
-      '\\x1b\\[\\?10(?:0[0-6]|15)[hl]' +  // mouse tracking on/off
-      '|\\x1b\\[\\?1049[hl]' +              // alternate screen enter/exit
-      '|\\x1b\\[\\?2004[hl]',               // bracketed paste on/off
-      'g'
-    );
-    function stripControlSequences(data) {
-      return data.replace(stripRe, '');
-    }
-
     // Cmd+C copies selection (or sends ^C if nothing selected),
     // Cmd+V pastes from clipboard into the terminal.
     term.attachCustomKeyEventHandler((ev) => {
@@ -162,8 +146,8 @@
     resizeObserver.observe(terminalEl);
 
     if (paneTarget) {
-      // Live tmux terminal via WebSocket
-      term.write('\x1b[90mConnecting to tmux session...\x1b[0m');
+      // Live terminal via WebSocket
+      term.write('\x1b[90mConnecting...\x1b[0m');
       const port = await GetTerminalPort();
       if (port) {
         const url = `ws://127.0.0.1:${port}/ws/${encodeURIComponent(paneTarget)}`;
@@ -171,17 +155,18 @@
         ws.binaryType = 'arraybuffer';
 
         ws.onopen = () => {
-          // Send initial resize so tmux knows the real terminal size
+          // Send initial resize so the PTY knows the real terminal size
           sendResize();
           // Clear the "Connecting..." message and any stale 1x1 rendering
           term.clear();
         };
 
+        const decoder = new TextDecoder();
         ws.onmessage = (evt) => {
           const raw = evt.data instanceof ArrayBuffer
-            ? new TextDecoder().decode(evt.data)
+            ? decoder.decode(evt.data)
             : evt.data;
-          term.write(stripControlSequences(raw));
+          term.write(raw);
         };
 
         ws.onclose = () => {
@@ -192,7 +177,7 @@
           if (term) term.write('\r\n\x1b[31m[connection error]\x1b[0m\r\n');
         };
 
-        // Send resize event to bridge so tmux/pty knows the real terminal dimensions
+        // Send resize event to bridge so the PTY knows the real terminal dimensions
         function sendResize() {
           if (ws && ws.readyState === WebSocket.OPEN && term.cols && term.rows) {
             ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));

@@ -36,7 +36,7 @@ export function removeSessionByName(sessionName) {
 
 export function makeSession(target, repoPath, repoName, sessionType, model) {
     return {
-        sessionName: target.replace(':0.0', ''),
+        sessionName: target,
         paneTarget: target,
         repoPath,
         repoName,

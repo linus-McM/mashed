@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -13,30 +12,21 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// spawnTmuxSession creates a new tmux session with the given prefix, working
-// directory, and optional shell command. It returns the pane target string.
-// If command is empty, the session starts a default shell.
-func (a *App) spawnTmuxSession(prefix, repoPath, command string, sessionType domain.SessionType, model string) (string, error) {
+// spawnSession creates a new managed PTY session with the given prefix, working
+// directory, and optional shell command. It returns the session name.
+// If command is empty, the session starts the user's default shell.
+func (a *App) spawnSession(prefix, repoPath, command string, sessionType domain.SessionType, model string) (string, error) {
 	now := time.Now()
 	repoName := repoNameFromDir(repoPath)
 	sessionName := fmt.Sprintf("%s-%s-%d", prefix, repoName, now.Unix())
 
-	args := []string{"new-session", "-d", "-s", sessionName, "-c", repoPath}
-	if command != "" {
-		args = append(args, command)
+	if _, err := a.manager.Spawn(a.ctx, sessionName, repoPath, command); err != nil {
+		return "", fmt.Errorf("spawn session failed: %w", err)
 	}
-
-	tmuxCmd := exec.CommandContext(a.ctx, "tmux", args...)
-	if out, err := tmuxCmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("tmux new-session failed: %w (%s)", err, string(out))
-	}
-
-	target := fmt.Sprintf("%s:0.0", sessionName)
-	a.panes.InvalidateCache()
 
 	session := domain.TerminalSession{
 		SessionName: sessionName,
-		PaneTarget:  target,
+		PaneTarget:  sessionName,
 		RepoPath:    repoPath,
 		RepoName:    repoName,
 		SessionType: sessionType,
@@ -47,12 +37,12 @@ func (a *App) spawnTmuxSession(prefix, repoPath, command string, sessionType dom
 	a.registerSession(session)
 	runtime.EventsEmit(a.ctx, eventSessionAdded, session)
 
-	log.Printf("spawned tmux session %s at %s", sessionName, repoPath)
-	return target, nil
+	log.Printf("spawned session %s at %s", sessionName, repoPath)
+	return sessionName, nil
 }
 
-// SpawnAgent starts a new Claude session in a tmux pane for the given repo.
-// Returns the tmux pane target string for the terminal bridge.
+// SpawnAgent starts a new Claude session in a managed PTY for the given repo.
+// Returns the session name for the terminal bridge.
 func (a *App) SpawnAgent(repoPath string, model string) (string, error) {
 	if repoPath == "" {
 		return "", fmt.Errorf("empty repo path")
@@ -61,25 +51,25 @@ func (a *App) SpawnAgent(repoPath string, model string) (string, error) {
 		model = "claude-opus-4-6"
 	}
 	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s", model)
-	return a.spawnTmuxSession("mashed", repoPath, cmd, domain.SessionAgent, model)
+	return a.spawnSession("mashed", repoPath, cmd, domain.SessionAgent, model)
 }
 
 // SpawnAgentWithCommand starts a Claude session using a fully built CLI command.
-// Returns the tmux pane target string.
+// Returns the session name.
 func (a *App) SpawnAgentWithCommand(repoPath, command string) (string, error) {
 	if repoPath == "" || command == "" {
 		return "", fmt.Errorf("repo path and command are required")
 	}
-	return a.spawnTmuxSession("mashed", repoPath, command, domain.SessionAgent, "")
+	return a.spawnSession("mashed", repoPath, command, domain.SessionAgent, "")
 }
 
-// SpawnTerminal starts a plain shell tmux session in the given repo directory.
-// Returns the tmux pane target string for the terminal bridge.
+// SpawnTerminal starts a plain shell PTY session in the given repo directory.
+// Returns the session name for the terminal bridge.
 func (a *App) SpawnTerminal(repoPath string) (string, error) {
 	if repoPath == "" {
 		return "", fmt.Errorf("empty repo path")
 	}
-	return a.spawnTmuxSession("term", repoPath, "", domain.SessionTerminal, "")
+	return a.spawnSession("term", repoPath, "", domain.SessionTerminal, "")
 }
 
 // GetAgentLog returns the parsed log lines for an agent's latest session.
@@ -100,7 +90,7 @@ func (a *App) GetAgentLog(repoPath string) []domain.LogLine {
 	return lines
 }
 
-// KillAgent terminates an agent process, kills its tmux session, and removes it from tracking.
+// KillAgent terminates an agent process, kills its managed session, and removes it from tracking.
 // The tmuxTarget parameter is a fallback used when the agent was spawned from the UI
 // and doesn't yet have a matching entry in the backend notification list.
 func (a *App) KillAgent(agentID string, pid int, tmuxTarget string) error {
@@ -118,14 +108,16 @@ func (a *App) KillAgent(agentID string, pid int, tmuxTarget string) error {
 		if idx := strings.Index(sessionName, ":"); idx > 0 {
 			sessionName = sessionName[:idx]
 		}
-		if err := exec.Command("tmux", "kill-session", "-t", sessionName).Run(); err != nil {
-			log.Printf("tmux kill-session %s failed: %v", sessionName, err)
+
+		// Try manager kill first (managed PTY sessions)
+		if err := a.manager.Kill(sessionName); err != nil {
+			log.Printf("manager kill %s: %v (may be external)", sessionName, err)
 		}
 
 		a.deregisterSession(sessionName)
 	}
 
-	// If the process is still alive (e.g. tmux kill didn't reach it), signal directly
+	// If the process is still alive (e.g. externally spawned), signal directly
 	if pid > 0 {
 		proc, err := os.FindProcess(pid)
 		if err == nil {

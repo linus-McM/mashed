@@ -4,7 +4,7 @@
 **Domain:** full-stack (backend + frontend)
 **Estimated Complexity:** L
 **Depends On:** pty-02, pty-03
-**Status:** ready
+**Status:** done
 
 ---
 
@@ -256,49 +256,49 @@ Feature: Session name in store
 
 ### Phase A: Backend Integration
 
-- [ ] Task 1: Add `manager` field to App and update constructors (AC: 1, 6, 7)
-  - [ ] Subtask 1a: Add `manager *terminal.SessionManager` to `App` struct in `app.go`
-  - [ ] Subtask 1b: Update `NewApp()` to create `SessionManager` and pass to `NewBridge(manager)`
-  - [ ] Subtask 1c: Update `shutdown()` to call `a.manager.Shutdown()` before `a.bridge.Stop()`
-  - [ ] Subtask 1d: Remove `a.recoverSessions()` call from `startup()`
+- [x] Task 1: Add `manager` field to App and update constructors (AC: 1, 6, 7)
+  - [x] Subtask 1a: Add `manager *terminal.SessionManager` to `App` struct in `app.go`
+  - [x] Subtask 1b: Update `NewApp()` to create `SessionManager` and pass to `NewBridge(manager)`
+  - [x] Subtask 1c: Update `shutdown()` to call `a.manager.Shutdown()` before `a.bridge.Stop()`
+  - [x] Subtask 1d: Remove `a.recoverSessions()` call from `startup()`
 
-- [ ] Task 2: Rename and rewrite spawn methods (AC: 2, 3)
-  - [ ] Subtask 2a: `git mv app_tmux.go app_spawn.go`
-  - [ ] Subtask 2b: Rename `spawnTmuxSession` to `spawnSession`, replace tmux exec with `a.manager.Spawn()`
-  - [ ] Subtask 2c: Update return value: session name without `:0.0` suffix
-  - [ ] Subtask 2d: Update `TerminalSession` registration: `PaneTarget = sessionName` (no `:0.0`)
-  - [ ] Subtask 2e: Remove `a.panes.InvalidateCache()` call
+- [x] Task 2: Rename and rewrite spawn methods (AC: 2, 3)
+  - [x] Subtask 2a: `git mv app_tmux.go app_spawn.go`
+  - [x] Subtask 2b: Rename `spawnTmuxSession` to `spawnSession`, replace tmux exec with `a.manager.Spawn()`
+  - [x] Subtask 2c: Update return value: session name without `:0.0` suffix
+  - [x] Subtask 2d: Update `TerminalSession` registration: `PaneTarget = sessionName` (no `:0.0`)
+  - [x] Subtask 2e: Remove `a.panes.InvalidateCache()` call
 
-- [ ] Task 3: Update KillAgent to use manager (AC: 4)
-  - [ ] Subtask 3a: Try `a.manager.Kill(sessionName)` first in `KillAgent`
-  - [ ] Subtask 3b: Keep process signal fallback for externally spawned processes
-  - [ ] Subtask 3c: Keep engine cleanup and notification pruning unchanged
+- [x] Task 3: Update KillAgent to use manager (AC: 4)
+  - [x] Subtask 3a: Try `a.manager.Kill(sessionName)` first in `KillAgent`
+  - [x] Subtask 3b: Keep process signal fallback for externally spawned processes
+  - [x] Subtask 3c: Keep engine cleanup and notification pruning unchanged
 
-- [ ] Task 4: Update terminal registry for manager-based liveness (AC: 5, 7)
-  - [ ] Subtask 4a: Gut `recoverSessions()` body to no-op
-  - [ ] Subtask 4b: Rewrite `ListRepoSessions()` to use `a.manager.IsAlive(name)`
-  - [ ] Subtask 4c: Rewrite `KillTerminalSession()` to use `a.manager.Kill(sessionName)`
+- [x] Task 4: Update terminal registry for manager-based liveness (AC: 5, 7)
+  - [x] Subtask 4a: Gut `recoverSessions()` body to no-op
+  - [x] Subtask 4b: Rewrite `ListRepoSessions()` to use `a.manager.IsAlive(name)`
+  - [x] Subtask 4c: Rewrite `KillTerminalSession()` to use `a.manager.Kill(sessionName)`
 
-- [ ] Task 5: Update backend tests (AC: 1-7)
-  - [ ] Subtask 5a: Update `app_terminal_registry_test.go` to remove `:0.0` PaneTarget assertions
-  - [ ] Subtask 5b: Add tests for `spawnSession` with mock manager
-  - [ ] Subtask 5c: Add tests for manager-based `ListRepoSessions`
+- [x] Task 5: Update backend tests (AC: 1-7)
+  - [x] Subtask 5a: Update `app_terminal_registry_test.go` to remove `:0.0` PaneTarget assertions
+  - [x] Subtask 5b: Add tests for `spawnSession` with mock manager
+  - [x] Subtask 5c: Add tests for manager-based `ListRepoSessions`
 
 ### Phase B: Frontend Cleanup
 
-- [ ] Task 6: Remove stripControlSequences from Terminal.svelte (AC: 8, 9, 11)
-  - [ ] Subtask 6a: Delete `stripRe` regex definition (lines 123-128)
-  - [ ] Subtask 6b: Delete `stripControlSequences` function (lines 129-131)
-  - [ ] Subtask 6c: Delete comment block about stripping (lines 117-122)
-  - [ ] Subtask 6d: Update `ws.onmessage` to pass `raw` directly to `term.write(raw)`
-  - [ ] Subtask 6e: Change "Connecting to tmux session..." to "Connecting..." on line 166
+- [x] Task 6: Remove stripControlSequences from Terminal.svelte (AC: 8, 9, 11)
+  - [x] Subtask 6a: Delete `stripRe` regex definition (lines 123-128)
+  - [x] Subtask 6b: Delete `stripControlSequences` function (lines 129-131)
+  - [x] Subtask 6c: Delete comment block about stripping (lines 117-122)
+  - [x] Subtask 6d: Update `ws.onmessage` to pass `raw` directly to `term.write(raw)`
+  - [x] Subtask 6e: Change "Connecting to tmux session..." to "Connecting..." on line 166
 
-- [ ] Task 7: Update sessions store (AC: 10)
-  - [ ] Subtask 7a: Change `sessionName: target.replace(':0.0', '')` to `sessionName: target` in `makeSession`
+- [x] Task 7: Update sessions store (AC: 10)
+  - [x] Subtask 7a: Change `sessionName: target.replace(':0.0', '')` to `sessionName: target` in `makeSession`
 
-- [ ] Task 8: Manual verification (AC: 11, 12)
-  - [ ] Subtask 8a: Verify xterm.js renders colored output correctly with direct PTY
-  - [ ] Subtask 8b: Verify mouse scroll, text selection, Cmd+C/Cmd+V clipboard operations
+- [x] Task 8: Manual verification (AC: 11, 12)
+  - [x] Subtask 8a: Verify xterm.js renders colored output correctly with direct PTY
+  - [x] Subtask 8b: Verify mouse scroll, text selection, Cmd+C/Cmd+V clipboard operations
 
 ---
 
@@ -317,14 +317,14 @@ Feature: Session name in store
 
 ## Definition of Done
 
-- [ ] All 12 acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ code coverage on modified files (`app_spawn.go`, `app_terminal_registry.go`)
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] No "tmux" references remain in Terminal.svelte (except historical comments)
-- [ ] No "stripControlSequences" references remain in `frontend/src/`
-- [ ] `wails dev` compiles the frontend without errors
-- [ ] `/simplify` run on all modified code
-- [ ] Code review: no CRITICAL/HIGH issues
+- [x] All 12 acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ code coverage on modified files (`app_spawn.go`, `app_terminal_registry.go`)
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] No "tmux" references remain in Terminal.svelte (except historical comments)
+- [x] No "stripControlSequences" references remain in `frontend/src/`
+- [x] `wails dev` compiles the frontend without errors
+- [x] `/simplify` run on all modified code
+- [x] Code review: no CRITICAL/HIGH issues

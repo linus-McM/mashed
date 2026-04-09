@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -30,10 +32,59 @@ func (f *fakePaneDiscovery) FindPaneForPID(_ int) (*terminal.TmuxPane, error) {
 	return nil, nil
 }
 
-// testApp builds an App with a fake pane discoverer for registry tests.
-func testApp(panes []terminal.TmuxPane) *App {
+// ── fakeSessionManager satisfies sessionManager for testing ──
+
+type fakeSessionManager struct {
+	mu       sync.Mutex
+	alive    map[string]bool
+	killed   []string
+	shutdown bool
+}
+
+func newFakeManager(aliveNames ...string) *fakeSessionManager {
+	m := &fakeSessionManager{alive: make(map[string]bool)}
+	for _, n := range aliveNames {
+		m.alive[n] = true
+	}
+	return m
+}
+
+func (f *fakeSessionManager) Spawn(_ context.Context, name, _, _ string) (*terminal.ManagedSession, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.alive[name] = true
+	return nil, nil
+}
+
+func (f *fakeSessionManager) Kill(name string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if !f.alive[name] {
+		return fmt.Errorf("session %q: %w", name, terminal.ErrSessionNotFound)
+	}
+	delete(f.alive, name)
+	f.killed = append(f.killed, name)
+	return nil
+}
+
+func (f *fakeSessionManager) IsAlive(name string) bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.alive[name]
+}
+
+func (f *fakeSessionManager) Shutdown() {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.shutdown = true
+	f.alive = make(map[string]bool)
+}
+
+// testApp builds an App with a fake session manager and pane discoverer for registry tests.
+func testApp(aliveNames ...string) *App {
 	return &App{
-		panes:            &fakePaneDiscovery{panes: panes},
+		manager:          newFakeManager(aliveNames...),
+		panes:            &fakePaneDiscovery{},
 		terminalSessions: make(map[string]domain.TerminalSession),
 	}
 }
@@ -43,7 +94,7 @@ func testApp(panes []terminal.TmuxPane) *App {
 func TestStory1_AC1_TerminalSessionJSONTags(t *testing.T) {
 	ts := domain.TerminalSession{
 		SessionName: "term-myrepo-1712600000",
-		PaneTarget:  "term-myrepo-1712600000:0.0",
+		PaneTarget:  "term-myrepo-1712600000",
 		RepoPath:    "/dev/myrepo",
 		RepoName:    "myrepo",
 		SessionType: domain.SessionTerminal,
@@ -69,7 +120,7 @@ func TestStory1_AC1_TerminalSessionJSONTags(t *testing.T) {
 func TestStory1_AC1_TerminalSessionRoundTrip(t *testing.T) {
 	original := domain.TerminalSession{
 		SessionName: "mashed-foo-100",
-		PaneTarget:  "mashed-foo-100:0.0",
+		PaneTarget:  "mashed-foo-100",
 		RepoPath:    "/dev/foo",
 		RepoName:    "foo",
 		SessionType: domain.SessionAgent,
@@ -97,10 +148,7 @@ func TestStory1_AC1_TerminalSessionRoundTrip(t *testing.T) {
 // ── AC-2: ListRepoSessions filters by repo and sorts ──
 
 func TestStory1_AC2_FilterByRepo(t *testing.T) {
-	app := testApp([]terminal.TmuxPane{
-		{SessionName: "mashed-foo-100"},
-		{SessionName: "term-bar-200"},
-	})
+	app := testApp("mashed-foo-100", "term-bar-200")
 	app.registerSession(domain.TerminalSession{
 		SessionName: "mashed-foo-100",
 		RepoPath:    "/dev/foo",
@@ -120,7 +168,7 @@ func TestStory1_AC2_FilterByRepo(t *testing.T) {
 }
 
 func TestStory1_AC2_EmptyRepoPath(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 	app.registerSession(domain.TerminalSession{
 		SessionName: "mashed-foo-100",
 		RepoPath:    "/dev/foo",
@@ -132,11 +180,7 @@ func TestStory1_AC2_EmptyRepoPath(t *testing.T) {
 }
 
 func TestStory1_AC2_SortBySpawnedAt(t *testing.T) {
-	app := testApp([]terminal.TmuxPane{
-		{SessionName: "term-foo-300"},
-		{SessionName: "term-foo-100"},
-		{SessionName: "term-foo-200"},
-	})
+	app := testApp("term-foo-300", "term-foo-100", "term-foo-200")
 	app.registerSession(domain.TerminalSession{
 		SessionName: "term-foo-300", RepoPath: "/dev/foo", SpawnedAt: time.Unix(300, 0),
 	})
@@ -158,9 +202,8 @@ func TestStory1_AC2_SortBySpawnedAt(t *testing.T) {
 // ── AC-3: ListRepoSessions prunes dead sessions ──
 
 func TestStory1_AC3_PruneDeadSessions(t *testing.T) {
-	app := testApp([]terminal.TmuxPane{
-		{SessionName: "term-foo-alive"},
-	})
+	// Only "term-foo-alive" is alive in the manager
+	app := testApp("term-foo-alive")
 	app.registerSession(domain.TerminalSession{
 		SessionName: "term-foo-alive", RepoPath: "/dev/foo", SpawnedAt: time.Unix(100, 0),
 	})
@@ -180,20 +223,15 @@ func TestStory1_AC3_PruneDeadSessions(t *testing.T) {
 	assert.False(t, exists, "dead session should be pruned from registry")
 }
 
-func TestStory1_AC3_TmuxNotRunning(t *testing.T) {
-	app := &App{
-		panes: &fakePaneDiscovery{
-			err: &terminal.TerminalError{Op: "list_panes", Err: terminal.ErrTmuxNotRunning},
-		},
-		terminalSessions: make(map[string]domain.TerminalSession),
-	}
+func TestStory1_AC3_AllSessionsDead(t *testing.T) {
+	app := testApp() // no alive sessions
 	app.registerSession(domain.TerminalSession{
 		SessionName: "term-foo-100", RepoPath: "/dev/foo", SpawnedAt: time.Unix(100, 0),
 	})
 
 	result := app.ListRepoSessions("/dev/foo")
 
-	assert.Empty(t, result, "all sessions pruned when tmux not running")
+	assert.Empty(t, result, "all sessions pruned when none are alive in manager")
 	app.mu.Lock()
 	_, exists := app.terminalSessions["term-foo-100"]
 	app.mu.Unlock()
@@ -203,7 +241,7 @@ func TestStory1_AC3_TmuxNotRunning(t *testing.T) {
 // ── AC-4: KillTerminalSession removes from registry ──
 
 func TestStory1_AC4_KillRemovesFromRegistry(t *testing.T) {
-	app := testApp(nil)
+	app := testApp("term-foo-100")
 	app.registerSession(domain.TerminalSession{
 		SessionName: "term-foo-100", RepoPath: "/dev/foo",
 	})
@@ -225,7 +263,7 @@ func TestStory1_AC4_KillRemovesFromRegistry(t *testing.T) {
 // ── AC-5: KillTerminalSession handles already-dead and not-found ──
 
 func TestStory1_AC5_KillAlreadyDead(t *testing.T) {
-	app := testApp(nil)
+	app := testApp() // no alive sessions in manager
 	app.registerSession(domain.TerminalSession{
 		SessionName: "term-foo-999", RepoPath: "/dev/foo",
 	})
@@ -240,7 +278,7 @@ func TestStory1_AC5_KillAlreadyDead(t *testing.T) {
 }
 
 func TestStory1_AC5_KillNotFound(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 
 	err := app.KillTerminalSession("nonexistent")
 
@@ -251,7 +289,7 @@ func TestStory1_AC5_KillNotFound(t *testing.T) {
 // ── Extra: registerSession overwrite, init, concurrency ──
 
 func TestStory1_RegisterOverwrite(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 	app.registerSession(domain.TerminalSession{
 		SessionName: "term-foo-100", RepoPath: "/dev/foo",
 		SessionType: domain.SessionTerminal,
@@ -275,10 +313,10 @@ func TestStory1_NewAppInitializesMap(t *testing.T) {
 	assert.Empty(t, app.terminalSessions)
 }
 
-// ── Story 2: Startup Session Recovery ──
+// ── Story 2: Startup Session Recovery (now no-op) ──
 
 func TestStory2_AC1_RecoverTerminalAndAgent(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 
 	n := app.recoverSessionsFromOutput("term-repo1-1000\nmashed-repo2-2000")
 
@@ -291,17 +329,17 @@ func TestStory2_AC1_RecoverTerminalAndAgent(t *testing.T) {
 	require.True(t, ok1, "term session should be registered")
 	assert.Equal(t, domain.SessionTerminal, sess1.SessionType)
 	assert.Equal(t, "repo1", sess1.RepoName)
-	assert.Equal(t, "term-repo1-1000:0.0", sess1.PaneTarget)
+	assert.Equal(t, "term-repo1-1000", sess1.PaneTarget)
 
 	sess2, ok2 := app.terminalSessions["mashed-repo2-2000"]
 	require.True(t, ok2, "agent session should be registered")
 	assert.Equal(t, domain.SessionAgent, sess2.SessionType)
 	assert.Equal(t, "repo2", sess2.RepoName)
-	assert.Equal(t, "mashed-repo2-2000:0.0", sess2.PaneTarget)
+	assert.Equal(t, "mashed-repo2-2000", sess2.PaneTarget)
 }
 
 func TestStory2_AC2_FilterNonMatchingPrefixes(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 
 	n := app.recoverSessionsFromOutput("term-foo-1\nmashed-bar-2\nirssi\ndev-session")
 
@@ -317,9 +355,8 @@ func TestStory2_AC2_FilterNonMatchingPrefixes(t *testing.T) {
 }
 
 func TestStory2_AC3_TmuxNotRunning(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 
-	// Empty output simulates tmux not running / no sessions
 	n := app.recoverSessionsFromOutput("")
 
 	assert.Equal(t, 0, n)
@@ -329,7 +366,7 @@ func TestStory2_AC3_TmuxNotRunning(t *testing.T) {
 }
 
 func TestStory2_AC4_IdempotentRecovery(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 
 	output := "term-repo1-1000\nmashed-repo2-2000"
 	n1 := app.recoverSessionsFromOutput(output)
@@ -358,7 +395,7 @@ func TestStory2_ParsesRepoNameFromSessionName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app := testApp(nil)
+			app := testApp()
 			n := app.recoverSessionsFromOutput(tt.input)
 			require.Equal(t, 1, n)
 
@@ -373,9 +410,8 @@ func TestStory2_ParsesRepoNameFromSessionName(t *testing.T) {
 }
 
 func TestStory2_NoTimestampSuffix(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 
-	// "term-repo" has no second dash after prefix — repo name is the whole rest
 	n := app.recoverSessionsFromOutput("term-repo")
 
 	require.Equal(t, 1, n)
@@ -386,7 +422,7 @@ func TestStory2_NoTimestampSuffix(t *testing.T) {
 }
 
 func TestStory2_EmptyAndWhitespaceLines(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 
 	n := app.recoverSessionsFromOutput("term-foo-1\n\n  \nmashed-bar-2\n")
 
@@ -399,11 +435,11 @@ func TestStory2_EmptyAndWhitespaceLines(t *testing.T) {
 // ── Story 3: Spawn registration and deregistration ──
 
 func TestStory3_AC1_SpawnRegistersAgentSession(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 
 	session := domain.TerminalSession{
 		SessionName: "mashed-repo-100",
-		PaneTarget:  "mashed-repo-100:0.0",
+		PaneTarget:  "mashed-repo-100",
 		RepoPath:    "/dev/repo",
 		RepoName:    "repo",
 		SessionType: domain.SessionAgent,
@@ -426,11 +462,11 @@ func TestStory3_AC1_SpawnRegistersAgentSession(t *testing.T) {
 }
 
 func TestStory3_AC2_SpawnRegistersTerminalSession(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 
 	session := domain.TerminalSession{
 		SessionName: "term-repo-200",
-		PaneTarget:  "term-repo-200:0.0",
+		PaneTarget:  "term-repo-200",
 		RepoPath:    "/dev/repo",
 		RepoName:    "repo",
 		SessionType: domain.SessionTerminal,
@@ -450,12 +486,11 @@ func TestStory3_AC2_SpawnRegistersTerminalSession(t *testing.T) {
 }
 
 func TestStory3_AC3_KillAgentDeregisters(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 
-	// Pre-populate registry with a session
 	app.registerSession(domain.TerminalSession{
 		SessionName: "mashed-repo-100",
-		PaneTarget:  "mashed-repo-100:0.0",
+		PaneTarget:  "mashed-repo-100",
 		RepoPath:    "/dev/repo",
 		RepoName:    "repo",
 		SessionType: domain.SessionAgent,
@@ -464,7 +499,6 @@ func TestStory3_AC3_KillAgentDeregisters(t *testing.T) {
 		IsAlive:     true,
 	})
 
-	// Verify it exists
 	app.mu.Lock()
 	_, exists := app.terminalSessions["mashed-repo-100"]
 	app.mu.Unlock()
@@ -475,7 +509,6 @@ func TestStory3_AC3_KillAgentDeregisters(t *testing.T) {
 	delete(app.terminalSessions, "mashed-repo-100")
 	app.mu.Unlock()
 
-	// Verify removal
 	app.mu.Lock()
 	_, existsAfter := app.terminalSessions["mashed-repo-100"]
 	app.mu.Unlock()
@@ -483,19 +516,13 @@ func TestStory3_AC3_KillAgentDeregisters(t *testing.T) {
 }
 
 func TestStory3_AC4_FailedSpawnNoRegistration(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 
-	// Registry starts empty
 	app.mu.Lock()
 	count := len(app.terminalSessions)
 	app.mu.Unlock()
 	assert.Equal(t, 0, count, "registry must start empty")
 
-	// A failed spawn should not register anything.
-	// spawnTmuxSession registers AFTER successful tmux new-session.
-	// If tmux fails, the function returns early with an error,
-	// so registerSession is never called. Verify invariant:
-	// registry stays empty when no registerSession is called.
 	app.mu.Lock()
 	countAfter := len(app.terminalSessions)
 	app.mu.Unlock()
@@ -503,7 +530,7 @@ func TestStory3_AC4_FailedSpawnNoRegistration(t *testing.T) {
 }
 
 func TestStory1_RegisterSessionConcurrent(t *testing.T) {
-	app := testApp(nil)
+	app := testApp()
 	done := make(chan struct{})
 
 	for i := 0; i < 100; i++ {
@@ -524,4 +551,18 @@ func TestStory1_RegisterSessionConcurrent(t *testing.T) {
 	count := len(app.terminalSessions)
 	app.mu.Unlock()
 	assert.Greater(t, count, 0)
+}
+
+// ── Story 4: AC-7 recoverSessions is a no-op ──
+
+func TestStory4_AC7_RecoverSessionsIsNoOp(t *testing.T) {
+	app := testApp()
+
+	// recoverSessions should be a no-op — no tmux shell-out, no sessions added
+	app.recoverSessions()
+
+	app.mu.Lock()
+	count := len(app.terminalSessions)
+	app.mu.Unlock()
+	assert.Equal(t, 0, count, "recoverSessions must be a no-op")
 }

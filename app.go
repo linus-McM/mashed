@@ -29,6 +29,14 @@ type paneDiscoverer interface {
 	FindPaneForPID(agentPID int) (*terminal.TmuxPane, error)
 }
 
+// sessionManager abstracts PTY session lifecycle for testability.
+type sessionManager interface {
+	Spawn(ctx context.Context, name, repoPath, command string) (*terminal.ManagedSession, error)
+	Kill(name string) error
+	IsAlive(name string) bool
+	Shutdown()
+}
+
 // App is the main application struct bound to the Wails frontend.
 type App struct {
 	ctx         context.Context
@@ -37,7 +45,7 @@ type App struct {
 	repoScanner *scanner.RepoScanner
 	engine      *agent.NotificationEngine
 	bridge      *terminal.Bridge
-	manager     *terminal.SessionManager
+	manager     sessionManager
 	panes       paneDiscoverer
 	explainer   *explain.Explainer
 	mu          sync.Mutex
@@ -128,8 +136,7 @@ func (a *App) startup(ctx context.Context) {
 		log.Printf("terminal bridge start failed: %v", err)
 	}
 
-	// Recover any surviving tmux sessions from a previous app instance.
-	a.recoverSessions()
+	// PTY sessions don't survive restart — no recovery needed.
 
 	// Initialize the diff explainer (uses ANTHROPIC_API_KEY from env)
 	a.explainer = explain.New()
@@ -161,6 +168,9 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) shutdown(ctx context.Context) {
 	if a.cancel != nil {
 		a.cancel()
+	}
+	if a.manager != nil {
+		a.manager.Shutdown()
 	}
 	if a.bridge != nil {
 		a.bridge.Stop()
