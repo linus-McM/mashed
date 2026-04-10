@@ -4,7 +4,7 @@
   import { cubicOut } from 'svelte/easing';
   import { FileText, Plus, Minus, X, Sparkles, ChevronDown, FileCode, ExternalLink } from 'lucide-svelte';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
-  import { StreamCodeReviewSummary, ListAdviceModes, StreamAdvice, SpawnRefactorPlan, ListModels } from '../../wailsjs/go/main/App.js';
+  import { StreamCodeReviewSummary, ListAdviceModes, StreamAdvice, StreamScopedAdvice, SpawnRefactorPlan, ListModels } from '../../wailsjs/go/main/App.js';
 
   const dispatch = createEventDispatcher();
 
@@ -25,6 +25,7 @@
   let adviceText = '';
   let adviceLoading = false;
   let adviceError = '';
+  let priorAdvice = '';
 
   // Model state
   let modelList = [];
@@ -150,12 +151,47 @@
     }
   }
 
+  function buildAdditionalContext() {
+    const parts = [];
+    const selectedSummaries = files
+      .filter(f => selectedFiles.has(f.path))
+      .map(f => `- **${f.path}** (+${f.added}/-${f.removed}): ${f.summary}`)
+      .join('\n');
+    if (selectedSummaries) {
+      parts.push('## File Summaries\n' + selectedSummaries);
+    }
+    if (priorAdvice) {
+      parts.push('## Previous Advice\n' + priorAdvice);
+    }
+    return parts.join('\n\n');
+  }
+
+  function buildEnrichedAdvice() {
+    const parts = [];
+    const fileList = Array.from(selectedFiles).join(', ');
+    parts.push('## Scoped Files\n' + fileList);
+    const summaries = files
+      .filter(f => selectedFiles.has(f.path))
+      .map(f => `- **${f.path}**: ${f.summary}`)
+      .join('\n');
+    if (summaries) {
+      parts.push('## File Summaries\n' + summaries);
+    }
+    parts.push('## Code Review Advice\n' + adviceText);
+    return parts.join('\n\n');
+  }
+
   function getAdvice() {
     if (!canGetAdvice) return;
+    if (adviceText) {
+      priorAdvice = adviceText;
+    }
     adviceText = '';
     adviceError = '';
     adviceLoading = true;
-    StreamAdvice(repoPath, selectedMode, selectedModel);
+    const filePaths = Array.from(selectedFiles);
+    const context = buildAdditionalContext();
+    StreamScopedAdvice(repoPath, selectedMode, selectedModel, filePaths, context);
   }
 
   async function createRefactorPlan() {
@@ -163,7 +199,8 @@
     planLoading = true;
     planError = '';
     try {
-      planPath = await SpawnRefactorPlan(repoPath, adviceText);
+      const enrichedAdvice = buildEnrichedAdvice();
+      planPath = await SpawnRefactorPlan(repoPath, enrichedAdvice);
     } catch (e) {
       planError = e?.message || 'Failed to create plan';
     }
