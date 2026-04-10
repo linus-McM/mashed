@@ -209,13 +209,12 @@ func (a *App) StreamAdvice(repoPath, modeName, model string) {
 Provide your analysis in markdown format.`, body)
 
 		// Spawn Claude: system prompt via --system-prompt, diff via stdin.
-		// --bare skips hooks/LSP/plugins for faster startup.
 		// --no-session-persistence avoids writing throwaway sessions to disk.
+		// Note: --bare is NOT used because it disables OAuth/keychain auth.
 		cmd := exec.CommandContext(a.ctx, "claude",
 			"--print",
 			"--model", model,
 			"--system-prompt", systemPrompt,
-			"--bare",
 			"--no-session-persistence",
 		)
 		cmd.Dir = repoPath
@@ -306,8 +305,8 @@ const fileSummarySystemPrompt = `Summarise the code changes provided.
 - Be specific about what changed and why it matters.`
 
 // runClaudePrompt executes `claude --print` with a system prompt and user
-// content piped via stdin. Uses --bare and --no-session-persistence for
-// fast, ephemeral calls.
+// content piped via stdin. Uses --no-session-persistence to avoid disk clutter.
+// Note: --bare is NOT used because it disables OAuth/keychain auth.
 func runClaudePrompt(parentCtx context.Context, repoPath, model, systemPrompt, userContent string, timeout time.Duration) (string, error) {
 	ctx, cancel := context.WithTimeout(parentCtx, timeout)
 	defer cancel()
@@ -316,7 +315,6 @@ func runClaudePrompt(parentCtx context.Context, repoPath, model, systemPrompt, u
 		"--print",
 		"--model", model,
 		"--system-prompt", systemPrompt,
-		"--bare",
 		"--no-session-persistence",
 	)
 	cmd.Dir = repoPath
