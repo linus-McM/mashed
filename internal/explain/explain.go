@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -46,6 +47,8 @@ func (e *Explainer) Explain(ctx context.Context, repoPath, filePath, hunkText st
 
 	cmd := exec.CommandContext(ctx, "claude", "-p", prompt)
 	cmd.Dir = repoPath
+	// Strip ANTHROPIC_API_KEY so CLI uses OAuth/keychain instead of a stale key.
+	cmd.Env = envWithoutAPIKey()
 	out, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("claude CLI failed: %w", err)
@@ -77,4 +80,16 @@ func truncateHunk(text string, n int) string {
 		return text
 	}
 	return strings.Join(lines[:n], "\n")
+}
+
+// envWithoutAPIKey returns os.Environ() with ANTHROPIC_API_KEY removed.
+func envWithoutAPIKey() []string {
+	env := os.Environ()
+	filtered := make([]string, 0, len(env))
+	for _, e := range env {
+		if !strings.HasPrefix(e, "ANTHROPIC_API_KEY=") {
+			filtered = append(filtered, e)
+		}
+	}
+	return filtered
 }

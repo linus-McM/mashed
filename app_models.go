@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -19,66 +18,38 @@ var (
 	modelCacheOnce sync.Once
 )
 
-// fetchModelsSchema is the JSON schema for structured output from the Claude CLI.
-const fetchModelsSchema = `{
-  "type": "object",
-  "properties": {
-    "models": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "alias":         { "type": "string" },
-          "id":            { "type": "string" },
-          "displayName":   { "type": "string" },
-          "contextWindow": { "type": "integer" },
-          "tier":          { "type": "string", "enum": ["powerful", "balanced", "fast"] },
-          "isDefault":     { "type": "boolean" }
-        },
-        "required": ["alias", "id", "displayName", "contextWindow", "tier", "isDefault"]
-      }
-    }
-  },
-  "required": ["models"]
-}`
+const fetchModelsPrompt = `Output ONLY a JSON object (no markdown, no explanation, no code fences) listing every Claude model alias the --model flag accepts.
 
-const fetchModelsPrompt = `List every Claude model alias that the --model flag of the Claude Code CLI accepts.
-For each alias, provide:
-- alias: the short name (e.g. "opus", "sonnet", "haiku")
-- id: the full model ID (e.g. "claude-opus-4-6")
-- displayName: a human-readable label (e.g. "Opus 4.6")
-- contextWindow: max context window in tokens
-- tier: "powerful" for opus-class, "balanced" for sonnet-class, "fast" for haiku-class
-- isDefault: true only for the most capable model (opus)
+Format: {"models":[{"alias":"opus","id":"claude-opus-4-6","displayName":"Opus 4.6","contextWindow":1000000,"tier":"powerful","isDefault":true},...]}
 
-Include all current model aliases. Order from most powerful to least.`
+tier values: "powerful" for opus, "balanced" for sonnet, "fast" for haiku.
+isDefault: true only for opus.
+Include all current aliases. Order: most powerful first.
+RESPOND WITH ONLY THE JSON OBJECT. NO OTHER TEXT.`
 
 // fetchModelsFromCLI spawns a Claude CLI session to discover available models.
 // Returns the fallback list on any error.
 func fetchModelsFromCLI(ctx context.Context) []domain.ModelInfo {
-	fetchCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	fetchCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(fetchCtx, "claude",
+	cmd := claudeCommand(fetchCtx,
 		"--print",
 		"--no-session-persistence",
-		"--json-schema", fetchModelsSchema,
+		"--disable-slash-commands",
+		"--no-chrome",
+		"--tools", "",
 		"--model", "haiku",
 		"-p", fetchModelsPrompt,
 	)
 
 	out, err := cmd.Output()
 	if err != nil {
-		// Capture stderr for diagnostics.
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			log.Printf("model discovery via CLI failed: %v (stderr: %.500s) — using fallback", err, string(exitErr.Stderr))
-		} else {
-			log.Printf("model discovery via CLI failed: %v — using fallback", err)
-		}
+		log.Printf("model discovery via CLI failed: %v (stdout: %.800s) — using fallback", err, string(out))
 		return domain.FallbackModels()
 	}
 
-	// --json-schema forces structured JSON output as plain text.
+	// Plain text output — parse as JSON (handles code fences and surrounding prose).
 	// Parse directly as our models response.
 	models, err := parseModelResponse(out)
 	if err != nil {
@@ -100,19 +71,31 @@ type modelsResponse struct {
 	Models []domain.ModelInfo `json:"models"`
 }
 
-// parseModelResponse extracts ModelInfo from Claude CLI plain-text JSON output.
-// With --json-schema (no --output-format json), the CLI outputs the structured
-// JSON directly as plain text.
+// parseModelResponse extracts ModelInfo from Claude CLI output.
+// Handles both clean JSON and JSON wrapped in markdown/prose.
 func parseModelResponse(data []byte) ([]domain.ModelInfo, error) {
 	text := strings.TrimSpace(string(data))
 	if text == "" {
 		return nil, fmt.Errorf("empty response")
 	}
+
+	// Try direct parse first.
 	var resp modelsResponse
-	if err := json.Unmarshal([]byte(text), &resp); err != nil {
-		return nil, fmt.Errorf("parse model JSON: %w", err)
+	if err := json.Unmarshal([]byte(text), &resp); err == nil {
+		return resp.Models, nil
 	}
-	return resp.Models, nil
+
+	// Extract JSON object from surrounding text (Claude sometimes adds prose).
+	start := strings.Index(text, "{")
+	end := strings.LastIndex(text, "}")
+	if start >= 0 && end > start {
+		extracted := text[start : end+1]
+		if err := json.Unmarshal([]byte(extracted), &resp); err == nil {
+			return resp.Models, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no valid JSON found in response")
 }
 
 // initModelCache populates the model cache. Called once at startup.

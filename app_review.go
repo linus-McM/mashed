@@ -211,7 +211,7 @@ Provide your analysis in markdown format.`, body)
 		// Spawn Claude: system prompt via --system-prompt, diff via stdin.
 		// --no-session-persistence avoids writing throwaway sessions to disk.
 		// Note: --bare is NOT used because it disables OAuth/keychain auth.
-		cmd := exec.CommandContext(a.ctx, "claude",
+		cmd := claudeCommand(a.ctx,
 			"--print",
 			"--model", model,
 			"--system-prompt", systemPrompt,
@@ -311,7 +311,7 @@ func runClaudePrompt(parentCtx context.Context, repoPath, model, systemPrompt, u
 	ctx, cancel := context.WithTimeout(parentCtx, timeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "claude",
+	cmd := claudeCommand(ctx,
 		"--print",
 		"--model", model,
 		"--system-prompt", systemPrompt,

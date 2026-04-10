@@ -288,8 +288,27 @@ func TestParseModelResponse_EmptyInput(t *testing.T) {
 }
 
 func TestParseModelResponse_InvalidJSON(t *testing.T) {
-	_, err := parseModelResponse([]byte("not json"))
+	_, err := parseModelResponse([]byte("not json at all"))
 	assert.Error(t, err)
+}
+
+func TestParseModelResponse_JSONInCodeFence(t *testing.T) {
+	// Claude sometimes wraps JSON in markdown code fences
+	input := "```json\n" + `{"models":[{"alias":"opus","id":"claude-opus-4-6","displayName":"Opus 4.6","contextWindow":1000000,"tier":"powerful","isDefault":true}]}` + "\n```"
+
+	models, err := parseModelResponse([]byte(input))
+	require.NoError(t, err)
+	require.Len(t, models, 1)
+	assert.Equal(t, "opus", models[0].Alias)
+}
+
+func TestParseModelResponse_JSONWithSurroundingProse(t *testing.T) {
+	input := "Here are the models:\n" + `{"models":[{"alias":"sonnet","id":"claude-sonnet-4-6","displayName":"Sonnet 4.6","contextWindow":200000,"tier":"balanced","isDefault":false}]}` + "\nHope that helps!"
+
+	models, err := parseModelResponse([]byte(input))
+	require.NoError(t, err)
+	require.Len(t, models, 1)
+	assert.Equal(t, "sonnet", models[0].Alias)
 }
 
 // ---------------------------------------------------------------------------

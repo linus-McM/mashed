@@ -376,7 +376,7 @@ func (a *App) gitCommitCore(repoPath string, onProgress func(step, detail string
 				"Do NOT run git commit — just fix the code so the next commit will succeed.",
 			errText,
 		)
-		fixCmd := exec.CommandContext(a.ctx, "claude", "--dangerously-skip-permissions", "-p", fixPrompt)
+		fixCmd := claudeCommand(a.ctx, "--dangerously-skip-permissions", "-p", fixPrompt)
 		fixCmd.Dir = repoPath
 		fixOut, fixErr := fixCmd.Output()
 		fixSummary := strings.TrimSpace(string(fixOut))
@@ -422,7 +422,7 @@ func (a *App) generateCommitMessage(repoPath, diffText, statSummary string, prog
 		"Write a concise git commit message (1-2 lines max, no quotes, no markdown) for this diff:\n\n%s",
 		diffText,
 	)
-	claudeCmd := exec.CommandContext(a.ctx, "claude", "-p", prompt)
+	claudeCmd := claudeCommand(a.ctx, "-p", prompt)
 	claudeCmd.Dir = repoPath
 	if msgOut, err := claudeCmd.Output(); err == nil {
 		msg := strings.TrimSpace(string(msgOut))
@@ -438,7 +438,7 @@ func (a *App) generateCommitMessage(repoPath, diffText, statSummary string, prog
 		"Write a one-line git commit message (no quotes, no markdown) summarising these changes:\n\n%s",
 		statSummary,
 	)
-	retryCmd := exec.CommandContext(a.ctx, "claude", "-p", retryPrompt)
+	retryCmd := claudeCommand(a.ctx, "-p", retryPrompt)
 	retryCmd.Dir = repoPath
 	if retryOut, err := retryCmd.Output(); err == nil {
 		msg := strings.TrimSpace(string(retryOut))
@@ -498,7 +498,7 @@ func (a *App) GitCommitStreaming(repoPath string) {
 				"A git commit operation failed. Explain this error concisely (2-3 sentences) and suggest a fix.\n\nError:\n%s",
 				errMsg,
 			)
-			claudeCmd := exec.CommandContext(a.ctx, "claude", "-p", prompt)
+			claudeCmd := claudeCommand(a.ctx, "-p", prompt)
 			claudeCmd.Dir = repoPath
 			if expOut, expErr := claudeCmd.Output(); expErr == nil {
 				explanation = strings.TrimSpace(string(expOut))
@@ -673,7 +673,7 @@ func (a *App) GitCommitPushAndPR(repoPath string) (string, error) {
 Keep it factual based on the diff.
 
 %s`, branch, diffText)
-	claudeCmd := exec.CommandContext(a.ctx, "claude", "-p", prompt)
+	claudeCmd := claudeCommand(a.ctx, "-p", prompt)
 	claudeCmd.Dir = repoPath
 	prOut, err := claudeCmd.Output()
 	prBody := strings.TrimSpace(string(prOut))
