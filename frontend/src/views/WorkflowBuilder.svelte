@@ -24,12 +24,40 @@
   import AgentConfigModal from '../components/bmad/AgentConfigModal.svelte';
   import OutputViewerModal from '../components/bmad/OutputViewerModal.svelte';
   import ArrayEditorModal from '../components/bmad/ArrayEditorModal.svelte';
+  import QuestionResponseModal from '../components/bmad/QuestionResponseModal.svelte';
   import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
 
   export let repoPath = '';
   export let repoBranch = '';
+  export let pendingQuestion = null;
 
   const dispatch = createEventDispatcher();
+
+  let showQuestionModal = false;
+  let activeQuestion = null;
+
+  // Only open the modal on a truthy transition when not already showing.
+  // Without the !showQuestionModal guard, re-setting pendingQuestion to the
+  // same value (e.g. parent re-render) would silently reset activeQuestion
+  // while a submit may be in-flight.
+  $: if (pendingQuestion && !showQuestionModal) {
+    activeQuestion = pendingQuestion;
+    showQuestionModal = true;
+  }
+
+  function handleQuestionResponded() {
+    const nodeId = activeQuestion?.nodeId;
+    // Dispatch BEFORE clearing activeQuestion so the parent's handler
+    // observes the event before any reactive chain can re-set pendingQuestion.
+    dispatch('question-responded', { nodeId });
+    showQuestionModal = false;
+    activeQuestion = null;
+  }
+
+  function handleQuestionClose() {
+    showQuestionModal = false;
+    // Leave activeQuestion intact so the snackbar remains visible upstream.
+  }
 
   const nodeTypes = {
     bmadProcess: ProcessNode,
@@ -763,6 +791,14 @@
       items={arrayModalItems}
       on:save={handleArraySave}
       on:close={() => showArrayModal = false}
+    />
+  {/if}
+
+  {#if showQuestionModal && activeQuestion}
+    <QuestionResponseModal
+      question={activeQuestion}
+      on:responded={handleQuestionResponded}
+      on:close={handleQuestionClose}
     />
   {/if}
 </div>

@@ -4,7 +4,7 @@
 **Domain:** fullstack
 **Estimated Complexity:** M
 **Depends On:** Story 2 (question-02-backend-response), Story 3 (question-03-snackbar-stack)
-**Status:** ready
+**Status:** done
 
 ## Description
 

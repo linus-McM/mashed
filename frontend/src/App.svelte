@@ -10,6 +10,8 @@
   import WorkflowBuilder from './views/WorkflowBuilder.svelte';
   import NewRepoModal from './components/NewRepoModal.svelte';
   import AboutModal from './components/AboutModal.svelte';
+  import QuestionSnackbarStack from './components/bmad/QuestionSnackbarStack.svelte';
+  import { upsertQuestion, dismissQuestion } from './components/bmad/questionSnackbarUtils';
   import { Hexagon } from 'lucide-svelte';
   import TitleBar from './components/TitleBar.svelte';
   import { applyTheme } from './lib/stores/theme.js';
@@ -28,6 +30,8 @@
   let builderRepoBranch = '';
   let toastMessage = '';
   let toastTimeout;
+  let questionQueue = [];
+  let pendingQuestion = null;
 
   onMount(async () => {
     // Intercept console.error/warn/log and forward to Go session log file
@@ -128,6 +132,26 @@
     removeSessionByName(sessionName);
   });
 
+  EventsOn('bmad:node:question', (event) => {
+    questionQueue = upsertQuestion(questionQueue, event);
+  });
+
+  EventsOn('bmad:node:question:dismissed', (event) => {
+    const nodeId = event && typeof event === 'object' ? event.nodeId : event;
+    if (!nodeId) return;
+    questionQueue = dismissQuestion(questionQueue, nodeId);
+  });
+
+  function handleQuestionNavigate(e) {
+    const { repoPath, question } = e.detail;
+    if (repoPath) builderRepoPath = repoPath;
+    pendingQuestion = question;
+    showSpawnModal = false;
+    showNewRepoModal = false;
+    showAboutModal = false;
+    currentView = 'workflows';
+  }
+
   function onSetupReady() {
     currentView = 'feed';
   }
@@ -155,6 +179,7 @@
     SetActiveContext('', '');
     currentView = 'feed';
     selectedAgent = null;
+    pendingQuestion = null;
   }
 
   function onSpawned(e) {
@@ -215,7 +240,17 @@
       on:open-workspace={(e) => { builderRepoPath = e.detail.path; builderRepoBranch = e.detail.branch || ''; currentView = 'workflows'; }}
     />
   {:else if currentView === 'workflows'}
-    <WorkflowBuilder repoPath={builderRepoPath} repoBranch={builderRepoBranch} on:back={goBack} />
+    <WorkflowBuilder
+      repoPath={builderRepoPath}
+      repoBranch={builderRepoBranch}
+      {pendingQuestion}
+      on:back={goBack}
+      on:question-responded={(e) => {
+        const nodeId = e.detail?.nodeId;
+        pendingQuestion = null;
+        if (nodeId) questionQueue = dismissQuestion(questionQueue, nodeId);
+      }}
+    />
   {:else if currentView === 'settings'}
     <Settings on:back={goBack} />
   {:else}
@@ -243,6 +278,8 @@
   {#if toastMessage}
     <div class="toast">{toastMessage}</div>
   {/if}
+
+  <QuestionSnackbarStack questions={questionQueue} on:navigate={handleQuestionNavigate} />
 </main>
 
 <style>
