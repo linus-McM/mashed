@@ -1097,8 +1097,8 @@
 
 <script context="module">
   const statusColors = {
-    running:        '#39ff14',
-    open:           '#00c4b3',
+    running:        'var(--accent-green)',
+    open:           'var(--accent-teal)',
     finished:       'var(--accent-amber)',
     needs_response: 'var(--accent-red)',
     waiting:        'var(--accent-red)',
@@ -1268,7 +1268,7 @@
   }
 
   .color-swatch.active {
-    border-color: #fff;
+    border-color: var(--text-primary);
   }
 
   .repo-name {
@@ -1697,27 +1697,27 @@
   }
 
   .action-btn.action-hot {
-    color: #39ff14;
+    color: var(--accent-green);
     border-color: rgba(57, 255, 20, 0.3);
     text-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
   }
 
   .action-btn.action-hot:hover {
-    color: #39ff14;
-    border-color: #39ff14;
+    color: var(--accent-green);
+    border-color: var(--accent-green);
     background: rgba(57, 255, 20, 0.08);
     text-shadow: 0 0 10px rgba(57, 255, 20, 0.6);
   }
 
   .action-btn.action-review.action-hot {
-    color: #39ff14;
+    color: var(--accent-green);
     border-color: rgba(57, 255, 20, 0.3);
     text-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
   }
 
   .action-btn.action-review.action-hot:hover {
-    color: #39ff14;
-    border-color: #39ff14;
+    color: var(--accent-green);
+    border-color: var(--accent-green);
     background: rgba(57, 255, 20, 0.08);
     text-shadow: 0 0 10px rgba(57, 255, 20, 0.6);
   }

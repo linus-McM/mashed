@@ -58,7 +58,7 @@
   .back-btn {
     background: none;
     border: none;
-    color: #39ff14;
+    color: var(--accent-green);
     font-family: var(--font-mono);
     font-size: 13px;
     font-weight: 600;

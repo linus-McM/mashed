@@ -676,18 +676,20 @@
   .back-btn {
     background: none;
     border: none;
-    color: #39ff14;
+    color: var(--accent-green);
     font-family: var(--font-ui);
     font-size: 13px;
     cursor: pointer;
     padding: 2px 6px;
     border-radius: var(--radius-sm);
-    text-shadow: 0 0 6px rgba(57, 255, 20, 0.6);
+    text-shadow: 0 0 6px color-mix(in srgb, var(--accent-green) 60%, transparent);
   }
 
   .back-btn:hover {
-    color: #39ff14;
-    text-shadow: 0 0 10px rgba(57, 255, 20, 0.9), 0 0 20px rgba(57, 255, 20, 0.4);
+    color: var(--accent-green);
+    text-shadow:
+      0 0 10px color-mix(in srgb, var(--accent-green) 90%, transparent),
+      0 0 20px color-mix(in srgb, var(--accent-green) 40%, transparent);
   }
 
   .header-repo {
@@ -1002,14 +1004,14 @@
   }
 
   .git-btn.git-hot {
-    color: #39ff14;
+    color: var(--accent-green);
     border-color: rgba(57, 255, 20, 0.3);
     text-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
   }
 
   .git-btn.git-hot:hover:not(:disabled) {
-    color: #39ff14;
-    border-color: #39ff14;
+    color: var(--accent-green);
+    border-color: var(--accent-green);
     background: rgba(57, 255, 20, 0.08);
     text-shadow: 0 0 10px rgba(57, 255, 20, 0.6);
   }

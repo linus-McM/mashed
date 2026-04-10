@@ -3,8 +3,8 @@
   export let size = 'md'; // 'sm' or 'md'
 
   const colors = {
-    running: '#39ff14',
-    open: '#00c4b3',
+    running: 'var(--accent-green)',
+    open: 'var(--accent-teal)',
     finished: 'var(--accent-red)',
     needs_response: 'var(--accent-red)',
     waiting: 'var(--accent-red)',
