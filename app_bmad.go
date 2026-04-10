@@ -130,7 +130,7 @@ func (a *App) StartBmadWorkflow(workflowID, repoPath, model string) (string, err
 	if a.bmadExecutor == nil {
 		return "", fmt.Errorf("bmad executor not initialized")
 	}
-	exec, err := a.bmadExecutor.StartWorkflow(workflowID, repoPath, model)
+	exec, err := a.bmadExecutor.StartWorkflow(a.ctx, workflowID, repoPath, model)
 	if err != nil {
 		return "", err
 	}

@@ -358,6 +358,10 @@ export function StreamCodeReviewSummary(arg1, arg2) {
   return window['go']['main']['App']['StreamCodeReviewSummary'](arg1, arg2);
 }
 
+export function StreamScopedAdvice(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['main']['App']['StreamScopedAdvice'](arg1, arg2, arg3, arg4, arg5);
+}
+
 export function TakeScreenshot(arg1, arg2) {
   return window['go']['main']['App']['TakeScreenshot'](arg1, arg2);
 }

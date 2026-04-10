@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -44,12 +45,13 @@ type ExecStatusEvent struct {
 
 // execState holds the mutable runtime state of a single execution.
 type execState struct {
-	exec     *WorkflowExecution
-	cancel   context.CancelFunc
-	paused   bool
-	mu       sync.Mutex
-	inDegree map[string]int            // current in-degree per node
-	outEdges map[string][]WorkflowEdge // source -> edges
+	exec             *WorkflowExecution
+	cancel           context.CancelFunc
+	paused           bool
+	mu               sync.Mutex
+	inDegree         map[string]int            // current in-degree per node
+	outEdges         map[string][]WorkflowEdge // source -> edges
+	lastQuestionHash map[string]string         // nodeID -> last emitted question hash
 }
 
 // Executor manages workflow executions.
@@ -79,8 +81,9 @@ func (e *Executor) SetCommandRunner(runner CommandRunner) {
 }
 
 // StartWorkflow loads a workflow, validates its DAG, creates an execution, and
-// begins running nodes in topological order.
-func (e *Executor) StartWorkflow(workflowID, repoPath, model string) (*WorkflowExecution, error) {
+// begins running nodes in topological order. The parent context allows callers
+// to cancel the workflow externally.
+func (e *Executor) StartWorkflow(parentCtx context.Context, workflowID, repoPath, model string) (*WorkflowExecution, error) {
 	wf, err := e.storage.LoadWorkflow(workflowID)
 	if err != nil {
 		return nil, err
@@ -110,7 +113,7 @@ func (e *Executor) StartWorkflow(workflowID, repoPath, model string) (*WorkflowE
 		NodeOutputs: make(map[string]string),
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(parentCtx)
 
 	// Build in-degree and outEdges maps for the dynamic executor.
 	inDegree := make(map[string]int, len(nodes))
@@ -124,10 +127,11 @@ func (e *Executor) StartWorkflow(workflowID, repoPath, model string) (*WorkflowE
 	}
 
 	state := &execState{
-		exec:     execution,
-		cancel:   cancel,
-		inDegree: inDegree,
-		outEdges: outEdgesMap,
+		exec:             execution,
+		cancel:           cancel,
+		inDegree:         inDegree,
+		outEdges:         outEdgesMap,
+		lastQuestionHash: make(map[string]string),
 	}
 
 	e.mu.Lock()
@@ -779,6 +783,9 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 	// Poll for completion.
 	ticker := time.NewTicker(e.pollInterval)
 	defer ticker.Stop()
+	// questionPollCounter throttles question scanning to every 3rd tick
+	// to reduce tmux subprocess overhead.
+	var questionPollCounter int
 	for {
 		select {
 		case <-ctx.Done():
@@ -810,6 +817,13 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 				e.completeNode(state, idx, nodeID)
 				return
 			}
+
+			// Question detection: scan for questions every 3rd tick to reduce
+			// tmux subprocess overhead on the hot path.
+			questionPollCounter++
+			if questionPollCounter%3 == 0 {
+				e.pollForQuestion(ctx, state, nodeID, target)
+			}
 		}
 	}
 }
@@ -822,6 +836,12 @@ func (e *Executor) completeNode(state *execState, idx int, nodeID string) {
 	node := state.exec.Nodes[idx]
 	state.mu.Unlock()
 	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeComplete})
+
+	// Dismiss any stale question notification.
+	e.emitEvent(EventQuestionDismissed, map[string]string{
+		"execId": state.exec.ID,
+		"nodeId": nodeID,
+	})
 
 	// Auto-advance linked sprint story status on node completion.
 	if storyID != "" && repoPath != "" {
@@ -853,6 +873,51 @@ func (e *Executor) failNode(state *execState, idx int, nodeID string) {
 	state.exec.Nodes[idx].Status = NodeFailed
 	state.mu.Unlock()
 	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeFailed})
+
+	// Dismiss any stale question notification.
+	e.emitEvent(EventQuestionDismissed, map[string]string{
+		"execId": state.exec.ID,
+		"nodeId": nodeID,
+	})
+}
+
+// pollForQuestion captures tmux output and checks for a Claude CLI question.
+// If a new question is detected (different hash from last), it emits a bmad:node:question event.
+func (e *Executor) pollForQuestion(ctx context.Context, state *execState, nodeID, target string) {
+	captured, err := e.captureQuestionOutput(ctx, target)
+	if err != nil {
+		return // tmux capture failed — skip silently
+	}
+
+	question, options, found := detectQuestion(captured)
+	if !found {
+		return
+	}
+
+	qHash := hashQuestion(question)
+
+	state.mu.Lock()
+	lastHash := state.lastQuestionHash[nodeID]
+	if qHash == lastHash {
+		state.mu.Unlock()
+		return // duplicate, already emitted
+	}
+	state.lastQuestionHash[nodeID] = qHash
+	execID := state.exec.ID
+	repoPath := state.exec.RepoPath
+	state.mu.Unlock()
+
+	e.emitEvent(EventQuestion, QuestionEvent{
+		ExecID:     execID,
+		NodeID:     nodeID,
+		RepoPath:   repoPath,
+		RepoName:   filepath.Base(repoPath),
+		Question:   question,
+		Options:    options,
+		TmuxTarget: target,
+		Timestamp:  time.Now().UnixMilli(),
+		QuestionID: qHash,
+	})
 }
 
 // executeTransformNode reads the output of a source node, applies an extraction

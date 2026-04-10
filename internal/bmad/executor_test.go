@@ -218,7 +218,7 @@ func TestStartWorkflow_Sequential(t *testing.T) {
 	h.executor.SetCommandRunner(successRunner())
 	wfID := saveThreeNodeWorkflow(t, h.storage)
 
-	exec, err := h.executor.StartWorkflow(wfID, "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), wfID, "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 	assert.Equal(t, ExecRunning, exec.Status)
 
@@ -247,7 +247,7 @@ func TestStartWorkflow_NodeFailure(t *testing.T) {
 	h.executor.SetCommandRunner(failRunner())
 	wfID := saveThreeNodeWorkflow(t, h.storage)
 
-	exec, err := h.executor.StartWorkflow(wfID, "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), wfID, "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	// Execution should pause after failure.
@@ -282,7 +282,7 @@ func TestStartWorkflow_CyclicWorkflow(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	_, err := h.executor.StartWorkflow("wf-cycle", "/tmp", "sonnet")
+	_, err := h.executor.StartWorkflow(context.Background(), "wf-cycle", "/tmp", "sonnet")
 	assert.True(t, errors.Is(err, ErrCyclicWorkflow))
 }
 
@@ -329,7 +329,7 @@ func TestStartWorkflow_ParallelBranches(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-parallel", "/tmp", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-parallel", "/tmp", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -350,7 +350,7 @@ func TestPauseAndResume(t *testing.T) {
 	h.executor.SetCommandRunner(delayRunner(200 * time.Millisecond))
 
 	wfID := saveThreeNodeWorkflow(t, h.storage)
-	exec, err := h.executor.StartWorkflow(wfID, "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), wfID, "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	// Wait for first node to start running.
@@ -393,7 +393,7 @@ func TestStopWorkflow(t *testing.T) {
 	h.executor.SetCommandRunner(delayRunner(10 * time.Second)) // long delay
 
 	wfID := saveThreeNodeWorkflow(t, h.storage)
-	exec, err := h.executor.StartWorkflow(wfID, "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), wfID, "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	// Wait for first node to start.
@@ -425,7 +425,7 @@ func TestPauseWorkflow_NotRunning(t *testing.T) {
 	h.executor.SetCommandRunner(successRunner())
 	wfID := saveThreeNodeWorkflow(t, h.storage)
 
-	exec, err := h.executor.StartWorkflow(wfID, "/tmp", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), wfID, "/tmp", "sonnet")
 	require.NoError(t, err)
 
 	// Wait for completion.
@@ -443,7 +443,7 @@ func TestResumeWorkflow_NotPaused(t *testing.T) {
 	h.executor.SetCommandRunner(delayRunner(5 * time.Second))
 	wfID := saveThreeNodeWorkflow(t, h.storage)
 
-	exec, err := h.executor.StartWorkflow(wfID, "/tmp", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), wfID, "/tmp", "sonnet")
 	require.NoError(t, err)
 
 	err = h.executor.ResumeWorkflow(exec.ID)
@@ -461,7 +461,7 @@ func TestGetExecution_NotFound(t *testing.T) {
 
 func TestStartWorkflow_WorkflowNotFound(t *testing.T) {
 	h := newHarness(t)
-	_, err := h.executor.StartWorkflow("nonexistent", "/tmp", "sonnet")
+	_, err := h.executor.StartWorkflow(context.Background(), "nonexistent", "/tmp", "sonnet")
 	assert.True(t, errors.Is(err, ErrWorkflowNotFound))
 }
 
@@ -549,7 +549,7 @@ func TestCompleteNode_WithStoryID_AdvancesStory(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-story", repoDir, "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-story", repoDir, "sonnet")
 	require.NoError(t, err)
 
 	// Wait for completion.
@@ -586,7 +586,7 @@ func TestCompleteNode_WithoutStoryID_NoSprintEvent(t *testing.T) {
 	h.executor.SetCommandRunner(successRunner())
 	wfID := saveThreeNodeWorkflow(t, h.storage)
 
-	exec, err := h.executor.StartWorkflow(wfID, "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), wfID, "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -618,7 +618,7 @@ func TestFailNode_WithStoryID_NoSprintUpdate(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-story-fail", repoDir, "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-story-fail", repoDir, "sonnet")
 	require.NoError(t, err)
 
 	// Wait for pause (failure causes pause).
@@ -723,7 +723,7 @@ func TestCaptureOutput_StoresOnCompletion(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-capture", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-capture", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -760,7 +760,7 @@ func TestCaptureOutput_100KBCap(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-bigcap", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-bigcap", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -802,7 +802,7 @@ func TestCaptureOutput_FailureNonFatal(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-capfail", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-capfail", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -854,7 +854,7 @@ func TestCaptureOutput_ParallelNodes(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-parcap", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-parcap", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -890,7 +890,7 @@ func TestGetExecution_CopiesNodeOutputs(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-copycap", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-copycap", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -917,7 +917,7 @@ func TestGetExecution_ReturnsCopy(t *testing.T) {
 	h.executor.SetCommandRunner(successRunner())
 	wfID := saveThreeNodeWorkflow(t, h.storage)
 
-	exec, err := h.executor.StartWorkflow(wfID, "/tmp", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), wfID, "/tmp", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -994,7 +994,7 @@ func TestDynamicExecutor_ConditionBranching_TrueBranch(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-cond-true", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-cond-true", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1050,7 +1050,7 @@ func TestDynamicExecutor_ConditionBranching_FalseBranch(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-cond-false", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-cond-false", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1110,7 +1110,7 @@ func TestDynamicExecutor_MergeAfterCondition(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-merge", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-merge", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1161,7 +1161,7 @@ func TestDynamicExecutor_AllBranchesSkipped(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-allskip", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-allskip", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1213,7 +1213,7 @@ func TestDynamicExecutor_SkippedStatus(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-skipevt", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-skipevt", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1385,7 +1385,7 @@ func TestTransformNode_RegexExtraction(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-transform-regex", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-transform-regex", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1432,7 +1432,7 @@ func TestTransformNode_LinesExtraction(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-transform-lines", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-transform-lines", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1466,7 +1466,7 @@ func TestTransformNode_MissingSource(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-transform-nosrc", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-transform-nosrc", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1508,7 +1508,7 @@ func TestTransformNode_Passthrough(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-transform-pass", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-transform-pass", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1812,7 +1812,7 @@ func TestLoopNode_FixedCount(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-loop-fixed", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-loop-fixed", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1870,7 +1870,7 @@ func TestLoopUntil_ConditionMet(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-loopuntil-met", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-loopuntil-met", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1919,7 +1919,7 @@ func TestLoopUntil_MaxIterations(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-loopuntil-max", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-loopuntil-max", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -1983,7 +1983,7 @@ func TestLoop_BodyFailure(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-loop-fail", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-loop-fail", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	// Execution should pause after failure (loop node fails -> pause).
@@ -2034,7 +2034,7 @@ func TestLoop_EmptyBody(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-loop-empty", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-loop-empty", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -2084,7 +2084,7 @@ func TestCompleteNode_EmitsArtifactEvent_ProcessNode(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow(wf.ID, repoDir, "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), wf.ID, repoDir, "sonnet")
 	require.NoError(t, err)
 
 	// Wait for completion.
@@ -2124,7 +2124,7 @@ func TestCompleteNode_ArtifactEvent_MissingArtifact(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow(wf.ID, repoDir, "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), wf.ID, repoDir, "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -2170,7 +2170,7 @@ func TestCompleteNode_NoArtifactEvent_ControlNode(t *testing.T) {
 	require.NoError(t, os.MkdirAll(artifactDir, 0o755))
 	require.NoError(t, os.WriteFile(filepath.Join(artifactDir, "brainstorm-notes.md"), []byte("notes"), 0o644))
 
-	exec, err := h.executor.StartWorkflow(wf.ID, repoDir, "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), wf.ID, repoDir, "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -2256,7 +2256,7 @@ func TestLoopNode_IteratesOverItems(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-loop-items", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-loop-items", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -2304,7 +2304,7 @@ func TestLoopNode_ItemsCappedByMaxIterations(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-loop-items-capped", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-loop-items-capped", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -2349,7 +2349,7 @@ func TestLoopNode_InvalidItemsJSON(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-loop-bad-items", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-loop-bad-items", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
@@ -2390,7 +2390,7 @@ func TestLoopNode_EmptyItems(t *testing.T) {
 	}
 	require.NoError(t, h.storage.SaveWorkflow(wf))
 
-	exec, err := h.executor.StartWorkflow("wf-loop-empty-items", "/tmp/repo", "sonnet")
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-loop-empty-items", "/tmp/repo", "sonnet")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {

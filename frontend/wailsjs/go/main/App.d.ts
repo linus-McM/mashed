@@ -183,6 +183,8 @@ export function StreamAdvice(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function StreamCodeReviewSummary(arg1:string,arg2:string):Promise<void>;
 
+export function StreamScopedAdvice(arg1:string,arg2:string,arg3:string,arg4:Array<string>,arg5:string):Promise<void>;
+
 export function TakeScreenshot(arg1:string,arg2:string):Promise<string>;
 
 export function UpdateStoryStatus(arg1:string,arg2:string,arg3:string):Promise<void>;
