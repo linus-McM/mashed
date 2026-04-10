@@ -847,7 +847,19 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 	contextStr := buildContextStringV3(proc, nodesCopy, nodeIndex, outputsCopy, repoPath)
 	command := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s "use %s%s"`, model, proc.SkillName, contextStr)
 
-	sessionName := fmt.Sprintf("bmad-%s-%d", nodeID, time.Now().Unix())
+	// Git errors here are non-fatal: the node continues with DetachedBranch
+	// so the workflow still runs when the repo is detached or unreachable.
+	// In true detached-HEAD state `git rev-parse --abbrev-ref HEAD` exits 0
+	// and prints the literal "HEAD", so treat that case the same as an error.
+	branch := DetachedBranch
+	if out, err := e.runCmd(ctx, "git", "-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD"); err == nil {
+		if trimmed := strings.TrimSpace(string(out)); trimmed != "" && trimmed != "HEAD" {
+			branch = trimmed
+		}
+	}
+
+	sessionName := BuildSessionName(repoPath, branch, nodesCopy[idx].Label, nodeID, time.Now().UnixNano())
+
 	_, err := e.runCmd(ctx, "tmux", "new-session", "-d",
 		"-s", sessionName,
 		"-c", repoPath,

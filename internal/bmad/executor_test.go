@@ -820,21 +820,17 @@ func TestCaptureOutput_FailureNonFatal(t *testing.T) {
 func TestCaptureOutput_ParallelNodes(t *testing.T) {
 	h := newHarness(t)
 
-	// Return different output per node based on the target.
+	// Return different output per node based on the session-name label
+	// parsed from the capture-pane target.
 	h.executor.SetCommandRunner(func(ctx context.Context, name string, args ...string) ([]byte, error) {
 		if len(args) > 0 && args[0] == "capture-pane" {
-			target := ""
-			for i, a := range args {
-				if a == "-t" && i+1 < len(args) {
-					target = args[i+1]
+			if label, ok := sessionLabelFromArgs(args); ok {
+				switch label {
+				case "a":
+					return []byte("output-A"), nil
+				case "b":
+					return []byte("output-B"), nil
 				}
-			}
-			// Use target to differentiate outputs; target contains nodeID.
-			if strings.Contains(target, "bmad-A-") {
-				return []byte("output-A"), nil
-			}
-			if strings.Contains(target, "bmad-B-") {
-				return []byte("output-B"), nil
 			}
 			return []byte("unknown"), nil
 		}
@@ -866,6 +862,111 @@ func TestCaptureOutput_ParallelNodes(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "output-A", ex.NodeOutputs["A"])
 	assert.Equal(t, "output-B", ex.NodeOutputs["B"])
+}
+
+// runExecuteNodeSessionCase drives a single-node workflow through executeNode
+// with a custom mock for `git rev-parse --abbrev-ref HEAD`, capturing the
+// tmux session name that was created. Shared by the AC-7 / AC-8 tests.
+func runExecuteNodeSessionCase(t *testing.T, gitBranchFn func() ([]byte, error)) (capturedSession string, execStatus WorkflowNodeStatus) {
+	t.Helper()
+	h := newHarness(t)
+
+	h.executor.SetCommandRunner(func(ctx context.Context, name string, args ...string) ([]byte, error) {
+		if name == "git" && len(args) >= 4 && args[2] == "rev-parse" && args[3] == "--abbrev-ref" {
+			return gitBranchFn()
+		}
+		if name == "tmux" && len(args) > 0 && args[0] == "new-session" {
+			for i, a := range args {
+				if a == "-s" && i+1 < len(args) && capturedSession == "" {
+					capturedSession = args[i+1]
+				}
+			}
+			return []byte("ok"), nil
+		}
+		if name == "tmux" && len(args) > 0 && args[0] == "list-panes" {
+			return []byte("1\n"), nil
+		}
+		return []byte("ok"), nil
+	})
+
+	wf := WorkflowDef{
+		ID:   "wf-execnode",
+		Name: "ExecuteNode Session Case",
+		Nodes: []WorkflowNode{
+			{ID: "N1", ProcessID: "bmad-brainstorming", Label: "Draft PRD", NodeType: NodeTypeProcess,
+				Position: Position{X: 0, Y: 0}, Status: NodePending, Config: map[string]string{}},
+		},
+		Edges:     []WorkflowEdge{},
+		CreatedAt: "2026-04-10T00:00:00Z",
+		UpdatedAt: "2026-04-10T00:00:00Z",
+	}
+	require.NoError(t, h.storage.SaveWorkflow(wf))
+
+	exec, err := h.executor.StartWorkflow(context.Background(), "wf-execnode", "/tmp/testrepo", "sonnet")
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool {
+		ex, _ := h.executor.GetExecution(exec.ID)
+		return ex != nil && ex.Status == ExecComplete
+	}, 5*time.Second, 50*time.Millisecond)
+
+	ex, err := h.executor.GetExecution(exec.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, capturedSession, "new-session -s argument should be captured")
+	return capturedSession, ex.Nodes[0].Status
+}
+
+// TestExecuteNode_AC7_UsesDescriptiveName verifies that executeNode builds
+// its tmux session name via BuildSessionName and that the resulting name
+// round-trips through ParseSessionName with the expected components.
+func TestExecuteNode_AC7_UsesDescriptiveName(t *testing.T) {
+	capturedSession, nodeStatus := runExecuteNodeSessionCase(t, func() ([]byte, error) {
+		return []byte("main\n"), nil
+	})
+
+	repo, branch, label, shortHash, ok := ParseSessionName(capturedSession)
+	require.True(t, ok, "captured session %q should parse as a BMAD session name", capturedSession)
+	assert.Equal(t, "testrepo", repo, "repo component should be the basename of the repoPath")
+	assert.Equal(t, "main", branch, "branch component should reflect git rev-parse output")
+	assert.Equal(t, "draft-prd", label, "label component should be the slugified node label")
+	assert.Len(t, shortHash, 8, "short hash should be 8 hex characters")
+	assert.Equal(t, NodeComplete, nodeStatus)
+}
+
+// TestExecuteNode_AC8_BranchLookupFailureFallsBackToDetached verifies that
+// every way `git rev-parse --abbrev-ref HEAD` can signal "no branch" — an
+// error, empty stdout, or the literal "HEAD" string printed by a detached
+// HEAD — falls back to DetachedBranch without failing the node.
+func TestExecuteNode_AC8_BranchLookupFailureFallsBackToDetached(t *testing.T) {
+	cases := []struct {
+		name     string
+		gitReply func() ([]byte, error)
+	}{
+		{
+			name:     "git_error",
+			gitReply: func() ([]byte, error) { return nil, fmt.Errorf("git rev-parse failed: not a repo") },
+		},
+		{
+			name:     "empty_stdout",
+			gitReply: func() ([]byte, error) { return []byte("\n"), nil },
+		},
+		{
+			name:     "literal_HEAD_detached",
+			gitReply: func() ([]byte, error) { return []byte("HEAD\n"), nil },
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			capturedSession, nodeStatus := runExecuteNodeSessionCase(t, tc.gitReply)
+
+			_, branch, label, _, ok := ParseSessionName(capturedSession)
+			require.True(t, ok, "captured session %q should still parse as a BMAD session name", capturedSession)
+			assert.Equal(t, DetachedBranch, branch, "branch should fall back to DetachedBranch")
+			assert.Equal(t, "draft-prd", label, "label should still be the slugified node label")
+			assert.Equal(t, NodeComplete, nodeStatus, "node should complete despite missing branch")
+		})
+	}
 }
 
 func TestGetExecution_CopiesNodeOutputs(t *testing.T) {
@@ -933,20 +1034,16 @@ func TestGetExecution_ReturnsCopy(t *testing.T) {
 
 // ── Dynamic Executor — Condition Branching ──
 
-// conditionRunner returns a CommandRunner for condition/merge tests.
-// It uses the outputs map to return capture-pane content keyed by node ID
-// (matches target strings containing "bmad-{nodeID}-").
+// conditionRunner returns a CommandRunner for condition/merge tests. The
+// outputs map is keyed by the slugified node label that appears in
+// BuildSessionName (e.g. "Process A" → "process-a"); the runner parses
+// each capture-pane target via ParseSessionName and returns the matching
+// output.
 func conditionRunner(outputs map[string]string) CommandRunner {
 	return func(ctx context.Context, name string, args ...string) ([]byte, error) {
 		if len(args) > 0 && args[0] == "capture-pane" {
-			target := ""
-			for i, a := range args {
-				if a == "-t" && i+1 < len(args) {
-					target = args[i+1]
-				}
-			}
-			for nodeID, out := range outputs {
-				if strings.Contains(target, "bmad-"+nodeID+"-") {
+			if label, ok := sessionLabelFromArgs(args); ok {
+				if out, found := outputs[label]; found {
 					return []byte(out), nil
 				}
 			}
@@ -962,12 +1059,26 @@ func conditionRunner(outputs map[string]string) CommandRunner {
 	}
 }
 
+// sessionLabelFromArgs scans a tmux argv list for a "-t {session}:0.0"
+// target and returns the label field recovered by ParseSessionName.
+func sessionLabelFromArgs(args []string) (string, bool) {
+	target := ""
+	for i, a := range args {
+		if a == "-t" && i+1 < len(args) {
+			target = args[i+1]
+		}
+	}
+	session := strings.TrimSuffix(target, ":0.0")
+	_, _, label, _, ok := ParseSessionName(session)
+	return label, ok
+}
+
 func TestDynamicExecutor_ConditionBranching_TrueBranch(t *testing.T) {
 	// Workflow: A(process) -> B(condition, contains "SUCCESS") -> C(true) and D(false).
 	// A outputs "SUCCESS". Verify C completes, D is skipped.
 	h := newHarness(t)
 	h.executor.SetCommandRunner(conditionRunner(map[string]string{
-		"A": "operation SUCCESS complete",
+		"process-a": "operation SUCCESS complete",
 	}))
 
 	wf := WorkflowDef{
@@ -1023,7 +1134,7 @@ func TestDynamicExecutor_ConditionBranching_FalseBranch(t *testing.T) {
 	// Same topology but A outputs "FAILURE" — condition evaluates false.
 	h := newHarness(t)
 	h.executor.SetCommandRunner(conditionRunner(map[string]string{
-		"A": "operation FAILURE complete",
+		"process-a": "operation FAILURE complete",
 	}))
 
 	wf := WorkflowDef{
@@ -1079,7 +1190,7 @@ func TestDynamicExecutor_MergeAfterCondition(t *testing.T) {
 	// Verify B runs, C skipped, D (merge) runs.
 	h := newHarness(t)
 	h.executor.SetCommandRunner(conditionRunner(map[string]string{
-		"upstream": "has SUCCESS in output",
+		"upstream": "has SUCCESS in output", // label "Upstream" → slug "upstream"
 	}))
 
 	wf := WorkflowDef{
@@ -1137,7 +1248,7 @@ func TestDynamicExecutor_AllBranchesSkipped(t *testing.T) {
 	// A outputs "nothing special". B evaluates false. C should be skipped.
 	h := newHarness(t)
 	h.executor.SetCommandRunner(conditionRunner(map[string]string{
-		"A": "nothing special here",
+		"process-a": "nothing special here",
 	}))
 
 	wf := WorkflowDef{
@@ -1186,7 +1297,7 @@ func TestDynamicExecutor_SkippedStatus(t *testing.T) {
 	// Verify that skipped nodes emit NodeSkipped status events.
 	h := newHarness(t)
 	h.executor.SetCommandRunner(conditionRunner(map[string]string{
-		"A": "no match",
+		"process-a": "no match",
 	}))
 
 	wf := WorkflowDef{
@@ -1359,7 +1470,7 @@ func TestTransformNode_RegexExtraction(t *testing.T) {
 	// A produces "version: 3.4.5". T extracts "3.4.5". B should complete.
 	h := newHarness(t)
 	h.executor.SetCommandRunner(conditionRunner(map[string]string{
-		"A": "build version: 3.4.5 deployed",
+		"process-a": "build version: 3.4.5 deployed",
 	}))
 
 	wf := WorkflowDef{
@@ -1409,7 +1520,7 @@ func TestTransformNode_RegexExtraction(t *testing.T) {
 func TestTransformNode_LinesExtraction(t *testing.T) {
 	h := newHarness(t)
 	h.executor.SetCommandRunner(conditionRunner(map[string]string{
-		"A": "header\nline2\nline3\nline4\nfooter",
+		"process-a": "header\nline2\nline3\nline4\nfooter",
 	}))
 
 	wf := WorkflowDef{
@@ -1485,7 +1596,7 @@ func TestTransformNode_Passthrough(t *testing.T) {
 	// Unknown extractType should passthrough source output.
 	h := newHarness(t)
 	h.executor.SetCommandRunner(conditionRunner(map[string]string{
-		"A": "raw output data",
+		"process-a": "raw output data",
 	}))
 
 	wf := WorkflowDef{
@@ -1743,22 +1854,16 @@ func TestBuildContextStringV3_TransformDataPreservedWithRepoPath(t *testing.T) {
 // ── Loop / LoopUntil Execution ──
 
 // loopRunner creates a CommandRunner that returns different capture-pane output
-// per iteration. It tracks how many times capture-pane is called for body nodes
-// (targets containing "bmad-B-") to determine the current iteration.
+// per iteration. It tracks how many times capture-pane is called for the body
+// node (identified by the slugified label "b" parsed from the session name).
 // The iterOutputs map is 1-indexed: iterOutputs[1] is the output for the first
 // execution of the body node.
 func loopRunner(iterOutputs map[int]string) CommandRunner {
 	var bodyCaptures int32
 	return func(ctx context.Context, name string, args ...string) ([]byte, error) {
 		if len(args) > 0 && args[0] == "capture-pane" {
-			target := ""
-			for i, a := range args {
-				if a == "-t" && i+1 < len(args) {
-					target = args[i+1]
-				}
-			}
-			// Only count captures for body nodes (containing "bmad-B-").
-			if strings.Contains(target, "bmad-B-") {
+			label, ok := sessionLabelFromArgs(args)
+			if ok && label == "b" {
 				iter := int(atomic.AddInt32(&bodyCaptures, 1))
 				if out, ok := iterOutputs[iter]; ok {
 					return []byte(out), nil
