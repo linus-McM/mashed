@@ -280,7 +280,7 @@ func (a *App) SpawnRefactorPlan(repoPath, adviceText string) (string, error) {
 - Be specific: include file paths, function names, line references
 - Order by priority (critical first, cosmetic last)`, planPath, adviceText)
 
-	defaultModel := domain.DefaultModelID()
+	defaultModel := domain.DefaultAlias(a.ListModels())
 	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s -p %q", defaultModel, prompt)
 	_, err := a.spawnSession("refactor", repoPath, cmd, domain.SessionAgent, defaultModel)
 	if err != nil {

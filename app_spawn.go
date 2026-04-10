@@ -48,7 +48,7 @@ func (a *App) SpawnAgent(repoPath string, model string) (string, error) {
 		return "", fmt.Errorf("empty repo path")
 	}
 	if model == "" {
-		model = domain.DefaultModelID()
+		model = domain.DefaultAlias(a.ListModels())
 	}
 	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s", model)
 	return a.spawnSession("mashed", repoPath, cmd, domain.SessionAgent, model)

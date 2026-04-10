@@ -10,58 +10,43 @@ type ModelInfo struct {
 	IsDefault     bool   `json:"isDefault"`     // default for agent spawning
 }
 
-// AvailableModels returns the canonical list of Claude models.
-// This is the single source of truth — all model dropdowns and Go
-// defaults should reference this list rather than hardcoding IDs.
-func AvailableModels() []ModelInfo {
+// FallbackModels is the minimal set returned when dynamic discovery fails.
+// This ensures the app is always functional, even offline.
+func FallbackModels() []ModelInfo {
 	return []ModelInfo{
-		{
-			ID:            "claude-opus-4-6",
-			Alias:         "opus",
-			DisplayName:   "Opus 4.6",
-			ContextWindow: 1_000_000,
-			Tier:          "powerful",
-			IsDefault:     true,
-		},
-		{
-			ID:            "claude-sonnet-4-6",
-			Alias:         "sonnet",
-			DisplayName:   "Sonnet 4.6",
-			ContextWindow: 200_000,
-			Tier:          "balanced",
-		},
-		{
-			ID:            "claude-haiku-4-5-20251001",
-			Alias:         "haiku",
-			DisplayName:   "Haiku 4.5",
-			ContextWindow: 200_000,
-			Tier:          "fast",
-		},
+		{ID: "claude-opus-4-6", Alias: "opus", DisplayName: "Opus", ContextWindow: 1_000_000, Tier: "powerful", IsDefault: true},
+		{ID: "claude-sonnet-4-6", Alias: "sonnet", DisplayName: "Sonnet", ContextWindow: 200_000, Tier: "balanced"},
+		{ID: "claude-haiku-4-5-20251001", Alias: "haiku", DisplayName: "Haiku", ContextWindow: 200_000, Tier: "fast"},
 	}
 }
 
-// DefaultModelID returns the ID of the default model.
-func DefaultModelID() string {
-	for _, m := range AvailableModels() {
+// DefaultAlias returns the alias of the default model from the given list.
+func DefaultAlias(models []ModelInfo) string {
+	for _, m := range models {
 		if m.IsDefault {
-			return m.ID
+			return m.Alias
 		}
 	}
-	return "claude-opus-4-6"
+	if len(models) > 0 {
+		return models[0].Alias
+	}
+	return "opus"
 }
 
-// ModelByAlias finds a model by its alias. Returns the default if not found.
-func ModelByAlias(alias string) ModelInfo {
-	for _, m := range AvailableModels() {
+// ModelByAlias finds a model by alias or ID. Returns the default if not found.
+func ModelByAlias(models []ModelInfo, alias string) ModelInfo {
+	for _, m := range models {
 		if m.Alias == alias || m.ID == alias {
 			return m
 		}
 	}
-	// Fallback: return default
-	for _, m := range AvailableModels() {
-		if m.IsDefault {
-			return m
+	if len(models) > 0 {
+		for _, m := range models {
+			if m.IsDefault {
+				return m
+			}
 		}
+		return models[0]
 	}
-	return AvailableModels()[0]
+	return FallbackModels()[0]
 }

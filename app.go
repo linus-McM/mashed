@@ -169,6 +169,9 @@ func (a *App) startup(ctx context.Context) {
 	// Initialize the diff explainer (uses ANTHROPIC_API_KEY from env)
 	a.explainer = explain.New()
 
+	// Discover available models from Claude CLI (async, non-blocking).
+	go a.initModelCache()
+
 	// Restore devDir from config so GetDevDir() works even if scanning fails.
 	cfg := loadConfig()
 	if cfg.DevDir != "" {

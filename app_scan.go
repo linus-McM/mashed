@@ -133,7 +133,7 @@ func (a *App) doScan() {
 			tokensUsed = sessionData.TotalTokens
 		}
 		// Look up context window from model registry.
-		modelInfo := domain.ModelByAlias(model)
+		modelInfo := domain.ModelByAlias(a.ListModels(), model)
 		tokensMax := int64(modelInfo.ContextWindow)
 
 		// Determine status from session data

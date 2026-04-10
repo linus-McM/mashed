@@ -226,43 +226,70 @@ func TestReviewConstants(t *testing.T) {
 // Model registry integration
 // ---------------------------------------------------------------------------
 
-func TestModelRegistry_DefaultExists(t *testing.T) {
-	defaultID := domain.DefaultModelID()
-	assert.NotEmpty(t, defaultID)
+func TestModelRegistry_FallbackHasDefault(t *testing.T) {
+	models := domain.FallbackModels()
+	require.NotEmpty(t, models)
 
-	models := domain.AvailableModels()
+	defaultAlias := domain.DefaultAlias(models)
+	assert.NotEmpty(t, defaultAlias)
+
 	var found bool
 	for _, m := range models {
-		if m.ID == defaultID {
+		if m.Alias == defaultAlias {
 			found = true
 			assert.True(t, m.IsDefault)
 		}
 	}
-	assert.True(t, found, "default model should exist in AvailableModels")
+	assert.True(t, found, "default model should exist in FallbackModels")
 }
 
 func TestModelRegistry_AliasLookup(t *testing.T) {
+	models := domain.FallbackModels()
 	tests := []struct {
-		alias  string
-		wantID string
+		alias     string
+		wantAlias string
 	}{
-		{"opus", "claude-opus-4-6"},
-		{"sonnet", "claude-sonnet-4-6"},
-		{"haiku", "claude-haiku-4-5-20251001"},
-		{"claude-opus-4-6", "claude-opus-4-6"}, // full ID works too
+		{"opus", "opus"},
+		{"sonnet", "sonnet"},
+		{"haiku", "haiku"},
+		{"claude-opus-4-6", "opus"}, // full ID lookup works too
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.alias, func(t *testing.T) {
-			m := domain.ModelByAlias(tt.alias)
-			assert.Equal(t, tt.wantID, m.ID)
+			m := domain.ModelByAlias(models, tt.alias)
+			assert.Equal(t, tt.wantAlias, m.Alias)
 		})
 	}
 }
 
 func TestModelRegistry_UnknownAliasFallsBack(t *testing.T) {
-	m := domain.ModelByAlias("nonexistent-model")
-	assert.Equal(t, domain.DefaultModelID(), m.ID, "unknown alias should fall back to default")
+	models := domain.FallbackModels()
+	m := domain.ModelByAlias(models, "nonexistent-model")
+	assert.Equal(t, domain.DefaultAlias(models), m.Alias, "unknown alias should fall back to default")
+}
+
+func TestParseModelResponse_ValidJSON(t *testing.T) {
+	// Simulate --output-format json with a result line
+	input := `{"type":"system","model":"claude-haiku-4-5-20251001"}
+{"type":"assistant","message":{"content":[{"type":"text","text":"..."}]}}
+{"type":"result","result":"{\"models\":[{\"alias\":\"opus\",\"id\":\"claude-opus-4-6\",\"displayName\":\"Opus 4.6\",\"contextWindow\":1000000,\"tier\":\"powerful\",\"isDefault\":true},{\"alias\":\"sonnet\",\"id\":\"claude-sonnet-4-6\",\"displayName\":\"Sonnet 4.6\",\"contextWindow\":200000,\"tier\":\"balanced\",\"isDefault\":false}]}"}`
+
+	models, err := parseModelResponse([]byte(input))
+	require.NoError(t, err)
+	require.Len(t, models, 2)
+	assert.Equal(t, "opus", models[0].Alias)
+	assert.Equal(t, "sonnet", models[1].Alias)
+	assert.True(t, models[0].IsDefault)
+	assert.Equal(t, 1000000, models[0].ContextWindow)
+}
+
+func TestParseModelResponse_NoResultLine(t *testing.T) {
+	input := `{"type":"system","model":"haiku"}`
+	models, err := parseModelResponse([]byte(input))
+	// Falls through to plain JSON parse — no "models" key, so returns empty
+	assert.NoError(t, err)
+	assert.Empty(t, models)
 }
 
 // ---------------------------------------------------------------------------
