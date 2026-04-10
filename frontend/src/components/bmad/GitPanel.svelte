@@ -2,11 +2,12 @@
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { EventsOn, EventsOff } from '../../../wailsjs/runtime/runtime.js';
   import { GitCommitStreaming, GitPull, GitPush, GitCommitPushAndPR, SpawnPRReview, RepoStatus } from '../../../wailsjs/go/main/App.js';
-  import { GitBranch, GitCommit as GitCommitIcon, Upload, Download, GitMerge, GitPullRequest, ShieldAlert, GitBranchPlus, AlertCircle, CheckCircle2 } from 'lucide-svelte';
+  import { GitBranch, GitCommit as GitCommitIcon, Upload, Download, GitMerge, GitPullRequest, ShieldAlert, GitBranchPlus, AlertCircle, CheckCircle2, FileSearch } from 'lucide-svelte';
   import BranchModal from '../../views/BranchModal.svelte';
   import SwitchBranchModal from '../../views/SwitchBranchModal.svelte';
   import MergeModal from '../../views/MergeModal.svelte';
   import ForcePushModal from '../../views/ForcePushModal.svelte';
+  import SummarisationModal from '../../views/SummarisationModal.svelte';
 
   export let repoPath = '';
   export let repoBranch = '';
@@ -130,6 +131,7 @@
   let branchModalRepo = null;
   let switchModalRepo = null;
   let mergeModalRepo = null;
+  let summariseModalOpen = false;
 
   function onBranchCreated(e) {
     const newBranch = e.detail?.branch;
@@ -260,6 +262,16 @@
       <ShieldAlert size={14} />
       <span>{actionState.action === 'review' ? 'Spawning...' : 'Review'}</span>
     </button>
+    <button
+      class="action-btn"
+      class:hot={status.dirty}
+      disabled={!!actionState.action}
+      on:click={() => summariseModalOpen = true}
+      title="AI-powered code review summary"
+    >
+      <FileSearch size={14} />
+      <span>Summarise</span>
+    </button>
   </div>
 
   <!-- Action result / error -->
@@ -355,6 +367,14 @@
     conflictMessage={forcePushRepo.message}
     on:pushed={onForcePushed}
     on:cancel={() => forcePushRepo = null}
+  />
+{/if}
+
+{#if summariseModalOpen}
+  <SummarisationModal
+    {repoPath}
+    on:close={() => summariseModalOpen = false}
+    on:open-file
   />
 {/if}
 

@@ -3,6 +3,7 @@
 import {bmad} from '../models';
 import {main} from '../models';
 import {domain} from '../models';
+import {advice} from '../models';
 
 export function CreateFromTemplate(arg1:string,arg2:string):Promise<bmad.WorkflowDef>;
 
@@ -81,6 +82,8 @@ export function IsExplainAvailable():Promise<boolean>;
 export function KillAgent(arg1:string,arg2:number,arg3:string):Promise<void>;
 
 export function KillTerminalSession(arg1:string):Promise<void>;
+
+export function ListAdviceModes(arg1:string):Promise<Array<advice.AdviceMode>>;
 
 export function ListAllAgents(arg1:string):Promise<bmad.GroupedAgents>;
 
@@ -166,11 +169,17 @@ export function SpawnAgentWithCommand(arg1:string,arg2:string):Promise<string>;
 
 export function SpawnPRReview(arg1:string):Promise<string>;
 
+export function SpawnRefactorPlan(arg1:string,arg2:string):Promise<string>;
+
 export function SpawnTerminal(arg1:string):Promise<string>;
 
 export function StartBmadWorkflow(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function StopBmadWorkflow(arg1:string):Promise<void>;
+
+export function StreamAdvice(arg1:string,arg2:string):Promise<void>;
+
+export function StreamCodeReviewSummary(arg1:string):Promise<void>;
 
 export function TakeScreenshot(arg1:string,arg2:string):Promise<string>;
 

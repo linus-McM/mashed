@@ -158,6 +158,10 @@ export function KillTerminalSession(arg1) {
   return window['go']['main']['App']['KillTerminalSession'](arg1);
 }
 
+export function ListAdviceModes(arg1) {
+  return window['go']['main']['App']['ListAdviceModes'](arg1);
+}
+
 export function ListAllAgents(arg1) {
   return window['go']['main']['App']['ListAllAgents'](arg1);
 }
@@ -326,6 +330,10 @@ export function SpawnPRReview(arg1) {
   return window['go']['main']['App']['SpawnPRReview'](arg1);
 }
 
+export function SpawnRefactorPlan(arg1, arg2) {
+  return window['go']['main']['App']['SpawnRefactorPlan'](arg1, arg2);
+}
+
 export function SpawnTerminal(arg1) {
   return window['go']['main']['App']['SpawnTerminal'](arg1);
 }
@@ -336,6 +344,14 @@ export function StartBmadWorkflow(arg1, arg2, arg3) {
 
 export function StopBmadWorkflow(arg1) {
   return window['go']['main']['App']['StopBmadWorkflow'](arg1);
+}
+
+export function StreamAdvice(arg1, arg2) {
+  return window['go']['main']['App']['StreamAdvice'](arg1, arg2);
+}
+
+export function StreamCodeReviewSummary(arg1) {
+  return window['go']['main']['App']['StreamCodeReviewSummary'](arg1);
 }
 
 export function TakeScreenshot(arg1, arg2) {

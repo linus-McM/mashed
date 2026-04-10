@@ -1,3 +1,28 @@
+export namespace advice {
+	
+	export class AdviceMode {
+	    name: string;
+	    displayName: string;
+	    icon: string;
+	    order: number;
+	    source: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AdviceMode(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.displayName = source["displayName"];
+	        this.icon = source["icon"];
+	        this.order = source["order"];
+	        this.source = source["source"];
+	    }
+	}
+
+}
+
 export namespace bmad {
 	
 	export class AgentInfo {
