@@ -270,10 +270,8 @@ func TestModelRegistry_UnknownAliasFallsBack(t *testing.T) {
 }
 
 func TestParseModelResponse_ValidJSON(t *testing.T) {
-	// Simulate --output-format json with a result line
-	input := `{"type":"system","model":"claude-haiku-4-5-20251001"}
-{"type":"assistant","message":{"content":[{"type":"text","text":"..."}]}}
-{"type":"result","result":"{\"models\":[{\"alias\":\"opus\",\"id\":\"claude-opus-4-6\",\"displayName\":\"Opus 4.6\",\"contextWindow\":1000000,\"tier\":\"powerful\",\"isDefault\":true},{\"alias\":\"sonnet\",\"id\":\"claude-sonnet-4-6\",\"displayName\":\"Sonnet 4.6\",\"contextWindow\":200000,\"tier\":\"balanced\",\"isDefault\":false}]}"}`
+	// Plain text JSON from --json-schema (no --output-format json)
+	input := `{"models":[{"alias":"opus","id":"claude-opus-4-6","displayName":"Opus 4.6","contextWindow":1000000,"tier":"powerful","isDefault":true},{"alias":"sonnet","id":"claude-sonnet-4-6","displayName":"Sonnet 4.6","contextWindow":200000,"tier":"balanced","isDefault":false}]}`
 
 	models, err := parseModelResponse([]byte(input))
 	require.NoError(t, err)
@@ -284,12 +282,14 @@ func TestParseModelResponse_ValidJSON(t *testing.T) {
 	assert.Equal(t, 1000000, models[0].ContextWindow)
 }
 
-func TestParseModelResponse_NoResultLine(t *testing.T) {
-	input := `{"type":"system","model":"haiku"}`
-	models, err := parseModelResponse([]byte(input))
-	// Falls through to plain JSON parse — no "models" key, so returns empty
-	assert.NoError(t, err)
-	assert.Empty(t, models)
+func TestParseModelResponse_EmptyInput(t *testing.T) {
+	_, err := parseModelResponse([]byte(""))
+	assert.Error(t, err)
+}
+
+func TestParseModelResponse_InvalidJSON(t *testing.T) {
+	_, err := parseModelResponse([]byte("not json"))
+	assert.Error(t, err)
 }
 
 // ---------------------------------------------------------------------------

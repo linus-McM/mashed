@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os/exec"
 	"strings"
@@ -61,7 +62,6 @@ func fetchModelsFromCLI(ctx context.Context) []domain.ModelInfo {
 	cmd := exec.CommandContext(fetchCtx, "claude",
 		"--print",
 		"--no-session-persistence",
-		"--output-format", "json",
 		"--json-schema", fetchModelsSchema,
 		"--model", "haiku",
 		"-p", fetchModelsPrompt,
@@ -69,12 +69,17 @@ func fetchModelsFromCLI(ctx context.Context) []domain.ModelInfo {
 
 	out, err := cmd.Output()
 	if err != nil {
-		log.Printf("model discovery via CLI failed: %v — using fallback", err)
+		// Capture stderr for diagnostics.
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			log.Printf("model discovery via CLI failed: %v (stderr: %.500s) — using fallback", err, string(exitErr.Stderr))
+		} else {
+			log.Printf("model discovery via CLI failed: %v — using fallback", err)
+		}
 		return domain.FallbackModels()
 	}
 
-	// --output-format json wraps the response in a JSON envelope.
-	// The "result" field contains the assistant's text (which is our structured JSON).
+	// --json-schema forces structured JSON output as plain text.
+	// Parse directly as our models response.
 	models, err := parseModelResponse(out)
 	if err != nil {
 		log.Printf("model discovery parse failed: %v — using fallback", err)
@@ -90,56 +95,22 @@ func fetchModelsFromCLI(ctx context.Context) []domain.ModelInfo {
 	return models
 }
 
-// cliJSONEnvelope is the top-level structure from --output-format json.
-type cliJSONEnvelope struct {
-	Result string `json:"result"`
-}
-
 // modelsResponse matches the --json-schema we defined.
 type modelsResponse struct {
 	Models []domain.ModelInfo `json:"models"`
 }
 
-// parseModelResponse extracts ModelInfo from the CLI JSON output.
+// parseModelResponse extracts ModelInfo from Claude CLI plain-text JSON output.
+// With --json-schema (no --output-format json), the CLI outputs the structured
+// JSON directly as plain text.
 func parseModelResponse(data []byte) ([]domain.ModelInfo, error) {
-	// The output may contain multiple JSON lines (init, assistant, result).
-	// We need the "result" line which has type:"result" and contains our data.
-	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
-
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-
-		// Try to parse as the result envelope
-		var raw map[string]interface{}
-		if err := json.Unmarshal([]byte(line), &raw); err != nil {
-			continue
-		}
-
-		// Look for the result line
-		if raw["type"] != "result" {
-			continue
-		}
-
-		resultStr, ok := raw["result"].(string)
-		if !ok || resultStr == "" {
-			continue
-		}
-
-		// The result field contains the structured JSON from --json-schema
-		var resp modelsResponse
-		if err := json.Unmarshal([]byte(resultStr), &resp); err != nil {
-			return nil, err
-		}
-		return resp.Models, nil
+	text := strings.TrimSpace(string(data))
+	if text == "" {
+		return nil, fmt.Errorf("empty response")
 	}
-
-	// If no result line found, try parsing the entire output as plain JSON
 	var resp modelsResponse
-	if err := json.Unmarshal(data, &resp); err != nil {
-		return nil, err
+	if err := json.Unmarshal([]byte(text), &resp); err != nil {
+		return nil, fmt.Errorf("parse model JSON: %w", err)
 	}
 	return resp.Models, nil
 }
