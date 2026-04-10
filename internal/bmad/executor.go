@@ -2,6 +2,7 @@ package bmad
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +13,10 @@ import (
 	"sync"
 	"time"
 )
+
+// Node output key helpers for loop iteration tracking.
+func nodeIterKey(nodeID string) string { return nodeID + "_iter" }
+func nodeItemKey(nodeID string) string { return nodeID + "_item" }
 
 // CommandRunner executes a shell command and returns its output.
 // The default implementation runs tmux; tests inject a mock.
@@ -477,6 +482,19 @@ func (e *Executor) executeLoopNode(ctx context.Context, state *execState, nodeIn
 		maxIter = 100
 	}
 
+	// Parse items array (JSON-encoded string list).
+	var items []string
+	if v, ok := node.Config["items"]; ok && v != "" {
+		if err := json.Unmarshal([]byte(v), &items); err != nil {
+			log.Printf("bmad: invalid items JSON for node %s: %v", nodeID, err)
+			items = nil
+		}
+	}
+	iterateItems := len(items) > 0
+	if iterateItems && len(items) < maxIter {
+		maxIter = len(items)
+	}
+
 	// Parse body node IDs.
 	var bodyNodeIDs []string
 	if v, ok := node.Config["loopBodyNodes"]; ok && v != "" {
@@ -491,7 +509,7 @@ func (e *Executor) executeLoopNode(ctx context.Context, state *execState, nodeIn
 	// Empty body: complete with 0 iterations.
 	if len(bodyNodeIDs) == 0 {
 		state.mu.Lock()
-		state.exec.NodeOutputs[nodeID+"_iter"] = "0"
+		state.exec.NodeOutputs[nodeIterKey(nodeID)] = "0"
 		state.mu.Unlock()
 		e.completeNode(state, idx, nodeID)
 		return
@@ -542,6 +560,10 @@ func (e *Executor) executeLoopNode(ctx context.Context, state *execState, nodeIn
 		}
 		// Ensure the first body node is ready.
 		state.inDegree[bodyNodeIDs[0]] = 0
+		// Set current item for this iteration.
+		if iterateItems {
+			state.exec.NodeOutputs[nodeItemKey(nodeID)] = items[iter-1]
+		}
 		state.mu.Unlock()
 
 		// Mini ready-set loop for body nodes.
@@ -606,7 +628,7 @@ func (e *Executor) executeLoopNode(ctx context.Context, state *execState, nodeIn
 
 		// Store iteration count.
 		state.mu.Lock()
-		state.exec.NodeOutputs[nodeID+"_iter"] = strconv.Itoa(iter)
+		state.exec.NodeOutputs[nodeIterKey(nodeID)] = strconv.Itoa(iter)
 		state.mu.Unlock()
 		e.emitEvent("bmad:node:status", NodeStatusEvent{
 			ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning, Iteration: iter,
@@ -624,6 +646,13 @@ func (e *Executor) executeLoopNode(ctx context.Context, state *execState, nodeIn
 				break
 			}
 		}
+	}
+
+	// Store the full items array as node output for downstream reference.
+	if iterateItems {
+		state.mu.Lock()
+		state.exec.NodeOutputs[nodeID] = node.Config["items"]
+		state.mu.Unlock()
 	}
 
 	e.completeNode(state, idx, nodeID)
@@ -990,6 +1019,20 @@ func buildContextStringV3(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[s
 			data = data[:maxTransformDataLen]
 		}
 		parts = append(parts, fmt.Sprintf(" The data transform '%s' extracted: %s", n.Label, data))
+	}
+
+	// Include current loop item if a loop with items is active.
+	for _, n := range nodes {
+		nt := n.EffectiveType()
+		if nt != NodeTypeLoop && nt != NodeTypeLoopUntil {
+			continue
+		}
+		item, hasItem := nodeOutputs[nodeItemKey(n.ID)]
+		if !hasItem || item == "" {
+			continue
+		}
+		iter := nodeOutputs[nodeIterKey(n.ID)]
+		parts = append(parts, fmt.Sprintf(" Currently iterating: item=%q (iteration %s of loop '%s').", item, iter, n.Label))
 	}
 
 	return strings.Join(parts, "")

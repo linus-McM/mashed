@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -93,17 +94,30 @@ func TestReviewConcurrencyGuard(t *testing.T) {
 
 	repoPath := "/tmp/test-repo"
 
-	_, loaded := activeReviews.LoadOrStore(repoPath, true)
-	assert.False(t, loaded, "first LoadOrStore should not be loaded")
+	// Store a cancel func (as production code does).
+	ctx, cancel1 := context.WithCancel(context.Background())
+	defer cancel1()
+	activeReviews.Store(repoPath, cancel1)
 
-	_, loaded = activeReviews.LoadOrStore(repoPath, true)
-	assert.True(t, loaded, "second LoadOrStore should detect existing entry")
+	// Second store for same repo should find existing entry.
+	prev, loaded := activeReviews.Load(repoPath)
+	assert.True(t, loaded, "should find existing entry")
+	assert.NotNil(t, prev, "stored value should be a cancel func")
 
+	// Cancel the old and replace.
+	if c, ok := prev.(context.CancelFunc); ok {
+		c()
+	}
+	assert.Error(t, ctx.Err(), "old context should be cancelled")
+
+	_, cancel2 := context.WithCancel(context.Background())
+	defer cancel2()
+	activeReviews.Store(repoPath, cancel2)
+
+	// Delete clears it.
 	activeReviews.Delete(repoPath)
-	_, loaded = activeReviews.LoadOrStore(repoPath, true)
-	assert.False(t, loaded, "LoadOrStore after Delete should not be loaded")
-
-	activeReviews.Delete(repoPath)
+	_, loaded = activeReviews.Load(repoPath)
+	assert.False(t, loaded, "should be empty after Delete")
 }
 
 func TestReviewConcurrencyGuard_DifferentRepos(t *testing.T) {
@@ -112,11 +126,19 @@ func TestReviewConcurrencyGuard_DifferentRepos(t *testing.T) {
 	repo1 := "/tmp/repo-a"
 	repo2 := "/tmp/repo-b"
 
-	_, loaded1 := activeReviews.LoadOrStore(repo1, true)
-	_, loaded2 := activeReviews.LoadOrStore(repo2, true)
+	_, cancel1 := context.WithCancel(context.Background())
+	defer cancel1()
+	_, cancel2 := context.WithCancel(context.Background())
+	defer cancel2()
 
-	assert.False(t, loaded1, "repo1 should not conflict")
-	assert.False(t, loaded2, "repo2 should not conflict with repo1")
+	activeReviews.Store(repo1, cancel1)
+	activeReviews.Store(repo2, cancel2)
+
+	_, loaded1 := activeReviews.Load(repo1)
+	_, loaded2 := activeReviews.Load(repo2)
+
+	assert.True(t, loaded1, "repo1 should be stored")
+	assert.True(t, loaded2, "repo2 should be stored independently")
 
 	activeReviews.Delete(repo1)
 	activeReviews.Delete(repo2)

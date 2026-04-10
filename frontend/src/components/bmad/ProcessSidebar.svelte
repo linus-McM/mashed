@@ -223,7 +223,7 @@
 
     {:else if activeTab === 'saved'}
       <div class="saved-list">
-        {#each savedWorkflows as wf}
+        {#each savedWorkflows || [] as wf}
           <div class="saved-item">
             <button class="saved-name" on:click={() => dispatch('load-workflow', wf.id)}>
               {wf.name}
@@ -233,7 +233,7 @@
             </button>
           </div>
         {/each}
-        {#if savedWorkflows.length === 0}
+        {#if !savedWorkflows || savedWorkflows.length === 0}
           <div class="empty-state">No saved workflows</div>
         {/if}
       </div>

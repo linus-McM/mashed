@@ -81,7 +81,7 @@ func (s *Storage) ListWorkflows() ([]WorkflowDef, error) {
 	if err != nil {
 		return nil, fmt.Errorf("listing workflows: %w", err)
 	}
-	var out []WorkflowDef
+	out := make([]WorkflowDef, 0)
 	for _, e := range entries {
 		if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
 			continue
@@ -109,7 +109,7 @@ func (s *Storage) ListWorkflowsByRepo(repoPath string) ([]WorkflowDef, error) {
 		return nil, fmt.Errorf("listing workflows by repo: %w", err)
 	}
 	repoPath = strings.TrimRight(repoPath, "/")
-	var filtered []WorkflowDef
+	filtered := make([]WorkflowDef, 0)
 	for _, wf := range all {
 		if strings.TrimRight(wf.RepoPath, "/") == repoPath {
 			filtered = append(filtered, wf)

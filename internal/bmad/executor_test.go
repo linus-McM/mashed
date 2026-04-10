@@ -2218,3 +2218,191 @@ func TestGetArtifactStatus_UnmappedArtifact(t *testing.T) {
 	assert.False(t, exists)
 	assert.Empty(t, fullPath, "unmapped artifact should return empty path")
 }
+
+// ── Loop Items Tests ──
+
+func TestLoopNode_IteratesOverItems(t *testing.T) {
+	// Loop with 3 items and maxIterations=10. Should iterate exactly 3 times.
+	h := newHarness(t)
+	h.executor.SetCommandRunner(loopRunner(map[int]string{
+		1: "output-a",
+		2: "output-b",
+		3: "output-c",
+	}))
+
+	wf := WorkflowDef{
+		ID:   "wf-loop-items",
+		Name: "Loop Items",
+		Nodes: []WorkflowNode{
+			{ID: "A", ProcessID: "bmad-brainstorming", Label: "A", NodeType: NodeTypeProcess,
+				Position: Position{X: 0, Y: 0}, Status: NodePending, Config: map[string]string{}},
+			{ID: "L", NodeType: NodeTypeLoop, Label: "Loop", Config: map[string]string{
+				"maxIterations": "10",
+				"loopBodyNodes": "B",
+				"items":         `["alpha","beta","gamma"]`,
+			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
+			{ID: "B", ProcessID: "bmad-brainstorming", Label: "B", NodeType: NodeTypeProcess,
+				Position: Position{X: 400, Y: 100}, Status: NodePending, Config: map[string]string{}},
+			{ID: "D", ProcessID: "bmad-create-prd", Label: "D", NodeType: NodeTypeProcess,
+				Position: Position{X: 650, Y: 0}, Status: NodePending, Config: map[string]string{}},
+		},
+		Edges: []WorkflowEdge{
+			{ID: "e1", Source: "A", Target: "L"},
+			{ID: "e2", Source: "L", Target: "B", SourceHandle: "loop-body"},
+			{ID: "e3", Source: "L", Target: "D", SourceHandle: "loop-exit"},
+		},
+		CreatedAt: "2026-04-07T00:00:00Z",
+		UpdatedAt: "2026-04-07T00:00:00Z",
+	}
+	require.NoError(t, h.storage.SaveWorkflow(wf))
+
+	exec, err := h.executor.StartWorkflow("wf-loop-items", "/tmp/repo", "sonnet")
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool {
+		ex, _ := h.executor.GetExecution(exec.ID)
+		return ex != nil && ex.Status == ExecComplete
+	}, 10*time.Second, 50*time.Millisecond)
+
+	ex, err := h.executor.GetExecution(exec.ID)
+	require.NoError(t, err)
+	assert.Equal(t, ExecComplete, ex.Status)
+
+	// Should iterate 3 times (items length), not 10.
+	assert.Equal(t, "3", ex.NodeOutputs["L_iter"])
+	// Last item should be "gamma".
+	assert.Equal(t, "gamma", ex.NodeOutputs["L_item"])
+	// Full items array stored as node output.
+	assert.Equal(t, `["alpha","beta","gamma"]`, ex.NodeOutputs["L"])
+}
+
+func TestLoopNode_ItemsCappedByMaxIterations(t *testing.T) {
+	// 5 items but maxIterations=2. Should only iterate 2 times.
+	h := newHarness(t)
+	h.executor.SetCommandRunner(loopRunner(map[int]string{
+		1: "out-1",
+		2: "out-2",
+	}))
+
+	wf := WorkflowDef{
+		ID:   "wf-loop-items-capped",
+		Name: "Loop Items Capped",
+		Nodes: []WorkflowNode{
+			{ID: "L", NodeType: NodeTypeLoop, Label: "Loop", Config: map[string]string{
+				"maxIterations": "2",
+				"loopBodyNodes": "B",
+				"items":         `["a","b","c","d","e"]`,
+			}, Position: Position{X: 0, Y: 0}, Status: NodePending},
+			{ID: "B", ProcessID: "bmad-brainstorming", Label: "B", NodeType: NodeTypeProcess,
+				Position: Position{X: 200, Y: 100}, Status: NodePending, Config: map[string]string{}},
+		},
+		Edges: []WorkflowEdge{
+			{ID: "e1", Source: "L", Target: "B", SourceHandle: "loop-body"},
+		},
+		CreatedAt: "2026-04-07T00:00:00Z",
+		UpdatedAt: "2026-04-07T00:00:00Z",
+	}
+	require.NoError(t, h.storage.SaveWorkflow(wf))
+
+	exec, err := h.executor.StartWorkflow("wf-loop-items-capped", "/tmp/repo", "sonnet")
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool {
+		ex, _ := h.executor.GetExecution(exec.ID)
+		return ex != nil && ex.Status == ExecComplete
+	}, 10*time.Second, 50*time.Millisecond)
+
+	ex, err := h.executor.GetExecution(exec.ID)
+	require.NoError(t, err)
+
+	// Only 2 iterations despite 5 items.
+	assert.Equal(t, "2", ex.NodeOutputs["L_iter"])
+	assert.Equal(t, "b", ex.NodeOutputs["L_item"])
+}
+
+func TestLoopNode_InvalidItemsJSON(t *testing.T) {
+	// Malformed items JSON should fall back to counter-based iteration.
+	h := newHarness(t)
+	h.executor.SetCommandRunner(loopRunner(map[int]string{
+		1: "out-1",
+		2: "out-2",
+		3: "out-3",
+	}))
+
+	wf := WorkflowDef{
+		ID:   "wf-loop-bad-items",
+		Name: "Loop Bad Items",
+		Nodes: []WorkflowNode{
+			{ID: "L", NodeType: NodeTypeLoop, Label: "Loop", Config: map[string]string{
+				"maxIterations": "3",
+				"loopBodyNodes": "B",
+				"items":         `not valid json`,
+			}, Position: Position{X: 0, Y: 0}, Status: NodePending},
+			{ID: "B", ProcessID: "bmad-brainstorming", Label: "B", NodeType: NodeTypeProcess,
+				Position: Position{X: 200, Y: 100}, Status: NodePending, Config: map[string]string{}},
+		},
+		Edges: []WorkflowEdge{
+			{ID: "e1", Source: "L", Target: "B", SourceHandle: "loop-body"},
+		},
+		CreatedAt: "2026-04-07T00:00:00Z",
+		UpdatedAt: "2026-04-07T00:00:00Z",
+	}
+	require.NoError(t, h.storage.SaveWorkflow(wf))
+
+	exec, err := h.executor.StartWorkflow("wf-loop-bad-items", "/tmp/repo", "sonnet")
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool {
+		ex, _ := h.executor.GetExecution(exec.ID)
+		return ex != nil && ex.Status == ExecComplete
+	}, 10*time.Second, 50*time.Millisecond)
+
+	ex, err := h.executor.GetExecution(exec.ID)
+	require.NoError(t, err)
+
+	// Should fall back to counter: 3 iterations, no _item output.
+	assert.Equal(t, "3", ex.NodeOutputs["L_iter"])
+	assert.Empty(t, ex.NodeOutputs["L_item"], "no _item when items is invalid JSON")
+}
+
+func TestLoopNode_EmptyItems(t *testing.T) {
+	// Empty items array "[]" should iterate 0 times (maxIter stays 10 but items caps to 0).
+	h := newHarness(t)
+	h.executor.SetCommandRunner(successRunner())
+
+	wf := WorkflowDef{
+		ID:   "wf-loop-empty-items",
+		Name: "Loop Empty Items",
+		Nodes: []WorkflowNode{
+			{ID: "L", NodeType: NodeTypeLoop, Label: "Loop", Config: map[string]string{
+				"maxIterations": "10",
+				"loopBodyNodes": "B",
+				"items":         `[]`,
+			}, Position: Position{X: 0, Y: 0}, Status: NodePending},
+			{ID: "B", ProcessID: "bmad-brainstorming", Label: "B", NodeType: NodeTypeProcess,
+				Position: Position{X: 200, Y: 100}, Status: NodePending, Config: map[string]string{}},
+		},
+		Edges: []WorkflowEdge{
+			{ID: "e1", Source: "L", Target: "B", SourceHandle: "loop-body"},
+		},
+		CreatedAt: "2026-04-07T00:00:00Z",
+		UpdatedAt: "2026-04-07T00:00:00Z",
+	}
+	require.NoError(t, h.storage.SaveWorkflow(wf))
+
+	exec, err := h.executor.StartWorkflow("wf-loop-empty-items", "/tmp/repo", "sonnet")
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool {
+		ex, _ := h.executor.GetExecution(exec.ID)
+		return ex != nil && ex.Status == ExecComplete
+	}, 10*time.Second, 50*time.Millisecond)
+
+	ex, err := h.executor.GetExecution(exec.ID)
+	require.NoError(t, err)
+
+	// Empty items: iterateItems is false (len == 0), so falls back to counter.
+	// With 10 iterations and a body, it should run 10 times.
+	assert.Equal(t, "10", ex.NodeOutputs["L_iter"])
+	assert.Empty(t, ex.NodeOutputs["L_item"])
+}

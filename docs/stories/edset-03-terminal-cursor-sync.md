@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** S
 **Depends On:** edset-02
-**Status:** ready
+**Status:** done
 
 ## Description
 

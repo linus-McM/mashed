@@ -33,3 +33,14 @@ export function formatIterationDisplay(iterationCount, maxIterations) {
   }
   return '';
 }
+
+/**
+ * Parse a JSON-encoded items array and return its length.
+ * Returns 0 for empty, missing, or malformed JSON.
+ * @param {string|undefined} itemsJSON
+ * @returns {number}
+ */
+export function parseItemsCount(itemsJSON) {
+  if (!itemsJSON) return 0;
+  try { return JSON.parse(itemsJSON).length; } catch { return 0; }
+}

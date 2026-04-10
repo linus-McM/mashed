@@ -145,7 +145,7 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" role="presentation" transition:fade={{ duration: 150 }} on:click={close} on:keydown={() => {}}>
+<div class="overlay" role="presentation" transition:fade={{ duration: 150 }} on:keydown={() => {}}>
   <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
   <div
     class="modal"

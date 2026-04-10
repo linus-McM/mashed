@@ -34,7 +34,8 @@ type ReviewSummary struct {
 	TotalRemoved int           `json:"totalRemoved"`
 }
 
-// activeReviews guards against concurrent reviews of the same repo.
+// activeReviews maps repoPath → context.CancelFunc for in-progress reviews.
+// A new review for the same repo cancels the previous one.
 var activeReviews sync.Map
 
 // maxReviewFiles caps the number of files processed in a single review.
@@ -45,6 +46,42 @@ const maxDiffLines = 500
 
 // summaryTimeout is the per-file timeout for Claude summarisation calls.
 const summaryTimeout = 60 * time.Second
+
+// reviewSkipExts contains file extensions to exclude from code review summaries.
+// These are non-code files (docs, configs, dotfiles) that add noise.
+var reviewSkipExts = map[string]bool{
+	".md":       true,
+	".txt":      true,
+	".json":     true,
+	".yaml":     true,
+	".yml":      true,
+	".toml":     true,
+	".xml":      true,
+	".csv":      true,
+	".lock":     true,
+	".sum":      true,
+	".mod":      true,
+	".env":      true,
+	".gitignore": true,
+}
+
+// isReviewableFile returns true if the file should be included in code review.
+// Excludes dotfiles (paths starting with '.'), markdown, and config files.
+func isReviewableFile(path string) bool {
+	base := filepath.Base(path)
+	// Skip dotfiles (e.g. .gitignore, .eslintrc, .prettierrc)
+	if strings.HasPrefix(base, ".") {
+		return false
+	}
+	// Skip files in dot-directories (e.g. .wolf/, .github/, .claude/)
+	for _, part := range strings.Split(path, "/") {
+		if strings.HasPrefix(part, ".") && part != "." && part != ".." {
+			return false
+		}
+	}
+	ext := strings.ToLower(filepath.Ext(path))
+	return !reviewSkipExts[ext]
+}
 
 // ListAdviceModes returns the available advice/review methodology modes.
 func (a *App) ListAdviceModes(repoPath string) ([]advice.AdviceMode, error) {
@@ -59,7 +96,21 @@ func (a *App) StreamCodeReviewSummary(repoPath, model string) {
 		model = "sonnet" // fast model for per-file summaries
 	}
 
+	// Cancel any in-progress review for this repo.
+	if prev, loaded := activeReviews.Load(repoPath); loaded {
+		if cancel, ok := prev.(context.CancelFunc); ok {
+			cancel()
+		}
+	}
+
+	// Create a cancellable context for this review.
+	reviewCtx, reviewCancel := context.WithCancel(a.ctx)
+	activeReviews.Store(repoPath, reviewCancel)
+
 	go func() {
+		defer activeReviews.Delete(repoPath)
+		defer reviewCancel()
+
 		emitDone := func(summary interface{}, errMsg string) {
 			runtime.EventsEmit(a.ctx, "review:summary:done", map[string]interface{}{
 				"repoPath": repoPath,
@@ -67,13 +118,6 @@ func (a *App) StreamCodeReviewSummary(repoPath, model string) {
 				"error":    errMsg,
 			})
 		}
-
-		// Concurrency guard: one review per repo at a time.
-		if _, loaded := activeReviews.LoadOrStore(repoPath, true); loaded {
-			emitDone(nil, "review already in progress")
-			return
-		}
-		defer activeReviews.Delete(repoPath)
 
 		// Verify Claude CLI is available.
 		if _, err := exec.LookPath("claude"); err != nil {
@@ -88,7 +132,13 @@ func (a *App) StreamCodeReviewSummary(repoPath, model string) {
 			return
 		}
 
-		files := scopedDiff.Files
+		// Filter to code-only files (skip markdown, dotfiles, configs).
+		var files []domain.DiffFileStat
+		for _, f := range scopedDiff.Files {
+			if isReviewableFile(f.Path) {
+				files = append(files, f)
+			}
+		}
 		if len(files) == 0 {
 			emitDone(ReviewSummary{Files: []FileSummary{}}, "")
 			return
@@ -105,9 +155,8 @@ func (a *App) StreamCodeReviewSummary(repoPath, model string) {
 
 		for i, file := range files {
 			select {
-			case <-a.ctx.Done():
-				emitDone(nil, "review cancelled")
-				return
+			case <-reviewCtx.Done():
+				return // silently exit — a new review replaced us
 			default:
 			}
 
@@ -126,7 +175,7 @@ func (a *App) StreamCodeReviewSummary(repoPath, model string) {
 					fs.Summary = fmt.Sprintf("Could not read diff: %s", diffErr)
 				} else {
 					diffText = truncateDiffLines(diffText, maxDiffLines)
-					summary, claudeErr := runClaudePrompt(a.ctx, repoPath, model,
+					summary, claudeErr := runClaudePrompt(reviewCtx, repoPath, model,
 						fileSummarySystemPrompt, diffText, summaryTimeout)
 					if claudeErr != nil {
 						fs.Summary = fmt.Sprintf("Summary unavailable: %s", claudeErr)
@@ -139,6 +188,13 @@ func (a *App) StreamCodeReviewSummary(repoPath, model string) {
 			totalAdded += fs.Added
 			totalRemoved += fs.Removed
 			summaries = append(summaries, fs)
+
+			// Only emit if we haven't been cancelled.
+			select {
+			case <-reviewCtx.Done():
+				return
+			default:
+			}
 
 			runtime.EventsEmit(a.ctx, "review:summary:progress", map[string]interface{}{
 				"repoPath": repoPath,

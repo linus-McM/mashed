@@ -1,7 +1,7 @@
 <script>
   import { Handle, Position } from '@xyflow/svelte';
   import { Target } from 'lucide-svelte';
-  import { formatConditionSummary, formatIterationDisplay } from './nodeUtils.js';
+  import { formatConditionSummary, formatIterationDisplay, parseItemsCount } from './nodeUtils.js';
 
   export let data = {};
   // svelte-ignore unused-export-let
@@ -15,6 +15,7 @@
   $: iterationCount = data.iterationCount;
   $: conditionSummary = formatConditionSummary(config);
   $: iterationDisplay = formatIterationDisplay(iterationCount, maxIterations);
+  $: itemCount = parseItemsCount(config.items);
 </script>
 
 <div class="loop-until-node" class:selected class:running={status === 'running'}>
@@ -34,6 +35,10 @@
 
     {#if iterationDisplay}
       <div class="iteration-info">{iterationDisplay}</div>
+    {/if}
+
+    {#if itemCount > 0}
+      <div class="items-badge">{itemCount} item{itemCount !== 1 ? 's' : ''}</div>
     {/if}
 
     <div class="status-row">
@@ -139,6 +144,12 @@
     color: var(--text-dim);
     margin-bottom: 2px;
     font-variant-numeric: tabular-nums;
+  }
+
+  .items-badge {
+    font-size: 9px;
+    color: var(--accent-teal, #00c4b3);
+    margin-bottom: 2px;
   }
 
   .status-row {
