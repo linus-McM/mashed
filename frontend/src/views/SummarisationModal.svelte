@@ -200,7 +200,8 @@
     planError = '';
     try {
       const enrichedAdvice = buildEnrichedAdvice();
-      planPath = await SpawnRefactorPlan(repoPath, enrichedAdvice);
+      const filePaths = Array.from(selectedFiles);
+      planPath = await SpawnRefactorPlan(repoPath, enrichedAdvice, filePaths);
     } catch (e) {
       planError = e?.message || 'Failed to create plan';
     }

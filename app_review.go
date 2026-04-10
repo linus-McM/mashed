@@ -320,8 +320,10 @@ Provide your analysis in markdown format.`, body)
 }
 
 // SpawnRefactorPlan spawns a Claude agent that produces a refactor plan
-// based on the advice text. Returns the plan file path.
-func (a *App) SpawnRefactorPlan(repoPath, adviceText string) (string, error) {
+// based on the advice text. The optional filePaths are referenced in the
+// generated plan filename so reviewers can tell at a glance which source
+// files a plan covers. Returns the plan file path.
+func (a *App) SpawnRefactorPlan(repoPath, adviceText string, filePaths []string) (string, error) {
 	if repoPath == "" {
 		return "", fmt.Errorf("repo path is required")
 	}
@@ -335,7 +337,7 @@ func (a *App) SpawnRefactorPlan(repoPath, adviceText string) (string, error) {
 		return "", fmt.Errorf("create plans directory: %w", err)
 	}
 
-	planPath := filepath.Join(plansDir, fmt.Sprintf("refactor-%d.md", time.Now().Unix()))
+	planPath := filepath.Join(plansDir, refactorPlanFilename(filePaths, time.Now().Unix()))
 
 	// Truncate advice to avoid CLI arg length limits.
 	if len(adviceText) > 10000 {
@@ -361,6 +363,79 @@ func (a *App) SpawnRefactorPlan(repoPath, adviceText string) (string, error) {
 	}
 
 	return planPath, nil
+}
+
+// refactorPlanFilename builds the plan filename. It references the source
+// files the plan covers so reviewers can match plans to code at a glance.
+// The '.' separating a file's extension is replaced with '_' so the filename
+// has exactly one real extension (`.md`). Multiple files are joined with '+';
+// beyond maxNamedFiles the extras collapse into a "+Nmore" tail to keep the
+// filename bounded.
+func refactorPlanFilename(filePaths []string, unixTime int64) string {
+	const maxNamedFiles = 3
+
+	if len(filePaths) == 0 {
+		return fmt.Sprintf("refactor-%d.md", unixTime)
+	}
+
+	named := filePaths
+	extra := 0
+	if len(filePaths) > maxNamedFiles {
+		named = filePaths[:maxNamedFiles]
+		extra = len(filePaths) - maxNamedFiles
+	}
+
+	slugs := make([]string, 0, len(named))
+	for _, p := range named {
+		if slug := slugifyPlanPath(p); slug != "" {
+			slugs = append(slugs, slug)
+		}
+	}
+
+	if len(slugs) == 0 {
+		return fmt.Sprintf("refactor-%d.md", unixTime)
+	}
+
+	joined := strings.Join(slugs, "+")
+	if extra > 0 {
+		joined = fmt.Sprintf("%s+%dmore", joined, extra)
+	}
+	return fmt.Sprintf("refactor-%s-%d.md", joined, unixTime)
+}
+
+// slugifyPlanPath reduces a repo-relative file path to a filename-safe slug.
+// Directory separators become '-', the extension dot becomes '_', and any
+// remaining characters outside [A-Za-z0-9_-] are replaced with '_'. Returns
+// an empty string for inputs that would otherwise yield nothing usable.
+func slugifyPlanPath(p string) string {
+	p = strings.TrimSpace(p)
+	if p == "" {
+		return ""
+	}
+
+	base := filepath.Base(p)
+	if base == "." || base == "/" {
+		return ""
+	}
+
+	// Replace the final '.' (extension separator) with '_'. Only the last
+	// dot is converted so multi-dotted names like "foo.bar.go" become
+	// "foo.bar_go" rather than "foo_bar_go".
+	if dot := strings.LastIndex(base, "."); dot > 0 && dot < len(base)-1 {
+		base = base[:dot] + "_" + base[dot+1:]
+	}
+
+	var b strings.Builder
+	b.Grow(len(base))
+	for _, r := range base {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9', r == '_', r == '-', r == '.':
+			b.WriteRune(r)
+		default:
+			b.WriteByte('_')
+		}
+	}
+	return b.String()
 }
 
 // truncateDiffLines caps diff text at the given number of lines.

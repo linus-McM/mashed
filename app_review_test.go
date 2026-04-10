@@ -361,7 +361,7 @@ func TestSpawnRefactorPlan_InputValidation(t *testing.T) {
 	app := &App{}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := app.SpawnRefactorPlan(tc.repoPath, tc.adviceText)
+			_, err := app.SpawnRefactorPlan(tc.repoPath, tc.adviceText, nil)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tc.errContain)
 		})
@@ -378,4 +378,126 @@ func TestSpawnRefactorPlan_PlanPathFormat(t *testing.T) {
 	info, err := os.Stat(plansDir)
 	require.NoError(t, err)
 	assert.True(t, info.IsDir())
+}
+
+// ---------------------------------------------------------------------------
+// refactorPlanFilename — file-referencing plan filenames
+// ---------------------------------------------------------------------------
+
+func TestRefactorPlanFilename(t *testing.T) {
+	t.Parallel()
+
+	const ts int64 = 1712700000
+
+	tests := []struct {
+		name      string
+		filePaths []string
+		want      string
+	}{
+		{
+			name:      "nil filePaths falls back to bare refactor name",
+			filePaths: nil,
+			want:      "refactor-1712700000.md",
+		},
+		{
+			name:      "empty slice falls back to bare refactor name",
+			filePaths: []string{},
+			want:      "refactor-1712700000.md",
+		},
+		{
+			name:      "single file replaces extension dot with underscore",
+			filePaths: []string{"main.go"},
+			want:      "refactor-main_go-1712700000.md",
+		},
+		{
+			name:      "single file in subdirectory uses basename only",
+			filePaths: []string{"internal/bmad/executor.go"},
+			want:      "refactor-executor_go-1712700000.md",
+		},
+		{
+			name:      "multi-dotted filename converts only the final dot",
+			filePaths: []string{"foo.bar.go"},
+			want:      "refactor-foo.bar_go-1712700000.md",
+		},
+		{
+			name:      "two files join with plus",
+			filePaths: []string{"main.go", "util.go"},
+			want:      "refactor-main_go+util_go-1712700000.md",
+		},
+		{
+			name:      "three files join with plus",
+			filePaths: []string{"main.go", "util.go", "config.go"},
+			want:      "refactor-main_go+util_go+config_go-1712700000.md",
+		},
+		{
+			name:      "four files collapse the extras into +Nmore tail",
+			filePaths: []string{"main.go", "util.go", "config.go", "server.go"},
+			want:      "refactor-main_go+util_go+config_go+1more-1712700000.md",
+		},
+		{
+			name:      "five files collapse the extras into +Nmore tail",
+			filePaths: []string{"main.go", "util.go", "config.go", "server.go", "client.go"},
+			want:      "refactor-main_go+util_go+config_go+2more-1712700000.md",
+		},
+		{
+			name:      "typescript extension is slugified",
+			filePaths: []string{"SummarisationModal.svelte"},
+			want:      "refactor-SummarisationModal_svelte-1712700000.md",
+		},
+		{
+			name:      "unsafe characters in filename become underscores",
+			filePaths: []string{"weird name (v2).ts"},
+			want:      "refactor-weird_name__v2__ts-1712700000.md",
+		},
+		{
+			name:      "dotfile without extension stays intact",
+			filePaths: []string{".gitignore"},
+			want:      "refactor-.gitignore-1712700000.md",
+		},
+		{
+			name:      "file without extension is kept verbatim",
+			filePaths: []string{"Makefile"},
+			want:      "refactor-Makefile-1712700000.md",
+		},
+		{
+			name:      "whitespace-only path is skipped",
+			filePaths: []string{"   "},
+			want:      "refactor-1712700000.md",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got := refactorPlanFilename(tc.filePaths, ts)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestSlugifyPlanPath(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"plain go file", "main.go", "main_go"},
+		{"nested path uses basename", "pkg/util/helper.go", "helper_go"},
+		{"multi-dot name only converts last", "server.handlers.go", "server.handlers_go"},
+		{"dotfile without extension", ".env", ".env"},
+		{"no extension", "Makefile", "Makefile"},
+		{"empty string", "", ""},
+		{"only whitespace", "  \t", ""},
+		{"punctuation becomes underscores", "a b+c.ts", "a_b_c_ts"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got := slugifyPlanPath(tc.in)
+			assert.Equal(t, tc.want, got)
+		})
+	}
 }

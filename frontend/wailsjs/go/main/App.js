@@ -338,8 +338,8 @@ export function SpawnPRReview(arg1) {
   return window['go']['main']['App']['SpawnPRReview'](arg1);
 }
 
-export function SpawnRefactorPlan(arg1, arg2) {
-  return window['go']['main']['App']['SpawnRefactorPlan'](arg1, arg2);
+export function SpawnRefactorPlan(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SpawnRefactorPlan'](arg1, arg2, arg3);
 }
 
 export function SpawnTerminal(arg1) {
