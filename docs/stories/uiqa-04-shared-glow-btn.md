@@ -1,6 +1,6 @@
 # Story uiqa-04: Shared `.glow-btn` Class
 
-**Status:** ready
+**Status:** done
 **Size:** M
 **Priority:** P2
 **Domain:** frontend
