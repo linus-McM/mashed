@@ -35,15 +35,19 @@
   let planLoading = false;
   let planError = '';
 
+  // Selection state
+  let selectedFiles = new Set();
+
   // DOM refs
   let advicePanel;
   let fileListEl;
 
   // Computed
   $: hasFiles = files.length > 0;
+  $: hasSelection = selectedFiles.size > 0;
   $: showAdviceSection = hasFiles || !summaryLoading;
-  $: canGetAdvice = selectedMode && !adviceLoading;
-  $: canCreatePlan = adviceText && !planLoading;
+  $: canGetAdvice = selectedMode && !adviceLoading && hasSelection;
+  $: canCreatePlan = adviceText && !planLoading && hasSelection;
 
   onMount(async () => {
     EventsOn('review:summary:progress', (data) => {
@@ -120,6 +124,30 @@
 
   function openFile(path) {
     dispatch('open-file', { path });
+  }
+
+  function toggleFile(path) {
+    if (selectedFiles.has(path)) {
+      selectedFiles.delete(path);
+    } else {
+      selectedFiles.add(path);
+    }
+    selectedFiles = new Set(selectedFiles);
+  }
+
+  function selectAll() {
+    selectedFiles = new Set(files.map(f => f.path));
+  }
+
+  function selectNone() {
+    selectedFiles = new Set();
+  }
+
+  function handleCardKey(e, path) {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      toggleFile(path);
+    }
   }
 
   function getAdvice() {
@@ -202,10 +230,16 @@
       {#each files as file, i}
         <div
           class="file-card"
+          class:selected={selectedFiles.has(file.path)}
+          role="checkbox"
+          aria-checked={selectedFiles.has(file.path)}
+          tabindex="0"
+          on:click={() => toggleFile(file.path)}
+          on:keydown={(e) => handleCardKey(e, file.path)}
           in:fly={{ y: 12, duration: 200, delay: Math.min(i * 40, 400), easing: cubicOut }}
         >
           <div class="file-header">
-            <button class="file-path" on:click={() => openFile(file.path)} title="Open {file.path}">
+            <button class="file-path" on:click|stopPropagation={() => openFile(file.path)} title="Open {file.path}">
               <FileCode size={13} />
               <span class="path-text">{file.path}</span>
               <ExternalLink size={11} />
@@ -229,7 +263,16 @@
     <!-- Overall totals -->
     {#if !summaryLoading && hasFiles}
       <div class="totals-bar" in:fly={{ y: 8, duration: 200, easing: cubicOut }}>
-        <span class="totals-label">Overall</span>
+        <div class="selection-controls">
+          <button type="button" class="select-link" on:click={selectAll}>Select All</button>
+          <span class="pipe" aria-hidden="true">|</span>
+          <button type="button" class="select-link" on:click={selectNone}>Select None</button>
+        </div>
+        {#if hasSelection}
+          <span class="selection-count" transition:fade={{ duration: 100 }}>
+            {selectedFiles.size} of {files.length} selected
+          </span>
+        {/if}
         <div class="totals-stats">
           <span class="stat-added"><Plus size={12} />{totalAdded}</span>
           <span class="stat-removed"><Minus size={12} />{totalRemoved}</span>
@@ -464,11 +507,29 @@
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     padding: var(--sp-md) var(--sp-lg);
-    transition: border-color var(--duration-short) var(--ease-enter);
+    cursor: pointer;
+    transition: border-color var(--duration-medium) var(--ease-enter),
+                background var(--duration-medium) var(--ease-enter);
   }
 
   .file-card:hover {
     border-color: var(--border-emphasis);
+  }
+
+  .file-card.selected {
+    border-color: var(--accent-green);
+    background: color-mix(in srgb, var(--accent-green) 4%, var(--bg-elevated));
+  }
+
+  .file-card.selected:hover {
+    border-color: var(--accent-green);
+    background: color-mix(in srgb, var(--accent-green) 7%, var(--bg-elevated));
+  }
+
+  .file-card:focus-visible {
+    outline: 1px solid var(--accent-blue);
+    outline-offset: var(--sp-2xs);
+    border-radius: var(--radius-md);
   }
 
   .file-header {
@@ -545,17 +606,55 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--sp-sm);
     padding: var(--sp-sm) var(--sp-xl);
     border-top: 1px solid var(--border-subtle);
     flex-shrink: 0;
   }
 
-  .totals-label {
+  .selection-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+  }
+
+  .select-link {
+    background: none;
+    border: none;
+    padding: var(--sp-2xs) var(--sp-xs);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-ui);
+    font-size: var(--text-label);
+    font-weight: 500;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: color var(--duration-short) var(--ease-enter);
+  }
+
+  .select-link:hover {
+    color: var(--accent-green);
+  }
+
+  .select-link:focus-visible {
+    outline: 1px solid var(--accent-blue);
+    outline-offset: 1px;
+  }
+
+  .pipe {
+    color: var(--text-muted);
+    font-size: var(--text-label);
+  }
+
+  .selection-count {
+    margin-left: auto;
+    margin-right: auto;
+    font-family: var(--font-ui);
     font-size: var(--text-label);
     font-weight: 600;
-    color: var(--text-dim);
+    color: var(--accent-green);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    font-variant-numeric: tabular-nums;
   }
 
   .totals-stats {
