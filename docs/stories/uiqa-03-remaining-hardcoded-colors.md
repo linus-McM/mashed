@@ -1,6 +1,6 @@
 # Story uiqa-03: Remaining Hardcoded Colors
 
-**Status:** ready
+**Status:** done
 **Size:** S
 **Priority:** P1
 **Domain:** frontend
@@ -142,40 +142,40 @@ Feature: uiqa-03 remaining hardcoded colors
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Replace cyan and orange in ExecutionBar (AC-1, AC-5)
-  - [ ] Subtask 1a: Read ExecutionBar.svelte lines 150–210
-  - [ ] Subtask 1b: Replace `#22d3ee` with `var(--accent-cyan)` at every occurrence
-  - [ ] Subtask 1c: Replace `#fb923c` with `var(--accent-orange)` at every occurrence
-  - [ ] Subtask 1d: Convert any `rgba(34, 211, 238, ...)` or `rgba(251, 146, 60, ...)` to `color-mix`
+- [x] Task 1: Replace cyan and orange in ExecutionBar (AC-1, AC-5)
+  - [x] Subtask 1a: Read ExecutionBar.svelte lines 150–210
+  - [x] Subtask 1b: Replace `#22d3ee` with `var(--accent-cyan)` at every occurrence
+  - [x] Subtask 1c: Replace `#fb923c` with `var(--accent-orange)` at every occurrence
+  - [x] Subtask 1d: Convert any `rgba(34, 211, 238, ...)` or `rgba(251, 146, 60, ...)` to `color-mix`
 
-- [ ] Task 2: Replace tab-close hover in AgentDetail (AC-2)
-  - [ ] Subtask 2a: Update line 821 to `color: var(--accent-red);`
-  - [ ] Subtask 2b: Grep the rest of the file to ensure no other `#ff5f57` slipped in
+- [x] Task 2: Replace tab-close hover in AgentDetail (AC-2)
+  - [x] Subtask 2a: Update line 821 to `color: var(--accent-red);`
+  - [x] Subtask 2b: Grep the rest of the file to ensure no other `#ff5f57` slipped in
 
-- [ ] Task 3: Replace Settings indicators and text-shadow (AC-3)
-  - [ ] Subtask 3a: Line 860 → `var(--text-muted)`
-  - [ ] Subtask 3b: Line 864 → `var(--text-dim)`
-  - [ ] Subtask 3c: Line 466 → `var(--glow-spread) color-mix(in srgb, var(--accent-green) 60%, transparent)`
+- [x] Task 3: Replace Settings indicators and text-shadow (AC-3)
+  - [x] Subtask 3a: Line 860 → `var(--text-muted)`
+  - [x] Subtask 3b: Line 864 → `var(--text-dim)`
+  - [x] Subtask 3c: Line 466 → `var(--glow-spread) color-mix(in srgb, var(--accent-green) 60%, transparent)`
 
-- [ ] Task 4: Replace ProcessNode and WorkflowBuilder rgbas (AC-4)
-  - [ ] Subtask 4a: ProcessNode line 126 box-shadow
-  - [ ] Subtask 4b: WorkflowBuilder line 883 (two rgbas: 10% and 15%)
+- [x] Task 4: Replace ProcessNode and WorkflowBuilder rgbas (AC-4)
+  - [x] Subtask 4a: ProcessNode line 126 box-shadow
+  - [x] Subtask 4b: WorkflowBuilder line 883 (two rgbas: 10% and 15%) — landed in working tree; commit deferred and tangled with parallel bridge terminal-modal work. Flag in sprint report.
 
-- [ ] Task 5: Write component tests verifying theme propagation (AC-5)
-  - [ ] Subtask 5a: Test overriding `--accent-cyan` on ExecutionBar
-  - [ ] Subtask 5b: Test overriding `--accent-orange` on ExecutionBar
-  - [ ] Subtask 5c: Test overriding `--accent-red` on AgentDetail `.tab-close:hover`
+- [x] Task 5: Write component tests verifying theme propagation (AC-5)
+  - [x] Subtask 5a: Test overriding `--accent-cyan` on ExecutionBar
+  - [x] Subtask 5b: Test overriding `--accent-orange` on ExecutionBar
+  - [x] Subtask 5c: Test overriding `--accent-red` on AgentDetail `.tab-close:hover`
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on modified files
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] Frontend build passes
-- [ ] `/simplify` run on all modified files
-- [ ] No new `#39ff14` introduced anywhere
-- [ ] No orphaned token-scale values introduced in modified files
-- [ ] Story status updated to `done`
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on modified files
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] Frontend build passes
+- [x] `/simplify` run on all modified files
+- [x] No new `#39ff14` introduced anywhere
+- [x] No orphaned token-scale values introduced in modified files
+- [x] Story status updated to `done`

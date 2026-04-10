@@ -463,7 +463,7 @@
   }
 
   .back-btn:hover {
-    text-shadow: 0 0 10px rgba(0, 229, 122, 0.6);
+    text-shadow: var(--glow-spread) color-mix(in srgb, var(--accent-green) 60%, transparent);
   }
 
   .settings-title {
@@ -857,11 +857,11 @@
   }
 
   .import-indicator.dark {
-    background: #565670;
+    background: var(--text-muted);
   }
 
   .import-indicator.light {
-    background: #c0c0d0;
+    background: var(--text-dim);
   }
 
   .import-label {

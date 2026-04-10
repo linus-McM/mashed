@@ -160,13 +160,13 @@
 
   /* Run: cyan idle, green when running */
   .ctrl-btn.run {
-    color: #22d3ee;
-    border-color: rgba(34, 211, 238, 0.3);
+    color: var(--accent-cyan);
+    border-color: color-mix(in srgb, var(--accent-cyan) 30%, transparent);
   }
   .ctrl-btn.run:hover:not(:disabled) {
-    background: rgba(34, 211, 238, 0.1);
-    border-color: #22d3ee;
-    box-shadow: 0 0 8px rgba(34, 211, 238, 0.25);
+    background: color-mix(in srgb, var(--accent-cyan) 10%, transparent);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-cyan) 25%, transparent);
   }
   .ctrl-btn.run.active {
     color: var(--accent-green, #00e57a);
@@ -194,13 +194,13 @@
 
   /* Stop: orange idle, red when stopped/failed */
   .ctrl-btn.stop {
-    color: #fb923c;
-    border-color: rgba(251, 146, 60, 0.3);
+    color: var(--accent-orange);
+    border-color: color-mix(in srgb, var(--accent-orange) 30%, transparent);
   }
   .ctrl-btn.stop:hover:not(:disabled) {
-    background: rgba(251, 146, 60, 0.1);
-    border-color: #fb923c;
-    box-shadow: 0 0 8px rgba(251, 146, 60, 0.25);
+    background: color-mix(in srgb, var(--accent-orange) 10%, transparent);
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-orange) 25%, transparent);
   }
   .ctrl-btn.stop.active {
     color: var(--accent-red, #f85149);

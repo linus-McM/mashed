@@ -820,7 +820,7 @@
     border-radius: 3px;
     padding: 0;
   }
-  .tab-close:hover { background: rgba(255, 95, 87, 0.2); color: #ff5f57; }
+  .tab-close:hover { background: rgba(255, 95, 87, 0.2); color: var(--accent-red); }
   .add-tab { color: var(--fg-dim); font-size: 14px; }
   .add-tab:hover { color: var(--accent-green, #50fa7b); }
 
