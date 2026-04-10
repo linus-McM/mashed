@@ -65,8 +65,22 @@ var reviewSkipExts = map[string]bool{
 	".gitignore": true,
 }
 
+// reviewSkipNames contains exact filenames (case-insensitive) to exclude.
+var reviewSkipNames = map[string]bool{
+	"makefile":    true,
+	"justfile":    true,
+	"dockerfile":  true,
+	"rakefile":    true,
+	"gemfile":     true,
+	"procfile":    true,
+	"license":     true,
+	"licence":     true,
+	"changelog":   true,
+}
+
 // isReviewableFile returns true if the file should be included in code review.
-// Excludes dotfiles (paths starting with '.'), markdown, and config files.
+// Excludes dotfiles (paths starting with '.'), markdown, config files,
+// and build/task runner files (Makefile, justfile, Dockerfile).
 func isReviewableFile(path string) bool {
 	base := filepath.Base(path)
 	// Skip dotfiles (e.g. .gitignore, .eslintrc, .prettierrc)
@@ -78,6 +92,10 @@ func isReviewableFile(path string) bool {
 		if strings.HasPrefix(part, ".") && part != "." && part != ".." {
 			return false
 		}
+	}
+	// Skip known non-code filenames (Makefile, justfile, etc.)
+	if reviewSkipNames[strings.ToLower(base)] {
+		return false
 	}
 	ext := strings.ToLower(filepath.Ext(path))
 	return !reviewSkipExts[ext]
