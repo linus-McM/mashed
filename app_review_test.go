@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 
+	"mashed/internal/domain"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,11 +19,11 @@ import (
 
 func TestReviewSummary_StructConstruction(t *testing.T) {
 	tests := []struct {
-		name     string
-		files    []FileSummary
-		wantAdd  int
-		wantRm   int
-		wantLen  int
+		name    string
+		files   []FileSummary
+		wantAdd int
+		wantRm  int
+		wantLen int
 	}{
 		{
 			name:    "empty summary",
@@ -87,25 +89,20 @@ func TestFileSummary_BinaryFlag(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestReviewConcurrencyGuard(t *testing.T) {
-	// Reset the global map for test isolation.
 	activeReviews = sync.Map{}
 
 	repoPath := "/tmp/test-repo"
 
-	// First load should succeed (loaded == false).
 	_, loaded := activeReviews.LoadOrStore(repoPath, true)
 	assert.False(t, loaded, "first LoadOrStore should not be loaded")
 
-	// Second load should detect conflict (loaded == true).
 	_, loaded = activeReviews.LoadOrStore(repoPath, true)
 	assert.True(t, loaded, "second LoadOrStore should detect existing entry")
 
-	// After delete, the guard should reset.
 	activeReviews.Delete(repoPath)
 	_, loaded = activeReviews.LoadOrStore(repoPath, true)
 	assert.False(t, loaded, "LoadOrStore after Delete should not be loaded")
 
-	// Cleanup.
 	activeReviews.Delete(repoPath)
 }
 
@@ -121,7 +118,6 @@ func TestReviewConcurrencyGuard_DifferentRepos(t *testing.T) {
 	assert.False(t, loaded1, "repo1 should not conflict")
 	assert.False(t, loaded2, "repo2 should not conflict with repo1")
 
-	// Cleanup.
 	activeReviews.Delete(repo1)
 	activeReviews.Delete(repo2)
 }
@@ -170,7 +166,7 @@ func TestTruncateDiffLines(t *testing.T) {
 			name:      "empty string",
 			input:     "",
 			maxLines:  5,
-			wantLines: 1, // split on empty string returns [""]
+			wantLines: 1,
 			wantTrunc: false,
 		},
 	}
@@ -192,7 +188,6 @@ func TestTruncateDiffLines(t *testing.T) {
 }
 
 func TestTruncateDiffLines_PreservesContent(t *testing.T) {
-	// Build a diff with 10 lines.
 	var lines []string
 	for i := 0; i < 10; i++ {
 		lines = append(lines, "+added line")
@@ -202,83 +197,20 @@ func TestTruncateDiffLines_PreservesContent(t *testing.T) {
 	result := truncateDiffLines(diff, 5)
 	resultLines := strings.Split(result, "\n")
 
-	// First 5 lines should be preserved exactly.
 	for i := 0; i < 5; i++ {
 		assert.Equal(t, "+added line", resultLines[i])
 	}
-
-	// Last line should be truncation marker.
 	assert.Equal(t, "... (truncated)", resultLines[5])
 }
 
 // ---------------------------------------------------------------------------
-// buildFileSummaryPrompt
+// fileSummarySystemPrompt constant
 // ---------------------------------------------------------------------------
 
-func TestBuildFileSummaryPrompt(t *testing.T) {
-	tests := []struct {
-		name     string
-		filePath string
-		diff     string
-		wantSubs []string
-	}{
-		{
-			name:     "includes file path",
-			filePath: "internal/git/diff.go",
-			diff:     "+new line\n-old line",
-			wantSubs: []string{
-				"internal/git/diff.go",
-				"+new line",
-				"-old line",
-				"Summarise",
-			},
-		},
-		{
-			name:     "includes instruction keywords",
-			filePath: "main.go",
-			diff:     "+func main() {}",
-			wantSubs: []string{
-				"ONE sentence",
-				"3-5 sentences",
-				"Diff:",
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			prompt := buildFileSummaryPrompt(tt.filePath, tt.diff)
-			for _, sub := range tt.wantSubs {
-				assert.Contains(t, prompt, sub)
-			}
-		})
-	}
-}
-
-// ---------------------------------------------------------------------------
-// buildAdvicePrompt
-// ---------------------------------------------------------------------------
-
-func TestBuildAdvicePrompt(t *testing.T) {
-	methodology := "Check for security issues and code smells."
-	diff := "+func handler(w http.ResponseWriter) {}"
-
-	prompt := buildAdvicePrompt(methodology, diff)
-
-	require.Contains(t, prompt, "expert code reviewer")
-	require.Contains(t, prompt, "## Methodology")
-	require.Contains(t, prompt, methodology)
-	require.Contains(t, prompt, "## Code Changes (Diff)")
-	require.Contains(t, prompt, diff)
-	require.Contains(t, prompt, "markdown format")
-}
-
-func TestBuildAdvicePrompt_EmptyMethodology(t *testing.T) {
-	prompt := buildAdvicePrompt("", "+some diff")
-
-	// Should still produce a valid prompt structure.
-	assert.Contains(t, prompt, "## Methodology")
-	assert.Contains(t, prompt, "## Code Changes (Diff)")
+func TestFileSummarySystemPrompt(t *testing.T) {
+	assert.Contains(t, fileSummarySystemPrompt, "Summarise")
+	assert.Contains(t, fileSummarySystemPrompt, "ONE sentence")
+	assert.Contains(t, fileSummarySystemPrompt, "3-5 sentences")
 }
 
 // ---------------------------------------------------------------------------
@@ -291,7 +223,50 @@ func TestReviewConstants(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// SpawnRefactorPlan helpers
+// Model registry integration
+// ---------------------------------------------------------------------------
+
+func TestModelRegistry_DefaultExists(t *testing.T) {
+	defaultID := domain.DefaultModelID()
+	assert.NotEmpty(t, defaultID)
+
+	models := domain.AvailableModels()
+	var found bool
+	for _, m := range models {
+		if m.ID == defaultID {
+			found = true
+			assert.True(t, m.IsDefault)
+		}
+	}
+	assert.True(t, found, "default model should exist in AvailableModels")
+}
+
+func TestModelRegistry_AliasLookup(t *testing.T) {
+	tests := []struct {
+		alias  string
+		wantID string
+	}{
+		{"opus", "claude-opus-4-6"},
+		{"sonnet", "claude-sonnet-4-6"},
+		{"haiku", "claude-haiku-4-5-20251001"},
+		{"claude-opus-4-6", "claude-opus-4-6"}, // full ID works too
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.alias, func(t *testing.T) {
+			m := domain.ModelByAlias(tt.alias)
+			assert.Equal(t, tt.wantID, m.ID)
+		})
+	}
+}
+
+func TestModelRegistry_UnknownAliasFallsBack(t *testing.T) {
+	m := domain.ModelByAlias("nonexistent-model")
+	assert.Equal(t, domain.DefaultModelID(), m.ID, "unknown alias should fall back to default")
+}
+
+// ---------------------------------------------------------------------------
+// SpawnRefactorPlan input validation
 // ---------------------------------------------------------------------------
 
 func TestSpawnRefactorPlan_InputValidation(t *testing.T) {
@@ -326,15 +301,12 @@ func TestSpawnRefactorPlan_InputValidation(t *testing.T) {
 }
 
 func TestSpawnRefactorPlan_PlanPathFormat(t *testing.T) {
-	// We can't fully test the spawn (requires Wails context),
-	// but we can verify the plan path generation logic.
 	tmpDir := t.TempDir()
 	plansDir := filepath.Join(tmpDir, ".claude", "plans")
 
 	err := os.MkdirAll(plansDir, 0o755)
 	require.NoError(t, err)
 
-	// Verify directory was created
 	info, err := os.Stat(plansDir)
 	require.NoError(t, err)
 	assert.True(t, info.IsDir())

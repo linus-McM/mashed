@@ -53,7 +53,12 @@ func (a *App) ListAdviceModes(repoPath string) ([]advice.AdviceMode, error) {
 
 // StreamCodeReviewSummary generates AI summaries for each changed file and
 // streams progress events to the frontend. Runs asynchronously.
-func (a *App) StreamCodeReviewSummary(repoPath string) {
+// The model parameter selects which Claude model to use (alias or full ID).
+func (a *App) StreamCodeReviewSummary(repoPath, model string) {
+	if model == "" {
+		model = "sonnet" // fast model for per-file summaries
+	}
+
 	go func() {
 		emitDone := func(summary interface{}, errMsg string) {
 			runtime.EventsEmit(a.ctx, "review:summary:done", map[string]interface{}{
@@ -121,8 +126,8 @@ func (a *App) StreamCodeReviewSummary(repoPath string) {
 					fs.Summary = fmt.Sprintf("Could not read diff: %s", diffErr)
 				} else {
 					diffText = truncateDiffLines(diffText, maxDiffLines)
-					prompt := buildFileSummaryPrompt(file.Path, diffText)
-					summary, claudeErr := runClaudePrompt(a.ctx, repoPath, prompt, summaryTimeout)
+					summary, claudeErr := runClaudePrompt(a.ctx, repoPath, model,
+						fileSummarySystemPrompt, diffText, summaryTimeout)
 					if claudeErr != nil {
 						fs.Summary = fmt.Sprintf("Summary unavailable: %s", claudeErr)
 					} else {
@@ -154,7 +159,12 @@ func (a *App) StreamCodeReviewSummary(repoPath string) {
 
 // StreamAdvice runs a methodology-based code review and streams the output
 // line-by-line to the frontend.
-func (a *App) StreamAdvice(repoPath, modeName string) {
+// The model parameter selects which Claude model to use (alias or full ID).
+func (a *App) StreamAdvice(repoPath, modeName, model string) {
+	if model == "" {
+		model = "sonnet"
+	}
+
 	go func() {
 		emitProgress := func(text string, done bool, errMsg string) {
 			runtime.EventsEmit(a.ctx, "review:advice:progress", map[string]interface{}{
@@ -171,7 +181,7 @@ func (a *App) StreamAdvice(repoPath, modeName string) {
 			return
 		}
 
-		// Load advice body.
+		// Load advice body (used as system prompt).
 		body, err := advice.LoadAdviceBody(repoPath, modeName)
 		if err != nil {
 			emitProgress("", true, fmt.Sprintf("failed to load advice mode %q: %s", modeName, err))
@@ -191,11 +201,25 @@ func (a *App) StreamAdvice(repoPath, modeName string) {
 			return
 		}
 
-		prompt := buildAdvicePrompt(body, string(diffOut))
+		// Build system prompt from advice body.
+		systemPrompt := fmt.Sprintf(`You are an expert code reviewer. Apply the following methodology to review the code changes provided.
 
-		// Spawn Claude with streaming output.
-		cmd := exec.CommandContext(a.ctx, "claude", "-p", prompt)
+%s
+
+Provide your analysis in markdown format.`, body)
+
+		// Spawn Claude: system prompt via --system-prompt, diff via stdin.
+		// --bare skips hooks/LSP/plugins for faster startup.
+		// --no-session-persistence avoids writing throwaway sessions to disk.
+		cmd := exec.CommandContext(a.ctx, "claude",
+			"--print",
+			"--model", model,
+			"--system-prompt", systemPrompt,
+			"--bare",
+			"--no-session-persistence",
+		)
 		cmd.Dir = repoPath
+		cmd.Stdin = strings.NewReader(string(diffOut))
 
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
@@ -220,39 +244,6 @@ func (a *App) StreamAdvice(repoPath, modeName string) {
 
 		emitProgress("", true, "")
 	}()
-}
-
-// truncateDiffLines caps diff text at the given number of lines.
-func truncateDiffLines(diff string, maxLines int) string {
-	lines := strings.SplitN(diff, "\n", maxLines+1)
-	if len(lines) <= maxLines {
-		return diff
-	}
-	return strings.Join(lines[:maxLines], "\n") + "\n... (truncated)"
-}
-
-// buildFileSummaryPrompt constructs the Claude prompt for summarising a single file diff.
-func buildFileSummaryPrompt(filePath, diff string) string {
-	return fmt.Sprintf(`Summarise the following code changes in %s.
-- If the change is simple (rename, one-liner, import change), respond with ONE sentence.
-- If the change is complex (new function, refactor, logic change), respond with a short paragraph (3-5 sentences).
-- Be specific about what changed and why it matters.
-
-Diff:
-%s`, filePath, diff)
-}
-
-// buildAdvicePrompt constructs the Claude prompt for methodology-based review.
-func buildAdvicePrompt(methodologyBody, diff string) string {
-	return fmt.Sprintf(`You are an expert code reviewer. Apply the following methodology to review these code changes.
-
-## Methodology
-%s
-
-## Code Changes (Diff)
-%s
-
-Provide your analysis in markdown format.`, methodologyBody, diff)
 }
 
 // SpawnRefactorPlan spawns a Claude agent that produces a refactor plan
@@ -289,8 +280,9 @@ func (a *App) SpawnRefactorPlan(repoPath, adviceText string) (string, error) {
 - Be specific: include file paths, function names, line references
 - Order by priority (critical first, cosmetic last)`, planPath, adviceText)
 
-	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model claude-opus-4-6 -p %q", prompt)
-	_, err := a.spawnSession("refactor", repoPath, cmd, domain.SessionAgent, "claude-opus-4-6")
+	defaultModel := domain.DefaultModelID()
+	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s -p %q", defaultModel, prompt)
+	_, err := a.spawnSession("refactor", repoPath, cmd, domain.SessionAgent, defaultModel)
 	if err != nil {
 		return "", fmt.Errorf("spawn refactor plan agent: %w", err)
 	}
@@ -298,17 +290,41 @@ func (a *App) SpawnRefactorPlan(repoPath, adviceText string) (string, error) {
 	return planPath, nil
 }
 
-// runClaudePrompt executes `claude -p` with the given prompt and timeout.
-func runClaudePrompt(parentCtx context.Context, repoPath, prompt string, timeout time.Duration) (string, error) {
+// truncateDiffLines caps diff text at the given number of lines.
+func truncateDiffLines(diff string, maxLines int) string {
+	lines := strings.SplitN(diff, "\n", maxLines+1)
+	if len(lines) <= maxLines {
+		return diff
+	}
+	return strings.Join(lines[:maxLines], "\n") + "\n... (truncated)"
+}
+
+// fileSummarySystemPrompt is the system prompt for per-file diff summarisation.
+const fileSummarySystemPrompt = `Summarise the code changes provided.
+- If the change is simple (rename, one-liner, import change), respond with ONE sentence.
+- If the change is complex (new function, refactor, logic change), respond with a short paragraph (3-5 sentences).
+- Be specific about what changed and why it matters.`
+
+// runClaudePrompt executes `claude --print` with a system prompt and user
+// content piped via stdin. Uses --bare and --no-session-persistence for
+// fast, ephemeral calls.
+func runClaudePrompt(parentCtx context.Context, repoPath, model, systemPrompt, userContent string, timeout time.Duration) (string, error) {
 	ctx, cancel := context.WithTimeout(parentCtx, timeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "claude", "-p", prompt)
+	cmd := exec.CommandContext(ctx, "claude",
+		"--print",
+		"--model", model,
+		"--system-prompt", systemPrompt,
+		"--bare",
+		"--no-session-persistence",
+	)
 	cmd.Dir = repoPath
+	cmd.Stdin = strings.NewReader(userContent)
 
 	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("claude -p: %w", err)
+		return "", fmt.Errorf("claude --print: %w", err)
 	}
 	return strings.TrimSpace(string(out)), nil
 }

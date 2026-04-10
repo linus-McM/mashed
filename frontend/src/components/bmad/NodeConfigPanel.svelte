@@ -1,7 +1,7 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
-  import { X, Terminal, FileText, FolderOpen } from 'lucide-svelte';
-  import { PickFile, ReadFile } from '../../../wailsjs/go/main/App.js';
+  import { onMount, createEventDispatcher } from 'svelte';
+  import { X, Terminal, FileText, FolderOpen, List } from 'lucide-svelte';
+  import { PickFile, ReadFile, ListModels } from '../../../wailsjs/go/main/App.js';
 
   export let node = null;
   export let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
@@ -32,12 +32,19 @@
     window.addEventListener('mouseup', onMouseUp);
   }
 
-  const models = [
-    { value: '', label: 'Default (inherit)' },
-    { value: 'claude-opus-4-6', label: 'claude-opus-4-6' },
-    { value: 'claude-sonnet-4-20250514', label: 'claude-sonnet-4-20250514' },
-    { value: 'claude-haiku-3.5', label: 'claude-haiku-3.5' },
-  ];
+  let models = [{ value: '', label: 'Default (inherit)' }];
+
+  onMount(async () => {
+    try {
+      const modelList = await ListModels();
+      models = [
+        { value: '', label: 'Default (inherit)' },
+        ...(modelList || []).map(m => ({ value: m.id, label: m.displayName })),
+      ];
+    } catch (e) {
+      console.error('Failed to load models:', e);
+    }
+  });
 
   let modelOverride = '';
   let customContext = '';
@@ -102,6 +109,7 @@
   let conditionPattern = '';
   let sourceNode = '';
   let maxIterations = '10';
+  let items = [];
   let extractType = 'regex';
   let extractPattern = '';
 
@@ -114,6 +122,7 @@
     conditionPattern = cfg.conditionPattern || '';
     sourceNode = cfg.sourceNode || '';
     maxIterations = cfg.maxIterations || '10';
+    try { items = cfg.items ? JSON.parse(cfg.items) : []; } catch { items = []; }
     extractType = cfg.extractType || 'regex';
     extractPattern = cfg.extractPattern || '';
     filePath = cfg.filePath || '';
@@ -144,9 +153,9 @@
       : nodeType === 'condition'
       ? { conditionType, conditionPattern, sourceNode }
       : nodeType === 'loop'
-      ? { maxIterations }
+      ? { maxIterations, items: items.length > 0 ? JSON.stringify(items) : '' }
       : nodeType === 'loopUntil'
-      ? { maxIterations, conditionType, conditionPattern, sourceNode }
+      ? { maxIterations, conditionType, conditionPattern, sourceNode, items: items.length > 0 ? JSON.stringify(items) : '' }
       : nodeType === 'transform'
       ? { extractType, extractPattern, sourceNode }
       : {};
@@ -270,6 +279,18 @@
           <label class="field-label" for="loop-max">Max Iterations</label>
           <input id="loop-max" class="field-input" type="number" bind:value={maxIterations} on:change={emitUpdate} min="1" max="100" />
         </div>
+        <div class="field">
+          <label class="field-label">Items Array</label>
+          {#if items.length > 0}
+            <div class="items-preview">{items.length} item{items.length !== 1 ? 's' : ''}</div>
+          {:else}
+            <div class="items-preview empty">No items — loop uses counter</div>
+          {/if}
+          <button class="browse-btn" on:click={() => dispatch('edit-items', { nodeId: node.id, items })}>
+            <List size={14} />
+            Edit Items...
+          </button>
+        </div>
       {:else if nodeType === 'loopUntil'}
         <div class="field">
           <label class="field-label" for="lu-max">Max Iterations</label>
@@ -290,6 +311,18 @@
         <div class="field">
           <label class="field-label" for="lu-source">Source Node</label>
           <input id="lu-source" class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
+        </div>
+        <div class="field">
+          <label class="field-label">Items Array</label>
+          {#if items.length > 0}
+            <div class="items-preview">{items.length} item{items.length !== 1 ? 's' : ''}</div>
+          {:else}
+            <div class="items-preview empty">No items — loop uses counter</div>
+          {/if}
+          <button class="browse-btn" on:click={() => dispatch('edit-items', { nodeId: node.id, items })}>
+            <List size={14} />
+            Edit Items...
+          </button>
         </div>
       {:else if nodeType === 'transform'}
         <div class="field">
@@ -561,6 +594,20 @@
     font-size: 10px;
     color: var(--accent-red);
   }
+  .items-preview {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-primary);
+    padding: 4px 8px;
+    background: var(--bg-deepest);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+  }
+
+  .items-preview.empty {
+    color: var(--text-muted);
+  }
+
   .terminal-btn {
     display: flex;
     align-items: center;

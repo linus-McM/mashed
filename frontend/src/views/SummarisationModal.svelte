@@ -4,7 +4,7 @@
   import { cubicOut } from 'svelte/easing';
   import { FileText, Plus, Minus, X, Sparkles, ChevronDown, FileCode, ExternalLink } from 'lucide-svelte';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
-  import { StreamCodeReviewSummary, ListAdviceModes, StreamAdvice, SpawnRefactorPlan } from '../../wailsjs/go/main/App.js';
+  import { StreamCodeReviewSummary, ListAdviceModes, StreamAdvice, SpawnRefactorPlan, ListModels } from '../../wailsjs/go/main/App.js';
 
   const dispatch = createEventDispatcher();
 
@@ -25,6 +25,10 @@
   let adviceText = '';
   let adviceLoading = false;
   let adviceError = '';
+
+  // Model state
+  let modelList = [];
+  let selectedModel = '';
 
   // Refactor plan state
   let planPath = '';
@@ -84,13 +88,20 @@
       }
     });
 
-    // Load advice modes (non-fatal)
+    // Load models and advice modes (non-fatal)
     try {
-      adviceModes = await ListAdviceModes(repoPath);
+      const [modeList, models] = await Promise.all([
+        ListAdviceModes(repoPath),
+        ListModels(),
+      ]);
+      adviceModes = modeList;
+      modelList = models || [];
+      const balanced = modelList.find(m => m.tier === 'balanced');
+      selectedModel = balanced ? balanced.id : (modelList[0]?.id || '');
     } catch (_) { /* non-fatal */ }
 
     // Start streaming summaries
-    StreamCodeReviewSummary(repoPath);
+    StreamCodeReviewSummary(repoPath, selectedModel);
   });
 
   onDestroy(() => {
@@ -116,7 +127,7 @@
     adviceText = '';
     adviceError = '';
     adviceLoading = true;
-    StreamAdvice(repoPath, selectedMode);
+    StreamAdvice(repoPath, selectedMode, selectedModel);
   }
 
   async function createRefactorPlan() {
@@ -238,6 +249,14 @@
               <option value="" disabled>Select methodology</option>
               {#each adviceModes as mode}
                 <option value={mode.name}>{mode.displayName}</option>
+              {/each}
+            </select>
+            <ChevronDown size={14} />
+          </div>
+          <div class="select-wrap model-select-wrap">
+            <select bind:value={selectedModel} class="advice-select">
+              {#each modelList as m}
+                <option value={m.id}>{m.displayName}</option>
               {/each}
             </select>
             <ChevronDown size={14} />
@@ -581,6 +600,10 @@
     position: relative;
     flex: 1;
     max-width: 260px;
+  }
+
+  .model-select-wrap {
+    max-width: 180px;
   }
 
   .select-wrap :global(svg) {

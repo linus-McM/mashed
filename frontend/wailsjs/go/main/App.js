@@ -190,6 +190,10 @@ export function ListLocalFonts() {
   return window['go']['main']['App']['ListLocalFonts']();
 }
 
+export function ListModels() {
+  return window['go']['main']['App']['ListModels']();
+}
+
 export function ListNerdFonts() {
   return window['go']['main']['App']['ListNerdFonts']();
 }
@@ -346,12 +350,12 @@ export function StopBmadWorkflow(arg1) {
   return window['go']['main']['App']['StopBmadWorkflow'](arg1);
 }
 
-export function StreamAdvice(arg1, arg2) {
-  return window['go']['main']['App']['StreamAdvice'](arg1, arg2);
+export function StreamAdvice(arg1, arg2, arg3) {
+  return window['go']['main']['App']['StreamAdvice'](arg1, arg2, arg3);
 }
 
-export function StreamCodeReviewSummary(arg1) {
-  return window['go']['main']['App']['StreamCodeReviewSummary'](arg1);
+export function StreamCodeReviewSummary(arg1, arg2) {
+  return window['go']['main']['App']['StreamCodeReviewSummary'](arg1, arg2);
 }
 
 export function TakeScreenshot(arg1, arg2) {

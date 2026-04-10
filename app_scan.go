@@ -129,14 +129,12 @@ func (a *App) doScan() {
 		}
 
 		var tokensUsed int64
-		var tokensMax int64 = 200000 // default context window
 		if sessionData != nil {
 			tokensUsed = sessionData.TotalTokens
 		}
-		// Opus models have 1M context
-		if model == "claude-opus-4-6" || model == "opus" {
-			tokensMax = 1000000
-		}
+		// Look up context window from model registry.
+		modelInfo := domain.ModelByAlias(model)
+		tokensMax := int64(modelInfo.ContextWindow)
 
 		// Determine status from session data
 		status := domain.StatusRunning

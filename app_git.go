@@ -871,6 +871,7 @@ missing error handling, breaking changes, and any code that could fail in produc
 Be specific — cite file names and line numbers. Don't be nice, be thorough.
 Start by running: gh pr diff %s`, prNumber, prNumber)
 
-	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model claude-opus-4-6 -p %q", prompt)
-	return a.spawnSession("review", repoPath, cmd, domain.SessionAgent, "claude-opus-4-6")
+	defaultModel := domain.DefaultModelID()
+	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s -p %q", defaultModel, prompt)
+	return a.spawnSession("review", repoPath, cmd, domain.SessionAgent, defaultModel)
 }

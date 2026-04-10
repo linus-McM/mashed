@@ -1,6 +1,7 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
   import { Play, Pause, Square, RotateCcw } from 'lucide-svelte';
+  import { ListModels } from '../../../wailsjs/go/main/App.js';
 
   export let executionStatus = 'idle';
   export let nodeProgress = { completed: 0, total: 0 };
@@ -8,13 +9,19 @@
 
   const dispatch = createEventDispatcher();
 
-  const models = [
-    'claude-opus-4-6',
-    'claude-sonnet-4-20250514',
-    'claude-haiku-3.5',
-  ];
+  let models = [];
+  let selectedModel = '';
 
-  let selectedModel = models[0];
+  onMount(async () => {
+    try {
+      const modelList = await ListModels();
+      models = modelList || [];
+      const defaultModel = models.find(m => m.isDefault);
+      selectedModel = defaultModel ? defaultModel.id : (models[0]?.id || '');
+    } catch (e) {
+      console.error('Failed to load models:', e);
+    }
+  });
 
   $: isIdle = executionStatus === 'idle';
   $: isRunning = executionStatus === 'running';
@@ -38,7 +45,7 @@
   <div class="selectors">
     <select class="bar-select" bind:value={selectedModel} disabled={isRunning || isPaused}>
       {#each models as m}
-        <option value={m}>{m}</option>
+        <option value={m.id}>{m.displayName}</option>
       {/each}
     </select>
   </div>

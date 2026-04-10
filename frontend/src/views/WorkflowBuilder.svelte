@@ -9,7 +9,7 @@
            SaveBmadWorkflow, GetBmadWorkflow, CreateFromTemplate,
            DeleteBmadWorkflow, ListBmadAgents, ListAllAgents, SaveBmadAgent, DeleteBmadAgent,
            StartBmadWorkflow, PauseBmadWorkflow, ResumeBmadWorkflow, StopBmadWorkflow,
-           GetTerminalPort, GetSprintStatus, GetNodeOutput } from '../../wailsjs/go/main/App.js';
+           GetTerminalPort, GetSprintStatus, GetNodeOutput, ListModels } from '../../wailsjs/go/main/App.js';
   import Terminal from '../components/Terminal.svelte';
   import ProcessSidebar from '../components/bmad/ProcessSidebar.svelte';
   import CanvasPane from '../components/bmad/CanvasPane.svelte';
@@ -23,6 +23,7 @@
   import NodeConfigPanel from '../components/bmad/NodeConfigPanel.svelte';
   import AgentConfigModal from '../components/bmad/AgentConfigModal.svelte';
   import OutputViewerModal from '../components/bmad/OutputViewerModal.svelte';
+  import ArrayEditorModal from '../components/bmad/ArrayEditorModal.svelte';
   import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
 
   export let repoPath = '';
@@ -52,6 +53,9 @@
   let workflowName = 'Untitled Workflow';
   let saving = false;
 
+  // Model registry default (loaded at startup)
+  let defaultModelId = '';
+
   // Execution state
   let executionId = null;
   let executionStatus = 'idle';
@@ -77,6 +81,11 @@
   let outputModalLabel = '';
   let outputLoading = false;
 
+  // Array editor modal state
+  let showArrayModal = false;
+  let arrayModalNodeId = '';
+  let arrayModalItems = [];
+
   onMount(async () => {
     try {
       [processes, templates, savedWorkflows, groupedAgents] = await Promise.all([
@@ -85,6 +94,10 @@
         repoPath ? ListBmadWorkflowsByRepo(repoPath) : Promise.resolve([]),
         ListAllAgents(repoPath || ''),
       ]);
+      // Load default model from registry
+      const models = await ListModels();
+      const def = models.find(m => m.isDefault);
+      defaultModelId = def ? def.id : (models[0]?.id || '');
     } catch (e) {
       console.error('Failed to load BMAD data:', e);
       processes = processes || [];
@@ -383,6 +396,28 @@
     }
   }
 
+  function handleEditItems(e) {
+    const { nodeId, items } = e.detail;
+    arrayModalNodeId = nodeId;
+    arrayModalItems = items || [];
+    showArrayModal = true;
+  }
+
+  function handleArraySave(e) {
+    const savedItems = e.detail;
+    $nodes = $nodes.map(n => {
+      if (n.id === arrayModalNodeId) {
+        const config = { ...n.data.config, items: savedItems.length > 0 ? JSON.stringify(savedItems) : '' };
+        return { ...n, data: { ...n.data, config } };
+      }
+      return n;
+    });
+    if (selectedNode && selectedNode.id === arrayModalNodeId) {
+      selectedNode = $nodes.find(n => n.id === arrayModalNodeId) || selectedNode;
+    }
+    showArrayModal = false;
+  }
+
   async function onOpenTerminal(e) {
     terminalTarget = e.detail;
     showTerminalModal = true;
@@ -552,7 +587,7 @@
     nodeProgress = { completed: 0, total: $nodes.length };
 
     try {
-      executionId = await StartBmadWorkflow(currentWorkflow.id, repoPath, model || 'claude-opus-4-6');
+      executionId = await StartBmadWorkflow(currentWorkflow.id, repoPath, model || defaultModelId);
       executionStatus = 'running';
     } catch (err) {
       execError = String(err);
@@ -675,6 +710,7 @@
         on:close={() => selectedNode = null}
         on:open-terminal={onOpenTerminal}
         on:open-output={handleOpenOutput}
+        on:edit-items={handleEditItems}
       />
     </div>
 
@@ -721,6 +757,14 @@
     loading={outputLoading}
     on:close={() => showOutputModal = false}
   />
+
+  {#if showArrayModal}
+    <ArrayEditorModal
+      items={arrayModalItems}
+      on:save={handleArraySave}
+      on:close={() => showArrayModal = false}
+    />
+  {/if}
 </div>
 
 <style>

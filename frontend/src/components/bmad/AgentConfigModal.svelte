@@ -1,6 +1,7 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
   import { X } from 'lucide-svelte';
+  import { ListModels } from '../../../wailsjs/go/main/App.js';
 
   export let agent = null;
   export let processes = [];
@@ -17,22 +18,31 @@
     { value: 'qa', label: 'QA' },
   ];
 
-  const models = [
-    'claude-opus-4-6',
-    'claude-sonnet-4-20250514',
-    'claude-haiku-3.5',
-  ];
+  let models = [];
+  let defaultModelId = '';
+
+  onMount(async () => {
+    try {
+      const modelList = await ListModels();
+      models = modelList || [];
+      const balanced = models.find(m => m.tier === 'balanced');
+      defaultModelId = balanced ? balanced.id : (models[0]?.id || '');
+      if (!model) model = defaultModelId;
+    } catch (e) {
+      console.error('Failed to load models:', e);
+    }
+  });
 
   let name = '';
   let role = 'developer';
-  let model = models[1];
+  let model = '';
   let persona = '';
   let selectedSkills = {};
 
   $: if (agent) {
     name = agent.name || '';
     role = agent.role || 'developer';
-    model = agent.model || models[1];
+    model = agent.model || defaultModelId;
     persona = agent.persona || '';
     selectedSkills = {};
     for (const s of (agent.skills || [])) {
@@ -41,7 +51,7 @@
   } else {
     name = '';
     role = 'developer';
-    model = models[1];
+    model = defaultModelId;
     persona = '';
     selectedSkills = {};
   }
@@ -104,7 +114,7 @@
         <label class="field-label" for="agent-model">Model</label>
         <select id="agent-model" class="field-select" bind:value={model}>
           {#each models as m}
-            <option value={m}>{m}</option>
+            <option value={m.id}>{m.displayName}</option>
           {/each}
         </select>
       </div>

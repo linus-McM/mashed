@@ -493,6 +493,28 @@ export namespace domain {
 		    return a;
 		}
 	}
+	export class ModelInfo {
+	    id: string;
+	    alias: string;
+	    displayName: string;
+	    contextWindow: number;
+	    tier: string;
+	    isDefault: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new ModelInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.alias = source["alias"];
+	        this.displayName = source["displayName"];
+	        this.contextWindow = source["contextWindow"];
+	        this.tier = source["tier"];
+	        this.isDefault = source["isDefault"];
+	    }
+	}
 	export class NotificationEvent {
 	    id: string;
 	    agentId: string;

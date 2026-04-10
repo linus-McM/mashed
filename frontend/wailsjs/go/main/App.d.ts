@@ -99,6 +99,8 @@ export function ListBundledThemes():Promise<Array<main.VSCodeThemeEntry>>;
 
 export function ListLocalFonts():Promise<Array<main.LocalFontFamily>>;
 
+export function ListModels():Promise<Array<domain.ModelInfo>>;
+
 export function ListNerdFonts():Promise<Array<main.NerdFontEntry>>;
 
 export function ListRepoChoices():Promise<Array<main.RepoChoice>>;
@@ -177,9 +179,9 @@ export function StartBmadWorkflow(arg1:string,arg2:string,arg3:string):Promise<s
 
 export function StopBmadWorkflow(arg1:string):Promise<void>;
 
-export function StreamAdvice(arg1:string,arg2:string):Promise<void>;
+export function StreamAdvice(arg1:string,arg2:string,arg3:string):Promise<void>;
 
-export function StreamCodeReviewSummary(arg1:string):Promise<void>;
+export function StreamCodeReviewSummary(arg1:string,arg2:string):Promise<void>;
 
 export function TakeScreenshot(arg1:string,arg2:string):Promise<string>;
 

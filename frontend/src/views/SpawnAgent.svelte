@@ -1,24 +1,27 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
-  import { ListRepoChoices, SpawnAgent } from '../../wailsjs/go/main/App.js';
+  import { ListRepoChoices, SpawnAgent, ListModels } from '../../wailsjs/go/main/App.js';
 
   const dispatch = createEventDispatcher();
 
   let repos = [];
   let selectedRepo = null;
-  let model = 'claude-opus-4-6';
+  let model = '';
   let spawning = false;
   let error = '';
 
-  const models = [
-    { value: 'claude-opus-4-6', label: 'Opus 4.6 (1M context)' },
-    { value: 'claude-sonnet-4-6', label: 'Sonnet 4.6' },
-    { value: 'claude-haiku-4-5', label: 'Haiku 4.5' },
-  ];
+  let models = [];
 
   onMount(async () => {
     try {
-      repos = await ListRepoChoices() || [];
+      const [repoList, modelList] = await Promise.all([
+        ListRepoChoices(),
+        ListModels(),
+      ]);
+      repos = repoList || [];
+      models = (modelList || []).map(m => ({ value: m.id, label: m.displayName }));
+      const defaultModel = modelList?.find(m => m.isDefault);
+      model = defaultModel ? defaultModel.id : (models[0]?.value || '');
     } catch (e) {
       error = 'Failed to load repos';
     }
