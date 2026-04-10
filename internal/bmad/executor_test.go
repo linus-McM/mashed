@@ -2406,3 +2406,309 @@ func TestLoopNode_EmptyItems(t *testing.T) {
 	assert.Equal(t, "10", ex.NodeOutputs["L_iter"])
 	assert.Empty(t, ex.NodeOutputs["L_item"])
 }
+
+// ── Story 2: Backend Response Injection ──
+//
+// These tests exercise (*Executor).RespondToQuestion in isolation by seeding
+// an execState directly in the executor map. They bypass StartWorkflow so the
+// test does not race against the dynamic runner goroutine — we control the
+// mock CommandRunner deterministically.
+
+// cmdCall captures a single runCmd invocation for later assertions.
+type cmdCall struct {
+	name string
+	args []string
+}
+
+// responseRunner returns a CommandRunner that records every call and answers
+// list-panes pane_dead checks with the given value ("0" alive, "1" dead, "" to
+// simulate a tmux error).
+func responseRunner(paneDead string) (CommandRunner, *[]cmdCall, *sync.Mutex) {
+	var calls []cmdCall
+	var mu sync.Mutex
+	runner := CommandRunner(func(ctx context.Context, name string, args ...string) ([]byte, error) {
+		mu.Lock()
+		calls = append(calls, cmdCall{name: name, args: append([]string(nil), args...)})
+		mu.Unlock()
+		if len(args) > 0 && args[0] == "list-panes" {
+			if paneDead == "" {
+				return nil, fmt.Errorf("tmux: server not running")
+			}
+			return []byte(paneDead + "\n"), nil
+		}
+		return []byte("ok"), nil
+	})
+	return runner, &calls, &mu
+}
+
+// findCall returns the first captured call matching name and the given leading
+// positional args, or nil if not found.
+func findCall(calls []cmdCall, name string, leading ...string) *cmdCall {
+	for i := range calls {
+		c := calls[i]
+		if c.name != name || len(c.args) < len(leading) {
+			continue
+		}
+		match := true
+		for j, a := range leading {
+			if c.args[j] != a {
+				match = false
+				break
+			}
+		}
+		if match {
+			return &c
+		}
+	}
+	return nil
+}
+
+// seedResponseState registers an execState with one node under the given
+// execID, mirroring what StartWorkflow would do but without triggering the
+// runner goroutine. It pre-populates lastQuestionHash so AC-4 can be verified.
+func seedResponseState(t *testing.T, h *testHarness, execID, nodeID, tmuxTarget, hash string) *execState {
+	t.Helper()
+	state := &execState{
+		exec: &WorkflowExecution{
+			ID:     execID,
+			Status: ExecRunning,
+			Nodes: []WorkflowNode{
+				{ID: nodeID, Label: nodeID, TmuxTarget: tmuxTarget, Status: NodeRunning},
+			},
+			NodeOutputs: map[string]string{},
+		},
+		cancel:           func() {},
+		inDegree:         map[string]int{nodeID: 0},
+		outEdges:         map[string][]WorkflowEdge{},
+		lastQuestionHash: map[string]string{nodeID: hash},
+	}
+	h.executor.mu.Lock()
+	h.executor.executions[execID] = state
+	h.executor.mu.Unlock()
+	return state
+}
+
+// AC-1: Response is injected into the correct tmux pane via two send-keys calls.
+func TestStory2_AC1_RespondToQuestion_Success(t *testing.T) {
+	h := newHarness(t)
+	runner, calls, mu := responseRunner("0")
+	h.executor.SetCommandRunner(runner)
+	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "abc123")
+
+	err := h.executor.RespondToQuestion("exec-1", "node-A", "src/main.go")
+	require.NoError(t, err)
+
+	mu.Lock()
+	snapshot := append([]cmdCall(nil), *calls...)
+	mu.Unlock()
+
+	// Pane liveness check happened first.
+	list := findCall(snapshot, "tmux", "list-panes", "-t", "bmad-node-A-100:0.0")
+	require.NotNil(t, list, "expected list-panes call")
+
+	// send-keys -l -t {target} {answer}
+	literal := findCall(snapshot, "tmux", "send-keys", "-l", "-t", "bmad-node-A-100:0.0", "src/main.go")
+	require.NotNil(t, literal, "expected literal send-keys call: %+v", snapshot)
+
+	// send-keys -t {target} Enter
+	enter := findCall(snapshot, "tmux", "send-keys", "-t", "bmad-node-A-100:0.0", "Enter")
+	require.NotNil(t, enter, "expected Enter send-keys call: %+v", snapshot)
+}
+
+// AC-1 variant: a menu option number is sent literally (not interpreted).
+func TestStory2_AC1_RespondToQuestion_MenuOption(t *testing.T) {
+	h := newHarness(t)
+	runner, calls, mu := responseRunner("0")
+	h.executor.SetCommandRunner(runner)
+	seedResponseState(t, h, "exec-1", "node-B", "bmad-node-B-200:0.0", "hashB")
+
+	require.NoError(t, h.executor.RespondToQuestion("exec-1", "node-B", "2"))
+
+	mu.Lock()
+	defer mu.Unlock()
+	require.NotNil(t, findCall(*calls, "tmux", "send-keys", "-l", "-t", "bmad-node-B-200:0.0", "2"))
+	require.NotNil(t, findCall(*calls, "tmux", "send-keys", "-t", "bmad-node-B-200:0.0", "Enter"))
+}
+
+// AC-2: a dead pane returns an error wrapping ErrExecNotRunning and does NOT
+// issue any send-keys calls.
+func TestStory2_AC2_RespondToQuestion_DeadPane(t *testing.T) {
+	h := newHarness(t)
+	runner, calls, mu := responseRunner("1")
+	h.executor.SetCommandRunner(runner)
+	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "abc123")
+
+	err := h.executor.RespondToQuestion("exec-1", "node-A", "answer")
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, ErrExecNotRunning),
+		"expected error wrapping ErrExecNotRunning, got %v", err)
+
+	mu.Lock()
+	defer mu.Unlock()
+	assert.Nil(t, findCall(*calls, "tmux", "send-keys"),
+		"no send-keys call should be issued when pane is dead")
+}
+
+// AC-2 variant: pane check subprocess failure is treated as unreachable.
+func TestStory2_AC2_RespondToQuestion_PaneCheckFails(t *testing.T) {
+	h := newHarness(t)
+	runner, calls, mu := responseRunner("") // empty => runner returns error
+	h.executor.SetCommandRunner(runner)
+	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "abc123")
+
+	err := h.executor.RespondToQuestion("exec-1", "node-A", "answer")
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, ErrExecNotRunning),
+		"expected error wrapping ErrExecNotRunning when tmux list-panes fails, got %v", err)
+
+	mu.Lock()
+	defer mu.Unlock()
+	assert.Nil(t, findCall(*calls, "tmux", "send-keys"))
+}
+
+// AC-4: lastQuestionHash[nodeID] is cleared after a successful response.
+func TestStory2_AC4_RespondToQuestion_ClearsHash(t *testing.T) {
+	h := newHarness(t)
+	runner, _, _ := responseRunner("0")
+	h.executor.SetCommandRunner(runner)
+	state := seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "prev-hash")
+
+	require.NoError(t, h.executor.RespondToQuestion("exec-1", "node-A", "answer"))
+
+	state.mu.Lock()
+	defer state.mu.Unlock()
+	assert.Equal(t, "", state.lastQuestionHash["node-A"],
+		"hash should be cleared so next poll can detect a new question")
+}
+
+// AC-4 variant: hash is NOT cleared when the pane is dead.
+func TestStory2_AC4_RespondToQuestion_HashPreservedOnFailure(t *testing.T) {
+	h := newHarness(t)
+	runner, _, _ := responseRunner("1")
+	h.executor.SetCommandRunner(runner)
+	state := seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "prev-hash")
+
+	require.Error(t, h.executor.RespondToQuestion("exec-1", "node-A", "answer"))
+
+	state.mu.Lock()
+	defer state.mu.Unlock()
+	assert.Equal(t, "prev-hash", state.lastQuestionHash["node-A"],
+		"hash must survive a failed response so the UI retains the pending question")
+}
+
+// Missing execution returns ErrExecNotFound.
+func TestStory2_RespondToQuestion_UnknownExec(t *testing.T) {
+	h := newHarness(t)
+	err := h.executor.RespondToQuestion("no-such-exec", "node-A", "hi")
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, ErrExecNotFound), "expected ErrExecNotFound, got %v", err)
+}
+
+// Missing node within a known exec returns an ErrExecNotFound-wrapped error.
+func TestStory2_RespondToQuestion_UnknownNode(t *testing.T) {
+	h := newHarness(t)
+	runner, _, _ := responseRunner("0")
+	h.executor.SetCommandRunner(runner)
+	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "h")
+
+	err := h.executor.RespondToQuestion("exec-1", "node-missing", "hi")
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, ErrExecNotFound), "expected ErrExecNotFound, got %v", err)
+}
+
+// Answers longer than maxAnswerBytes are rejected before touching tmux.
+func TestStory2_RespondToQuestion_LongAnswer(t *testing.T) {
+	h := newHarness(t)
+	runner, calls, mu := responseRunner("0")
+	h.executor.SetCommandRunner(runner)
+	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "h")
+
+	long := strings.Repeat("x", maxAnswerBytes+1)
+	err := h.executor.RespondToQuestion("exec-1", "node-A", long)
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, ErrAnswerTooLong),
+		"expected ErrAnswerTooLong, got %v", err)
+	assert.False(t, errors.Is(err, ErrExecNotRunning),
+		"length errors must NOT wrap ErrExecNotRunning (misleading classification)")
+
+	mu.Lock()
+	defer mu.Unlock()
+	assert.Empty(t, *calls, "over-length answer must short-circuit before any tmux call")
+}
+
+// A node with no TmuxTarget cannot receive a response.
+func TestStory2_RespondToQuestion_NoTmuxTarget(t *testing.T) {
+	h := newHarness(t)
+	runner, calls, mu := responseRunner("0")
+	h.executor.SetCommandRunner(runner)
+	// Empty tmuxTarget signals the node was never scheduled.
+	seedResponseState(t, h, "exec-1", "node-A", "", "h")
+
+	err := h.executor.RespondToQuestion("exec-1", "node-A", "hi")
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, ErrExecNotRunning), "expected ErrExecNotRunning, got %v", err)
+
+	mu.Lock()
+	defer mu.Unlock()
+	assert.Empty(t, *calls, "no tmux call should be made when target is empty")
+}
+
+// A send-keys -l subprocess failure is surfaced to the caller.
+func TestStory2_RespondToQuestion_SendKeysLiteralFails(t *testing.T) {
+	h := newHarness(t)
+	h.executor.SetCommandRunner(func(ctx context.Context, name string, args ...string) ([]byte, error) {
+		if len(args) > 0 && args[0] == "list-panes" {
+			return []byte("0\n"), nil
+		}
+		if len(args) > 0 && args[0] == "send-keys" {
+			return nil, fmt.Errorf("tmux: send-keys broke")
+		}
+		return []byte("ok"), nil
+	})
+	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "keep-me")
+
+	err := h.executor.RespondToQuestion("exec-1", "node-A", "hi")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "send-keys")
+}
+
+// A send-keys Enter subprocess failure is surfaced to the caller.
+func TestStory2_RespondToQuestion_SendKeysEnterFails(t *testing.T) {
+	h := newHarness(t)
+	var calls int
+	h.executor.SetCommandRunner(func(ctx context.Context, name string, args ...string) ([]byte, error) {
+		if len(args) > 0 && args[0] == "list-panes" {
+			return []byte("0\n"), nil
+		}
+		if len(args) > 0 && args[0] == "send-keys" {
+			calls++
+			// First send-keys (-l literal) succeeds; second (Enter) fails.
+			if calls == 1 {
+				return []byte("ok"), nil
+			}
+			return nil, fmt.Errorf("tmux: enter failed")
+		}
+		return []byte("ok"), nil
+	})
+	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "keep-me")
+
+	err := h.executor.RespondToQuestion("exec-1", "node-A", "hi")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Enter")
+}
+
+// Empty answer is allowed: send-keys -l with an empty literal plus Enter.
+func TestStory2_RespondToQuestion_EmptyAnswer(t *testing.T) {
+	h := newHarness(t)
+	runner, calls, mu := responseRunner("0")
+	h.executor.SetCommandRunner(runner)
+	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "h")
+
+	require.NoError(t, h.executor.RespondToQuestion("exec-1", "node-A", ""))
+
+	mu.Lock()
+	defer mu.Unlock()
+	// We expect both a literal call (with empty string) and an Enter call.
+	require.NotNil(t, findCall(*calls, "tmux", "send-keys", "-l", "-t", "bmad-node-A-100:0.0", ""))
+	require.NotNil(t, findCall(*calls, "tmux", "send-keys", "-t", "bmad-node-A-100:0.0", "Enter"))
+}

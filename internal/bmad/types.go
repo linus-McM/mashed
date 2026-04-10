@@ -18,6 +18,7 @@ var (
 	ErrSprintFileMalformed = errors.New("bmad: sprint status file is malformed")
 	ErrStoryNotFound       = errors.New("bmad: story not found in sprint status")
 	ErrInvalidCondition    = errors.New("bmad: invalid condition")
+	ErrAnswerTooLong       = errors.New("bmad: answer exceeds size limit")
 )
 
 // BmadPhase groups processes into lifecycle stages.

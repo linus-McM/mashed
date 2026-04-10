@@ -632,3 +632,86 @@ func TestStory1_AC4_QuestionEventFields(t *testing.T) {
 	assert.Equal(t, int64(1712700000000), evt.Timestamp)
 	assert.Equal(t, "abc123hash", evt.QuestionID)
 }
+
+// ── Story 2 AC-3: escapeTmuxLiteral preserves answer semantics ──
+//
+// RED Phase: escapeTmuxLiteral does not yet exist in question.go. These tests
+// define the contract for the go-engineer: the helper should sanitise input
+// for `tmux send-keys -l -t {target} {input}` such that the original user
+// intent is preserved and no shell metacharacter is interpreted by tmux.
+//
+// In tmux `-l` (literal) mode, bytes are sent verbatim to the pane, so
+// backslashes, dollar signs, backticks and semicolons are NOT shell-
+// interpreted — they should be preserved unchanged. Since our CommandRunner
+// invokes tmux directly via exec (no shell), the expected behaviour is that
+// escapeTmuxLiteral is effectively identity for all printable characters.
+
+func TestStory2_AC3_EscapeTmuxLiteral(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "empty string", input: "", want: ""},
+		{name: "plain ASCII text", input: "src/main.go", want: "src/main.go"},
+		{name: "menu option number", input: "1", want: "1"},
+		{name: "sentence with spaces", input: "use the default directory", want: "use the default directory"},
+		{name: "single quote in contraction", input: "it's fine", want: "it's fine"},
+		{name: "multiple single quotes", input: "don't it's won't", want: "don't it's won't"},
+		{name: "backslashes preserved literally", input: `path\to\file`, want: `path\to\file`},
+		{name: "double backslashes preserved", input: `C:\\Users\\test`, want: `C:\\Users\\test`},
+		{name: "double quotes preserved", input: `he said "hi"`, want: `he said "hi"`},
+		{name: "mixed single and double quotes", input: `it's a "test"`, want: `it's a "test"`},
+		{name: "dollar sign preserved (no shell interp in -l mode)", input: "$HOME/project", want: "$HOME/project"},
+		{name: "backtick preserved (no shell interp in -l mode)", input: "`date`", want: "`date`"},
+		{name: "semicolon preserved", input: "first; second", want: "first; second"},
+		{name: "pipe preserved", input: "a | b", want: "a | b"},
+		{name: "ampersand preserved", input: "foo && bar", want: "foo && bar"},
+		{name: "redirect characters preserved", input: "cat > out.txt", want: "cat > out.txt"},
+		{name: "parens preserved", input: "$(pwd)", want: "$(pwd)"},
+		{name: "unicode preserved", input: "café résumé", want: "café résumé"},
+		{name: "emoji preserved", input: "thumbs up 👍", want: "thumbs up 👍"},
+		{name: "tab preserved", input: "col1\tcol2", want: "col1\tcol2"},
+		{name: "shell injection attempt preserved literally", input: `it's a "test" with $vars`, want: `it's a "test" with $vars`},
+		{name: "leading and trailing spaces preserved", input: "  padded  ", want: "  padded  "},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := escapeTmuxLiteral(tt.input)
+			assert.Equal(t, tt.want, got,
+				"escapeTmuxLiteral(%q) must preserve input verbatim for tmux send-keys -l", tt.input)
+		})
+	}
+}
+
+// TestStory2_AC3_EscapeTmuxLiteral_StripsControlBytes verifies that C0 control
+// bytes are stripped so newlines cannot prematurely submit the Claude prompt
+// before the explicit Enter dispatch, and ESC sequences cannot manipulate the
+// input state machine. Tab is preserved as a printable-adjacent character.
+func TestStory2_AC3_EscapeTmuxLiteral_StripsControlBytes(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "newline stripped (premature submission risk)", input: "line1\nline2", want: "line1line2"},
+		{name: "carriage return stripped", input: "abc\rdef", want: "abcdef"},
+		{name: "CRLF stripped", input: "abc\r\ndef", want: "abcdef"},
+		{name: "ESC stripped (terminal injection risk)", input: "before\x1b[31mred\x1b[0m", want: "before[31mred[0m"},
+		{name: "NUL byte stripped", input: "abc\x00def", want: "abcdef"},
+		{name: "BEL stripped", input: "abc\x07def", want: "abcdef"},
+		{name: "backspace stripped", input: "abc\x08def", want: "abcdef"},
+		{name: "DEL stripped", input: "abc\x7fdef", want: "abcdef"},
+		{name: "tab preserved (whitelisted)", input: "a\tb", want: "a\tb"},
+		{name: "only control bytes yields empty string", input: "\n\r\x00\x1b", want: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := escapeTmuxLiteral(tt.input)
+			assert.Equal(t, tt.want, got,
+				"escapeTmuxLiteral(%q) must strip C0 controls except tab", tt.input)
+		})
+	}
+}

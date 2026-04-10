@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** S
 **Depends On:** Story 1 (question-01-backend-detection)
-**Status:** ready
+**Status:** done
 
 ## Description
 

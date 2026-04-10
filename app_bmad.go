@@ -161,6 +161,16 @@ func (a *App) StopBmadWorkflow(execID string) error {
 	return a.bmadExecutor.StopWorkflow(execID)
 }
 
+// RespondToQuestion injects a user's answer into the Claude CLI tmux pane for
+// the given node and dispatches Enter. Used by the frontend Question modal to
+// unblock a workflow that is waiting on interactive input.
+func (a *App) RespondToQuestion(execID, nodeID, answer string) error {
+	if a.bmadExecutor == nil {
+		return fmt.Errorf("bmad executor not initialized")
+	}
+	return a.bmadExecutor.RespondToQuestion(execID, nodeID, answer)
+}
+
 // GetBmadExecution returns the current state of an execution.
 func (a *App) GetBmadExecution(execID string) (*bmad.WorkflowExecution, error) {
 	if a.bmadExecutor == nil {

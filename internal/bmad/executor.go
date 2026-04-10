@@ -217,6 +217,90 @@ func (e *Executor) GetExecution(execID string) (*WorkflowExecution, error) {
 	return &cp, nil
 }
 
+// maxAnswerBytes caps the size of a response written into a tmux pane.
+// tmux send-keys -l handles long strings but extremely long input may be
+// truncated or disrupted by terminal line editing, so we fail fast.
+const maxAnswerBytes = 4096
+
+// respondCmdTimeout bounds the tmux subprocess calls issued by RespondToQuestion
+// so a hung tmux server cannot block the caller indefinitely.
+const respondCmdTimeout = 5 * time.Second
+
+// RespondToQuestion injects an answer into the Claude CLI tmux pane backing
+// the given node. It verifies the pane is still alive, writes the literal
+// answer via `tmux send-keys -l`, then dispatches Enter as a second call so
+// tmux interprets the keystroke rather than sending the bytes "Enter".
+//
+// On success the node's cached question hash is cleared so the polling loop
+// can re-detect any subsequent question. On failure (not found, dead pane,
+// tmux error) the hash is left intact.
+func (e *Executor) RespondToQuestion(execID, nodeID, answer string) error {
+	if len(answer) > maxAnswerBytes {
+		return fmt.Errorf("bmad: answer is %d bytes (max %d): %w", len(answer), maxAnswerBytes, ErrAnswerTooLong)
+	}
+
+	state, err := e.getState(execID)
+	if err != nil {
+		return fmt.Errorf("bmad: exec %q: %w", execID, err)
+	}
+
+	// Read the node's tmux target under lock; do not hold the lock across
+	// tmux subprocess calls which can block for hundreds of ms.
+	state.mu.Lock()
+	var target string
+	var found bool
+	for _, n := range state.exec.Nodes {
+		if n.ID == nodeID {
+			target = n.TmuxTarget
+			found = true
+			break
+		}
+	}
+	state.mu.Unlock()
+
+	if !found {
+		return fmt.Errorf("bmad: node %q not found in exec %q: %w", nodeID, execID, ErrExecNotFound)
+	}
+	if target == "" {
+		return fmt.Errorf("bmad: node %q has no tmux target: %w", nodeID, ErrExecNotRunning)
+	}
+
+	// Pane liveness check — its own timeout so a slow tmux server does not
+	// consume the budget for the subsequent send-keys calls.
+	paneCtx, paneCancel := context.WithTimeout(context.Background(), respondCmdTimeout)
+	out, err := e.runCmd(paneCtx, "tmux", "list-panes", "-t", target, "-F", "#{pane_dead}")
+	paneCancel()
+	if err != nil {
+		return fmt.Errorf("bmad: node %q pane unreachable: %w", nodeID, ErrExecNotRunning)
+	}
+	if strings.TrimSpace(string(out)) == "1" {
+		return fmt.Errorf("bmad: node %q pane is dead, cannot respond: %w", nodeID, ErrExecNotRunning)
+	}
+
+	// Send the literal answer (empty string is allowed — still send Enter).
+	literalCtx, literalCancel := context.WithTimeout(context.Background(), respondCmdTimeout)
+	_, err = e.runCmd(literalCtx, "tmux", "send-keys", "-l", "-t", target, escapeTmuxLiteral(answer))
+	literalCancel()
+	if err != nil {
+		return fmt.Errorf("bmad: send-keys -l failed for node %q: %w", nodeID, err)
+	}
+
+	// Send Enter as a separate call (no -l) so tmux treats it as a key.
+	enterCtx, enterCancel := context.WithTimeout(context.Background(), respondCmdTimeout)
+	_, err = e.runCmd(enterCtx, "tmux", "send-keys", "-t", target, "Enter")
+	enterCancel()
+	if err != nil {
+		return fmt.Errorf("bmad: send-keys Enter failed for node %q: %w", nodeID, err)
+	}
+
+	// Clear the cached question hash so the polling loop can detect a new one.
+	state.mu.Lock()
+	state.lastQuestionHash[nodeID] = ""
+	state.mu.Unlock()
+
+	return nil
+}
+
 func (e *Executor) getState(execID string) (*execState, error) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()

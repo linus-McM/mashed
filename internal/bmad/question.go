@@ -125,6 +125,33 @@ func hashQuestion(q string) string {
 	return hex.EncodeToString(h[:])
 }
 
+// escapeTmuxLiteral sanitises an answer string for `tmux send-keys -l`.
+//
+// The BMAD executor invokes tmux directly via exec.Command (no shell), and
+// `-l` (literal) mode sends bytes verbatim to the pane, so shell meta-
+// characters such as `$`, `` ` ``, `;`, `|`, and backslashes are NOT
+// interpreted and are preserved unchanged.
+//
+// However, C0 control bytes (including `\n`, `\r`, `\x1b`/ESC, and NUL)
+// must be stripped: `\n`/`\r` would submit the Claude prompt prematurely
+// before our explicit Enter dispatch, and ESC sequences could manipulate
+// the Claude CLI's input state machine. Tab (`\t`) is preserved since
+// it's a printable-adjacent character commonly used in answers.
+func escapeTmuxLiteral(s string) string {
+	if s == "" {
+		return ""
+	}
+	var b strings.Builder
+	b.Grow(len(s))
+	for _, r := range s {
+		// Strip C0 controls (0x00-0x1f) except tab, plus DEL (0x7f).
+		if r == '\t' || (r >= 0x20 && r != 0x7f) {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
 // captureQuestionOutput captures the last 200 lines from a tmux pane for question scanning.
 // This is a lighter capture than captureOutput (which uses -S -5000).
 // Output is capped at maxCaptureBytes to prevent unbounded memory usage.
