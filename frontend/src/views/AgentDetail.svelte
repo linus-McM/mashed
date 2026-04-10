@@ -515,7 +515,7 @@
         <button class="git-btn" disabled={!!gitAction} on:click={() => showBranchModal = true}>
           <GitBranchPlus size={14} /> Branch
         </button>
-        <button class="git-btn" class:git-hot={changedFiles.length > 0} disabled={!!gitAction} on:click={() => startStreamingCommit()}>
+        <button class="git-btn" class:glow-btn={changedFiles.length > 0} disabled={!!gitAction} on:click={() => startStreamingCommit()}>
           <GitCommitIcon size={14} /> {gitAction === 'commit' ? 'Committing...' : 'Commit'}
         </button>
         <button class="git-btn" disabled={!!gitAction} on:click={() => runGitAction('pull', GitPull)}>
@@ -523,7 +523,7 @@
         </button>
         <button
           class="git-btn"
-          class:git-hot={(repoStatus.ahead || 0) > 0 && !repoStatus.protected}
+          class:glow-btn={(repoStatus.ahead || 0) > 0 && !repoStatus.protected}
           disabled={!!gitAction}
           on:click={() => smartPush()}
           title={repoStatus.protected ? 'Branch is protected — push via PR' : (repoStatus.ahead || 0) > 0 ? `${repoStatus.ahead} commit(s) ahead of remote` : 'Push to origin'}
@@ -533,7 +533,7 @@
         <button class="git-btn" disabled={!!gitAction} on:click={() => showMergeModal = true}>
           <GitMerge size={14} /> Merge
         </button>
-        <button class="git-btn" class:git-hot={changedFiles.length > 0} disabled={!!gitAction} on:click={() => runGitAction('pr', GitCommitPushAndPR)}>
+        <button class="git-btn" class:glow-btn={changedFiles.length > 0} disabled={!!gitAction} on:click={() => runGitAction('pr', GitCommitPushAndPR)}>
           <GitPullRequest size={14} /> {gitAction === 'pr' ? 'Creating...' : 'PR'}
         </button>
         <button class="git-btn" disabled={!!gitAction} on:click={() => runGitAction('review', SpawnPRReview)}>
@@ -1001,19 +1001,6 @@
   .git-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-  }
-
-  .git-btn.git-hot {
-    color: var(--accent-green);
-    border-color: rgba(57, 255, 20, 0.3);
-    text-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
-  }
-
-  .git-btn.git-hot:hover:not(:disabled) {
-    color: var(--accent-green);
-    border-color: var(--accent-green);
-    background: rgba(57, 255, 20, 0.08);
-    text-shadow: 0 0 10px rgba(57, 255, 20, 0.6);
   }
 
   .git-status {

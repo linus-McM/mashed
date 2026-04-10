@@ -97,6 +97,28 @@ body {
 .text-muted { color: var(--text-muted); }
 .text-accent { color: var(--accent-green); }
 
+/* Hot action button — shared neon glow.
+   Alphas mirror the legacy .action-hot / .git-hot rules (0.3 border, 0.4/0.6 text-shadow, 0.08 hover bg). */
+.glow-btn {
+  color: var(--accent-green);
+  border-color: color-mix(in srgb, var(--accent-green) 30%, transparent);
+  text-shadow: var(--glow-spread) color-mix(in srgb, var(--accent-green) 40%, transparent);
+  transition:
+    background var(--duration-short) var(--ease-enter),
+    border-color var(--duration-short) var(--ease-enter),
+    text-shadow var(--duration-short) var(--ease-enter);
+}
+.glow-btn:hover {
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+  background: color-mix(in srgb, var(--accent-green) 8%, transparent);
+  text-shadow: var(--glow-spread) color-mix(in srgb, var(--accent-green) 60%, transparent);
+}
+.glow-btn:focus-visible {
+  outline: 2px solid var(--accent-green);
+  outline-offset: 2px;
+}
+
 /* Lucide icons */
 .lucide-icon {
   display: inline-block;

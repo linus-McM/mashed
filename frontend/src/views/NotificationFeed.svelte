@@ -874,7 +874,7 @@
               </button>
               <button
                 class="action-btn"
-                class:action-hot={isDirty(repo.path)}
+                class:glow-btn={isDirty(repo.path)}
                 disabled={!!getAction(repo.path).action}
                 on:click|stopPropagation={() => startStreamingCommit(repo.path)}
                 title="Stage all + AI commit message + commit"
@@ -893,7 +893,7 @@
               </button>
               <button
                 class="action-btn"
-                class:action-hot={isAhead(repo.path) && !isProtected(repo.path)}
+                class:glow-btn={isAhead(repo.path) && !isProtected(repo.path)}
                 disabled={!!getAction(repo.path).action}
                 on:click|stopPropagation={() => smartPush(repo.path)}
                 title={isProtected(repo.path) ? 'Branch is protected — push via PR' : isAhead(repo.path) ? `${repoStatuses[repo.path]?.ahead} commit(s) ahead of remote` : 'Push to origin'}
@@ -921,7 +921,7 @@
               </button>
               <button
                 class="action-btn action-review"
-                class:action-hot={hasOpenPR(repo.path)}
+                class:glow-btn={hasOpenPR(repo.path)}
                 disabled={!!getAction(repo.path).action}
                 on:click|stopPropagation={() => runRepoAction(repo.path, 'review', SpawnPRReview)}
                 title="Spawn adversarial PR review agent"
@@ -1696,31 +1696,6 @@
     cursor: not-allowed;
   }
 
-  .action-btn.action-hot {
-    color: var(--accent-green);
-    border-color: rgba(57, 255, 20, 0.3);
-    text-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
-  }
-
-  .action-btn.action-hot:hover {
-    color: var(--accent-green);
-    border-color: var(--accent-green);
-    background: rgba(57, 255, 20, 0.08);
-    text-shadow: 0 0 10px rgba(57, 255, 20, 0.6);
-  }
-
-  .action-btn.action-review.action-hot {
-    color: var(--accent-green);
-    border-color: rgba(57, 255, 20, 0.3);
-    text-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
-  }
-
-  .action-btn.action-review.action-hot:hover {
-    color: var(--accent-green);
-    border-color: var(--accent-green);
-    background: rgba(57, 255, 20, 0.08);
-    text-shadow: 0 0 10px rgba(57, 255, 20, 0.6);
-  }
 
   .action-result {
     font-family: var(--font-mono);
