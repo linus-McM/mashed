@@ -31,8 +31,13 @@
 - **Info:** #3d9eff (blue) — informational
 - **Agent/System:** #9d6fff (purple) — sub-agent/skill events
 - **Teal:** #00c4b3 — secondary accent (sparklines, progress)
+- **Cyan (`--accent-cyan`):** #22d3ee — ExecutionBar run control; not part of the status palette
+- **Orange (`--accent-orange`):** #fb923c — ExecutionBar stop control; not part of the status palette
 - **Text:** #c8d4e0 (primary) / #4a5a6a (dim) / #2e3d4d (muted)
 - **Dark mode:** This IS dark mode. No light mode in V1.
+
+## Overlays
+- **Modal backdrop (`--overlay-backdrop`):** rgba(0, 0, 0, 0.6) — canonical scrim for modal dialogs and full-screen overlays
 
 ## Spacing
 - **Base unit:** 4px
@@ -52,6 +57,7 @@
 - **Terminal:** Zero motion (instant rendering)
 - **Easing:** enter(ease-out) exit(ease-in) move(ease-in-out)
 - **Duration:** micro(50ms) short(100ms) medium(150ms) — nothing longer
+- **Glow base (`--glow-spread`):** `0 0 12px` — reusable `text-shadow` offset/blur. Callers compose with any accent color, e.g. `text-shadow: var(--glow-spread) var(--accent-green);`
 
 ## Component Patterns
 - **Notification row:** Left accent stripe (4px, status color) + repo + agent + summary + time

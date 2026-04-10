@@ -14,6 +14,8 @@
   --accent-blue: #3d9eff;
   --accent-purple: #9d6fff;
   --accent-teal: #00c4b3;
+  --accent-cyan: #22d3ee;
+  --accent-orange: #fb923c;
   --text-primary: #c8d4e0;
   --text-dim: #4a5a6a;
   --text-muted: #2e3d4d;
@@ -43,6 +45,8 @@
   --duration-micro: 50ms;
   --duration-short: 100ms;
   --duration-medium: 150ms;
+  --overlay-backdrop: rgba(0, 0, 0, 0.6);
+  --glow-spread: 0 0 12px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
