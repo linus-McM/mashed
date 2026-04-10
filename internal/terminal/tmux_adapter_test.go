@@ -203,9 +203,11 @@ func newLiveAttachment(t *testing.T, ctx context.Context) (*mockRunner, *TmuxAtt
 	adapter := NewTmuxAdapter(mock.runner())
 	t.Cleanup(func() { _ = adapter.Close() })
 
-	att, err := adapter.Attach(ctx, testPaneTarget)
+	sess, err := adapter.Attach(ctx, testPaneTarget)
 	require.NoError(t, err, "newLiveAttachment: Attach should succeed")
-	t.Cleanup(func() { _ = att.Close() })
+	t.Cleanup(func() { _ = sess.Close() })
+	att, ok := sess.(*TmuxAttachment)
+	require.True(t, ok, "newLiveAttachment: Attach must return *TmuxAttachment in tests")
 	return mock, att
 }
 

@@ -23,7 +23,14 @@ func overrideMkfifo(a *TmuxAdapter, fn func(path string, mode uint32) error) {
 }
 
 // attachmentIsPolling reports whether the attachment is running in the
-// capture-pane polling fallback instead of the FIFO + pipe-pane path.
-func attachmentIsPolling(a *TmuxAttachment) bool {
-	return a.fallbackPolling
+// capture-pane polling fallback instead of the FIFO + pipe-pane path. It
+// accepts the TmuxSession interface (the post-bridge-03 return type of
+// *TmuxAdapter.Attach) and type-asserts to the concrete *TmuxAttachment so
+// callsites do not need to assert at every use.
+func attachmentIsPolling(a TmuxSession) bool {
+	att, ok := a.(*TmuxAttachment)
+	if !ok {
+		return false
+	}
+	return att.fallbackPolling
 }

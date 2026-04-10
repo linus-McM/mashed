@@ -474,9 +474,11 @@ func TestTmuxAdapter_FIFOPathWithSpaceInTempDir(t *testing.T) {
 	a.tempDir = spaceDir
 	t.Cleanup(func() { _ = a.Close() })
 
-	att, err := a.Attach(newContext(t), testPaneTarget)
+	sess, err := a.Attach(newContext(t), testPaneTarget)
 	require.NoError(t, err)
-	t.Cleanup(func() { _ = att.Close() })
+	t.Cleanup(func() { _ = sess.Close() })
+	att, ok := sess.(*TmuxAttachment)
+	require.True(t, ok, "Attach must return *TmuxAttachment in tests")
 
 	inv, ok := mock.findSubcommand(subPipePane)
 	require.True(t, ok, "pipe-pane invocation must be recorded")

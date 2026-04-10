@@ -165,7 +165,12 @@ type TmuxAttachment struct {
 
 // Attach validates the target pane, captures scrollback, sets up a FIFO +
 // pipe-pane (or falls back to polling) and spawns the death watcher.
-func (a *TmuxAdapter) Attach(parent context.Context, paneTarget string) (*TmuxAttachment, error) {
+//
+// Returns TmuxSession (interface defined in bridge.go) rather than the
+// concrete *TmuxAttachment so that *TmuxAdapter implicitly satisfies the
+// bridge's TmuxAttacher interface. The concrete type is still recoverable
+// via type assertion in tests that need access to internal fields.
+func (a *TmuxAdapter) Attach(parent context.Context, paneTarget string) (TmuxSession, error) {
 	a.mu.Lock()
 	if a.closed {
 		a.mu.Unlock()

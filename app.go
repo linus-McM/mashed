@@ -140,10 +140,23 @@ func saveConfig(cfg mashedConfig) error {
 
 // NewApp creates a new App instance. The helperClient may be nil; Spawn will
 // return terminal.ErrHelperNotRunning until a client is provided.
+//
+// The tmux adapter is wired only when the tmux binary is on PATH; otherwise
+// the bridge gets a nil adapter and BMAD-prefixed WebSocket requests fall
+// through to a 404 instead of attempting an upgrade — PTY shells keep
+// working unchanged.
 func NewApp(helperClient *helper.Client) *App {
 	sm := terminal.NewSessionManager(helperClient)
+
+	var tmuxAdapter terminal.TmuxAttacher
+	if terminal.IsTmuxAvailable() {
+		tmuxAdapter = terminal.NewTmuxAdapter(nil)
+	} else {
+		log.Printf("app: tmux not on PATH; BMAD terminal streaming disabled")
+	}
+
 	return &App{
-		bridge:           terminal.NewBridge(sm),
+		bridge:           terminal.NewBridge(sm, tmuxAdapter),
 		manager:          sm,
 		panes:            terminal.NewPaneDiscovery(),
 		terminalSessions: make(map[string]domain.TerminalSession),
