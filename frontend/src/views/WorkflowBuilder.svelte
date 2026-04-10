@@ -26,6 +26,7 @@
   import ArrayEditorModal from '../components/bmad/ArrayEditorModal.svelte';
   import QuestionResponseModal from '../components/bmad/QuestionResponseModal.svelte';
   import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
+  import { parseFriendlyTarget } from '../lib/bmadSessionName';
 
   export let repoPath = '';
   export let repoBranch = '';
@@ -102,6 +103,7 @@
   let showTerminalModal = false;
   let terminalTarget = '';
   $: terminalRepoPath = repoPath;
+  $: parsedTerminalTarget = parseFriendlyTarget(terminalTarget);
 
   // Output viewer modal state
   let showOutputModal = false;
@@ -756,7 +758,19 @@
       <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
       <div class="terminal-modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
         <div class="terminal-modal-header">
-          <span class="terminal-modal-title">Node Terminal: {terminalTarget}</span>
+          <span class="terminal-modal-title" title={terminalTarget}>
+            {#if parsedTerminalTarget}
+              <span class="tmt-prefix">Terminal</span>
+              <span class="tmt-dash">—</span>
+              <span class="tmt-repo">{parsedTerminalTarget.repo}</span>
+              <span class="tmt-sep">·</span>
+              <span class="tmt-branch">{parsedTerminalTarget.branch}</span>
+              <span class="tmt-sep">·</span>
+              <span class="tmt-label">{parsedTerminalTarget.label}</span>
+            {:else}
+              {terminalTarget}
+            {/if}
+          </span>
           <button class="terminal-modal-close" on:click={() => showTerminalModal = false}>&times;</button>
         </div>
         <div class="terminal-modal-body">
@@ -916,7 +930,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 6px 10px;
-    background: rgba(248, 81, 73, 0.1);
+    background: color-mix(in srgb, var(--accent-red) 10%, transparent);
     border-top: 1px solid var(--accent-red, #f85149);
     flex-shrink: 0;
   }
@@ -943,7 +957,7 @@
   }
 
   .exec-error-dismiss:hover {
-    background: rgba(248, 81, 73, 0.15);
+    background: color-mix(in srgb, var(--accent-red) 15%, transparent);
   }
 
   /* Terminal modal */
@@ -986,6 +1000,33 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .tmt-prefix {
+    color: var(--text-muted);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .tmt-dash {
+    color: var(--text-muted);
+    margin: 0 var(--sp-2xs);
+  }
+  .tmt-repo {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .tmt-branch {
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+  .tmt-label {
+    color: var(--accent-green);
+    font-weight: 500;
+  }
+  .tmt-sep {
+    color: var(--text-muted);
+    margin: 0 var(--sp-xs);
   }
 
   .terminal-modal-close {

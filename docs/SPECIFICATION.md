@@ -5,6 +5,17 @@
 
 ---
 
+## Changelog
+
+### BMAD Terminal Bridge (bridge-01 through bridge-04)
+
+- BMAD tmux sessions are now named `bmad-{repo}-{branch}-{label}-{hash}` (e.g. `bmad-surfseer-main-create-story-a1b2c3d4`) instead of the cryptic `bmad-{nodeID}-{unix}` format.
+- **Migration note:** Sessions created by older builds cannot be re-attached via View Terminal — they must be restarted. Orphaned `bmad-*` sessions from prior runs are automatically cleaned up on next app startup.
+- View Terminal now works for running BMAD nodes, streaming live Claude CLI output through a new `TmuxAdapter` bridge (FIFO-based with polling fallback).
+- The terminal modal title shows the parsed friendly form (`Terminal — repo · branch · label`) instead of the raw tmux target.
+
+---
+
 ## 1. Product Overview
 
 ### What It Does

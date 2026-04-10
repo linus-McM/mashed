@@ -2,6 +2,7 @@
   import { onMount, createEventDispatcher } from 'svelte';
   import { X, Terminal, FileText, FolderOpen, List } from 'lucide-svelte';
   import { PickFile, ReadFile, ListModels } from '../../../wailsjs/go/main/App.js';
+  import { parseFriendlyTarget } from '../../lib/bmadSessionName';
 
   export let node = null;
   export let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
@@ -132,6 +133,7 @@
   $: status = node?.data?.status || 'pending';
   $: tmuxTarget = node?.data?.tmuxTarget || '';
   $: hasTerminal = status === 'running' && tmuxTarget;
+  $: parsedTmuxTarget = parseFriendlyTarget(tmuxTarget);
 
   async function browseFile() {
     try {
@@ -380,7 +382,12 @@
       {/if}
 
       {#if hasTerminal}
-        <button class="terminal-btn" on:click={() => dispatch('open-terminal', tmuxTarget)}>
+        <button
+          class="terminal-btn"
+          data-target={tmuxTarget}
+          title={parsedTmuxTarget ? `${parsedTmuxTarget.repo} / ${parsedTmuxTarget.branch} / ${parsedTmuxTarget.label}` : tmuxTarget}
+          on:click={() => dispatch('open-terminal', tmuxTarget)}
+        >
           <Terminal size={13} />
           View Terminal
         </button>

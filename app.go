@@ -205,6 +205,16 @@ func (a *App) startup(ctx context.Context) {
 		a.bmadExecutor = bmad.NewExecutor(storage, func(event string, data interface{}) {
 			runtime.EventsEmit(a.ctx, event, data)
 		})
+
+		// Clean up any BMAD tmux sessions left over from prior runs.
+		// Executions map is empty here (no workflows can have started yet),
+		// so any bmad-prefixed session is unambiguously an orphan.
+		// Bounded by a 5s timeout so a hung tmux daemon can't block startup.
+		cleanupCtx, cleanupCancel := context.WithTimeout(a.ctx, 5*time.Second)
+		if err := a.bmadExecutor.CleanupStaleSessions(cleanupCtx); err != nil {
+			log.Printf("app: bmad session cleanup error (non-fatal): %v", err)
+		}
+		cleanupCancel()
 	}
 }
 
