@@ -1,6 +1,6 @@
 # Story uiqa-08: Focus States + CanvasPane Keyboard Nav
 
-**Status:** ready
+**Status:** done
 **Size:** M
 **Priority:** P3
 **Domain:** frontend
