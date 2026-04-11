@@ -1,6 +1,6 @@
 # Story uiqa-07: Token Scale Normalization
 
-**Status:** ready
+**Status:** done
 **Size:** M
 **Priority:** P3
 **Domain:** frontend
