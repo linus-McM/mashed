@@ -1,6 +1,6 @@
 # Story uiqa-09: Render SparkLine in NotificationFeed
 
-**Status:** ready
+**Status:** done
 **Size:** M
 **Priority:** P2
 **Domain:** fullstack
