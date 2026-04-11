@@ -521,15 +521,47 @@ func (att *TmuxAttachment) runTmux(op string, args ...string) error {
 	return nil
 }
 
-// SendInput writes literal bytes into the pane via `tmux send-keys -l`.
-// The input is passed through EscapeTmuxLiteral first to strip C0 control
-// bytes and DEL that could corrupt the pane state machine.
+// SendInput injects a raw byte sequence into the tmux pane's PTY, one
+// byte at a time, via `tmux send-keys -H`. This is the live-terminal
+// input path driven by the xterm.js client over the WebSocket bridge,
+// so EVERY byte — including control codes, escape sequences, and UTF-8
+// continuation bytes — must round-trip faithfully.
+//
+// The previous implementation routed this through EscapeTmuxLiteral +
+// `send-keys -l`, which stripped every byte in [0x00, 0x1f] plus 0x7f
+// (DEL) from the input. xterm sends 0x7f for Backspace, 0x0d for Enter,
+// and 0x1b[A..D for the arrow keys — so the stripping made Backspace,
+// Enter, arrows, Ctrl+C, and bracketed-paste markers (\x1b[200~ …
+// \x1b[201~) silently unreachable. Users could type but not delete,
+// submit, or navigate — which is how we discovered the bug.
+//
+// `send-keys -H` interprets each argument as a two-char hex byte value
+// and injects the decoded byte directly into the pane; tmux does NOT
+// parse it as a symbolic key name. Multi-byte sequences (arrows as
+// ESC[A, UTF-8 as e2 9d af, etc.) are reconstructed at the pane side by
+// the running process's own input decoder (claude's readline, the
+// shell, etc.) — exactly as if the bytes had arrived over a real PTY.
+//
+// Batching: each WebSocket frame becomes one tmux invocation with up to
+// len(data) hex arguments. Typical interactive typing is 1–20 bytes per
+// frame, well under macOS ARG_MAX (~1 MB). For very large pastes we
+// still emit a single process call; argv length is capped by the
+// kernel, not by us, so the practical upper bound is roughly 300 KB of
+// pasted text per frame. The frontend's clipboard paste path already
+// arrives as one frame per paste so this is fine.
+//
+// Empty input is a no-op — not an error — to match the contract the
+// bridge's writer goroutine expects on a closed peer.
 func (att *TmuxAttachment) SendInput(data []byte) error {
-	literal := EscapeTmuxLiteral(string(data))
-	if literal == "" {
+	if len(data) == 0 {
 		return nil
 	}
-	return att.runTmux("tmux_send_input", cmdSendKeys, "-l", "-t", att.target, literal)
+	args := make([]string, 0, 4+len(data))
+	args = append(args, cmdSendKeys, "-H", "-t", att.target)
+	for _, b := range data {
+		args = append(args, fmt.Sprintf("%02x", b))
+	}
+	return att.runTmux("tmux_send_input", args...)
 }
 
 // SendKey forwards a symbolic key (Enter, C-c, Tab, Up, BSpace, …) through

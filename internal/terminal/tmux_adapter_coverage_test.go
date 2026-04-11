@@ -153,14 +153,26 @@ func TestTmuxAttachment_SendInputEmptyIsNoOp(t *testing.T) {
 	assert.False(t, ok, "empty SendInput must short-circuit before send-keys")
 }
 
-func TestTmuxAttachment_SendInputEscapesThenSendsControlOnlyAsNoOp(t *testing.T) {
-	// All-control-byte input collapses to "" after escape and must not
-	// invoke send-keys.
+func TestTmuxAttachment_SendInputControlBytesAreSentAsHex(t *testing.T) {
+	// Regression test for the "can't delete in live terminal" bug:
+	// the OLD EscapeTmuxLiteral-based implementation stripped every
+	// C0 control byte plus 0x7f, so this input would collapse to ""
+	// and invoke no send-keys at all. With the `-H` hex path every
+	// byte must be forwarded verbatim so the pane receives Enter,
+	// CR, ESC, NUL, and anything else xterm emits.
 	mock, att := newLiveAttachment(t, newContext(t))
 	require.NoError(t, att.SendInput([]byte("\n\r\x1b\x00")))
 
-	_, ok := mock.findSubcommand(subSendKeys)
-	assert.False(t, ok, "all-control-byte SendInput must short-circuit")
+	inv, ok := mock.findSubcommand(subSendKeys)
+	require.True(t, ok,
+		"all-control-byte SendInput must still invoke send-keys — this is the live terminal input path")
+	assert.Contains(t, inv.args, "-H",
+		"control bytes must be forwarded via send-keys -H, not stripped")
+	// Each byte is one hex arg, positionally after `-t <target>`.
+	assert.Contains(t, inv.args, "0a", "LF byte must appear as hex arg")
+	assert.Contains(t, inv.args, "0d", "CR byte must appear as hex arg")
+	assert.Contains(t, inv.args, "1b", "ESC byte must appear as hex arg")
+	assert.Contains(t, inv.args, "00", "NUL byte must appear as hex arg")
 }
 
 // sendErrMockRunner installs a single-subcommand error responder so the

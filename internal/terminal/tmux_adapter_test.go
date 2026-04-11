@@ -299,38 +299,75 @@ func TestTmuxAdapter_AC2_AttachRejectsDeadPane(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// AC-3: SendInput uses send-keys -l with escaped literal
+// AC-3: SendInput injects raw bytes via `send-keys -H`
 // ---------------------------------------------------------------------------
+//
+// Live terminal input MUST preserve every byte verbatim so xterm-sent
+// control codes (Backspace=0x7f, Enter=0x0d, Ctrl+C=0x03), escape
+// sequences (arrows as ESC[A..D), and UTF-8 continuation bytes all
+// reach the pane's PTY intact. The previous implementation used
+// `send-keys -l` with EscapeTmuxLiteral pre-filtering, which stripped
+// every C0 control byte plus DEL — making Backspace/arrows/Enter
+// silently disappear. This test locks in the `-H` (hex) replacement
+// so a future refactor that swaps back to `-l` fails loudly.
 
-func TestTmuxAttachment_AC3_SendInputEscapesAndUsesSendKeysLiteral(t *testing.T) {
+func TestTmuxAttachment_AC3_SendInputUsesSendKeysHex(t *testing.T) {
 	ctx := newContext(t)
 
 	type caseDef struct {
-		name     string
-		input    string
-		expected string // expected literal arg (post-escape)
+		name string
+		// input is sent verbatim to SendInput.
+		input []byte
+		// expectedHex is the sequence of lower-case two-char hex args
+		// the adapter must pass to `tmux send-keys -H` after `-t target`.
+		expectedHex []string
 	}
 
 	cases := []caseDef{
 		{
-			name:     "plain apostrophe preserved",
-			input:    "it's a test",
-			expected: "it's a test",
+			name:        "printable ASCII",
+			input:       []byte("it's a test"),
+			expectedHex: []string{"69", "74", "27", "73", "20", "61", "20", "74", "65", "73", "74"},
 		},
 		{
-			name:     "shell metachars preserved (tmux -l is literal)",
-			input:    "echo $HOME `pwd` | tee",
-			expected: "echo $HOME `pwd` | tee",
+			name:        "backspace (xterm DEL 0x7f) reaches the pane",
+			input:       []byte{0x7f},
+			expectedHex: []string{"7f"},
 		},
 		{
-			name:     "control bytes stripped (ESC removed)",
-			input:    "hello\x1bworld",
-			expected: "helloworld",
+			name:        "enter (CR 0x0d) reaches the pane",
+			input:       []byte{0x0d},
+			expectedHex: []string{"0d"},
 		},
 		{
-			name:     "newline stripped (submit guard)",
-			input:    "foo\nbar",
-			expected: "foobar",
+			name:        "up-arrow escape sequence survives as three raw bytes",
+			input:       []byte{0x1b, '[', 'A'},
+			expectedHex: []string{"1b", "5b", "41"},
+		},
+		{
+			name:        "ctrl+c (0x03) reaches the pane",
+			input:       []byte{0x03},
+			expectedHex: []string{"03"},
+		},
+		{
+			name: "bracketed paste markers + payload round-trip",
+			// \x1b[200~hi\x1b[201~
+			input: append(append([]byte{0x1b, '[', '2', '0', '0', '~'}, 'h', 'i'), 0x1b, '[', '2', '0', '1', '~'),
+			expectedHex: []string{
+				"1b", "5b", "32", "30", "30", "7e",
+				"68", "69",
+				"1b", "5b", "32", "30", "31", "7e",
+			},
+		},
+		{
+			name:        "UTF-8 chevron (❯) sent as three bytes",
+			input:       []byte("❯"),
+			expectedHex: []string{"e2", "9d", "af"},
+		},
+		{
+			name:        "shell metachars preserved unchanged",
+			input:       []byte("$HOME `pwd` | tee"),
+			expectedHex: []string{"24", "48", "4f", "4d", "45", "20", "60", "70", "77", "64", "60", "20", "7c", "20", "74", "65", "65"},
 		},
 	}
 
@@ -339,26 +376,35 @@ func TestTmuxAttachment_AC3_SendInputEscapesAndUsesSendKeysLiteral(t *testing.T)
 		t.Run(tc.name, func(t *testing.T) {
 			mock, att := newLiveAttachment(t, ctx)
 
-			require.NoError(t, att.SendInput([]byte(tc.input)),
+			require.NoError(t, att.SendInput(tc.input),
 				"SendInput must succeed on live attachment")
 
 			inv, ok := mock.findSubcommand(subSendKeys)
 			require.True(t, ok, "send-keys invocation must be recorded")
-			assert.Contains(t, inv.args, "-l",
-				"SendInput must pass -l (literal) to send-keys")
+			assert.Contains(t, inv.args, "-H",
+				"SendInput must pass -H (hex) to send-keys so control codes round-trip")
+			assert.NotContains(t, inv.args, "-l",
+				"SendInput must NOT pass -l — literal mode strips every C0 control byte")
 			assert.Contains(t, inv.args, "-t",
 				"send-keys must include -t target flag")
 			assert.Contains(t, inv.args, testPaneTarget,
 				"send-keys target must be the attached pane")
 
-			// The last positional arg is the literal payload.
-			literal := inv.args[len(inv.args)-1]
-			assert.Equal(t, tc.expected, literal,
-				"literal arg must equal EscapeTmuxLiteral(input)")
-
-			// Cross-check: the escape helper itself must match.
-			assert.Equal(t, tc.expected, EscapeTmuxLiteral(tc.input),
-				"EscapeTmuxLiteral must produce the same output the adapter sent")
+			// Positional hex args follow the four-arg header
+			// [send-keys, -H, -t, <target>]. Slice them out and compare.
+			// find the index of -t and skip past the target
+			var tIdx int
+			for i, a := range inv.args {
+				if a == "-t" {
+					tIdx = i
+					break
+				}
+			}
+			require.GreaterOrEqual(t, tIdx, 0, "-t flag must be present")
+			require.Greater(t, len(inv.args), tIdx+1, "-t must be followed by a target")
+			hexArgs := inv.args[tIdx+2:]
+			assert.Equal(t, tc.expectedHex, hexArgs,
+				"hex argv must match the input bytes one-to-one")
 		})
 	}
 }
