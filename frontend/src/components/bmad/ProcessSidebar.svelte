@@ -11,10 +11,71 @@
   export let sprintStatus = null;
   export let repoPath = '';
   export let repoBranch = '';
+  /**
+   * Grouped mashed-ready skills and commands. Shape matches Go's
+   * bmad.GroupedMashedAssets — four arrays of MashedAssetInfo records,
+   * one per {scope} × {kind}. Empty / absent is rendered as "No mashed
+   * assets found — run the mashed-refactor-asset skill against your
+   * .claude/skills/ or .claude/commands/ directory to populate this
+   * tab".
+   * @type {{ localCommands: any[], globalCommands: any[], localSkills: any[], globalSkills: any[] }}
+   */
+  export let groupedMashedAssets = { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
 
   const dispatch = createEventDispatcher();
 
   let activeTab = 'templates';
+
+  // ── Skills/Commands tab — collapsible group state ──
+  //
+  // Mirrors the openPhase / controlFlowOpen pattern used by the
+  // Processes tab so the visual grammar stays consistent: one group
+  // expanded at a time, chevron + count badge in the header, draggable
+  // rows inside. Local commands default to open because they are the
+  // most likely target for a user who just refactored their repo.
+  const mashedGroupKeys = ['localCommands', 'globalCommands', 'localSkills', 'globalSkills'];
+  const mashedGroupLabels = {
+    localCommands: 'Local Commands',
+    globalCommands: 'Global Commands',
+    localSkills: 'Local Skills',
+    globalSkills: 'Global Skills',
+  };
+  const mashedGroupAccents = {
+    localCommands: 'var(--accent-green, #3fb950)',
+    globalCommands: 'var(--accent-blue, #58a6ff)',
+    localSkills: 'var(--accent-purple, #bc8cff)',
+    globalSkills: 'var(--accent-amber, #d29922)',
+  };
+  let openMashedGroup = 'localCommands';
+  function toggleMashedGroup(key) {
+    openMashedGroup = openMashedGroup === key ? null : key;
+  }
+
+  /**
+   * Drag handler for a mashed asset. Only commands (bmadRole: command)
+   * are actually draggable onto the canvas — the executor cannot chain
+   * skills. For skill entries we still fire dragstart (to give a neutral
+   * drag image) but set a role that WorkflowBuilder's drop handler
+   * rejects, so the user gets a visual "nope" signal without a crash.
+   */
+  function onMashedAssetDragStart(e, asset) {
+    e.dataTransfer.setData('application/mashed-asset', JSON.stringify({
+      name: asset.name,
+      path: asset.path,
+      kind: asset.kind,
+      source: asset.source,
+      role: asset.role,
+      description: asset.description || '',
+    }));
+    e.dataTransfer.effectAllowed = asset.role === 'command' ? 'move' : 'none';
+  }
+
+  /** Count across all four groups so the tab can show a badge when empty. */
+  $: totalMashedAssets =
+    (groupedMashedAssets?.localCommands?.length || 0) +
+    (groupedMashedAssets?.globalCommands?.length || 0) +
+    (groupedMashedAssets?.localSkills?.length || 0) +
+    (groupedMashedAssets?.globalSkills?.length || 0);
 
   const phaseOrder = ['analysis', 'planning', 'solutioning', 'implementation', 'support', 'utilities'];
   const phaseLabels = {
@@ -239,8 +300,54 @@
       </div>
 
     {:else if activeTab === 'skills'}
-      <div class="skills-placeholder">
-        <span class="empty-hint">Skills panel coming soon</span>
+      <div class="process-list">
+        {#each mashedGroupKeys as key}
+          {@const items = groupedMashedAssets?.[key] || []}
+          {#if items.length > 0}
+            <div class="phase-group">
+              <button class="phase-header" on:click={() => toggleMashedGroup(key)}>
+                <span class="phase-indicator" style="background: {mashedGroupAccents[key]}" />
+                {#if openMashedGroup === key}
+                  <ChevronDown size={12} />
+                {:else}
+                  <ChevronRight size={12} />
+                {/if}
+                <span class="phase-label">{mashedGroupLabels[key]}</span>
+                <span class="phase-count-badge">{items.length}</span>
+              </button>
+              {#if openMashedGroup === key}
+                <div class="phase-items">
+                  {#each items as asset (asset.path)}
+                    <!-- svelte-ignore a11y-no-static-element-interactions -->
+                    <div
+                      class="process-item"
+                      class:disabled={asset.role !== 'command'}
+                      draggable={asset.role === 'command'}
+                      on:dragstart={(e) => onMashedAssetDragStart(e, asset)}
+                      title={asset.description || asset.name}
+                    >
+                      <span class="process-dot" style="background: {mashedGroupAccents[key]}" />
+                      <span class="process-name">{asset.name}</span>
+                      {#if asset.role === 'skill'}
+                        <span class="module-badge">pinned</span>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          {/if}
+        {/each}
+
+        {#if totalMashedAssets === 0}
+          <div class="empty-state">
+            No mashed-ready assets found.
+            <br />
+            Run the <code>mashed-refactor-asset</code> skill against your
+            <code>.claude/skills/</code> or <code>.claude/commands/</code>
+            directory to populate this tab.
+          </div>
+        {/if}
       </div>
 
     {:else if activeTab === 'sprint'}
@@ -389,6 +496,16 @@
 
   .process-item:hover { background: var(--bg-elevated); }
   .process-item:active { cursor: grabbing; }
+
+  /* Skill-role rows in the Skills tab are listed but not draggable
+     onto the canvas (the executor cannot chain them). Visually:
+     muted text, default cursor, no hover lift. */
+  .process-item.disabled {
+    cursor: default;
+    color: var(--text-muted);
+  }
+  .process-item.disabled:hover { background: transparent; }
+  .process-item.disabled:active { cursor: default; }
 
   .process-dot {
     width: 5px;

@@ -1679,7 +1679,7 @@
     background: none;
     border: none;
     border-top: 1px dashed var(--border-subtle);
-    color: var(--text-muted);
+    color: var(--text-primary);
     font-family: var(--font-mono);
     font-size: var(--text-body);
     cursor: pointer;

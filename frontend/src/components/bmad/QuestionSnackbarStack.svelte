@@ -189,7 +189,7 @@
     color: var(--accent-cyan, var(--text-dim));
   }
   .snackbar-card.idle .question-text {
-    color: var(--text-muted);
+    color: var(--text-dim);
     font-style: italic;
   }
 
@@ -218,7 +218,7 @@
 
   .question-text {
     font-size: var(--text-body);
-    color: var(--text-dim);
+    color: var(--text-primary);
     line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;

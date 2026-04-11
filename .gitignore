@@ -1,4 +1,18 @@
 .claude*
+# Exception: ONLY the mashed-refactor-asset skill is tracked so
+# first-time users get an on-ramp into the Skills tab of the BMAD
+# workspace. Every other .claude/ path (other skills, agents,
+# rules, settings) stays personal/ignored. The triple-negation
+# pattern is required because .gitignore re-ignores entries under
+# a re-ignored parent — we un-ignore .claude/, immediately
+# re-ignore its direct children, un-ignore .claude/skills/, immediately
+# re-ignore ITS direct children, and finally un-ignore the single
+# skill directory we care about.
+!.claude/
+/.claude/*
+!/.claude/skills/
+/.claude/skills/*
+!/.claude/skills/mashed-refactor-asset/
 .desloppify/
 .logs/
 scorecard.png

@@ -251,6 +251,63 @@ func (a *App) ListAllAgents(repoPath string) (bmad.GroupedAgents, error) {
 	return result, nil
 }
 
+// ListAllMashedAssets returns every "mashed-ready" skill and command
+// discovered under the conventional Claude Code asset directories,
+// grouped by {scope} × {kind}. "Mashed-ready" means the asset's YAML
+// frontmatter contains a `mashedRole` field — assets without it are
+// silently skipped so the sidebar only surfaces things that actually
+// work in the Mashed workspace model.
+//
+// Four directories are scanned (nonexistent ones are not errors):
+//
+//	{repoPath}/.claude/skills/     → LocalSkills    (directory-per-skill)
+//	{repoPath}/.claude/commands/   → LocalCommands  (flat .md files)
+//	~/.claude/skills/              → GlobalSkills   (directory-per-skill)
+//	~/.claude/commands/            → GlobalCommands (flat .md files)
+//
+// Per-file parse errors (malformed YAML, unknown role) are logged at the
+// loader level and the bad file is skipped — one broken file must not
+// hide every other asset in the same directory. Only I/O errors on the
+// top-level directory reads propagate up as a caller-visible error, and
+// even those are swallowed for nonexistent directories via the loader's
+// own os.IsNotExist short-circuit.
+func (a *App) ListAllMashedAssets(repoPath string) (bmad.GroupedMashedAssets, error) {
+	var result bmad.GroupedMashedAssets
+
+	if repoPath != "" {
+		localSkillsDir := filepath.Join(repoPath, ".claude", "skills")
+		localCommandsDir := filepath.Join(repoPath, ".claude", "commands")
+		if v, err := bmad.LoadMashedAssetsFromDir(localSkillsDir, bmad.MashedKindSkill, bmad.MashedSourceLocal); err != nil {
+			return result, err
+		} else {
+			result.LocalSkills = v
+		}
+		if v, err := bmad.LoadMashedAssetsFromDir(localCommandsDir, bmad.MashedKindCommand, bmad.MashedSourceLocal); err != nil {
+			return result, err
+		} else {
+			result.LocalCommands = v
+		}
+	}
+
+	home, err := os.UserHomeDir()
+	if err == nil {
+		globalSkillsDir := filepath.Join(home, ".claude", "skills")
+		globalCommandsDir := filepath.Join(home, ".claude", "commands")
+		if v, lerr := bmad.LoadMashedAssetsFromDir(globalSkillsDir, bmad.MashedKindSkill, bmad.MashedSourceGlobal); lerr != nil {
+			return result, lerr
+		} else {
+			result.GlobalSkills = v
+		}
+		if v, lerr := bmad.LoadMashedAssetsFromDir(globalCommandsDir, bmad.MashedKindCommand, bmad.MashedSourceGlobal); lerr != nil {
+			return result, lerr
+		} else {
+			result.GlobalCommands = v
+		}
+	}
+
+	return result, nil
+}
+
 // ── BMAD Modules ──
 
 // GetBmadModules returns all available BMAD modules.

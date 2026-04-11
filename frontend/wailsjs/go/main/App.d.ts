@@ -89,6 +89,8 @@ export function ListAdviceModes(arg1:string):Promise<Array<advice.AdviceMode>>;
 
 export function ListAllAgents(arg1:string):Promise<bmad.GroupedAgents>;
 
+export function ListAllMashedAssets(arg1:string):Promise<bmad.GroupedMashedAssets>;
+
 export function ListBmadAgents():Promise<Array<bmad.BmadAgentConfig>>;
 
 export function ListBmadTemplates():Promise<Array<bmad.WorkflowDef>>;

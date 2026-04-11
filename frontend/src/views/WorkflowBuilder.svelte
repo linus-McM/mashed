@@ -10,7 +10,8 @@
            DeleteBmadWorkflow, ListBmadAgents, ListAllAgents, SaveBmadAgent, DeleteBmadAgent,
            StartBmadWorkflow, PauseBmadWorkflow, ResumeBmadWorkflow, StopBmadWorkflow,
            GetTerminalPort, GetSprintStatus, GetNodeOutput, ListModels,
-           GetBmadCurrentExecution } from '../../wailsjs/go/main/App.js';
+           GetBmadCurrentExecution,
+           ListAllMashedAssets } from '../../wailsjs/go/main/App.js';
   // bmad.WorkflowDef / WorkflowNode / WorkflowEdge are Wails-generated
   // classes (not interfaces) with a `convertValues` method on the
   // prototype. Passing a bare object literal to SaveBmadWorkflow trips
@@ -89,6 +90,13 @@
   let savedWorkflows = [];
   /** @type {{ bmadAgents: any[], localAgents: any[], globalAgents: any[] }} */
   let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
+  /**
+   * Mashed-ready skills and commands grouped by scope × kind. Fetched
+   * in onMount and re-fetched whenever the repoPath changes so the
+   * sidebar always reflects the current repo's local assets.
+   * @type {{ localCommands: any[], globalCommands: any[], localSkills: any[], globalSkills: any[] }}
+   */
+  let groupedMashedAssets = { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
   let sprintStatus = null;
   let currentWorkflow = null;
   let workflowName = 'Untitled Workflow';
@@ -186,11 +194,12 @@
 
   onMount(async () => {
     try {
-      [processes, templates, savedWorkflows, groupedAgents] = await Promise.all([
+      [processes, templates, savedWorkflows, groupedAgents, groupedMashedAssets] = await Promise.all([
         GetBmadProcesses(),
         ListBmadTemplates(),
         repoPath ? ListBmadWorkflowsByRepo(repoPath) : Promise.resolve([]),
         ListAllAgents(repoPath || ''),
+        ListAllMashedAssets(repoPath || ''),
       ]);
       // Load default model from registry
       const models = await ListModels();
@@ -202,6 +211,7 @@
       templates = templates || [];
       savedWorkflows = savedWorkflows || [];
       groupedAgents = groupedAgents || { bmadAgents: [], localAgents: [], globalAgents: [] };
+      groupedMashedAssets = groupedMashedAssets || { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
     }
 
     if (repoPath) {
@@ -230,11 +240,19 @@
     (async () => {
       lastRestoredRepoPath = repoPath;
       // Refresh per-repo sidebar data and sprint status when the repo
-      // changes mid-session.
+      // changes mid-session. groupedMashedAssets depends on the repo's
+      // local .claude/{skills,commands}/ directories, so it refreshes
+      // alongside savedWorkflows even though the global half doesn't
+      // change between repos.
       try {
         savedWorkflows = await ListBmadWorkflowsByRepo(repoPath);
       } catch (e) {
         savedWorkflows = [];
+      }
+      try {
+        groupedMashedAssets = await ListAllMashedAssets(repoPath);
+      } catch (e) {
+        groupedMashedAssets = { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
       }
       try {
         sprintStatus = await GetSprintStatus(repoPath);
@@ -975,6 +993,7 @@
     {sprintStatus}
     {repoPath}
     {repoBranch}
+    {groupedMashedAssets}
     on:use-template={useTemplate}
     on:load-workflow={loadWorkflow}
     on:delete-workflow={deleteWorkflow}
