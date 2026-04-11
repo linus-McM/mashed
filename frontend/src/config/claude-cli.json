@@ -1,8 +1,8 @@
 {
   "models": [
-    { "value": "claude-opus-4-6", "label": "Opus", "context": "1M", "default": true },
-    { "value": "claude-sonnet-4-6", "label": "Sonnet", "context": "200K" },
-    { "value": "claude-haiku-4-5", "label": "Haiku", "context": "200K" }
+    { "value": "opus", "label": "Opus", "context": "1M", "default": true },
+    { "value": "sonnet", "label": "Sonnet", "context": "200K" },
+    { "value": "haiku", "label": "Haiku", "context": "200K" }
   ],
   "permissionModes": [
     { "value": "default", "label": "Default", "description": "Prompts for risky actions" },
