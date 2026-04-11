@@ -195,6 +195,27 @@
   $: totalRepos = orderedRepos.length;
   $: totalTokens = notifications.reduce((sum, e) => sum + (e.tokensUsed || 0), 0);
 
+  // uiqa-10 Sub-brief B: ambient status-bar signals.
+  // - aggregateSamples concatenates the latest tokenSamples from every agent
+  //   across every repo and keeps the most recent 20 values. Timestamps are
+  //   intentionally NOT aligned (different agents sample at different rates) —
+  //   the story calls this out as an acceptable simplification because the
+  //   status sparkline is decorative ambient data, not an analytical chart.
+  // - anyRunning gates the pulse dot: hidden when nothing is live, visible
+  //   (and animated unless reduced-motion) whenever the fleet is active.
+  $: aggregateSamples = (() => {
+    const all = [];
+    for (const group of orderedRepos) {
+      for (const agent of (group.agents || [])) {
+        if (agent.tokenSamples?.length) all.push(...agent.tokenSamples);
+      }
+    }
+    return all.slice(-20);
+  })();
+  $: anyRunning = orderedRepos.some(
+    (g) => (g.agents || []).some((a) => a.eventType === 'running'),
+  );
+
   function buildRepoTree(events, scannedRepos) {
     const repoMap = new Map();
 
@@ -788,6 +809,7 @@
                 <div
                   class="agent-row"
                   class:selected={selectedId === agent.agentId}
+                  class:is-running={agent.eventType === 'running'}
                   data-agent-id={agent.agentId}
                   on:click={() => handleClick(agent)}
                   on:keydown={(e) => { if (e.key === 'Enter') handleClick(agent); }}
@@ -1064,6 +1086,18 @@
     <span>{totalRepos} repo{totalRepos !== 1 ? 's' : ''}</span>
     <span class="sep">·</span>
     <span class="mono">{formatTokens(totalTokens)} tokens</span>
+    <!-- uiqa-10 Sub-brief B: ambient pulse dot + aggregate sparkline. Both are
+         decorative; the pulse dot is gated on anyRunning (disappears when the
+         fleet is idle) and the sparkline only renders when there are enough
+         samples to draw a meaningful glyph. -->
+    {#if anyRunning}
+      <span class="status-pulse" aria-label="agents active"></span>
+    {/if}
+    {#if aggregateSamples.length > 1}
+      <span class="status-sparkline" aria-hidden="true">
+        <SparkLine data={aggregateSamples} />
+      </span>
+    {/if}
     <span class="keys">
       <kbd>j</kbd>/<kbd>k</kbd> navigate · <kbd>Enter</kbd> open ·
       <button class="spawn-btn" on:click={() => dispatch('spawn')}>
@@ -1579,6 +1613,17 @@
 
   .sep { color: var(--text-muted); }
   .mono { font-family: var(--font-mono); }
+
+  /* uiqa-10: ambient sparkline in status bar. Opacity 0.7 keeps it secondary
+     to the primary counts; color override pulls the glyph into teal to
+     distinguish "ambient data" (teal) from "alive/running" (green). */
+  .status-sparkline {
+    margin-left: var(--sp-md);
+    opacity: 0.7;
+  }
+  .status-sparkline :global(.sparkline) {
+    color: var(--accent-teal);
+  }
 
   .keys {
     margin-left: auto;

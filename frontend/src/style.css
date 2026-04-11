@@ -143,3 +143,96 @@ textarea:focus-visible,
 
 /* Wails frameless window drag region */
 .wails-drag { --wails-draggable: drag; }
+
+/* uiqa-10: signature moments — running-agent pulse, status-bar ambient,
+   terminal commit panel. All animations are gated behind
+   @media (prefers-reduced-motion: no-preference) so reduced-motion users see
+   the static fallback styling without any animation playing. */
+
+/* Sub-brief A: running-agent pulse on agent rows.
+   Static fallback always applied (reduced-motion users still see a solid
+   green left border indicating "running"); the pulse only layers on when
+   motion is allowed. 2000ms cadence reads as "breathing," not "blinking". */
+.agent-row.is-running {
+  box-shadow: inset 3px 0 0 var(--accent-green);
+}
+
+/* Sub-brief B: ambient status-bar pulse dot — static fallback.
+   Solid dot + glow is always rendered; only the scale/opacity pulse is
+   gated behind motion preference. */
+.status-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  box-shadow: var(--glow-spread) color-mix(in srgb, var(--accent-green) 80%, transparent);
+  margin-right: var(--sp-sm);
+  vertical-align: middle;
+}
+
+/* Sub-brief C: terminal commit panel aesthetic.
+   Applied globally so NotificationFeed / AgentDetail / GitPanel all pick it up.
+   Mono font + "$ " prompt glyph + color hierarchy deliver the terminal feel
+   without new tokens. Per-step active/done state is NOT currently emitted by
+   the streaming commit protocol — when that lands, add .is-done/.is-active
+   classes to .commit-step and the rules below will take effect automatically. */
+.commit-panel {
+  font-family: var(--font-mono);
+}
+.commit-step::before {
+  content: '$ ';
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.commit-step.is-done { color: var(--text-dim); }
+.commit-step.is-done::before { color: var(--text-dim); }
+.commit-step.is-active { color: var(--accent-green); }
+.commit-step.is-active::before { color: var(--accent-green); }
+.commit-step.is-active::after {
+  content: '';
+  display: inline-block;
+  width: 0.5ch;
+  height: 1em;
+  background: var(--accent-green);
+  margin-left: 0.2ch;
+  vertical-align: text-bottom;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Sub-brief A: pulse keyframe + animation declaration.
+     color-mix keeps opacity variation token-compliant — never a hardcoded
+     rgba that would drift if --accent-green changes. Non-harmonic cadence
+     (2000ms row / 1500ms dot / 1000ms cursor) prevents visual sync. */
+  @keyframes agent-running-pulse {
+    0%, 100% {
+      box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent-green) 55%, transparent);
+    }
+    50% {
+      box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent-green) 100%, transparent);
+    }
+  }
+  .agent-row.is-running {
+    animation: agent-running-pulse 2000ms var(--ease-move) infinite;
+  }
+
+  /* Sub-brief B: status-pulse dot breathing. Slightly faster than row pulse
+     because one dot can afford a higher cadence without visual noise. */
+  @keyframes status-pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.15); }
+  }
+  .status-pulse {
+    animation: status-pulse 1500ms var(--ease-move) infinite;
+  }
+
+  /* Sub-brief C: terminal cursor blink. steps(1, end) = hard on/off like a
+     real VT100 cursor (fading cursors look like animation bugs). */
+  @keyframes cursor-blink {
+    0%, 50%   { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  .commit-step.is-active::after {
+    animation: cursor-blink 1000ms steps(1, end) infinite;
+  }
+}
