@@ -1,9 +1,21 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { fade } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import { Terminal } from 'lucide-svelte';
   import cliConfig from '../config/claude-cli.json';
 
   const dispatch = createEventDispatcher();
+
+  // uiqa-06: modal fade entry/exit. prefers-reduced-motion zeroes durations.
+  const reducedMotion = typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const backdropFadeProps = reducedMotion
+    ? { duration: 0 }
+    : { duration: 100, easing: cubicOut };
+  const cardFadeProps = reducedMotion
+    ? { duration: 0, delay: 0 }
+    : { duration: 100, delay: 50, easing: cubicOut };
 
   export let repoPath = '';
   export let repoName = '';
@@ -112,9 +124,9 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" role="presentation" on:click={cancel} on:keydown={() => {}}>
+<div class="overlay" role="presentation" on:click={cancel} on:keydown={() => {}} transition:fade={backdropFadeProps}>
   <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
+  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}} transition:fade={cardFadeProps}>
     <h2><Terminal size={18} /> New Session</h2>
     <p class="subtitle">Launch Claude Code in <strong>{repoName}</strong></p>
 

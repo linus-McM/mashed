@@ -1,6 +1,8 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { createEventDispatcher } from 'svelte';
+  import { fly, slide } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import { SpawnAgent, SpawnAgentWithCommand, SpawnTerminal, KillAgent, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus } from '../../wailsjs/go/main/App.js';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
   import { GripVertical, GitBranch, Trash2, Plus, Hexagon, Circle, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, TerminalSquare, ChevronRight, ChevronDown, Download, GitMerge, Workflow } from 'lucide-svelte';
@@ -14,6 +16,18 @@
   import SparkLine from '../components/SparkLine.svelte';
 
   const dispatch = createEventDispatcher();
+
+  // uiqa-06: entry animations. Literal ms values mirror --duration-* tokens
+  // in style.css; Svelte transition props require numeric values.
+  const reducedMotion = typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const STAGGER_CAP = 400;
+  const flyProps = (i) => reducedMotion
+    ? { y: 0, duration: 0, delay: 0 }
+    : { y: -8, duration: 150, delay: Math.min(i * 50, STAGGER_CAP), easing: cubicOut };
+  const slideProps = reducedMotion
+    ? { duration: 0 }
+    : { duration: 150, easing: cubicOut };
 
   let spawningRepo = null; // repo path currently spawning
 
@@ -706,7 +720,7 @@
 
 <div class="feed">
   <div class="feed-scroll" role="list">
-    {#each orderedRepos as repo (repo.name)}
+    {#each orderedRepos as repo, i (repo.name)}
       <div
         class="repo-group"
         role="listitem"
@@ -714,6 +728,7 @@
         class:drag-over-below={dragOverRepo === repo.name && dropPosition === 'below'}
         class:dragging={dragRepo === repo.name}
         style="border-color: {getRepoColor(repo.name)}"
+        in:fly={flyProps(i)}
         on:dragover={(e) => onDragOver(e, repo.name)}
         on:dragleave={(e) => onDragLeave(e)}
         on:drop={(e) => onDrop(e, repo.name)}
@@ -765,7 +780,7 @@
         </div>
 
         {#if !isCollapsed(repo)}
-        <div class="repo-body">
+        <div class="repo-body" transition:slide={slideProps}>
           <!-- Left: Agents (75%) -->
           <div class="repo-agents">
             {#each repo.agents as agent}

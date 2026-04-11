@@ -1,9 +1,21 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { fade } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import { GitBranch } from 'lucide-svelte';
   import { GitCreateBranch } from '../../wailsjs/go/main/App.js';
 
   const dispatch = createEventDispatcher();
+
+  // uiqa-06: modal fade entry/exit. prefers-reduced-motion zeroes durations.
+  const reducedMotion = typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const backdropFadeProps = reducedMotion
+    ? { duration: 0 }
+    : { duration: 100, easing: cubicOut };
+  const cardFadeProps = reducedMotion
+    ? { duration: 0, delay: 0 }
+    : { duration: 100, delay: 50, easing: cubicOut };
 
   export let repoPath = '';
   export let repoBranch = '';
@@ -71,9 +83,9 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-<div class="overlay" role="presentation" on:click={cancel} on:keydown={() => {}}>
+<div class="overlay" role="presentation" on:click={cancel} on:keydown={() => {}} transition:fade={backdropFadeProps}>
   <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
+  <div class="modal" role="dialog" on:click|stopPropagation on:keydown={() => {}} transition:fade={cardFadeProps}>
     <h2><GitBranch size={18} /> New Branch</h2>
     <p class="subtitle">Create a new branch from <strong>{repoBranch || 'HEAD'}</strong></p>
 
