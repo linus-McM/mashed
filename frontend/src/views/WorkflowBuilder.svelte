@@ -626,6 +626,23 @@
     outputLoading = false;
   }
 
+  /**
+   * Persist the current canvas as a BMAD workflow.
+   *
+   * Returns `true` when the canvas was successfully written to disk,
+   * `false` on any backend failure. Callers that gate navigation on a
+   * successful save (see tryLeave) MUST check this return value —
+   * silently proceeding after a failed save would lose the user's
+   * changes without any feedback, which is exactly the class of bug
+   * the leave-intercept flow is meant to prevent.
+   *
+   * Ordering inside the try block matters: the dirty-detector baseline
+   * is updated IMMEDIATELY after SaveBmadWorkflow resolves, BEFORE the
+   * (cosmetic) sidebar-list refresh. Otherwise a transient failure in
+   * ListBmadWorkflowsByRepo would leave lastSavedSnapshot stale and
+   * the user would see the NameWorkflowModal pop up again on their
+   * next Back click even though the save itself had succeeded.
+   */
   async function saveWorkflow() {
     saving = true;
     try {
@@ -658,15 +675,33 @@
         updatedAt: new Date().toISOString(),
       };
       await SaveBmadWorkflow(wf);
+
+      // SUCCESS PATH: commit all client-side "we are now clean" state
+      // synchronously, before any further awaits that could fail. If
+      // anything after this point throws, the canvas is still clean
+      // on disk AND in memory, and isDirty stays false.
       currentWorkflow = wf;
-      savedWorkflows = repoPath ? await ListBmadWorkflowsByRepo(repoPath) : [];
-      // Baseline the dirty detector against the just-saved canvas so
-      // the next leave is a no-op unless the user edits further.
       lastSavedSnapshot = snapshotCanvas($nodes, $edges, workflowName);
+
+      // Sidebar refresh is cosmetic — a failure here must NOT roll
+      // back the "save succeeded" signal. Scope it in its own try so
+      // the outer catch only fires on an actual SaveBmadWorkflow fail.
+      if (repoPath) {
+        try {
+          savedWorkflows = await ListBmadWorkflowsByRepo(repoPath);
+        } catch (listErr) {
+          console.warn('Failed to refresh saved workflows list:', listErr);
+        }
+      } else {
+        savedWorkflows = [];
+      }
+      return true;
     } catch (e) {
       console.error('Failed to save workflow:', e);
+      return false;
+    } finally {
+      saving = false;
     }
-    saving = false;
   }
 
   // ── Leave intercept ─────────────────────────────────────────────────
@@ -689,10 +724,12 @@
     // Nothing to protect against.
     if (!isDirty || $nodes.length === 0) return true;
 
-    // Case 2 — named workflow, silent save.
+    // Case 2 — named workflow, silent save. If the save fails we MUST
+    // refuse the leave; otherwise the user would silently lose their
+    // edits when navigating back or switching repos.
     if (currentWorkflow?.id) {
-      await saveWorkflow();
-      return true;
+      const ok = await saveWorkflow();
+      return ok;
     }
 
     // Case 3 — unnamed draft. Prompt the user.
@@ -720,10 +757,14 @@
           resolve(true);
           return;
         }
-        // decision === 'save'
+        // decision === 'save' — commit the name the user typed and
+        // attempt the write. On backend failure we resolve false so
+        // the parent back-click is aborted and the modal stays closed
+        // (the user can click Back again to retry). Future polish
+        // could re-open the modal with an inline error instead.
         if (name && name.length > 0) workflowName = name;
-        await saveWorkflow();
-        resolve(true);
+        const saved = await saveWorkflow();
+        resolve(saved);
       };
       showNameModal = true;
     });
@@ -849,9 +890,16 @@
     const { model } = e.detail;
     execError = '';
 
-    // Auto-save before executing
+    // Auto-save before executing. The old code inferred failure from
+    // the absence of currentWorkflow.id after the call; now that
+    // saveWorkflow returns a boolean we can check it directly and give
+    // the user a precise reason for the abort.
     if (!currentWorkflow?.id) {
-      await saveWorkflow();
+      const saved = await saveWorkflow();
+      if (!saved) {
+        execError = 'Save failed — check the logs before running.';
+        return;
+      }
     }
     if (!currentWorkflow?.id) {
       execError = 'Save the workflow before running.';
