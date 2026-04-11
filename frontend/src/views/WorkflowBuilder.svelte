@@ -11,6 +11,16 @@
            StartBmadWorkflow, PauseBmadWorkflow, ResumeBmadWorkflow, StopBmadWorkflow,
            GetTerminalPort, GetSprintStatus, GetNodeOutput, ListModels,
            GetBmadCurrentExecution } from '../../wailsjs/go/main/App.js';
+  // bmad.WorkflowDef / WorkflowNode / WorkflowEdge are Wails-generated
+  // classes (not interfaces) with a `convertValues` method on the
+  // prototype. Passing a bare object literal to SaveBmadWorkflow trips
+  // a structural mismatch ("Property 'convertValues' is missing") that
+  // the IDE surfaces even though the call would round-trip correctly
+  // through JSON at runtime. Wrapping the literal in the generated
+  // constructor produces a real class instance that satisfies the
+  // type-check AND makes the field list a single source of truth with
+  // the Go side of the binding.
+  import { bmad } from '../../wailsjs/go/models';
   import Terminal from '../components/Terminal.svelte';
   import ProcessSidebar from '../components/bmad/ProcessSidebar.svelte';
   import CanvasPane from '../components/bmad/CanvasPane.svelte';
@@ -646,7 +656,13 @@
   async function saveWorkflow() {
     saving = true;
     try {
-      const wf = {
+      // Construct a real bmad.WorkflowDef instance (not a plain object
+      // literal) so TypeScript is satisfied with the Wails binding's
+      // class-based parameter type — see the import comment above.
+      // The inner nodes/edges arrays do NOT need to be wrapped: Wails'
+      // generated constructor copies each field by key, so a structural
+      // shape is enough for everything beneath the top-level object.
+      const wf = new bmad.WorkflowDef({
         id: currentWorkflow?.id || `wf-${Date.now()}`,
         name: workflowName,
         description: '',
@@ -673,7 +689,7 @@
         templateId: currentWorkflow?.templateId || '',
         createdAt: currentWorkflow?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      };
+      });
       await SaveBmadWorkflow(wf);
 
       // SUCCESS PATH: commit all client-side "we are now clean" state
