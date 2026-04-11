@@ -132,8 +132,8 @@
   }
 
   @keyframes node-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(0, 229, 122, 0); }
-    50% { box-shadow: 0 0 0 3px rgba(0, 229, 122, 0.25); }
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-green) 0%, transparent); }
+    50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-green) 25%, transparent); }
   }
 
   .phase-bar {
@@ -272,12 +272,12 @@
   }
 
   .artifact-icon.found {
-    background: rgba(0, 229, 122, 0.15);
+    background: color-mix(in srgb, var(--accent-green) 15%, transparent);
     color: var(--accent-green, #00e57a);
   }
 
   .artifact-icon.missing {
-    background: rgba(240, 165, 0, 0.15);
+    background: color-mix(in srgb, var(--accent-amber) 15%, transparent);
     color: var(--accent-amber, #f0a500);
   }
 

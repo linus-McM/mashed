@@ -144,14 +144,14 @@
 
   .epic-progress-badge.complete {
     color: var(--accent-green, #00e57a);
-    border-color: rgba(0, 229, 122, 0.3);
-    background: rgba(0, 229, 122, 0.1);
+    border-color: color-mix(in srgb, var(--accent-green) 30%, transparent);
+    background: color-mix(in srgb, var(--accent-green) 10%, transparent);
   }
 
   .epic-progress-badge.active {
     color: var(--accent-green, #00e57a);
     border-color: var(--accent-green, #00e57a);
-    background: rgba(0, 229, 122, 0.12);
+    background: color-mix(in srgb, var(--accent-green) 12%, transparent);
   }
 
   .active-epic {

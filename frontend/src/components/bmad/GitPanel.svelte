@@ -479,11 +479,11 @@
 
   .action-btn.hot {
     color: var(--accent-green);
-    background: rgba(0, 229, 122, 0.05);
+    background: color-mix(in srgb, var(--accent-green) 5%, transparent);
   }
 
   .action-btn.hot:hover:not(:disabled) {
-    background: rgba(0, 229, 122, 0.1);
+    background: color-mix(in srgb, var(--accent-green) 10%, transparent);
     border-color: var(--accent-green);
   }
 
@@ -503,7 +503,7 @@
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--accent-green);
-    background: rgba(0, 229, 122, 0.06);
+    background: color-mix(in srgb, var(--accent-green) 6%, transparent);
     border-radius: var(--radius-sm);
     word-break: break-word;
   }

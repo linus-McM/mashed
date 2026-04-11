@@ -964,7 +964,7 @@
   .terminal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-backdrop);
     z-index: 100;
     display: flex;
     align-items: center;

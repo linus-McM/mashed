@@ -488,7 +488,7 @@
 
   .custom-template:hover {
     border-color: var(--accent-green);
-    background: rgba(0, 229, 122, 0.05);
+    background: color-mix(in srgb, var(--accent-green) 5%, transparent);
   }
 
   .custom-template .template-name {

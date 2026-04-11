@@ -142,7 +142,7 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-backdrop);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -186,8 +186,8 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    background: rgba(240, 165, 0, 0.08);
-    border: 1px solid rgba(240, 165, 0, 0.2);
+    background: color-mix(in srgb, var(--accent-amber) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-amber) 20%, transparent);
     border-radius: var(--radius-md);
     color: var(--accent-amber);
     font-size: 12px;
@@ -252,7 +252,7 @@
 
   .branch-option.selected {
     border-color: var(--accent-green);
-    background: rgba(0, 229, 122, 0.08);
+    background: color-mix(in srgb, var(--accent-green) 8%, transparent);
   }
 
   .branch-name {

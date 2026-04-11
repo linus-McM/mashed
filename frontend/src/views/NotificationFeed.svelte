@@ -1156,7 +1156,7 @@
     height: 3px;
     background: var(--accent-green);
     border-radius: 2px;
-    box-shadow: 0 0 8px rgba(0, 229, 122, 0.5);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-green) 50%, transparent);
     z-index: 10;
   }
 
@@ -1173,7 +1173,7 @@
     height: 3px;
     background: var(--accent-green);
     border-radius: 2px;
-    box-shadow: 0 0 8px rgba(0, 229, 122, 0.5);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-green) 50%, transparent);
     z-index: 10;
   }
 
@@ -1602,7 +1602,7 @@
 
   .new-session-btn:hover {
     color: var(--accent-green);
-    background: rgba(0, 229, 122, 0.04);
+    background: color-mix(in srgb, var(--accent-green) 4%, transparent);
   }
 
   .new-session-btn:disabled {
@@ -1809,9 +1809,9 @@
 
   /* Error section */
   .commit-error-section {
-    border-top: 1px solid rgba(232, 69, 69, 0.2);
+    border-top: 1px solid color-mix(in srgb, var(--accent-red) 20%, transparent);
     padding: 6px var(--sp-lg);
-    background: rgba(232, 69, 69, 0.04);
+    background: color-mix(in srgb, var(--accent-red) 4%, transparent);
     flex-shrink: 0;
   }
 
@@ -1833,9 +1833,9 @@
     word-break: break-word;
     margin: 0 0 8px 0;
     padding: 4px 8px;
-    background: rgba(232, 69, 69, 0.06);
+    background: color-mix(in srgb, var(--accent-red) 6%, transparent);
     border-radius: var(--radius-sm);
-    border: 1px solid rgba(232, 69, 69, 0.15);
+    border: 1px solid color-mix(in srgb, var(--accent-red) 15%, transparent);
     max-height: 60px;
     overflow-y: auto;
   }
@@ -1855,9 +1855,9 @@
     color: var(--text-primary);
     line-height: 1.5;
     padding: 6px 8px;
-    background: rgba(240, 165, 0, 0.06);
+    background: color-mix(in srgb, var(--accent-amber) 6%, transparent);
     border-radius: var(--radius-sm);
-    border: 1px solid rgba(240, 165, 0, 0.15);
+    border: 1px solid color-mix(in srgb, var(--accent-amber) 15%, transparent);
   }
 
   .commit-explain-loading {

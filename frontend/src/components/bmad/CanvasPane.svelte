@@ -322,7 +322,7 @@
 
   /* Multi-select rectangle */
   .flow-wrap :global(.svelte-flow__selection) {
-    background: rgba(0, 229, 122, 0.08);
+    background: color-mix(in srgb, var(--accent-green) 8%, transparent);
     border: 1px dashed var(--accent-green);
   }
 

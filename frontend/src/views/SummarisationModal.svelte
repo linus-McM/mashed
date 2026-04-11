@@ -396,7 +396,7 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-backdrop);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -464,8 +464,8 @@
   .error-banner {
     margin: var(--sp-md) var(--sp-xl) 0;
     padding: var(--sp-sm) var(--sp-md);
-    background: rgba(232, 69, 69, 0.08);
-    border: 1px solid rgba(232, 69, 69, 0.2);
+    background: color-mix(in srgb, var(--accent-red) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-red) 20%, transparent);
     border-radius: var(--radius-md);
     color: var(--accent-red);
     font-size: var(--text-label);
@@ -814,13 +814,13 @@
   }
 
   .action-btn.primary {
-    background: rgba(0, 229, 122, 0.08);
-    border-color: rgba(0, 229, 122, 0.2);
+    background: color-mix(in srgb, var(--accent-green) 8%, transparent);
+    border-color: color-mix(in srgb, var(--accent-green) 20%, transparent);
     color: var(--accent-green);
   }
 
   .action-btn.primary:hover:not(:disabled) {
-    background: rgba(0, 229, 122, 0.14);
+    background: color-mix(in srgb, var(--accent-green) 14%, transparent);
     border-color: var(--accent-green);
   }
 

@@ -77,7 +77,7 @@
 
   .merge-node.selected .diamond-shape {
     border-color: var(--accent-green);
-    box-shadow: 0 0 0 2px rgba(0, 229, 122, 0.35);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-green) 35%, transparent);
   }
 
   .merge-node.running .diamond-shape {
@@ -86,8 +86,8 @@
   }
 
   @keyframes node-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(0, 229, 122, 0); }
-    50% { box-shadow: 0 0 0 3px rgba(0, 229, 122, 0.25); }
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-green) 0%, transparent); }
+    50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-green) 25%, transparent); }
   }
 
   .phase-bar {

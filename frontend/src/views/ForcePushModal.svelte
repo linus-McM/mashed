@@ -70,7 +70,7 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-backdrop);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -127,8 +127,8 @@
     align-items: flex-start;
     gap: 8px;
     padding: 8px 12px;
-    background: rgba(240, 165, 0, 0.08);
-    border: 1px solid rgba(240, 165, 0, 0.2);
+    background: color-mix(in srgb, var(--accent-amber) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-amber) 20%, transparent);
     border-radius: var(--radius-md);
     color: var(--accent-amber);
     font-size: 12px;
@@ -138,7 +138,7 @@
   .warning code {
     font-family: var(--font-mono);
     font-size: 11px;
-    background: rgba(240, 165, 0, 0.12);
+    background: color-mix(in srgb, var(--accent-amber) 12%, transparent);
     padding: 1px 4px;
     border-radius: 3px;
   }

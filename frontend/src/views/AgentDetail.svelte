@@ -1014,8 +1014,8 @@
     white-space: nowrap;
   }
 
-  .git-success { color: var(--accent-green); background: rgba(0, 229, 122, 0.08); }
-  .git-error { color: var(--accent-red); background: rgba(232, 69, 69, 0.08); }
+  .git-success { color: var(--accent-green); background: color-mix(in srgb, var(--accent-green) 8%, transparent); }
+  .git-error { color: var(--accent-red); background: color-mix(in srgb, var(--accent-red) 8%, transparent); }
 
   .worktree-mini {
     padding: 6px 8px;
@@ -1245,9 +1245,9 @@
   }
 
   .ws-commit-error-section {
-    border-top: 1px solid rgba(232, 69, 69, 0.2);
+    border-top: 1px solid color-mix(in srgb, var(--accent-red) 20%, transparent);
     padding: 4px 8px;
-    background: rgba(232, 69, 69, 0.04);
+    background: color-mix(in srgb, var(--accent-red) 4%, transparent);
     flex-shrink: 0;
   }
 
@@ -1269,9 +1269,9 @@
     word-break: break-word;
     margin: 0 0 6px 0;
     padding: 3px 6px;
-    background: rgba(232, 69, 69, 0.06);
+    background: color-mix(in srgb, var(--accent-red) 6%, transparent);
     border-radius: var(--radius-sm);
-    border: 1px solid rgba(232, 69, 69, 0.15);
+    border: 1px solid color-mix(in srgb, var(--accent-red) 15%, transparent);
     max-height: 50px;
     overflow-y: auto;
   }
@@ -1291,9 +1291,9 @@
     color: var(--text-primary);
     line-height: 1.4;
     padding: 4px 6px;
-    background: rgba(240, 165, 0, 0.06);
+    background: color-mix(in srgb, var(--accent-amber) 6%, transparent);
     border-radius: var(--radius-sm);
-    border: 1px solid rgba(240, 165, 0, 0.15);
+    border: 1px solid color-mix(in srgb, var(--accent-amber) 15%, transparent);
   }
 
   .ws-commit-explain-loading {

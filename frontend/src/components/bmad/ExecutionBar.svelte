@@ -171,25 +171,25 @@
   .ctrl-btn.run.active {
     color: var(--accent-green, #00e57a);
     border-color: var(--accent-green, #00e57a);
-    background: rgba(0, 229, 122, 0.1);
-    box-shadow: 0 0 8px rgba(0, 229, 122, 0.3);
+    background: color-mix(in srgb, var(--accent-green) 10%, transparent);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-green) 30%, transparent);
   }
 
   /* Pause: amber idle, amber glow when paused */
   .ctrl-btn.pause {
     color: var(--accent-amber, #f0a500);
-    border-color: rgba(240, 165, 0, 0.3);
+    border-color: color-mix(in srgb, var(--accent-amber) 30%, transparent);
   }
   .ctrl-btn.pause:hover:not(:disabled) {
-    background: rgba(240, 165, 0, 0.1);
+    background: color-mix(in srgb, var(--accent-amber) 10%, transparent);
     border-color: var(--accent-amber, #f0a500);
-    box-shadow: 0 0 8px rgba(240, 165, 0, 0.25);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-amber) 25%, transparent);
   }
   .ctrl-btn.pause.active {
     color: var(--accent-amber, #f0a500);
     border-color: var(--accent-amber, #f0a500);
-    background: rgba(240, 165, 0, 0.15);
-    box-shadow: 0 0 8px rgba(240, 165, 0, 0.4);
+    background: color-mix(in srgb, var(--accent-amber) 15%, transparent);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-amber) 40%, transparent);
   }
 
   /* Stop: orange idle, red when stopped/failed */

@@ -673,12 +673,12 @@
   }
 
   .found-badge {
-    background: rgba(0, 229, 122, 0.15);
+    background: color-mix(in srgb, var(--accent-green) 15%, transparent);
     color: var(--accent-green, #00e57a);
   }
 
   .missing-badge {
-    background: rgba(240, 165, 0, 0.15);
+    background: color-mix(in srgb, var(--accent-amber) 15%, transparent);
     color: var(--accent-amber, #f0a500);
   }
 

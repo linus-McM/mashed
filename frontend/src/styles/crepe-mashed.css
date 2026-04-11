@@ -37,7 +37,7 @@
   --crepe-color-solid: var(--bg-active, #181c23);
 
   /* Selection */
-  --crepe-color-selection: rgba(0, 229, 122, 0.15);
+  --crepe-color-selection: color-mix(in srgb, var(--accent-green) 15%, transparent);
 
   /* Scrollbar blend */
   --crepe-color-scrollbar: var(--border-emphasized, #2a3340);

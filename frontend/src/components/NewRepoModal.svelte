@@ -140,7 +140,7 @@
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-backdrop);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -233,7 +233,7 @@
 
   .toggle-option.selected {
     border-color: var(--accent-green);
-    background: rgba(0, 229, 122, 0.08);
+    background: color-mix(in srgb, var(--accent-green) 8%, transparent);
   }
 
   .toggle-option:disabled { opacity: 0.5; cursor: not-allowed; }

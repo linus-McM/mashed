@@ -409,12 +409,12 @@
 
   /* Diff colors */
   .line.added {
-    background: rgba(0, 229, 122, 0.08);
+    background: color-mix(in srgb, var(--accent-green) 8%, transparent);
     color: var(--accent-green);
   }
 
   .line.removed {
-    background: rgba(232, 69, 69, 0.08);
+    background: color-mix(in srgb, var(--accent-red) 8%, transparent);
     color: var(--accent-red);
   }
 
