@@ -1,6 +1,6 @@
 # Story uiqa-06: Entry Animations — Repo Groups & Modals
 
-**Status:** ready
+**Status:** done
 **Size:** L
 **Priority:** P2
 **Domain:** frontend
