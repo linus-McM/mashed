@@ -425,10 +425,10 @@
   .status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: var(--sp-2xs);
     padding: 2px 8px;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     font-weight: 500;
     border-radius: 10px;
     border: 1px solid var(--border-subtle);
@@ -460,7 +460,7 @@
     border-radius: var(--radius-md);
     color: var(--text-dim);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     cursor: pointer;
     transition: all 100ms ease;
     text-align: left;
@@ -499,7 +499,7 @@
 
   /* Result / error */
   .action-result {
-    padding: 6px 10px;
+    padding: var(--sp-xs) 10px;
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--accent-green);
@@ -509,7 +509,7 @@
   }
 
   .action-error {
-    padding: 6px 10px;
+    padding: var(--sp-xs) 10px;
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--accent-red);
@@ -530,7 +530,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px;
+    padding: var(--sp-xs) 10px;
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border-subtle);
   }
@@ -557,7 +557,7 @@
   }
 
   .commit-panel-body {
-    padding: 6px 10px;
+    padding: var(--sp-xs) 10px;
     max-height: 200px;
     overflow-y: auto;
   }
@@ -576,7 +576,7 @@
 
   .commit-output {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-muted);
     margin: 2px 0 0;
     white-space: pre-wrap;
@@ -586,7 +586,7 @@
   .commit-active {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
   }
 
   .commit-spinner {
@@ -611,7 +611,7 @@
   .commit-error-label,
   .commit-explain-label {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;

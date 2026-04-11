@@ -147,14 +147,14 @@
   }
 
   h2 {
-    font-size: 18px;
+    font-size: var(--text-section);
     font-weight: 600;
     color: var(--text-primary);
     margin: 0 0 4px;
   }
 
   .subtitle {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-dim);
     margin: 0 0 24px;
   }
@@ -232,7 +232,7 @@
     cursor: pointer;
     transition: all 100ms ease-out;
     font-family: var(--font-ui);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-primary);
   }
 
@@ -246,14 +246,14 @@
   }
 
   .error {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--accent-red);
     margin-bottom: 16px;
   }
 
   .empty {
     color: var(--text-dim);
-    font-size: 12px;
+    font-size: var(--text-body);
     padding: 12px;
     text-align: center;
   }

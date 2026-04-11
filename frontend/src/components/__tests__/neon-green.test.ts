@@ -157,14 +157,14 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
       expect(getToken('--accent-green').toLowerCase()).toBe('#00e57a');
     });
 
-    it('AC-4: NotificationFeed .action-hot uses var(--accent-green)', () => {
+    it('AC-4: NotificationFeed hot buttons use var(--accent-green) via .glow-btn', () => {
       const src = read(NOTIFICATION_FEED);
-      const blocks = src.match(/\.action-hot[^{]*\{[^}]*\}/g) ?? [];
-      expect(blocks.length, 'at least one .action-hot block').toBeGreaterThan(0);
-      for (const block of blocks) {
-        expect(FORBIDDEN_RE.test(block)).toBe(false);
-      }
-      expect(blocks.some((b) => /var\(--accent-green\)/.test(b))).toBe(true);
+      // uiqa-04 replaced .action-hot with the shared .glow-btn utility.
+      // NotificationFeed must no longer contain #39ff14, and its template
+      // must bind class:glow-btn (hot-button equivalent). The .glow-btn
+      // rule body (verified in glow-btn.test.ts) references --accent-green.
+      expect(FORBIDDEN_RE.test(src)).toBe(false);
+      expect(src).toMatch(/class:glow-btn/);
     });
 
     it('AC-4: AgentDetail .back-btn / .git-hot use var(--accent-green)', () => {
@@ -183,12 +183,10 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
         'back-btn must use color-mix with --accent-green',
       ).toBe(true);
 
-      const gitHotBlocks = src.match(/\.git-hot[^{]*\{[^}]*\}/g) ?? [];
-      expect(gitHotBlocks.length).toBeGreaterThan(0);
-      for (const block of gitHotBlocks) {
-        expect(FORBIDDEN_RE.test(block)).toBe(false);
-      }
-      expect(gitHotBlocks.some((b) => /var\(--accent-green\)/.test(b))).toBe(true);
+      // Note: .git-hot was removed in uiqa-04 and replaced with the shared
+      // .glow-btn utility (see glow-btn.test.ts for equivalent assertions).
+      // The AgentDetail hot-button color is now enforced via style.css's
+      // .glow-btn rule, not a per-component .git-hot rule.
     });
 
     it('AC-4: RepoContextBar .back-btn uses var(--accent-green)', () => {

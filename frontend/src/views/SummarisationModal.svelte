@@ -754,7 +754,7 @@
 
   .advice-select {
     width: 100%;
-    padding: 6px var(--sp-xl) 6px var(--sp-md);
+    padding: var(--sp-xs) var(--sp-xl) var(--sp-xs) var(--sp-md);
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
@@ -780,7 +780,7 @@
     display: flex;
     align-items: center;
     gap: var(--sp-xs);
-    padding: 6px var(--sp-md);
+    padding: var(--sp-xs) var(--sp-md);
     background: none;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);

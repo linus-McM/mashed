@@ -158,14 +158,14 @@
   }
 
   h2 {
-    font-size: 18px;
+    font-size: var(--text-section);
     font-weight: 600;
     color: var(--text-primary);
     margin: 0 0 4px;
   }
 
   .subtitle {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-dim);
     margin: 0 0 24px;
   }
@@ -203,7 +203,7 @@
 
   .slug-hint {
     display: block;
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-muted);
     margin-top: 4px;
     font-family: var(--font-mono);
@@ -223,7 +223,7 @@
     cursor: pointer;
     transition: all 100ms ease-out;
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-primary);
   }
 
@@ -257,7 +257,7 @@
 
   .field-hint {
     display: block;
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-muted);
     margin-top: 4px;
   }
@@ -274,7 +274,7 @@
 
   .progress-step {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-dim);
     padding: 2px 0;
   }
@@ -284,7 +284,7 @@
   }
 
   .error {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--accent-red);
     margin-bottom: 16px;
     padding: 8px 10px;

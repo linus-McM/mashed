@@ -88,7 +88,7 @@
   }
 
   h2 {
-    font-size: 18px;
+    font-size: var(--text-section);
     font-weight: 600;
     color: var(--accent-red);
     margin: 0 0 4px;
@@ -98,7 +98,7 @@
   }
 
   .subtitle {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-dim);
     margin: 0 0 20px;
   }
@@ -131,7 +131,7 @@
     border: 1px solid color-mix(in srgb, var(--accent-amber) 20%, transparent);
     border-radius: var(--radius-md);
     color: var(--accent-amber);
-    font-size: 12px;
+    font-size: var(--text-body);
     margin-bottom: 16px;
   }
 
@@ -144,7 +144,7 @@
   }
 
   .error {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--accent-red);
     margin-bottom: 16px;
   }

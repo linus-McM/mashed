@@ -171,7 +171,7 @@
   }
 
   h2 {
-    font-size: 18px;
+    font-size: var(--text-section);
     font-weight: 600;
     color: var(--text-primary);
     margin: 0 0 4px;
@@ -181,7 +181,7 @@
   }
 
   .subtitle {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-dim);
     margin: 0 0 24px;
   }
@@ -209,7 +209,7 @@
   .prefix-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: var(--sp-sm);
   }
 
   .prefix-option {
@@ -220,7 +220,7 @@
     cursor: pointer;
     transition: all 100ms ease-out;
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-primary);
   }
 
@@ -257,8 +257,8 @@
   }
 
   .preview {
-    margin-top: 6px;
-    font-size: 12px;
+    margin-top: var(--sp-xs);
+    font-size: var(--text-body);
     color: var(--accent-green);
     padding: 4px 0;
   }
@@ -287,7 +287,7 @@
   }
 
   .error {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--accent-red);
     margin-bottom: 16px;
   }

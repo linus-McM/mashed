@@ -47,6 +47,6 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  .badge.sm { font-size: 10px; padding: 1px 6px; }
+  .badge.sm { font-size: var(--text-label); padding: 1px var(--sp-xs); }
   .badge.md { font-size: 11px; }
 </style>

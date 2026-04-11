@@ -119,7 +119,7 @@
   }
 
   .hint {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-dim);
     margin: 0 0 32px;
   }
@@ -194,7 +194,7 @@
   .confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .error {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--accent-red);
     margin-bottom: 16px;
   }

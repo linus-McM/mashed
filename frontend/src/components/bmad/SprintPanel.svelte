@@ -84,7 +84,7 @@
 
 <style>
   .sprint-panel {
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
   }
 
   .epic-group {
@@ -105,7 +105,7 @@
     border: none;
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     font-weight: 600;
     cursor: pointer;
     text-transform: uppercase;
@@ -159,7 +159,7 @@
   }
 
   .story-items {
-    padding: 2px 0 6px;
+    padding: var(--sp-2xs) 0 var(--sp-xs);
     border-top: 1px solid var(--border-subtle);
     background: var(--bg-surface);
   }
@@ -168,7 +168,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 5px 10px 5px 24px;
+    padding: var(--sp-xs) 10px var(--sp-xs) 24px;
     cursor: grab;
     font-family: var(--font-mono);
     font-size: 11px;

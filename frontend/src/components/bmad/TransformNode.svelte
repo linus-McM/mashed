@@ -87,13 +87,13 @@
   }
 
   .node-body {
-    padding: 6px 10px 5px;
+    padding: var(--sp-xs) 10px;
   }
 
   .node-header {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--sp-xs);
     margin-bottom: 2px;
   }
 
@@ -105,7 +105,7 @@
   }
 
   .node-label {
-    font-size: 10px;
+    font-size: var(--text-label);
     font-weight: 600;
     color: var(--text-primary);
     overflow: hidden;
@@ -126,8 +126,8 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    margin-top: 3px;
-    padding-top: 3px;
+    margin-top: var(--sp-2xs);
+    padding-top: var(--sp-2xs);
     border-top: 1px solid var(--border-subtle);
   }
 

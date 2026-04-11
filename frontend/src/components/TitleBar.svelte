@@ -141,7 +141,7 @@
   .titlebar-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
     --wails-draggable: none;
   }
 
@@ -188,7 +188,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     background: none;
     border: 1px solid transparent;
     border-radius: var(--radius-md);
@@ -208,7 +208,7 @@
 
   .theme-swatches {
     display: flex;
-    gap: 3px;
+    gap: var(--sp-2xs);
   }
 
   .swatch {

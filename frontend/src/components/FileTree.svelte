@@ -110,7 +110,7 @@
   }
 
   .tree-search {
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     border-bottom: 1px solid var(--border-subtle);
   }
 
@@ -142,7 +142,7 @@
     align-items: center;
     gap: 4px;
     width: 100%;
-    padding: 3px 8px;
+    padding: var(--sp-2xs) var(--sp-sm);
     background: none;
     border: none;
     color: var(--text-dim);

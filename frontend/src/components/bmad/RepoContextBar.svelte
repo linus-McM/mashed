@@ -51,7 +51,7 @@
     border-bottom: 1px solid var(--border-subtle);
     flex-shrink: 0;
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-primary);
   }
 
@@ -63,11 +63,11 @@
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    padding: 3px 8px;
+    padding: var(--sp-2xs) var(--sp-sm);
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--sp-xs);
     flex-shrink: 0;
     transition: opacity 100ms ease;
   }
@@ -102,7 +102,7 @@
 
   .branch-name {
     color: var(--accent-blue, #3d9eff);
-    font-size: 12px;
+    font-size: var(--text-body);
     font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -118,7 +118,7 @@
 
   .sprint-text {
     color: var(--text-primary);
-    font-size: 12px;
+    font-size: var(--text-body);
     white-space: nowrap;
   }
 

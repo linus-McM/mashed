@@ -836,7 +836,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 10px;
+    padding: var(--sp-xs) 10px;
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border-subtle);
     flex-shrink: 0;
@@ -845,14 +845,14 @@
   .toolbar-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--sp-xs);
     padding: 4px 10px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     font-weight: 500;
     cursor: pointer;
     transition: background 100ms ease, color 100ms ease, border-color 100ms ease;
@@ -875,7 +875,7 @@
 
   .toolbar-label {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     font-weight: 500;
     color: var(--text-primary);
     flex-shrink: 0;
@@ -898,7 +898,7 @@
     border-radius: var(--radius-sm);
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     outline: none;
     transition: border-color 100ms ease;
   }
@@ -929,7 +929,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px;
+    padding: var(--sp-xs) 10px;
     background: color-mix(in srgb, var(--accent-red) 10%, transparent);
     border-top: 1px solid var(--accent-red, #f85149);
     flex-shrink: 0;
@@ -950,8 +950,8 @@
     border-radius: var(--radius-sm);
     color: var(--accent-red, #f85149);
     font-family: var(--font-mono);
-    font-size: 10px;
-    padding: 2px 6px;
+    font-size: var(--text-label);
+    padding: var(--sp-2xs) var(--sp-xs);
     cursor: pointer;
     flex-shrink: 0;
   }
@@ -1033,7 +1033,7 @@
     background: none;
     border: none;
     color: var(--text-muted);
-    font-size: 18px;
+    font-size: var(--text-section);
     cursor: pointer;
     padding: 0 4px;
     line-height: 1;

@@ -102,7 +102,7 @@
     font-family: var(--font-mono);
     font-size: 9px;
     font-weight: 600;
-    padding: 1px 5px;
+    padding: 1px var(--sp-xs);
     border-radius: 3px;
     background: var(--bg-elevated, #2d333b);
     border: 1px solid var(--border-subtle, #373e47);

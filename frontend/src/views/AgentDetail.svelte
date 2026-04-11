@@ -667,7 +667,7 @@
     display: flex;
     align-items: center;
     gap: var(--sp-sm);
-    padding: 6px var(--sp-lg);
+    padding: var(--sp-xs) var(--sp-lg);
     border-bottom: 1px solid var(--border-subtle);
     background: var(--bg-surface);
     flex-shrink: 0;
@@ -680,7 +680,7 @@
     font-family: var(--font-ui);
     font-size: 13px;
     cursor: pointer;
-    padding: 2px 6px;
+    padding: var(--sp-2xs) var(--sp-xs);
     border-radius: var(--radius-sm);
     text-shadow: 0 0 6px color-mix(in srgb, var(--accent-green) 60%, transparent);
   }
@@ -694,7 +694,7 @@
 
   .header-repo {
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--text-data);
     color: var(--text-primary);
   }
 
@@ -722,7 +722,7 @@
   .token-mini {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
   }
 
   .token-mini-bar {
@@ -741,7 +741,8 @@
 
   .token-mini-label {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
+    font-variant-numeric: tabular-nums;
     color: var(--text-muted);
     white-space: nowrap;
   }
@@ -815,13 +816,13 @@
     border: none;
     background: transparent;
     color: var(--fg-dim);
-    font-size: 12px;
+    font-size: var(--text-body);
     cursor: pointer;
     border-radius: 3px;
     padding: 0;
   }
   .tab-close:hover { background: rgba(255, 95, 87, 0.2); color: var(--accent-red); }
-  .add-tab { color: var(--fg-dim); font-size: 14px; }
+  .add-tab { color: var(--fg-dim); font-size: var(--text-data); }
   .add-tab:hover { color: var(--accent-green, #50fa7b); }
 
   /* Resize handle */
@@ -878,11 +879,11 @@
 
   .file-tab {
     flex: 1;
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     background: none;
     border: none;
     border-bottom: 2px solid transparent;
-    font-size: 10px;
+    font-size: var(--text-label);
     font-weight: 600;
     color: var(--text-muted);
     letter-spacing: 0.04em;
@@ -928,7 +929,7 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: 3px 8px;
+    padding: var(--sp-2xs) var(--sp-sm);
     background: none;
     border: none;
     border-bottom: 1px solid var(--border-subtle);
@@ -959,7 +960,7 @@
   .file-stat {
     flex-shrink: 0;
     margin-left: 4px;
-    font-size: 10px;
+    font-size: var(--text-label);
   }
 
   .file-stat .added { color: var(--accent-green); }
@@ -968,7 +969,7 @@
 
   /* Git actions */
   .git-actions {
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     border-top: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
@@ -979,9 +980,9 @@
   .git-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
     width: 100%;
-    padding: 5px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     background: none;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
@@ -1005,8 +1006,8 @@
 
   .git-status {
     font-family: var(--font-mono);
-    font-size: 10px;
-    padding: 3px 6px;
+    font-size: var(--text-label);
+    padding: var(--sp-2xs) var(--sp-xs);
     border-radius: var(--radius-sm);
     margin-bottom: 2px;
     overflow: hidden;
@@ -1018,12 +1019,12 @@
   .git-error { color: var(--accent-red); background: color-mix(in srgb, var(--accent-red) 8%, transparent); }
 
   .worktree-mini {
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     border-top: 1px solid var(--border-subtle);
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 10px;
+    gap: var(--sp-xs);
+    font-size: var(--text-label);
   }
 
   .worktree-label {
@@ -1065,20 +1066,20 @@
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-dim);
   }
 
   /* Sub-agent header badge */
   .header-sub-name {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-label);
     color: var(--accent-teal);
   }
 
   .sub-agent-badge {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     padding: 1px 8px;
     border-radius: 8px;
     background: rgba(0, 196, 179, 0.12);
@@ -1096,14 +1097,14 @@
   }
 
   .sub-panel-desc {
-    padding: 6px var(--sp-lg);
-    font-size: 12px;
+    padding: var(--sp-xs) var(--sp-lg);
+    font-size: var(--text-body);
     color: var(--text-dim);
     border-bottom: 1px solid var(--border-subtle);
   }
 
   .sub-panel-result {
-    padding: 6px var(--sp-lg);
+    padding: var(--sp-xs) var(--sp-lg);
     border-bottom: 1px solid var(--border-subtle);
   }
 
@@ -1129,7 +1130,7 @@
   }
 
   .sub-panel-logs {
-    padding: 6px var(--sp-lg);
+    padding: var(--sp-xs) var(--sp-lg);
   }
 
   .sub-panel-log-list {
@@ -1139,7 +1140,7 @@
 
   .sub-log-line {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-dim);
     padding: 1px 0;
     white-space: nowrap;
@@ -1176,7 +1177,7 @@
 
   .ws-commit-title {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     font-weight: 600;
     color: var(--text-dim);
   }
@@ -1185,7 +1186,7 @@
     background: none;
     border: none;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: var(--text-data);
     cursor: pointer;
     padding: 0 2px;
     line-height: 1;
@@ -1206,7 +1207,7 @@
 
   .ws-commit-step {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--accent-green);
   }
 
@@ -1214,8 +1215,8 @@
     font-family: var(--font-mono);
     font-size: 9px;
     color: var(--text-dim);
-    margin: 2px 0 3px 0;
-    padding: 3px 6px;
+    margin: var(--sp-2xs) 0 var(--sp-2xs) 0;
+    padding: var(--sp-2xs) var(--sp-xs);
     background: rgba(0, 0, 0, 0.3);
     border-radius: var(--radius-sm);
     white-space: pre-wrap;
@@ -1227,7 +1228,7 @@
   .ws-commit-active {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
   }
 
   .ws-commit-spinner {
@@ -1258,7 +1259,7 @@
     color: var(--accent-red);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 3px;
+    margin-bottom: var(--sp-2xs);
   }
 
   .ws-commit-error-text {
@@ -1267,8 +1268,8 @@
     color: var(--accent-red);
     white-space: pre-wrap;
     word-break: break-word;
-    margin: 0 0 6px 0;
-    padding: 3px 6px;
+    margin: 0 0 var(--sp-xs) 0;
+    padding: var(--sp-2xs) var(--sp-xs);
     background: color-mix(in srgb, var(--accent-red) 6%, transparent);
     border-radius: var(--radius-sm);
     border: 1px solid color-mix(in srgb, var(--accent-red) 15%, transparent);
@@ -1283,14 +1284,14 @@
     color: var(--accent-amber);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 3px;
+    margin-bottom: var(--sp-2xs);
   }
 
   .ws-commit-explain-text {
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-primary);
     line-height: 1.4;
-    padding: 4px 6px;
+    padding: var(--sp-xs);
     background: color-mix(in srgb, var(--accent-amber) 6%, transparent);
     border-radius: var(--radius-sm);
     border: 1px solid color-mix(in srgb, var(--accent-amber) 15%, transparent);

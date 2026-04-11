@@ -115,7 +115,7 @@
 
   .selectors {
     display: flex;
-    gap: 6px;
+    gap: var(--sp-sm);
   }
 
   .bar-select {
@@ -141,7 +141,7 @@
   .ctrl-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--sp-xs);
     padding: 4px 10px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);

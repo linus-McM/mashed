@@ -38,7 +38,7 @@
 <style>
   .diff-list {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .diff-row {
     display: flex;

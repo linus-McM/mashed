@@ -77,7 +77,7 @@
   }
 
   .tagline {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-dim);
     margin: 0 0 24px;
     line-height: 1.4;
@@ -113,7 +113,7 @@
   }
 
   .info-value {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-primary);
     font-family: var(--font-mono);
   }

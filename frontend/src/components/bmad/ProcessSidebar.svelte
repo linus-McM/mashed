@@ -296,7 +296,7 @@
     border-bottom: 2px solid transparent;
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     font-weight: 500;
     cursor: pointer;
     transition: color 100ms ease, border-color 100ms ease, background 100ms ease;
@@ -315,7 +315,7 @@
   .tab-content {
     flex: 1;
     overflow-y: auto;
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
   }
 
   /* Process list — accordion panels */
@@ -337,7 +337,7 @@
     border: none;
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     font-weight: 600;
     cursor: pointer;
     text-transform: uppercase;
@@ -369,7 +369,7 @@
   }
 
   .phase-items {
-    padding: 2px 0 6px;
+    padding: var(--sp-2xs) 0 var(--sp-xs);
     border-top: 1px solid var(--border-subtle);
     background: var(--bg-surface);
   }
@@ -378,7 +378,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 5px 10px 5px 24px;
+    padding: var(--sp-xs) 10px var(--sp-xs) 24px;
     cursor: grab;
     font-family: var(--font-mono);
     font-size: 11px;
@@ -427,7 +427,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
   }
 
   .template-card {
@@ -500,7 +500,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px;
+    padding: var(--sp-xs) 10px;
     border-bottom: 1px solid var(--border-subtle);
   }
 

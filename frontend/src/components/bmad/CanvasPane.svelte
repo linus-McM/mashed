@@ -370,13 +370,13 @@
     align-items: center;
     gap: 8px;
     width: 100%;
-    padding: 6px 10px;
+    padding: var(--sp-xs) 10px;
     background: none;
     border: none;
     border-radius: var(--radius-sm);
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     cursor: pointer;
     transition: background 80ms ease, color 80ms ease;
     text-align: left;
@@ -400,7 +400,7 @@
   .context-divider {
     height: 1px;
     background: var(--border-subtle);
-    margin: 2px 6px;
+    margin: var(--sp-2xs) var(--sp-xs);
   }
 
   .context-submenu-wrap {
@@ -430,7 +430,7 @@
 
   .tpl-meta {
     margin-left: auto;
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-muted);
   }
 </style>

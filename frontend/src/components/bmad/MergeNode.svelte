@@ -98,7 +98,7 @@
 
   .diamond-content {
     transform: rotate(-45deg);
-    padding: 12px 6px 6px;
+    padding: 12px var(--sp-xs) var(--sp-xs);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -122,7 +122,7 @@
   }
 
   .node-label {
-    font-size: 10px;
+    font-size: var(--text-label);
     font-weight: 600;
     color: var(--text-primary);
     overflow: hidden;

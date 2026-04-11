@@ -176,7 +176,7 @@
 
   .file-path {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-dim);
     overflow: hidden;
     text-overflow: ellipsis;

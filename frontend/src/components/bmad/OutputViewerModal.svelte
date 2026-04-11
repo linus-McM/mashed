@@ -115,7 +115,7 @@
 
   .output-loading, .output-empty {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-muted);
     text-align: center;
     padding: 40px 0;

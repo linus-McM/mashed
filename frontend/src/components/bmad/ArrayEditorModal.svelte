@@ -174,7 +174,7 @@
   .item-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
   }
 
   .item-index {
@@ -189,7 +189,7 @@
 
   .item-input {
     flex: 1;
-    padding: 5px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
@@ -224,9 +224,9 @@
   .add-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
     width: 100%;
-    padding: 6px 10px;
+    padding: var(--sp-xs) 10px;
     background: var(--bg-elevated);
     border: 1px dashed var(--border-emphasis);
     border-radius: var(--radius-sm);
@@ -254,7 +254,7 @@
 
   .item-count {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-muted);
   }
 
@@ -264,7 +264,7 @@
   }
 
   .btn {
-    padding: 5px 14px;
+    padding: var(--sp-xs) 14px;
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
     font-size: 11px;

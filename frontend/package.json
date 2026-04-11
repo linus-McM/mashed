@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint:tokens": "node scripts/check-orphan-tokens.mjs"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.0.0",

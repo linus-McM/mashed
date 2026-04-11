@@ -451,7 +451,7 @@
 
   .panel-title {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     font-weight: 600;
     color: var(--text-primary);
     overflow: hidden;
@@ -490,7 +490,7 @@
 
   .field-label {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     font-weight: 600;
     color: var(--text-dim);
     text-transform: uppercase;
@@ -498,7 +498,7 @@
   }
 
   .field-select {
-    padding: 5px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
@@ -512,7 +512,7 @@
 
   .field-select optgroup {
     font-weight: 600;
-    font-size: 10px;
+    font-size: var(--text-label);
     text-transform: uppercase;
     letter-spacing: 0.3px;
     color: var(--text-dim);
@@ -528,7 +528,7 @@
   }
 
   .field-input {
-    padding: 5px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
@@ -541,7 +541,7 @@
   .field-input:focus { border-color: var(--accent-green); }
 
   .field-textarea {
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
@@ -560,16 +560,16 @@
   .browse-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
     width: 100%;
     padding: 8px 12px;
-    margin-top: 6px;
+    margin-top: var(--sp-xs);
     background: var(--bg-elevated);
     border: 1px solid var(--accent-teal, #00c4b3);
     border-radius: var(--radius-sm);
     color: var(--accent-teal, #00c4b3);
     font-family: var(--font-ui);
-    font-size: 12px;
+    font-size: var(--text-body);
     font-weight: 500;
     cursor: pointer;
     transition: background 100ms ease;
@@ -587,7 +587,7 @@
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     font-family: var(--font-mono);
     font-size: 9px;
     line-height: 1.4;
@@ -598,12 +598,12 @@
     margin: 0;
   }
   .file-error {
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--accent-red);
   }
   .items-preview {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-primary);
     padding: 4px 8px;
     background: var(--bg-deepest);
@@ -618,8 +618,8 @@
   .terminal-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
+    gap: var(--sp-sm);
+    padding: var(--sp-xs) 10px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
@@ -653,13 +653,13 @@
   .artifact-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 3px 6px;
+    gap: var(--sp-sm);
+    padding: var(--sp-2xs) var(--sp-xs);
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
   }
 
   .artifact-badge {
@@ -693,12 +693,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 4px 6px;
+    padding: 4px var(--sp-xs);
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
   }
 
   .story-link-id { color: var(--text-primary); }

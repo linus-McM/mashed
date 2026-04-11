@@ -142,13 +142,13 @@
   }
 
   .node-body {
-    padding: 8px 10px 6px;
+    padding: 8px 10px var(--sp-xs);
   }
 
   .node-header {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
     margin-bottom: 4px;
   }
 
@@ -191,7 +191,7 @@
   .status-row {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--sp-xs);
     margin-top: 4px;
     padding-top: 4px;
     border-top: 1px solid var(--border-subtle);
@@ -228,7 +228,7 @@
   .running-text { color: var(--accent-green, #00e57a); }
 
   .status-check {
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--accent-green, #00e57a);
     line-height: 1;
   }
@@ -236,7 +236,7 @@
   .complete-text { color: var(--accent-green, #00e57a); }
 
   .status-x {
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--accent-red, #f85149);
     line-height: 1;
   }
@@ -244,16 +244,16 @@
   .failed-text { color: var(--accent-red, #f85149); }
 
   .status-dash {
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-muted);
     line-height: 1;
   }
 
   .artifact-indicators {
     display: flex;
-    gap: 3px;
-    margin-top: 3px;
-    padding-top: 3px;
+    gap: var(--sp-2xs);
+    margin-top: var(--sp-2xs);
+    padding-top: var(--sp-2xs);
     border-top: 1px solid var(--border-subtle);
     flex-wrap: wrap;
   }
@@ -285,7 +285,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 3px 0 0;
+    padding: var(--sp-2xs) 0 0;
     border-top: 1px solid var(--border-subtle);
     margin-top: 2px;
   }

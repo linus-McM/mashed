@@ -1258,7 +1258,7 @@
     top: calc(100% + 6px);
     right: 0;
     display: flex;
-    gap: 6px;
+    gap: var(--sp-sm);
     padding: 8px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-emphasis);
@@ -1350,12 +1350,14 @@
 
   .agent-tokens {
     font-size: var(--text-label);
+    font-variant-numeric: tabular-nums;
     color: var(--text-dim);
     flex-shrink: 0;
   }
 
   .agent-elapsed {
     font-size: var(--text-label);
+    font-variant-numeric: tabular-nums;
     color: var(--text-muted);
     flex-shrink: 0;
     min-width: 32px;
@@ -1411,10 +1413,11 @@
 
   .sub-count {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
+    font-variant-numeric: tabular-nums;
     color: var(--text-muted);
     background: var(--bg-active);
-    padding: 0 5px;
+    padding: 0 var(--sp-xs);
     border-radius: 8px;
     flex-shrink: 0;
     line-height: 16px;
@@ -1442,7 +1445,7 @@
     display: flex;
     align-items: center;
     gap: var(--sp-xs);
-    padding: 3px var(--sp-lg);
+    padding: var(--sp-2xs) var(--sp-lg);
     padding-left: 36px;
     flex: 1;
     min-width: 0;
@@ -1481,7 +1484,7 @@
 
   .sub-name {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-dim);
     flex-shrink: 0;
     max-width: 160px;
@@ -1491,7 +1494,7 @@
   }
 
   .sub-summary {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-muted);
     flex: 1;
     overflow: hidden;
@@ -1534,7 +1537,7 @@
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-dim);
   }
 
@@ -1567,7 +1570,7 @@
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-dim);
   }
 
@@ -1602,15 +1605,15 @@
   .new-session-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
     flex: 1;
-    padding: 6px 20px 6px 20px;
+    padding: var(--sp-xs) 20px var(--sp-xs) 20px;
     background: none;
     border: none;
     border-top: 1px dashed var(--border-subtle);
     color: var(--text-muted);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     cursor: pointer;
     transition: all 100ms ease-out;
   }
@@ -1681,13 +1684,13 @@
   .actions-buttons {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: var(--sp-2xs);
   }
 
   .action-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
     width: 100%;
     padding: 4px 8px;
     background: var(--bg-elevated);
@@ -1714,7 +1717,7 @@
 
   .action-result {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--accent-green);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1724,7 +1727,7 @@
 
   .action-error {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--accent-red);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1746,7 +1749,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px var(--sp-lg);
+    padding: var(--sp-xs) var(--sp-lg);
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border-subtle);
     flex-shrink: 0;
@@ -1772,7 +1775,7 @@
   .commit-panel-close:hover { color: var(--text-primary); }
 
   .commit-panel-body {
-    padding: 6px var(--sp-lg);
+    padding: var(--sp-xs) var(--sp-lg);
     overflow-y: auto;
     flex: 1;
     min-height: 0;
@@ -1790,7 +1793,7 @@
 
   .commit-output {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-dim);
     margin: 2px 0 4px 0;
     padding: 4px 8px;
@@ -1805,7 +1808,7 @@
   .commit-active {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
   }
 
   .commit-spinner {
@@ -1825,7 +1828,7 @@
   /* Error section */
   .commit-error-section {
     border-top: 1px solid color-mix(in srgb, var(--accent-red) 20%, transparent);
-    padding: 6px var(--sp-lg);
+    padding: var(--sp-xs) var(--sp-lg);
     background: color-mix(in srgb, var(--accent-red) 4%, transparent);
     flex-shrink: 0;
   }
@@ -1842,7 +1845,7 @@
 
   .commit-error-text {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--accent-red);
     white-space: pre-wrap;
     word-break: break-word;
@@ -1869,7 +1872,7 @@
     font-size: 11px;
     color: var(--text-primary);
     line-height: 1.5;
-    padding: 6px 8px;
+    padding: var(--sp-sm);
     background: color-mix(in srgb, var(--accent-amber) 6%, transparent);
     border-radius: var(--radius-sm);
     border: 1px solid color-mix(in srgb, var(--accent-amber) 15%, transparent);
@@ -1877,7 +1880,7 @@
 
   .commit-explain-loading {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-muted);
     font-style: italic;
   }

@@ -442,7 +442,7 @@
     display: flex;
     align-items: center;
     gap: var(--sp-sm);
-    padding: 6px var(--sp-lg);
+    padding: var(--sp-xs) var(--sp-lg);
     border-bottom: 1px solid var(--border-subtle);
     background: var(--bg-surface);
     flex-shrink: 0;
@@ -455,7 +455,7 @@
     font-family: var(--font-ui);
     font-size: 13px;
     cursor: pointer;
-    padding: 2px 6px;
+    padding: var(--sp-2xs) var(--sp-xs);
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -507,7 +507,7 @@
     display: flex;
     align-items: center;
     gap: var(--sp-sm);
-    padding: 5px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     background: none;
     border: 1px solid transparent;
     border-radius: var(--radius-md);
@@ -678,7 +678,7 @@
 
   .size-value {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-primary);
     min-width: 36px;
     text-align: center;
@@ -745,7 +745,7 @@
   }
 
   .font-glyphs {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-muted);
     letter-spacing: 2px;
   }
@@ -758,13 +758,13 @@
 
   .path-input {
     flex: 1;
-    padding: 6px 10px;
+    padding: var(--sp-xs) 10px;
     background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     outline: none;
   }
 
@@ -777,13 +777,13 @@
   }
 
   .browse-btn {
-    padding: 6px 14px;
+    padding: var(--sp-xs) 14px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     color: var(--text-dim);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     cursor: pointer;
     transition: all 100ms ease;
     white-space: nowrap;
@@ -799,7 +799,7 @@
     display: inline-block;
     margin-top: var(--sp-xs);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--accent-green);
   }
 
@@ -878,7 +878,7 @@
   .imported-check {
     color: var(--accent-green);
     margin-left: auto;
-    font-size: 10px;
+    font-size: var(--text-label);
   }
 
   .loading-text {
@@ -894,7 +894,7 @@
   /* Editor settings: subsections, rows, controls */
   .subsection-title {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -910,13 +910,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px 0;
+    padding: var(--sp-xs) 0;
     gap: var(--sp-md);
   }
 
   .setting-label {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-dim);
     white-space: nowrap;
   }
@@ -1008,7 +1008,7 @@
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-dim);
   }
 </style>

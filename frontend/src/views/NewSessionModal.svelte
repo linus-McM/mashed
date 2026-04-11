@@ -295,7 +295,7 @@
   }
 
   h2 {
-    font-size: 18px;
+    font-size: var(--text-section);
     font-weight: 600;
     color: var(--text-primary);
     margin: 0 0 4px;
@@ -305,7 +305,7 @@
   }
 
   .subtitle {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-dim);
     margin: 0 0 20px;
   }
@@ -327,24 +327,24 @@
     color: var(--text-dim);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    margin-bottom: var(--sp-sm);
   }
 
   .radio-row {
     display: flex;
-    gap: 6px;
+    gap: var(--sp-sm);
   }
 
   .radio-btn {
     flex: 1;
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 100ms ease-out;
     font-family: var(--font-ui);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-primary);
     text-align: center;
     display: flex;
@@ -365,7 +365,7 @@
 
   .radio-meta {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-muted);
   }
 
@@ -378,12 +378,12 @@
   .toggle-item {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--sp-sm);
     cursor: pointer;
     text-transform: none;
     letter-spacing: 0;
     font-weight: 400;
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-primary);
     margin-bottom: 0;
   }
@@ -397,13 +397,13 @@
 
   .text-input {
     width: 100%;
-    padding: 6px 10px;
+    padding: var(--sp-xs) 10px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     outline: none;
     transition: border-color 100ms ease;
     box-sizing: border-box;
@@ -419,7 +419,7 @@
   }
 
   .conditional-input {
-    margin-top: 6px;
+    margin-top: var(--sp-xs);
   }
 
   .command-preview {

@@ -34,8 +34,8 @@
   .picker-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    padding: 6px;
+    gap: var(--sp-xs);
+    padding: var(--sp-xs);
   }
 
   .template-card {
@@ -89,13 +89,13 @@
   }
 
   .card-use {
-    padding: 3px 12px;
+    padding: var(--sp-2xs) 12px;
     background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     color: var(--accent-green);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     cursor: pointer;
     transition: background 100ms ease, border-color 100ms ease;
     margin-top: 2px;

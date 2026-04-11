@@ -154,7 +154,7 @@
   }
 
   h2 {
-    font-size: 18px;
+    font-size: var(--text-section);
     font-weight: 600;
     color: var(--text-primary);
     margin: 0 0 4px;
@@ -164,7 +164,7 @@
   }
 
   .subtitle {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-dim);
     margin: 0 0 20px;
   }
@@ -183,7 +183,7 @@
     border: 1px solid color-mix(in srgb, var(--accent-amber) 20%, transparent);
     border-radius: var(--radius-md);
     color: var(--accent-amber);
-    font-size: 12px;
+    font-size: var(--text-body);
     margin-bottom: 16px;
   }
 
@@ -191,7 +191,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 12px;
+    padding: var(--sp-sm) 12px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
@@ -216,7 +216,7 @@
   .branch-list {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: var(--sp-2xs);
     max-height: 240px;
     overflow-y: auto;
     margin-bottom: 16px;
@@ -250,7 +250,7 @@
 
   .branch-name {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -258,7 +258,7 @@
 
   .empty {
     color: var(--text-dim);
-    font-size: 12px;
+    font-size: var(--text-body);
     padding: 12px;
     text-align: center;
   }
@@ -284,7 +284,7 @@
   }
 
   .error {
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--accent-red);
     margin-bottom: 16px;
   }

@@ -286,7 +286,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 12px;
+    padding: var(--sp-xs) 12px;
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border-subtle);
     flex-shrink: 0;
@@ -294,7 +294,7 @@
 
   .file-path {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -310,8 +310,8 @@
 
   .save-status {
     font-family: var(--font-mono);
-    font-size: 10px;
-    padding: 1px 6px;
+    font-size: var(--text-label);
+    padding: 1px var(--sp-xs);
     border-radius: var(--radius-sm);
   }
 
@@ -404,7 +404,7 @@
     text-align: right;
     color: var(--text-muted);
     user-select: none;
-    font-size: 12px;
+    font-size: var(--text-body);
   }
 
   /* Diff colors */
@@ -446,7 +446,7 @@
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     font-family: var(--font-ui);
-    font-size: 12px;
+    font-size: var(--text-body);
     line-height: 1.4;
     color: var(--text-primary);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);

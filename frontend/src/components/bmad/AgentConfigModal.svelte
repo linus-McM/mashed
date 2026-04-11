@@ -225,7 +225,7 @@
 
   .field-label {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--text-label);
     font-weight: 600;
     color: var(--text-dim);
     text-transform: uppercase;
@@ -233,20 +233,20 @@
   }
 
   .field-input, .field-select {
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     outline: none;
   }
 
   .field-input:focus, .field-select:focus { border-color: var(--accent-green); }
 
   .field-textarea {
-    padding: 6px 8px;
+    padding: var(--sp-xs) var(--sp-sm);
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
@@ -273,8 +273,8 @@
   .skill-checkbox {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 3px 6px;
+    gap: var(--sp-sm);
+    padding: var(--sp-2xs) var(--sp-xs);
     cursor: pointer;
     border-radius: var(--radius-sm);
     transition: background 80ms ease;
@@ -310,7 +310,7 @@
   }
 
   .btn {
-    padding: 6px 14px;
+    padding: var(--sp-xs) 14px;
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
     font-size: 11px;

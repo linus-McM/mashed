@@ -19,7 +19,7 @@
 <style>
   .sparkline {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-body);
     color: var(--accent-teal);
     letter-spacing: -0.5px;
   }
