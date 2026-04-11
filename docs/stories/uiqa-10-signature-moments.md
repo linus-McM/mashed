@@ -1,6 +1,6 @@
 # Story uiqa-10: Signature Moments — Running Pulse + Status Bar Ambient + Terminal Commit Panel
 
-**Status:** ready
+**Status:** done
 **Size:** L
 **Priority:** P3
 **Domain:** frontend
