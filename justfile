@@ -20,14 +20,18 @@ sonnet:
     @tmux new-session -d -s {{repo}}-sonnet-{{rand}} 'claude --dangerously-skip-permissions --model "sonnet"' && tmux attach -t {{repo}}-sonnet-{{rand}}
 
 # Start Claude with Opus model in tmux
-opus:
+opus: r_mix
     @tmux new-session -d -s {{repo}}-opus-{{rand}} 'claude --dangerously-skip-permissions' && tmux attach -t {{repo}}-opus-{{rand}}
 
 # Start Claude with Haiku model in tmux
 haiku:
     @tmux new-session -d -s {{repo}}-haiku-{{rand}} 'claude --dangerously-skip-permissions --model "haiku"' && tmux attach -t {{repo}}-haiku-{{rand}}
+
 dev: build-helper
     PATH="$HOME/go/bin:$PATH" wails dev
+
+r_mix:
+    @repomix --parsable-style --compress --remove-empty-lines --skill-generate use-repo-code
 
 # Build and launch Mashed
 run: build

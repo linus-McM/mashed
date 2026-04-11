@@ -7,12 +7,17 @@
 
 ## Changelog
 
-### BMAD Terminal Bridge (bridge-01 through bridge-04)
+### BMAD Terminal Bridge
 
-- BMAD tmux sessions are now named `bmad-{repo}-{branch}-{label}-{hash}` (e.g. `bmad-surfseer-main-create-story-a1b2c3d4`) instead of the cryptic `bmad-{nodeID}-{unix}` format.
-- **Migration note:** Sessions created by older builds cannot be re-attached via View Terminal — they must be restarted. Orphaned `bmad-*` sessions from prior runs are automatically cleaned up on next app startup.
-- View Terminal now works for running BMAD nodes, streaming live Claude CLI output through a new `TmuxAdapter` bridge (FIFO-based with polling fallback).
-- The terminal modal title shows the parsed friendly form (`Terminal — repo · branch · label`) instead of the raw tmux target.
+- BMAD tmux sessions are named `bmad-{repo}-{branch}-{label}-{shortHash}` (e.g. `bmad-surfseer-main-create-story-a1b2c3d4`). Built by `internal/bmad.BuildSessionName(repoPath, branch, nodeLabel, nodeID, nowNanos)` and parsed back by `ParseSessionName`. Total length capped to prevent tmux rejection (≤ 88 bytes); long components are slugified and truncated while the short hash is preserved for uniqueness.
+- **Migration note:** Sessions created by older builds cannot be re-attached via View Terminal — they must be restarted. Orphaned `bmad-*` sessions from prior runs whose names do not belong to a tracked execution are cleaned up at executor startup (`internal/bmad/cleanup.go`).
+- View Terminal works for running BMAD nodes, streaming live Claude CLI output through the `internal/terminal.TmuxAdapter` (FIFO-based with polling fallback).
+- The terminal modal title shows the parsed friendly form (`Terminal — repo · branch · label`) instead of the raw tmux target; parsing is mirrored on the frontend in `frontend/src/lib/bmadSessionName.ts`.
+
+### Out-of-Process PTY Helper
+
+- Terminal I/O is no longer performed in-process. `main.go` resolves and launches a separate `mashed-pty-helper` binary (source: `cmd/pty-helper/main.go`, client in `internal/terminal/helper/client.go`, server in `internal/terminal/helper/server.go`) and communicates over a Unix domain socket using the protocol defined in `internal/terminal/helper/protocol.go`. The Wails process talks to the helper via `helper.Client`; terminal sessions are registered per-window through `app_terminal_registry.go`.
+- The helper is discovered in `build/bin/` first (dev) and falls back to the `.app` bundle in production. Startup waits for the socket to appear before binding Wails methods. Shutdown signals the helper, closes the client, and waits for the child process to exit cleanly.
 
 ---
 
@@ -49,98 +54,151 @@ Industrial/Utilitarian aesthetic. Linear meets Bloomberg Terminal. Neon green (`
 ### Project Structure
 
 ```
-main.go                         ← Wails entry point, window config, asset embedding
-app.go                          ← App struct, startup/shutdown, config, theme management
-app_scan.go                     ← Process scanning loop, agent discovery, notification engine
-app_sessions.go                 ← JSONL session watching, parsing, status inference
-app_tmux.go                     ← Agent/terminal spawning, kill, log retrieval
-app_git.go                      ← Git operations (branches, commits, push, PR, merge, diff, worktrees)
-app_bmad.go                     ← BMAD workflow CRUD, execution control, agent/module management
-app_explain.go                  ← AI-powered diff explanation via Claude CLI
-font_scanner.go                 ← Local font discovery + Nerd Fonts catalog
-theme_scanner.go                ← VSCodium theme import + conversion
+main.go                             ← Wails entry point, menu bar, PTY helper lifecycle, asset embedding
+app.go                              ← App struct, startup/shutdown, config, theme management, active context
+app_scan.go                         ← Process scanning loop, agent discovery, notification engine wiring
+app_sessions.go                     ← JSONL session watching, parsing, status inference
+app_spawn.go                        ← SpawnAgent / SpawnAgentWithCommand / SpawnTerminal / KillAgent
+app_terminal_registry.go            ← Per-window terminal session registry backed by helper.Client
+app_git.go                          ← Git operations (branches, commits, push, PR, merge, diff, worktrees)
+app_bmad.go                         ← BMAD workflow CRUD, execution control, agent/module management
+app_bmad_question_test.go           ← Question-response flow tests
+app_claude.go                       ← Claude-CLI-backed integrations (ListAllAgents, etc.)
+app_models.go                       ← Model catalog (ListModels)
+app_review.go                       ← Code review streaming (StreamCodeReviewSummary, SpawnPRReview)
+app_review_scoped.go                ← Scoped review / refactor-plan streaming (StreamScopedAdvice, SpawnRefactorPlan)
+app_explain.go                      ← AI-powered diff explanation via Claude CLI
+font_scanner.go                     ← Local font discovery + Nerd Fonts catalog
+theme_scanner.go                    ← VSCodium theme import + conversion
+cmd/
+  pty-helper/
+    main.go                         ← Out-of-process PTY helper binary (mashed-pty-helper)
 internal/
+  advice/
+    loader.go                       ← Markdown advice mode loader (user + bundled defaults)
+    types.go                        ← Advice mode struct
+    defaults/                       ← Bundled modes: clean-code, domain-driven-design,
+                                        extreme-programming, performance, pragmatic,
+                                        security-first, solid, strategic
   agent/
-    engine.go                   ← NotificationEngine — event classification and emission
+    engine.go                       ← NotificationEngine — event classification and emission
+    tokensamples.go                 ← Token burn sample ring buffer helpers
   bmad/
-    types.go                    ← WorkflowDef, WorkflowNode, WorkflowEdge, NodeType, etc.
-    storage.go                  ← Workflow/agent persistence to ~/.mashed/
-    executor.go                 ← DAG-based workflow execution (dynamic ready-set algorithm)
-    registry.go                 ← Process catalog (built-in BMAD processes by phase)
-    modules.go                  ← Module catalog (reusable BMAD modules)
-    templates.go                ← Built-in workflow templates
-    condition.go                ← Condition evaluation engine (comparisons, regex, contains)
-    sprint.go                   ← Sprint status YAML parsing/updating
-    artifacts.go                ← Artifact path resolution and verification
+    types.go                        ← WorkflowDef, WorkflowNode, WorkflowEdge, NodeType, BmadPhase, etc.
+    storage.go                      ← Workflow/agent persistence to ~/.mashed/
+    executor.go                     ← DAG-based workflow execution (dynamic ready-set algorithm)
+    registry.go                     ← Process catalog (built-in BMAD processes by phase)
+    modules.go                      ← Module catalog (reusable BMAD modules)
+    templates.go                    ← Built-in workflow templates
+    condition.go                    ← Condition evaluation engine (comparisons, regex, contains)
+    sprint.go                       ← Sprint status YAML parsing/updating
+    artifacts.go                    ← Artifact path resolution and verification
+    question.go                     ← AskUserQuestion response routing for BMAD nodes
+    session_naming.go               ← BuildSessionName / ParseSessionName for tmux session labels
+    cleanup.go                      ← Orphaned tmux session cleanup at executor startup
+    assets.go                       ← "Mashed-ready" skill/agent/command asset loader
+    skillgen.go                     ← Skill generation helper
   domain/
-    types.go                    ← All domain structs (Agent, Repo, Workflow, SessionData, etc.)
+    types.go                        ← All domain structs (Agent, Repo, Workflow, SessionData, etc.)
+    models.go                       ← Model metadata catalog (name, token limit)
   explain/
-    explain.go                  ← Diff explanation via Claude CLI subprocess
+    explain.go                      ← Diff explanation via Claude CLI subprocess
   git/
-    diff.go                     ← Git diff parsing, scoped diffs
-    worktree.go                 ← Git worktree management
-    errors.go                   ← Git-specific error types
+    diff.go                         ← Git diff parsing, scoped diffs
+    worktree.go                     ← Git worktree management
+    errors.go                       ← Git-specific error types
   scanner/
-    processes.go                ← Discover Claude CLI sessions via ps + lsof
-    repos.go                    ← Scan dev directory for git repos + metadata
-    sessions.go                 ← Parse JSONL session files for token/log data
-    watcher.go                  ← fsnotify-based live JSONL tailing
-    claude.go                   ← ClaudeCodeProvider (AgentProvider implementation)
-    errors.go                   ← Scanner-specific error types
+    processes.go                    ← Discover Claude CLI sessions via ps + lsof
+    repos.go                        ← Scan dev directory for git repos + metadata
+    sessions.go                     ← Parse JSONL session files for token/log data
+    watcher.go                      ← fsnotify-based live JSONL tailing
+    claude.go                       ← ClaudeCodeProvider (AgentProvider implementation)
+    errors.go                       ← Scanner-specific error types
   terminal/
-    bridge.go                   ← WebSocket bridge (Go pty ↔ xterm.js in browser)
-    panes.go                    ← tmux pane discovery, PID-to-pane mapping
+    bridge.go                       ← WebSocket bridge (pty ↔ xterm.js in browser)
+    manager.go                      ← Terminal session manager (lifecycle, registry)
+    session.go                      ← Terminal session abstraction
+    panes.go                        ← tmux pane discovery, PID-to-pane mapping
+    tmux_adapter.go                 ← FIFO-based tmux pane capture adapter
+    tmux_escape.go                  ← tmux control-mode / escape helpers
+    stub.go                         ← Build-tag stubs for non-tmux environments
+    helper/
+      client.go                     ← Unix-socket client used by the Wails process
+      server.go                     ← Server running inside mashed-pty-helper
+      protocol.go                   ← Wire protocol (request/response framing)
+scripts/
+  check-coverage.sh                 ← CI test coverage gate
+  tmux-bmad-viewer.sh               ← Dev helper for attaching to running BMAD sessions
 frontend/
   src/
-    App.svelte                  ← Root component, view routing
+    App.svelte                      ← Root component, view routing
+    main.js                         ← Svelte entry point
     views/
-      Setup.svelte              ← First-run dev directory picker
-      NotificationFeed.svelte   ← Main dashboard — agent notification stream
-      AgentDetail.svelte        ← Agent drill-down with terminal + logs + diff
-      WorkflowBuilder.svelte    ← BMAD visual workflow canvas
-      Settings.svelte           ← Theme, font, path configuration
-      SpawnAgent.svelte         ← New agent session launcher
-      NewSessionModal.svelte    ← Session creation modal
-      BranchModal.svelte        ← Branch creation
-      SwitchBranchModal.svelte  ← Branch switching
-      MergeModal.svelte         ← Branch merge
-      ForcePushModal.svelte     ← Force push confirmation
+      Setup.svelte                  ← First-run dev directory picker
+      NotificationFeed.svelte       ← Main dashboard — agent notification stream
+      AgentDetail.svelte            ← Agent drill-down with terminal + logs + diff + editor
+      WorkflowBuilder.svelte        ← BMAD visual workflow canvas
+      Settings.svelte               ← Theme, font, path, editor, advice configuration
+      SpawnAgent.svelte             ← New agent session launcher
+      NewSessionModal.svelte        ← Session creation modal
+      SummarisationModal.svelte     ← Streaming advice / review summarisation modal
+      BranchModal.svelte            ← Branch creation
+      SwitchBranchModal.svelte      ← Branch switching
+      MergeModal.svelte             ← Branch merge
+      ForcePushModal.svelte         ← Force push confirmation
     components/
-      TitleBar.svelte           ← Frameless window title bar with controls
-      Terminal.svelte           ← xterm.js terminal (WebSocket to Go bridge)
-      MonacoEditor.svelte       ← Monaco editor integration
-      CodeEditor.svelte         ← Lightweight code editor
-      DiffView.svelte           ← Side-by-side diff viewer
-      FileTree.svelte           ← File browser tree
-      SparkLine.svelte          ← Token burn sparkline (block characters)
-      StatusBadge.svelte        ← Agent status pill badge
-      NewRepoModal.svelte       ← Repository creation dialog
+      TitleBar.svelte               ← Frameless window title bar with controls
+      Terminal.svelte               ← xterm.js terminal (WebSocket bridge to helper)
+      MonacoEditor.svelte           ← Monaco editor integration
+      CodeEditor.svelte             ← Lightweight code editor
+      EditorRouter.svelte           ← Dispatches to Monaco / Markdown / Image editor by file type
+      MarkdownEditor.svelte         ← Crepe / Milkdown markdown editor
+      ImageViewer.svelte            ← Image preview component
+      DiffView.svelte               ← Side-by-side diff viewer
+      FileTree.svelte               ← File browser tree
+      SparkLine.svelte              ← Token burn sparkline (block characters)
+      StatusBadge.svelte            ← Agent status pill badge
+      NewRepoModal.svelte           ← Repository creation dialog
+      AboutModal.svelte             ← About / version dialog
       bmad/
-        CanvasPane.svelte       ← xyflow DAG canvas for workflow builder
-        ProcessNode.svelte      ← Standard process node
-        ConditionNode.svelte    ← If/else branch node
-        LoopNode.svelte         ← Loop N times node
-        LoopUntilNode.svelte    ← Loop until condition node
-        TransformNode.svelte    ← Data extraction/transform node
-        MergeNode.svelte        ← Branch merge node
-        DeletableEdge.svelte    ← Edge with delete button
-        ProcessSidebar.svelte   ← Process catalog sidebar
-        NodeConfigPanel.svelte  ← Node configuration editor
-        ExecutionBar.svelte     ← Run/pause/stop controls
-        TemplatePicker.svelte   ← Workflow template selection
-        AgentConfigModal.svelte ← Custom agent configuration
-        RepoContextBar.svelte   ← Repository context display
-        SprintPanel.svelte      ← Sprint status panel
-        OutputViewerModal.svelte← Node output inspection
+        CanvasPane.svelte           ← xyflow DAG canvas for workflow builder
+        ProcessNode.svelte          ← Standard process node
+        ConditionNode.svelte        ← If/else branch node
+        LoopNode.svelte             ← Loop N times node
+        LoopUntilNode.svelte        ← Loop until condition node
+        TransformNode.svelte        ← Data extraction/transform node
+        MergeNode.svelte            ← Branch merge node
+        DeletableEdge.svelte        ← Edge with delete button
+        ProcessSidebar.svelte       ← Process catalog sidebar
+        NodeConfigPanel.svelte      ← Node configuration editor
+        ExecutionBar.svelte         ← Run/pause/stop controls
+        TemplatePicker.svelte       ← Workflow template selection
+        AgentConfigModal.svelte     ← Custom agent configuration
+        ArrayEditorModal.svelte     ← Array field editor (for node config lists)
+        NameWorkflowModal.svelte    ← New workflow naming dialog
+        QuestionResponseModal.svelte ← AskUserQuestion response modal
+        QuestionSnackbarStack.svelte ← Stacked question-toast notifications
+        OutputViewerModal.svelte    ← Node output inspection
+        GitPanel.svelte             ← Embedded git panel on the workflow canvas
+        RepoContextBar.svelte       ← Repository context display
+        SprintPanel.svelte          ← Sprint status panel
+    config/
+      claude-cli.json               ← Claude CLI spawn defaults (model, args, env)
     lib/
-      stores/theme.js           ← Theme reactive store
-      stores/font.js            ← Font reactive store
-      themes.js                 ← Built-in theme definitions
-      themeConverter.js         ← VSCodium → Mashed theme conversion
-      themeInit.js              ← Theme initialization on startup
-      monacoTheme.js            ← Monaco editor theme adapter
-      fileTree.js               ← File tree data structures
-      sprintColors.js           ← BMAD sprint status colors
+      stores/theme.js               ← Theme reactive store
+      stores/font.js                ← Font reactive store
+      stores/editorSettings.js      ← Editor settings (font size, tab width, etc.)
+      stores/sessions.js            ← Active session store
+      themes.js                     ← Built-in theme definitions
+      themeConverter.js             ← VSCodium → Mashed theme conversion
+      themeInit.js                  ← Theme initialization on startup
+      monacoTheme.js                ← Monaco editor theme adapter
+      fileTree.js                   ← File tree data structures
+      sprintColors.js               ← BMAD sprint status colors
+      bmadSessionName.ts            ← Parses BMAD tmux session names (mirrors Go ParseSessionName)
+    scripts/
+      check-orphan-tokens.mjs       ← Design-token guardrail script
+  wailsjs/                          ← Auto-generated Wails bindings (do not edit)
 ```
 
 ### Key Dependencies
@@ -561,16 +619,34 @@ Each scan cycle tracks which agent PIDs are still alive. Agents whose processes 
 
 ## 7. Terminal Bridge
 
-### WebSocket Architecture (`internal/terminal/bridge.go`)
+### Two-process architecture
 
-The terminal bridge enables the Svelte frontend to display live terminal sessions:
+Terminal I/O is split across two processes for crash isolation:
 
-1. **Go side**: Starts a WebSocket server on a dynamic port at startup
-2. **Frontend**: `Terminal.svelte` connects xterm.js to the WebSocket URL
-3. **Connection flow**:
-   - Frontend sends tmux target string on connect
-   - Go attaches to the tmux pane via `creack/pty`
-   - Bidirectional streaming: keystrokes → pty stdin, pty stdout → xterm.js
+1. **Wails process** (`main.go` → `App`) — owns the UI, Wails bindings, and a `helper.Client` connected via a Unix domain socket.
+2. **`mashed-pty-helper`** (`cmd/pty-helper/main.go`) — owns `creack/pty` file descriptors and tmux interaction. Runs `helper.Server` (`internal/terminal/helper/server.go`) behind the socket.
+
+At startup `main.go`:
+
+1. Calls `resolveHelperPath()` — prefers `build/bin/mashed-pty-helper` (dev) over the `.app` bundle copy.
+2. Launches the helper subprocess inheriting stdin/out/err.
+3. Calls `waitForSocket(path, timeout)` until the helper's Unix socket file appears.
+4. Opens `helper.Client` over the socket.
+5. Hands the client to the Wails `App` before `wails.Run(...)`.
+
+On shutdown: closes the client, signals the helper subprocess, and waits for exit to avoid orphaned helpers.
+
+### Helper Protocol (`internal/terminal/helper/protocol.go`)
+
+Framed request/response messages over the Unix socket. Operations include: spawn a pty attached to a shell or tmux pane, read/write bytes, resize, kill, and list active sessions. `client.go` and `server.go` implement the two ends; both have integration tests (`integration_test.go`).
+
+### WebSocket Bridge (`internal/terminal/bridge.go`)
+
+Inside the Wails process, `bridge.go` runs a WebSocket server on a dynamic port. The port is exposed to the frontend via `GetTerminalPort()`. `Terminal.svelte` connects xterm.js to `ws://localhost:{port}` and sends a tmux target string on connect. The bridge proxies bytes in both directions between the frontend socket and the helper session.
+
+### Session Registry (`app_terminal_registry.go`)
+
+Per-window terminal sessions are registered so that `KillTerminalSession(sessionName)` and reconnects can locate the correct helper session. `internal/terminal/manager.go` and `session.go` define the server-side lifecycle; `panes.go` handles tmux pane discovery; `tmux_adapter.go` and `tmux_escape.go` provide the FIFO-based tmux capture used by the BMAD "View Terminal" feature.
 
 ### tmux Pane Discovery (`internal/terminal/panes.go`)
 
@@ -578,21 +654,19 @@ The terminal bridge enables the Svelte frontend to display live terminal session
 tmux list-panes -a -F '#{pane_pid}:#{pane_id}:#{session_name}:#{window_index}.#{pane_index}'
 ```
 
-Agent PIDs are not always direct children of tmux panes (shell → node → claude). The discovery walks the PPID chain up to 8 levels to find a matching pane.
+Agent PIDs are rarely direct children of tmux panes (shell → node → claude). Discovery walks the PPID chain up to 8 levels to match an agent PID to a pane. The pane list is cached (short TTL) to avoid repeated `tmux list-panes` calls; the cache is invalidated when new sessions are spawned.
 
-Pane list is cached (5s TTL) to avoid repeated `tmux list-panes` calls. Cache is invalidated when new sessions are spawned.
-
-### Agent Spawning (`app_tmux.go`)
+### Agent Spawning (`app_spawn.go`)
 
 ```go
-// SpawnAgent creates a new Claude session in a tmux pane
-func (a *App) SpawnAgent(repoPath, model string) (string, error)
-
-// SpawnTerminal creates a plain shell session
+func (a *App) SpawnAgent(repoPath string, model string) (string, error)
+func (a *App) SpawnAgentWithCommand(repoPath, command string) (string, error)
 func (a *App) SpawnTerminal(repoPath string) (string, error)
+func (a *App) KillAgent(agentID string, pid int, tmuxTarget string) error
+func (a *App) KillTerminalSession(sessionName string) error
 ```
 
-tmux sessions are named `mashed-{repoName}-{timestamp}` (agents) or `term-{repoName}-{timestamp}` (terminals).
+BMAD sessions are named via `internal/bmad.BuildSessionName(repoPath, branch, nodeLabel, nodeID, nowNanos)` producing `bmad-{repo}-{branch}-{label}-{shortHash}`. Ad-hoc agents / terminals spawned from the UI use session names minted in `app_spawn.go` and tracked via the helper protocol rather than being derived by format string — see the code for the exact format when interoperating with external tooling.
 
 ---
 
@@ -648,31 +722,54 @@ Uses a **dynamic ready-set algorithm** (`runDynamic()`):
 
 `topoSort()` is kept only for cycle detection.
 
-### Process Registry (`internal/bmad/registry.go`)
+### Process Registry (`internal/bmad/registry.go`, phases in `types.go`)
 
-Processes are organized by BMAD lifecycle phase:
-- `analysis` — requirements, stakeholder mapping
-- `architecture` — system design, data modeling
-- `planning` — sprint planning, story creation
-- `implementation` — code generation, testing
-- `review` — code review, QA
+Processes are organized by BMAD lifecycle phase. Phase constants (`internal/bmad/types.go`):
+
+```go
+type BmadPhase string
+
+const (
+    PhaseAnalysis       BmadPhase = "analysis"
+    PhasePlanning       BmadPhase = "planning"
+    PhaseSolutioning    BmadPhase = "solutioning"
+    PhaseImplementation BmadPhase = "implementation"
+    PhaseSupport        BmadPhase = "support"
+    PhaseUtilities      BmadPhase = "utilities"
+)
+```
+
+Two additional phase labels — `"strategic"` and `"review"` — are used at the Global process layer and inside story status (`StoryReview`). `GetBmadProcessesByPhase(phase)` filters the catalog for the sidebar's collapsible phase groups.
 
 ### Storage (`internal/bmad/storage.go`)
 
 - Workflows: `~/.mashed/workflows/{id}.json`
-- Agents: `~/.mashed/bmad-agents/{id}.json`
-- Per-repo workflows via `RepoPath` field
+- BMAD agents: `~/.mashed/bmad-agents/{id}.json`
+- Per-repo workflows via the `RepoPath` field on `WorkflowDef`
 
 ### Artifact System (`internal/bmad/artifacts.go`)
 
 - Artifacts resolve to `{repoPath}/_bmad-output/{category}/{artifact}` via a canonical path map
 - `ResolveArtifactPath(name, repoPath)` → full path
 - `VerifyArtifacts(repoPath, outputNames)` → checks existence
-- Unmapped artifacts (`"code"`, `"tests"`) return `""` — handled by callers
+- Unmapped artifacts (`"code"`, `"tests"`, `"any-doc"`) return `""` — handled by callers
+- Exposed to the frontend via `GetArtifactStatus(...)` for per-node status decoration
+
+### Question Flow (`internal/bmad/question.go`)
+
+AskUserQuestion tool calls emitted by running BMAD nodes are routed through the question store and surfaced to the frontend as `QuestionResponseModal` / `QuestionSnackbarStack`. The frontend answers via `RespondToQuestion(...)`, which posts the response back into the originating node's session.
+
+### Asset Loader (`internal/bmad/assets.go`)
+
+Walks user and bundled skill/agent/command directories and keeps the "mashed-ready" asset set. An asset is considered mashed-ready when it carries a `mashedRole` frontmatter value. Missing frontmatter or missing role silently skips the asset without erroring. Exposed via `ListAllMashedAssets`.
+
+### Session Cleanup (`internal/bmad/cleanup.go`)
+
+On executor startup, orphaned tmux sessions whose names start with the BMAD prefix but do not correspond to any tracked execution are killed. `liveSessionNames()` is the source of truth for "in use"; `bareSessionName(target)` strips optional `:window.pane` suffixes before comparison.
 
 ### Templates (`internal/bmad/templates.go`)
 
-6 built-in workflow templates that can be deep-copied into user workflows via `CreateFromTemplate()`.
+Built-in workflow templates deep-copied into user workflows via `CreateFromTemplate(templateID, repoPath)`.
 
 ---
 
@@ -699,20 +796,32 @@ Full agent view with:
 
 ### Workflow Builder (`WorkflowBuilder.svelte`)
 Visual DAG editor powered by `@xyflow/svelte`:
-- **Canvas** (`CanvasPane.svelte`): drag-and-drop node placement, edge connections
-- **Sidebar** (`ProcessSidebar.svelte`): process catalog organized by BMAD phase
-- **Config panel** (`NodeConfigPanel.svelte`): edit node parameters
-- **Execution bar** (`ExecutionBar.svelte`): start/pause/stop workflow execution
-- **Template picker** (`TemplatePicker.svelte`): start from built-in templates
-- **Node types**: ProcessNode, ConditionNode, LoopNode, LoopUntilNode, TransformNode, MergeNode
-- **Sprint panel** (`SprintPanel.svelte`): sprint status from YAML
+- **Canvas** (`CanvasPane.svelte`): drag-and-drop node placement, edge connections, `DeletableEdge` for edge removal
+- **Sidebar** (`ProcessSidebar.svelte`): process catalog with collapsible BMAD phase groups (analysis, planning, solutioning, implementation, support, utilities + strategic/review globals)
+- **Config panel** (`NodeConfigPanel.svelte`) + **Array field editor** (`ArrayEditorModal.svelte`): edit node parameters and list-valued fields
+- **Execution bar** (`ExecutionBar.svelte`): start/pause/resume/stop workflow execution
+- **Template picker** (`TemplatePicker.svelte`) + **Name dialog** (`NameWorkflowModal.svelte`): create workflows from templates, then name them
+- **Agent config** (`AgentConfigModal.svelte`): edit custom BMAD agents
+- **Node types**: `ProcessNode`, `ConditionNode`, `LoopNode`, `LoopUntilNode`, `TransformNode`, `MergeNode`
+- **Question flow** (`QuestionResponseModal.svelte`, `QuestionSnackbarStack.svelte`): answer AskUserQuestion prompts from running nodes
+- **Output inspection** (`OutputViewerModal.svelte`): view captured terminal output per node
+- **Sprint panel** (`SprintPanel.svelte`): sprint status parsed from `sprint-status.yaml`
+- **Git panel** (`GitPanel.svelte`): inline git operations (commit, push, branch switch) without leaving the canvas
+- **Repo context bar** (`RepoContextBar.svelte`): which repo / branch / worktree the workflow is running against
 
 ### Settings (`Settings.svelte`)
-- Theme selection (built-in + VSCodium import)
+- Theme selection (built-in, bundled, and VSCodium import)
 - Font selection (system fonts + Nerd Fonts)
-- Font size
+- Font size, editor settings (tab width, etc.)
 - Dev directory path
 - VSCodium extension path
+- Advice mode selection (list from `ListAdviceModes()`)
+
+### Summarisation (`SummarisationModal.svelte`)
+Streaming modal used for `StreamAdvice`, `StreamCodeReviewSummary`, and `StreamScopedAdvice`. Token-by-token render of the model output with a cancel button.
+
+### About (`AboutModal.svelte`)
+Version + build info dialog, reachable from the TitleBar menu.
 
 ---
 
@@ -720,10 +829,13 @@ Visual DAG editor powered by `@xyflow/svelte`:
 
 All public methods on the `App` struct are exposed to the Svelte frontend via Wails bindings.
 
-### Configuration
+> The exhaustive list is the public (exported) method set of `*App` across the root `app*.go` files. Sections below group them by purpose.
+
+### Configuration & Context
 | Method | Purpose |
 |--------|---------|
 | `PickDirectory()` | Native OS directory picker dialog |
+| `PickFile()` | Native OS file picker dialog |
 | `SetDevDir(dir)` | Save dev directory and start scanning |
 | `GetDevDir()` | Current dev directory |
 | `GetConfig()` | Full persisted config |
@@ -731,6 +843,11 @@ All public methods on the `App` struct are exposed to the Svelte frontend via Wa
 | `SetMonoFont(family)` | Persist font selection |
 | `SetFontSize(size)` | Persist font size |
 | `SetVSCodiumExtPath(path)` | Persist VSCodium path |
+| `SetSidebarWidth(px)` | Persist sidebar layout width |
+| `SetActiveContext(...)` | Update the focused repo / agent context |
+| `GetEditorSettings()` | Current editor settings (font size, tab width, etc.) |
+| `SetEditorSettings(s)` | Persist editor settings |
+| `DefaultEditorSettings()` | Factory defaults |
 
 ### Theme Management
 | Method | Purpose |
@@ -741,6 +858,8 @@ All public methods on the `App` struct are exposed to the Svelte frontend via Wa
 | `ListVSCodiumThemes()` | Discover VSCodium color themes |
 | `ReadThemeFile(path)` | Read raw theme JSON |
 | `SetImportedTheme(path)` | Import a VSCodium theme |
+| `ListBundledThemes()` | Themes shipped inside the app bundle |
+| `ReadBundledThemeFile(id)` | Read a bundled theme JSON |
 
 ### Font Discovery
 | Method | Purpose |
@@ -750,17 +869,23 @@ All public methods on the `App` struct are exposed to the Svelte frontend via Wa
 | `GetFontsDir()` | Font installation directory |
 | `OpenFontsDir()` | Open font dir in Finder |
 
-### Agent Management
+### Agents, Sessions & Terminals
 | Method | Purpose |
 |--------|---------|
 | `GetNotifications()` | Priority-sorted notification list |
 | `SpawnAgent(repoPath, model)` | Start Claude in new tmux session |
-| `SpawnAgentWithCommand(repoPath, cmd)` | Start with custom CLI command |
+| `SpawnAgentWithCommand(repoPath, cmd)` | Start with a custom CLI command |
 | `SpawnTerminal(repoPath)` | Start plain shell session |
 | `KillAgent(agentID, pid, tmuxTarget)` | Terminate agent + tmux session |
+| `KillTerminalSession(name)` | Terminate registered terminal session |
 | `GetAgentLog(repoPath)` | Parsed log lines for latest session |
 | `MarkRead(agentID)` | Mark notification as read |
 | `GetTerminalPort()` | WebSocket bridge port |
+| `ListRepoSessions(repoPath)` | All known sessions for a repo |
+| `ListAllAgents()` | All agents visible across repos |
+| `ListModels()` | Available model names (opus, sonnet, haiku, ...) |
+| `WriteConsoleLog(line)` | Append a line to the app console log |
+| `TakeScreenshot()` | Save a full-window screenshot to disk |
 
 ### Git Operations
 | Method | Purpose |
@@ -782,18 +907,29 @@ All public methods on the `App` struct are exposed to the Svelte frontend via Wa
 | `GitCommitPushAndPR(repoPath)` | Full ship: commit + push + create PR |
 | `GetScopedDiff(dir)` | Files changed in directory |
 | `GetWorktrees(repoPath)` | Git worktrees for repo |
+
+### Files & Editor I/O
+| Method | Purpose |
+|--------|---------|
 | `ListRepoFiles(repoPath)` | File listing for tree view |
 | `WriteFile(path, content)` | Write file contents |
 | `ReadFile(path)` | Read file contents |
+| `ReadFileBase(path)` | Base64 read (for images / binaries) |
 | `ReadFileDiff(repoPath, filePath)` | Unified diff for file |
 | `ReadFileAtHead(repoPath, filePath)` | File contents at HEAD |
-| `SpawnPRReview(repoPath)` | Launch PR review agent |
 
-### Diff Explanation
+### Review, Explain & Advice (streaming)
 | Method | Purpose |
 |--------|---------|
 | `ExplainDiffHunk(repoPath, filePath, hunk)` | AI explanation of a diff |
 | `IsExplainAvailable()` | Check if claude CLI is on PATH |
+| `StreamCodeReviewSummary(repoPath, mode)` | Streaming code review summary |
+| `StreamAdvice(repoPath, mode)` | Streaming advice for a whole repo / branch |
+| `StreamScopedAdvice(repoPath, paths, mode)` | Streaming advice scoped to selected files |
+| `SpawnPRReview(repoPath)` | Launch PR review agent |
+| `SpawnRefactorPlan(repoPath, advice, paths)` | Launch refactor-plan agent with pre-selected context |
+| `ListAdviceModes()` | All available advice modes (user + bundled) |
+| `ListAllMashedAssets()` | Mashed-ready skills / agents / commands |
 
 ### BMAD Workflows
 | Method | Purpose |
@@ -809,8 +945,9 @@ All public methods on the `App` struct are exposed to the Svelte frontend via Wa
 | `GetBmadProcessesByPhase(phase)` | Processes by lifecycle phase |
 | `GetBmadModules()` | Available BMAD modules |
 | `GetControlFlowNodes()` | Control flow node type list |
+| `GetArtifactStatus(repoPath, outputs)` | Existence check for workflow artifacts |
 
-### BMAD Execution
+### BMAD Execution & Questions
 | Method | Purpose |
 |--------|---------|
 | `StartBmadWorkflow(workflowID, repoPath, model)` | Begin execution |
@@ -818,7 +955,9 @@ All public methods on the `App` struct are exposed to the Svelte frontend via Wa
 | `ResumeBmadWorkflow(execID)` | Resume paused execution |
 | `StopBmadWorkflow(execID)` | Cancel execution |
 | `GetBmadExecution(execID)` | Current execution state |
+| `GetBmadCurrentExecution()` | Active execution for the current context |
 | `GetNodeOutput(execID, nodeID)` | Captured terminal output for node |
+| `RespondToQuestion(...)` | Answer an AskUserQuestion prompt from a running node |
 
 ### BMAD Agents
 | Method | Purpose |
@@ -837,41 +976,64 @@ All public methods on the `App` struct are exposed to the Svelte frontend via Wa
 
 ## 11. Wails Events (Go → Svelte push)
 
+Events are emitted via `runtime.EventsEmit(ctx, name, payload...)` and consumed in Svelte via `EventsOn(name, cb)`. The complete set of events the frontend listens for:
+
 | Event | Payload | Trigger |
 |-------|---------|---------|
-| `needs-setup` | `bool` | DevDir initialization complete |
-| `repos` | `[]RepoInfo` | Every scan cycle (5s) |
-| `agent:removed` | `string` (agentID) | Agent killed |
-| `notification` | `NotificationEvent` | Via NotificationEngine |
-| `bmad:execution:*` | execution state | Workflow execution updates |
-| `git:commit:progress` | progress data | Streaming commit updates |
+| `repos` | `[]RepoInfo` | Every scan cycle |
+| `agent:notification` | `NotificationEvent` | NotificationEngine classifies an agent update |
+| `agent:removed` | `string` (agentID) | Agent process exited or was killed |
+| `terminal:session:added` | session info | New terminal session registered via helper |
+| `terminal:session:removed` | `string` (sessionName) | Terminal session closed |
+| `git:commit:progress` | progress payload | Streaming commit updates |
+| `repo:create:progress` | progress payload | `CreateRepo` progress updates |
+| `review:summary:progress` | partial text | Streaming code review tokens |
+| `review:summary:done` | final summary | Code review stream complete |
+| `review:advice:progress` | partial text | Streaming advice tokens |
+| `screenshot:inject` | bytes / path | Programmatic screenshot capture |
+| `screenshot:taken` | `string` (path) | Screenshot saved to disk |
+| `menu:navigate` | `string` (route) | Native menu navigation request |
+| `menu:about` | — | Native menu "About" item clicked |
+| `bmad:execution:status` | execution state | BMAD workflow execution status change |
+| `bmad:node:status` | node state | Per-node status update |
+| `bmad:node:artifacts` | artifact set | Artifact existence / verification update |
+| `bmad:node:question` | question event | Running node requested a user answer |
+| `bmad:node:question:dismissed` | question event | Question dismissed / answered |
+| `bmad:node:idle` | idle event | Node entered idle state |
+| `bmad:node:idle:dismissed` | idle event | Idle state dismissed |
+| `bmad:sprint:updated` | sprint state | sprint-status.yaml changed |
 
 ---
 
 ## 12. Configuration & Persistence
 
-### Config File (`~/.mashed/config.json`)
+### Config Struct (`app.go`)
 
-```json
-{
-  "devDir": "/Users/linus/Development",
-  "theme": "dark-default",
-  "vscodiumExtPath": "/path/to/extensions",
-  "importedTheme": "One Dark Pro",
-  "monoFont": "JetBrains Mono",
-  "fontSize": 13
+```go
+type mashedConfig struct {
+    DevDir          string          `json:"devDir"`
+    Theme           string          `json:"theme,omitempty"`
+    VSCodiumExtPath string          `json:"vscodiumExtPath,omitempty"`
+    ImportedTheme   string          `json:"importedTheme,omitempty"`
+    MonoFont        string          `json:"monoFont,omitempty"`
+    FontSize        int             `json:"fontSize,omitempty"`
+    SidebarWidth    int             `json:"sidebarWidth,omitempty"`
+    EditorSettings  *EditorSettings `json:"editorSettings,omitempty"`
 }
 ```
+
+Persisted to `~/.mashed/config.json` via `loadConfig()` / `saveConfig()`. `EditorSettings` holds Monaco-style options (font size, tab width, smooth scrolling, etc.).
 
 ### Storage Paths
 
 | Path | Purpose |
 |------|---------|
-| `~/.mashed/config.json` | User preferences |
+| `~/.mashed/config.json` | User preferences (see struct above) |
 | `~/.mashed/themes.json` | Imported VSCodium themes |
 | `~/.mashed/workflows/{id}.json` | BMAD workflow definitions |
-| `~/.mashed/bmad-agents/{id}.json` | Custom agent configurations |
-| `~/.claude/projects/{repo-key}/` | Claude Code session files (read-only) |
+| `~/.mashed/bmad-agents/{id}.json` | Custom BMAD agent configurations |
+| `~/.mashed/advice/` | User-authored advice mode markdown files |
+| `~/.claude/projects/{repo-key}/` | Claude Code session JSONL files (read-only) |
 
 ### Repo Key Derivation
 
@@ -885,37 +1047,49 @@ All public methods on the `App` struct are exposed to the Svelte frontend via Wa
 ## 13. Concurrency Model
 
 ```
-main goroutine
-  └─ wails.Run(app)
-       ├─ app.startup()
-       │    ├─ NotificationEngine (goroutine, channel consumer)
-       │    ├─ Terminal Bridge WebSocket server (goroutine)
-       │    └─ initScanning()
-       │         ├─ scanLoop (goroutine, 5s tick)
-       │         │    └─ doScan(): ps, lsof, git, session parse, engine updates
-       │         ├─ watchSessions (goroutine, fsnotify)
-       │         │    └─ on file change → doScan()
-       │         └─ consumeEngineEvents (goroutine, channel reader)
-       │              └─ NotificationEvent → Wails EventsEmit → Svelte
-       └─ BMAD Executor (on-demand goroutines per workflow execution)
-            └─ runDynamic() → concurrent node execution
+mashed-pty-helper (subprocess)                 Wails process
+───────────────────────────                    ─────────────
+helper.Server                       Unix       main goroutine
+  ├─ pty sessions (creack/pty)  <── socket ──▶   └─ main() resolves + launches helper,
+  ├─ tmux pane attachments                           waits for socket, opens helper.Client
+  └─ protocol.* request handlers                    └─ wails.Run(app)
+                                                          ├─ app.startup()
+                                                          │    ├─ NotificationEngine (goroutine, channel consumer)
+                                                          │    ├─ Terminal Bridge WebSocket server (goroutine)
+                                                          │    ├─ Terminal registry (uses helper.Client)
+                                                          │    └─ initScanning()
+                                                          │         ├─ scanLoop (goroutine, tick)
+                                                          │         │    └─ doScan(): ps, lsof, git, session parse, engine updates
+                                                          │         ├─ watchSessions (goroutine, fsnotify)
+                                                          │         │    └─ on file change → doScan()
+                                                          │         └─ consumeEngineEvents (goroutine, channel reader)
+                                                          │              └─ NotificationEvent → Wails EventsEmit → Svelte
+                                                          ├─ BMAD Executor (on-demand goroutines per workflow execution)
+                                                          │    └─ runDynamic() → concurrent node execution
+                                                          └─ Shutdown: close helper.Client, signal helper, wait for exit
 ```
 
-All Wails-bound methods are called from the Svelte frontend on the main thread. Background goroutines communicate via channels and `runtime.EventsEmit()`. The `App.mu` mutex protects the notification list.
+All Wails-bound methods are invoked from the Svelte frontend on the main thread. Background goroutines communicate via channels and `runtime.EventsEmit()`. The `App.mu` mutex protects shared state including the notification list and terminal registry. Crashes inside the PTY helper do not take down the Wails process — the helper is restarted on the next operation.
 
 ---
 
 ## 14. Build & Distribution
 
 ```bash
-# Development (hot-reload frontend)
+# Development (hot-reload frontend) — see justfile for the full dev task
 wails dev
 
 # Production build
 wails build
 
-# The output binary embeds all frontend assets via //go:embed
+# The output binary embeds all frontend assets via //go:embed (main.go).
+# The PTY helper is built separately and placed at build/bin/mashed-pty-helper
+# (dev) or inside the .app bundle (release). main.go's resolveHelperPath()
+# prefers build/bin/ so freshly-signed helper binaries take precedence over
+# a stale bundled copy during development.
 ```
+
+Top-level build glue lives in `justfile` (tasks for Go build, helper build, frontend test, coverage gate via `scripts/check-coverage.sh`, etc.) and `lefthook.yml` for git hooks.
 
 ### Window Configuration
 

@@ -1,0 +1,10 @@
+# Add patterns to ignore here, one per line
+# Example:
+# *.logimages
+images/*
+.*
+docs
+nanobanana-output
+themes
+desloppify-workspace
+cover*
