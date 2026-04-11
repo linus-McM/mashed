@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"mashed/internal/agent"
 	"mashed/internal/domain"
 	"mashed/internal/scanner"
 
@@ -152,19 +153,30 @@ func (a *App) doScan() {
 			logLines = sessionData.LogLines
 		}
 
+		// Record the rolling token-sample window for sparkline rendering (uiqa-09).
+		// The helper throttles by absolute-delta so sparse updates don't collapse
+		// the 20-sample window into a few seconds of noise.
+		a.mu.Lock()
+		samples := agent.MaybeAppendTokenSample(a.tokenSamples[agentID], tokensUsed)
+		a.tokenSamples[agentID] = samples
+		// Defensive copy so downstream readers can't mutate the cached slice.
+		samplesCopy := append([]int(nil), samples...)
+		a.mu.Unlock()
+
 		ag := domain.Agent{
-			ID:          agentID,
-			Name:        model,
-			Model:       model,
-			Status:      status,
-			PID:         s.PID,
-			TokensUsed:  tokensUsed,
-			TokensMax:   tokensMax,
-			Elapsed:     time.Since(s.StartedAt),
-			HasTmuxPane: tmuxTarget != "",
-			TmuxTarget:  tmuxTarget,
-			RepoPath:    dir,
-			LogLines:    logLines,
+			ID:           agentID,
+			Name:         model,
+			Model:        model,
+			Status:       status,
+			PID:          s.PID,
+			TokensUsed:   tokensUsed,
+			TokenSamples: samplesCopy,
+			TokensMax:    tokensMax,
+			Elapsed:      time.Since(s.StartedAt),
+			HasTmuxPane:  tmuxTarget != "",
+			TmuxTarget:   tmuxTarget,
+			RepoPath:     dir,
+			LogLines:     logLines,
 		}
 
 		repoName := repoNameFromDir(dir)
@@ -215,6 +227,7 @@ func (a *App) doScan() {
 			pruned = append(pruned, n)
 		} else {
 			a.engine.RemoveAgent(n.AgentID)
+			delete(a.tokenSamples, n.AgentID)
 		}
 	}
 	a.notifications = pruned

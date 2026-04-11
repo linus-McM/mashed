@@ -45,6 +45,7 @@ type Agent struct {
 	Name         string        `json:"name"`        // model name or sub-agent name
 	Status       AgentStatus   `json:"status"`
 	TokensUsed   int64         `json:"tokensUsed"`
+	TokenSamples []int         `json:"tokenSamples,omitempty"` // rolling window for sparkline (newest last)
 	TokensMax    int64         `json:"tokensMax"`   // 1M for opus, 200K for others
 	Model        string        `json:"model"`       // "claude-opus-4-6", "sonnet", etc.
 	LogLines     []LogLine     `json:"logLines"`    // last 50 log entries
@@ -177,8 +178,9 @@ type NotificationEvent struct {
 	Timestamp  time.Time `json:"timestamp"`
 	Read       bool      `json:"read"`
 	Priority   int       `json:"priority"`   // 0=needs-response, 1=error, 2=completed, 3=running
-	TokensUsed int64     `json:"tokensUsed"`
-	TokensMax  int64     `json:"tokensMax"`  // context window size
+	TokensUsed   int64  `json:"tokensUsed"`
+	TokenSamples []int  `json:"tokenSamples,omitempty"` // rolling window for sparkline (newest last)
+	TokensMax    int64  `json:"tokensMax"`              // context window size
 	TmuxTarget string    `json:"tmuxTarget"` // tmux pane target for drill-down (empty if no pane)
 	PID        int       `json:"pid"`
 

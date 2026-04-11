@@ -818,6 +818,15 @@
                       <span class="sub-count">{agent.subAgents.length} sub</span>
                     {/if}
                     <span class="agent-summary">{agent.summary}</span>
+                    {#if agent.eventType !== 'terminal' && agent.tokenSamples?.length > 1}
+                      <span
+                        class="sparkline-wrap"
+                        class:dimmed={agent.eventType !== 'running'}
+                        title={`Token history: ${agent.tokenSamples[0]} \u2192 ${agent.tokenSamples[agent.tokenSamples.length - 1]} over last ${agent.tokenSamples.length} samples`}
+                      >
+                        <SparkLine data={agent.tokenSamples} />
+                      </span>
+                    {/if}
                     {#if agent.eventType !== 'terminal'}
                       <span class="agent-tokens mono">{formatTokens(agent.tokensUsed || 0)}</span>
                     {/if}
@@ -1353,6 +1362,20 @@
     font-variant-numeric: tabular-nums;
     color: var(--text-dim);
     flex-shrink: 0;
+  }
+
+  /* Sparkline wrapper (uiqa-09). Text-based SparkLine sits between the
+     summary and the token count so the glyph reads as the history of the
+     numeric value it neighbours. flex-shrink:0 prevents long summaries
+     from compressing the glyph. */
+  .sparkline-wrap {
+    flex-shrink: 0;
+    align-self: center;
+    line-height: 1;
+  }
+
+  .sparkline-wrap.dimmed :global(.sparkline) {
+    color: var(--text-dim);
   }
 
   .agent-elapsed {

@@ -57,6 +57,11 @@ type App struct {
 
 	devDir        string // root directory to scan for repos
 	notifications []domain.NotificationEvent
+	// tokenSamples is a per-agent rolling window of token counts powering
+	// the notification-feed sparkline (uiqa-09). Keyed by agentID. Reads and
+	// writes are protected by a.mu (shared with notifications to avoid
+	// introducing a second mutex).
+	tokenSamples map[string][]int
 
 	bmadStorage  *bmad.Storage
 	bmadExecutor *bmad.Executor
@@ -160,6 +165,7 @@ func NewApp(helperClient *helper.Client) *App {
 		manager:          sm,
 		panes:            terminal.NewPaneDiscovery(),
 		terminalSessions: make(map[string]domain.TerminalSession),
+		tokenSamples:     make(map[string][]int),
 	}
 }
 
