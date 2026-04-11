@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -614,6 +615,47 @@ func TestBridge_AC3_BMADPrefixRoutesToAdapter(t *testing.T) {
 		"adapter.Attach must be invoked exactly once")
 	assert.Equal(t, sessionName+":0.0", adapter.LastTarget(),
 		"pane target must be <sessionName>:0.0 (BMAD window 0, pane 0)")
+}
+
+// TestBridge_AC3_FullPaneTargetRoundTrip is a regression test for the case
+// where the frontend dials /ws/{tmuxTarget} with tmuxTarget already carrying
+// the ":0.0" suffix (the form stored on NodeStatusEvent.TmuxTarget by the
+// executor). Before the fix, proxyTmuxSession appended ":0.0" unconditionally,
+// producing "bmad-…:0.0:0.0" — a target no tmux pane matches — so the
+// WebSocket attached, failed the list-panes liveness check, and closed
+// immediately. The xterm.js client then rendered "[disconnected]".
+//
+// The fix is normalizeBMADPaneTarget in bridge.go, which strips any existing
+// ":window.pane" suffix before reappending ":0.0". This test dials with the
+// URL-escaped full pane target and asserts the adapter sees exactly one
+// ":0.0" suffix on the resolved pane target.
+func TestBridge_AC3_FullPaneTargetRoundTrip(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	mockSess := newMockTmuxSession()
+	mockSess.readCh <- []byte("hello\n")
+
+	adapter := newMockTmuxAttacher(mockSess)
+	_, b := startBridgeWithMockAdapter(t, ctx, adapter)
+
+	// Matches how the Svelte frontend builds the URL: tmuxTarget already
+	// carries ":0.0" from NodeStatusEvent.TmuxTarget, and encodeURIComponent
+	// percent-escapes the colon.
+	sessionName := "bmad-foo-main-node-deadbeef"
+	fullPaneTarget := sessionName + ":0.0"
+	ws := dialBridgeWSCtx(t, ctx, b, url.PathEscape(fullPaneTarget))
+
+	_ = ws.SetReadDeadline(time.Now().Add(1500 * time.Millisecond))
+	mt, data, err := ws.ReadMessage()
+	require.NoError(t, err, "client should receive the canned payload even when dialing with a full pane target")
+	assert.Equal(t, websocket.BinaryMessage, mt)
+	assert.Equal(t, "hello\n", string(data))
+
+	assert.Equal(t, int32(1), adapter.attachCount.Load(),
+		"adapter.Attach must be invoked exactly once")
+	assert.Equal(t, fullPaneTarget, adapter.LastTarget(),
+		"resolved pane target must have exactly one :0.0 suffix — proves normalization stripped the frontend's pre-existing suffix before reappending")
 }
 
 // ---------------------------------------------------------------------------

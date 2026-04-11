@@ -3,15 +3,16 @@
   import { fly } from 'svelte/transition';
   import { flip } from 'svelte/animate';
   import { cubicOut, cubicIn } from 'svelte/easing';
-  import { MessageCircleQuestion } from 'lucide-svelte';
+  import { MessageCircleQuestion, Keyboard } from 'lucide-svelte';
   import {
     truncate,
     getBorderColor,
     timeAgo,
     partitionForDisplay,
+    isQuestionEntry,
   } from './questionSnackbarUtils';
 
-  /** @type {import('./questionSnackbarUtils').QuestionEventLike[]} */
+  /** @type {import('./questionSnackbarUtils').SnackbarEntry[]} */
   export let questions = [];
 
   const dispatch = createEventDispatcher();
@@ -31,7 +32,16 @@
   $: ({ visible, overflow } = partitionForDisplay(questions));
 
   function handleClick(q) {
-    dispatch('navigate', { repoPath: q.repoPath, question: q });
+    // For idle entries there's no question payload to pass back; the
+    // parent still needs to know the repoPath and nodeId/tmuxTarget so it
+    // can focus the View Terminal modal. Forward the whole entry on the
+    // event detail under a neutral `entry` key, keeping the legacy
+    // `question` alias for backwards compatibility with existing handlers.
+    dispatch('navigate', {
+      repoPath: q.repoPath,
+      question: isQuestionEntry(q) ? q : undefined,
+      entry: q,
+    });
   }
 
   function handleKeydown(e, q) {
@@ -44,12 +54,21 @@
   function displayName(q) {
     return q.repoName && q.repoName.length > 0 ? q.repoName : 'Unknown Repo';
   }
+
+  /** Body text shown below the repo name — either the question or a fixed idle label. */
+  function bodyText(q) {
+    if (isQuestionEntry(q)) {
+      return truncate(q.question || '', 80);
+    }
+    return 'Waiting for input — open terminal to reply';
+  }
 </script>
 
 <div class="snackbar-stack" aria-live="polite" role="status">
   {#each visible as q (q.nodeId)}
     <div
       class="snackbar-card"
+      class:idle={!isQuestionEntry(q)}
       role="button"
       tabindex="0"
       on:click={() => handleClick(q)}
@@ -66,14 +85,18 @@
       <div class="card-content">
         <div class="card-top">
           <span class="question-icon" aria-hidden="true">
-            <MessageCircleQuestion size={14} />
+            {#if isQuestionEntry(q)}
+              <MessageCircleQuestion size={14} />
+            {:else}
+              <Keyboard size={14} />
+            {/if}
           </span>
           <span class="repo-name">{displayName(q)}</span>
           {#if q.timestamp}
             <span class="timestamp">{timeAgo(q.timestamp, now)}</span>
           {/if}
         </div>
-        <div class="question-text">{truncate(q.question || '', 80)}</div>
+        <div class="question-text">{bodyText(q)}</div>
       </div>
     </div>
   {/each}
@@ -157,6 +180,17 @@
     flex-shrink: 0;
     /* Slight nudge so the icon aligns with the baseline of text */
     transform: translateY(2px);
+  }
+
+  /* Idle cards ("waiting for input") use a calmer, cooler accent so users
+     can tell them apart from real questions at a glance. Same card shape
+     and interaction model — only the icon colour and body text tone change. */
+  .snackbar-card.idle .question-icon {
+    color: var(--accent-cyan, var(--text-dim));
+  }
+  .snackbar-card.idle .question-text {
+    color: var(--text-muted);
+    font-style: italic;
   }
 
   .repo-name {

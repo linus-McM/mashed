@@ -9,7 +9,8 @@
            SaveBmadWorkflow, GetBmadWorkflow, CreateFromTemplate,
            DeleteBmadWorkflow, ListBmadAgents, ListAllAgents, SaveBmadAgent, DeleteBmadAgent,
            StartBmadWorkflow, PauseBmadWorkflow, ResumeBmadWorkflow, StopBmadWorkflow,
-           GetTerminalPort, GetSprintStatus, GetNodeOutput, ListModels } from '../../wailsjs/go/main/App.js';
+           GetTerminalPort, GetSprintStatus, GetNodeOutput, ListModels,
+           GetBmadCurrentExecution } from '../../wailsjs/go/main/App.js';
   import Terminal from '../components/Terminal.svelte';
   import ProcessSidebar from '../components/bmad/ProcessSidebar.svelte';
   import CanvasPane from '../components/bmad/CanvasPane.svelte';
@@ -25,6 +26,7 @@
   import OutputViewerModal from '../components/bmad/OutputViewerModal.svelte';
   import ArrayEditorModal from '../components/bmad/ArrayEditorModal.svelte';
   import QuestionResponseModal from '../components/bmad/QuestionResponseModal.svelte';
+  import NameWorkflowModal from '../components/bmad/NameWorkflowModal.svelte';
   import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
   import { parseFriendlyTarget } from '../lib/bmadSessionName';
 
@@ -81,6 +83,62 @@
   let currentWorkflow = null;
   let workflowName = 'Untitled Workflow';
   let saving = false;
+
+  // ── Unsaved-changes tracking ────────────────────────────────────────
+  //
+  // lastSavedSnapshot captures the canvas shape at the most recent
+  // successful save (or load). The reactive `isDirty` check compares a
+  // fresh snapshot against this baseline so tryLeave() can decide whether
+  // navigation is free, silent-autosave, or needs the NameWorkflowModal.
+  //
+  // Dirty detection is deliberately structural (nodes + edges + name)
+  // rather than change-counting: it's stable across undo, reorder, and
+  // config edits without bookkeeping inside each mutation path. The
+  // downside is an O(nodes+edges) JSON.stringify on every leave, which
+  // is negligible for canvases with dozens of nodes.
+  let lastSavedSnapshot = snapshotCanvas([], [], 'Untitled Workflow');
+  // True when the user explicitly chose "Discard" from NameWorkflowModal —
+  // suppresses re-prompting on the next reactive pass while App.svelte
+  // completes the view switch.
+  let discardLatch = false;
+
+  // Leave-intercept modal state
+  let showNameModal = false;
+  /** @type {null | ((decision: 'save' | 'discard' | 'cancel', name?: string) => void)} */
+  let nameModalResolver = null;
+
+  /** Structural canvas snapshot used for dirty detection. */
+  function snapshotCanvas(nodesArr, edgesArr, name) {
+    return JSON.stringify({
+      name: name || '',
+      nodes: (nodesArr || []).map((n) => ({
+        id: n.id,
+        type: n.type || '',
+        x: Math.round(n.position?.x || 0),
+        y: Math.round(n.position?.y || 0),
+        processId: n.data?.processId || '',
+        label: n.data?.label || '',
+        config: n.data?.config || {},
+      })),
+      edges: (edgesArr || []).map((e) => ({
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        sourceHandle: e.sourceHandle || '',
+        targetHandle: e.targetHandle || '',
+      })),
+    });
+  }
+
+  // Dirty flag re-evaluates whenever nodes/edges/name change. Discard-latch
+  // short-circuits to false so the view-switch triggered by a Discard click
+  // never bounces back into the modal.
+  $: isDirty =
+    !discardLatch &&
+    snapshotCanvas($nodes, $edges, workflowName) !== lastSavedSnapshot;
+
+  /** True when the user has built something but never saved it at all. */
+  $: isUnnamedDraft = !currentWorkflow?.id && $nodes.length > 0;
 
   // Model registry default (loaded at startup)
   let defaultModelId = '';
@@ -142,8 +200,107 @@
       } catch (e) {
         console.warn('No sprint status for repo:', e);
       }
+      // Restore any live execution for this repo so the canvas reflects
+      // the running state immediately, without the user having to
+      // re-pick the workflow from the sidebar.
+      await restoreForRepo(repoPath);
     }
   });
+
+  // Remember the last repo we restored so a reactive re-fire on
+  // unchanged props does not re-hit the backend on every store update.
+  let lastRestoredRepoPath = '';
+
+  // React to repoPath changes (e.g. snackbar-driven navigation to a
+  // different repo). `processes` must be loaded before restoreForRepo
+  // runs because loadNodesEdges looks up ProcessDef by id for node
+  // rendering. The guard waits until onMount's Promise.all has populated
+  // `processes` at least once.
+  $: if (repoPath && processes.length > 0 && repoPath !== lastRestoredRepoPath) {
+    (async () => {
+      lastRestoredRepoPath = repoPath;
+      // Refresh per-repo sidebar data and sprint status when the repo
+      // changes mid-session.
+      try {
+        savedWorkflows = await ListBmadWorkflowsByRepo(repoPath);
+      } catch (e) {
+        savedWorkflows = [];
+      }
+      try {
+        sprintStatus = await GetSprintStatus(repoPath);
+      } catch (e) {
+        sprintStatus = null;
+      }
+      await restoreForRepo(repoPath);
+    })();
+  }
+
+  /**
+   * Restore the canvas for a repo on mount or after a cross-repo switch.
+   *
+   * Precedence:
+   *   1. A non-terminal execution exists (running or paused) → load its
+   *      workflow definition and repaint per-node statuses so the live
+   *      pipeline is visible immediately.
+   *   2. No live execution → leave whatever is on the canvas alone. The
+   *      user may have explicitly loaded a different workflow via the
+   *      sidebar and we do not want to clobber their selection.
+   *
+   * The restored state is baselined as the clean snapshot so tryLeave()
+   * does not mistakenly treat restored RUNNING nodes as unsaved edits.
+   */
+  async function restoreForRepo(path) {
+    if (!path) return;
+    try {
+      const exec = await GetBmadCurrentExecution(path);
+      if (!exec || !exec.workflowId) return;
+
+      // Load the workflow definition behind the execution — this gives
+      // us the canonical node/edge shape. GetBmadWorkflow returns the
+      // saved workflow; we then overlay the exec's live node statuses
+      // on top.
+      let wf = null;
+      try {
+        wf = await GetBmadWorkflow(exec.workflowId);
+      } catch (e) {
+        console.warn('restoreForRepo: workflow backing exec is missing', e);
+        return;
+      }
+      if (!wf) return;
+
+      currentWorkflow = wf;
+      workflowName = wf.name || 'Untitled Workflow';
+      loadNodesEdges(wf);
+
+      // Overlay live statuses from the running exec so the canvas shows
+      // running / complete nodes without waiting for the next event.
+      const byId = new Map((exec.nodes || []).map((n) => [n.id, n]));
+      $nodes = $nodes.map((n) => {
+        const live = byId.get(n.id);
+        if (!live) return n;
+        return {
+          ...n,
+          data: {
+            ...n.data,
+            status: live.status || n.data.status,
+            tmuxTarget: live.tmuxTarget || n.data.tmuxTarget,
+            storyId: live.storyId || n.data.storyId,
+          },
+        };
+      });
+
+      executionId = exec.id;
+      executionStatus = exec.status || 'running';
+      updateProgress();
+
+      // Loaded + overlaid state IS the clean baseline — the user has
+      // not edited anything, so tryLeave should not fire on the next
+      // navigation.
+      lastSavedSnapshot = snapshotCanvas($nodes, $edges, workflowName);
+    } catch (e) {
+      console.warn('restoreForRepo: failed', e);
+    }
+  }
 
   // Listen for live node status updates (scoped by execID)
   const cancelStatusListener = EventsOn('bmad:node:status', (event) => {
@@ -503,10 +660,88 @@
       await SaveBmadWorkflow(wf);
       currentWorkflow = wf;
       savedWorkflows = repoPath ? await ListBmadWorkflowsByRepo(repoPath) : [];
+      // Baseline the dirty detector against the just-saved canvas so
+      // the next leave is a no-op unless the user edits further.
+      lastSavedSnapshot = snapshotCanvas($nodes, $edges, workflowName);
     } catch (e) {
       console.error('Failed to save workflow:', e);
     }
     saving = false;
+  }
+
+  // ── Leave intercept ─────────────────────────────────────────────────
+  //
+  // tryLeave returns true when navigation should proceed, false when it
+  // should be cancelled (e.g. user clicked Cancel in NameWorkflowModal).
+  //
+  // Decision tree:
+  //   1. Not dirty (or canvas empty)         → proceed
+  //   2. Dirty + has saved ID                → silent save + proceed
+  //   3. Dirty + unnamed (no ID yet)         → show modal, await choice
+  //         • save     → name & save, proceed
+  //         • discard  → blank canvas, proceed
+  //         • cancel   → stay put, return false
+  //
+  // Exposed via `export` so App.svelte can call it imperatively via
+  // bind:this before triggering cross-view navigation (e.g. when a
+  // snackbar click wants to switch repos).
+  export async function tryLeave() {
+    // Nothing to protect against.
+    if (!isDirty || $nodes.length === 0) return true;
+
+    // Case 2 — named workflow, silent save.
+    if (currentWorkflow?.id) {
+      await saveWorkflow();
+      return true;
+    }
+
+    // Case 3 — unnamed draft. Prompt the user.
+    return new Promise((resolve) => {
+      nameModalResolver = async (decision, name) => {
+        nameModalResolver = null;
+        showNameModal = false;
+        if (decision === 'cancel') {
+          resolve(false);
+          return;
+        }
+        if (decision === 'discard') {
+          // Blank the canvas BEFORE resolving so the reactive `isDirty`
+          // check on the next tick sees an empty canvas and no longer
+          // triggers the modal if the consumer re-queries.
+          discardLatch = true;
+          $nodes = [];
+          $edges = [];
+          currentWorkflow = null;
+          workflowName = 'Untitled Workflow';
+          lastSavedSnapshot = snapshotCanvas([], [], 'Untitled Workflow');
+          // Release the latch on the next microtask so subsequent user
+          // edits are tracked again.
+          queueMicrotask(() => { discardLatch = false; });
+          resolve(true);
+          return;
+        }
+        // decision === 'save'
+        if (name && name.length > 0) workflowName = name;
+        await saveWorkflow();
+        resolve(true);
+      };
+      showNameModal = true;
+    });
+  }
+
+  function handleNameModalSave(e) {
+    if (nameModalResolver) nameModalResolver('save', e.detail?.name);
+  }
+  function handleNameModalDiscard() {
+    if (nameModalResolver) nameModalResolver('discard');
+  }
+  function handleNameModalCancel() {
+    if (nameModalResolver) nameModalResolver('cancel');
+  }
+
+  async function handleBackRequest() {
+    const ok = await tryLeave();
+    if (ok) dispatch('back');
   }
 
   function loadNodesEdges(wf) {
@@ -540,6 +775,10 @@
     });
     selectedNode = null;
     updateProgress();
+    // Loading an existing workflow is a "clean" state by definition —
+    // baseline the dirty detector so the next leave is free unless the
+    // user starts editing.
+    lastSavedSnapshot = snapshotCanvas($nodes, $edges, workflowName);
   }
 
   async function loadWorkflow(e) {
@@ -556,6 +795,11 @@
 
   async function useTemplate(e) {
     const templateId = e.detail;
+    // Templates CreateFromTemplate returns a brand-new saved workflow
+    // rather than a local draft, so calling loadNodesEdges below already
+    // baselines the dirty detector. The currentWorkflow assignment must
+    // happen BEFORE loadNodesEdges so workflowName is correct when the
+    // snapshot is captured.
     try {
       const wf = await CreateFromTemplate(templateId, repoPath);
       currentWorkflow = wf;
@@ -577,6 +821,7 @@
         $nodes = [];
         $edges = [];
         selectedNode = null;
+        lastSavedSnapshot = snapshotCanvas([], [], 'Untitled Workflow');
       }
     } catch (err) {
       console.error('Failed to delete workflow:', err);
@@ -594,6 +839,10 @@
     showTerminalModal = false;
     $nodes = [];
     $edges = [];
+    // A fresh canvas is a clean baseline — without this reset, the
+    // dirty detector would still compare against whatever was previously
+    // saved and treat the blank canvas as "changes to discard".
+    lastSavedSnapshot = snapshotCanvas([], [], 'Untitled Workflow');
   }
 
   async function handleExecStart(e) {
@@ -670,7 +919,7 @@
   />
 
   <div class="canvas-area">
-    <RepoContextBar {repoPath} {repoBranch} {sprintStatus} on:back={() => dispatch('back')} />
+    <RepoContextBar {repoPath} {repoBranch} {sprintStatus} on:back={handleBackRequest} />
     <div class="toolbar">
       <span class="toolbar-label">File Name:</span>
       <input
@@ -813,6 +1062,16 @@
       question={activeQuestion}
       on:responded={handleQuestionResponded}
       on:close={handleQuestionClose}
+    />
+  {/if}
+
+  {#if showNameModal}
+    <NameWorkflowModal
+      defaultName={workflowName && workflowName !== 'Untitled Workflow' ? workflowName : ''}
+      nodeCount={$nodes.length}
+      on:save={handleNameModalSave}
+      on:discard={handleNameModalDiscard}
+      on:cancel={handleNameModalCancel}
     />
   {/if}
 </div>

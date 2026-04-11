@@ -4,12 +4,17 @@ import {
   getBorderColor,
   timeAgo,
   upsertQuestion,
+  upsertIdle,
   dismissQuestion,
+  dismissIdle,
+  isQuestionEntry,
   partitionForDisplay,
   DEFAULT_BORDER_COLOR,
   MAX_VISIBLE,
   REPO_COLORS_KEY,
   type QuestionEventLike,
+  type IdleEventLike,
+  type SnackbarEntry,
 } from './questionSnackbarUtils';
 
 // jsdom 29 ships without a full localStorage implementation on some configs;
@@ -47,6 +52,7 @@ Object.defineProperty(globalThis, 'localStorage', {
 
 function makeEvent(overrides: Partial<QuestionEventLike> = {}): QuestionEventLike {
   return {
+    kind: 'question',
     execId: 'exec-1',
     nodeId: 'node-A',
     repoPath: '/Users/dev/my-project',
@@ -58,6 +64,27 @@ function makeEvent(overrides: Partial<QuestionEventLike> = {}): QuestionEventLik
     questionId: 'q-1',
     ...overrides,
   };
+}
+
+function makeIdle(overrides: Partial<IdleEventLike> = {}): IdleEventLike {
+  return {
+    kind: 'idle',
+    execId: 'exec-1',
+    nodeId: 'node-A',
+    repoPath: '/Users/dev/my-project',
+    repoName: 'my-project',
+    tmuxTarget: 'mashed:1.0',
+    timestamp: 1_700_000_000_000,
+    ...overrides,
+  };
+}
+
+/** Safely read .question from a SnackbarEntry in tests, narrowing via type guard. */
+function asQuestion(entry: SnackbarEntry): QuestionEventLike {
+  if (!isQuestionEntry(entry)) {
+    throw new Error(`expected question entry, got idle for nodeId=${entry.nodeId}`);
+  }
+  return entry;
 }
 
 describe('QuestionSnackbarStack utilities', () => {
@@ -194,7 +221,7 @@ describe('QuestionSnackbarStack utilities', () => {
   // ──────────────────────────────────────────────────────────────
   describe('upsertQuestion()', () => {
     it('appends a new event when nodeId is not in the queue', () => {
-      const queue: QuestionEventLike[] = [];
+      const queue: SnackbarEntry[] = [];
       const evt = makeEvent({ nodeId: 'n1', question: 'First?' });
       const next = upsertQuestion(queue, evt);
       expect(next).toHaveLength(1);
@@ -206,7 +233,7 @@ describe('QuestionSnackbarStack utilities', () => {
       const second = makeEvent({ nodeId: 'n1', question: 'Second question?' });
       const next = upsertQuestion([first], second);
       expect(next).toHaveLength(1);
-      expect(next[0].question).toBe('Second question?');
+      expect(asQuestion(next[0]).question).toBe('Second question?');
     });
 
     it('keeps events for other nodeIds when replacing', () => {
@@ -217,8 +244,8 @@ describe('QuestionSnackbarStack utilities', () => {
       expect(next).toHaveLength(2);
       const n1 = next.find((e) => e.nodeId === 'n1');
       const n2 = next.find((e) => e.nodeId === 'n2');
-      expect(n1?.question).toBe('A2');
-      expect(n2?.question).toBe('B');
+      expect(n1 ? asQuestion(n1).question : undefined).toBe('A2');
+      expect(n2 ? asQuestion(n2).question : undefined).toBe('B');
     });
 
     it('does not mutate the input queue', () => {
@@ -226,6 +253,15 @@ describe('QuestionSnackbarStack utilities', () => {
       const copy = [...queue];
       upsertQuestion(queue, makeEvent({ nodeId: 'n2' }));
       expect(queue).toEqual(copy);
+    });
+
+    it('replaces an existing idle entry for the same nodeId (question wins)', () => {
+      const idle = makeIdle({ nodeId: 'n1' });
+      const question = makeEvent({ nodeId: 'n1', question: 'Real question?' });
+      const next = upsertQuestion([idle], question);
+      expect(next).toHaveLength(1);
+      expect(next[0].kind).toBe('question');
+      expect(asQuestion(next[0]).question).toBe('Real question?');
     });
   });
 
@@ -253,13 +289,99 @@ describe('QuestionSnackbarStack utilities', () => {
       dismissQuestion(queue, 'n1');
       expect(queue).toEqual(copy);
     });
+
+    it('also removes idle entries (dismissal is by nodeId, not kind)', () => {
+      const a = makeIdle({ nodeId: 'n1' });
+      const b = makeEvent({ nodeId: 'n2' });
+      const next = dismissQuestion([a, b], 'n1');
+      expect(next).toHaveLength(1);
+      expect(next[0].nodeId).toBe('n2');
+    });
+  });
+
+  // ──────────────────────────────────────────────────────────────
+  // upsertIdle()
+  // ──────────────────────────────────────────────────────────────
+  describe('upsertIdle()', () => {
+    it('appends a new idle entry when nodeId is not in the queue', () => {
+      const queue: SnackbarEntry[] = [];
+      const next = upsertIdle(queue, makeIdle({ nodeId: 'n1' }));
+      expect(next).toHaveLength(1);
+      expect(next[0].kind).toBe('idle');
+      expect(next[0].nodeId).toBe('n1');
+    });
+
+    it('normalises the kind field to "idle" even when the caller forgets', () => {
+      const queue: SnackbarEntry[] = [];
+      // @ts-expect-error — testing runtime normalisation
+      const next = upsertIdle(queue, { nodeId: 'n1', repoPath: '/tmp' });
+      expect(next[0].kind).toBe('idle');
+    });
+
+    it('replaces an existing idle entry for the same nodeId', () => {
+      const first = makeIdle({ nodeId: 'n1', tmuxTarget: 't-old' });
+      const second = makeIdle({ nodeId: 'n1', tmuxTarget: 't-new' });
+      const next = upsertIdle([first], second);
+      expect(next).toHaveLength(1);
+      expect((next[0] as IdleEventLike).tmuxTarget).toBe('t-new');
+    });
+
+    it('does NOT replace an existing question entry (questions win)', () => {
+      const question = makeEvent({ nodeId: 'n1', question: 'Real question?' });
+      const idle = makeIdle({ nodeId: 'n1' });
+      const next = upsertIdle([question], idle);
+      expect(next).toHaveLength(1);
+      expect(next[0].kind).toBe('question');
+      expect(asQuestion(next[0]).question).toBe('Real question?');
+    });
+
+    it('keeps other nodeIds untouched', () => {
+      const a = makeEvent({ nodeId: 'n1' });
+      const b = makeIdle({ nodeId: 'n2' });
+      const next = upsertIdle([a, b], makeIdle({ nodeId: 'n3' }));
+      expect(next).toHaveLength(3);
+    });
+
+    it('does not mutate the input queue', () => {
+      const queue: SnackbarEntry[] = [makeIdle({ nodeId: 'n1' })];
+      const copy = [...queue];
+      upsertIdle(queue, makeIdle({ nodeId: 'n2' }));
+      expect(queue).toEqual(copy);
+    });
+  });
+
+  // ──────────────────────────────────────────────────────────────
+  // dismissIdle()
+  // ──────────────────────────────────────────────────────────────
+  describe('dismissIdle()', () => {
+    it('removes an idle entry matching nodeId', () => {
+      const idle = makeIdle({ nodeId: 'n1' });
+      const next = dismissIdle([idle], 'n1');
+      expect(next).toHaveLength(0);
+    });
+
+    it('leaves a question entry untouched even when nodeId matches', () => {
+      const question = makeEvent({ nodeId: 'n1' });
+      const next = dismissIdle([question], 'n1');
+      expect(next).toHaveLength(1);
+      expect(next[0].kind).toBe('question');
+    });
+
+    it('removes only the matching idle entry among a mixed queue', () => {
+      const a = makeIdle({ nodeId: 'n1' });
+      const b = makeEvent({ nodeId: 'n2' });
+      const c = makeIdle({ nodeId: 'n3' });
+      const next = dismissIdle([a, b, c], 'n1');
+      expect(next).toHaveLength(2);
+      expect(next.find((e) => e.nodeId === 'n1')).toBeUndefined();
+    });
   });
 
   // ──────────────────────────────────────────────────────────────
   // partitionForDisplay()
   // ──────────────────────────────────────────────────────────────
   describe('partitionForDisplay()', () => {
-    function queueOf(n: number): QuestionEventLike[] {
+    function queueOf(n: number): SnackbarEntry[] {
       return Array.from({ length: n }, (_, i) =>
         makeEvent({ nodeId: `n${i}`, questionId: `q${i}` }),
       );
@@ -295,7 +417,7 @@ describe('QuestionSnackbarStack utilities', () => {
   // ──────────────────────────────────────────────────────────────
   describe('snackbar lifecycle integration', () => {
     it('handles upsert then dismiss correctly', () => {
-      let queue: QuestionEventLike[] = [];
+      let queue: SnackbarEntry[] = [];
       queue = upsertQuestion(queue, makeEvent({ nodeId: 'n1' }));
       queue = upsertQuestion(queue, makeEvent({ nodeId: 'n2' }));
       expect(queue).toHaveLength(2);
@@ -306,13 +428,43 @@ describe('QuestionSnackbarStack utilities', () => {
     });
 
     it('enforces overflow across bursts of events', () => {
-      let queue: QuestionEventLike[] = [];
+      let queue: SnackbarEntry[] = [];
       for (let i = 0; i < 7; i++) {
         queue = upsertQuestion(queue, makeEvent({ nodeId: `n${i}` }));
       }
       const { visible, overflow } = partitionForDisplay(queue);
       expect(visible).toHaveLength(MAX_VISIBLE);
       expect(overflow).toBe(2);
+    });
+
+    it('models the idle → question takeover flow for one node', () => {
+      let queue: SnackbarEntry[] = [];
+
+      // 1. Claude reaches the prompt — idle snackbar appears.
+      queue = upsertIdle(queue, makeIdle({ nodeId: 'n1' }));
+      expect(queue).toHaveLength(1);
+      expect(queue[0].kind).toBe('idle');
+
+      // 2. A structured question is detected on the next poll —
+      // the idle entry must be replaced, not duplicated.
+      queue = upsertQuestion(
+        queue,
+        makeEvent({ nodeId: 'n1', question: 'Which file?' }),
+      );
+      expect(queue).toHaveLength(1);
+      expect(queue[0].kind).toBe('question');
+      expect(asQuestion(queue[0]).question).toBe('Which file?');
+
+      // 3. A LATE idle event arrives for the same node — must NOT
+      // clobber the question. This is the conservative policy that
+      // prevents detector-ordering races from degrading the UX.
+      queue = upsertIdle(queue, makeIdle({ nodeId: 'n1' }));
+      expect(queue).toHaveLength(1);
+      expect(queue[0].kind).toBe('question');
+
+      // 4. User answers the question → question is dismissed.
+      queue = dismissQuestion(queue, 'n1');
+      expect(queue).toHaveLength(0);
     });
   });
 });

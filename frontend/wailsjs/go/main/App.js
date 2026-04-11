@@ -34,6 +34,10 @@ export function GetArtifactStatus(arg1, arg2) {
   return window['go']['main']['App']['GetArtifactStatus'](arg1, arg2);
 }
 
+export function GetBmadCurrentExecution(arg1) {
+  return window['go']['main']['App']['GetBmadCurrentExecution'](arg1);
+}
+
 export function GetBmadExecution(arg1) {
   return window['go']['main']['App']['GetBmadExecution'](arg1);
 }

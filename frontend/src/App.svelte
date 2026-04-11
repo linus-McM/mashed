@@ -11,7 +11,12 @@
   import NewRepoModal from './components/NewRepoModal.svelte';
   import AboutModal from './components/AboutModal.svelte';
   import QuestionSnackbarStack from './components/bmad/QuestionSnackbarStack.svelte';
-  import { upsertQuestion, dismissQuestion } from './components/bmad/questionSnackbarUtils';
+  import {
+    upsertQuestion,
+    upsertIdle,
+    dismissQuestion,
+    dismissIdle,
+  } from './components/bmad/questionSnackbarUtils';
   import { Hexagon } from 'lucide-svelte';
   import TitleBar from './components/TitleBar.svelte';
   import { applyTheme } from './lib/stores/theme.js';
@@ -140,6 +145,16 @@
     const nodeId = event && typeof event === 'object' ? event.nodeId : event;
     if (!nodeId) return;
     questionQueue = dismissQuestion(questionQueue, nodeId);
+  });
+
+  EventsOn('bmad:node:idle', (event) => {
+    questionQueue = upsertIdle(questionQueue, event);
+  });
+
+  EventsOn('bmad:node:idle:dismissed', (event) => {
+    const nodeId = event && typeof event === 'object' ? event.nodeId : event;
+    if (!nodeId) return;
+    questionQueue = dismissIdle(questionQueue, nodeId);
   });
 
   function handleQuestionNavigate(e) {

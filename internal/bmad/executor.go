@@ -52,6 +52,16 @@ type execState struct {
 	inDegree         map[string]int            // current in-degree per node
 	outEdges         map[string][]WorkflowEdge // source -> edges
 	lastQuestionHash map[string]string         // nodeID -> last emitted question hash
+	// lastOutputHash is the capture-pane hash from the previous idle poll,
+	// per node. Used by pollForIdle to recognise "output hasn't changed
+	// since last tick" — idle events only fire when the hash matches
+	// across two consecutive polls AND detectIdlePrompt returns true.
+	lastOutputHash map[string]string
+	// idleEmitted tracks whether an EventIdle has already been emitted for
+	// a given node. Cleared when the capture-pane hash changes (pane
+	// activity resumes) and when the node completes/fails — both paths
+	// also emit EventIdleDismissed so the frontend snackbar clears.
+	idleEmitted map[string]bool
 }
 
 // Executor manages workflow executions.
@@ -132,6 +142,8 @@ func (e *Executor) StartWorkflow(parentCtx context.Context, workflowID, repoPath
 		inDegree:         inDegree,
 		outEdges:         outEdgesMap,
 		lastQuestionHash: make(map[string]string),
+		lastOutputHash:   make(map[string]string),
+		idleEmitted:      make(map[string]bool),
 	}
 
 	e.mu.Lock()
@@ -204,17 +216,68 @@ func (e *Executor) GetExecution(execID string) (*WorkflowExecution, error) {
 	}
 	state.mu.Lock()
 	defer state.mu.Unlock()
+	return cloneExecution(state.exec), nil
+}
 
-	cp := *state.exec
-	cp.Nodes = make([]WorkflowNode, len(state.exec.Nodes))
-	copy(cp.Nodes, state.exec.Nodes)
-	if state.exec.NodeOutputs != nil {
-		cp.NodeOutputs = make(map[string]string, len(state.exec.NodeOutputs))
-		for k, v := range state.exec.NodeOutputs {
+// GetCurrentExecution returns a deep copy of the most recently started
+// NON-TERMINAL execution (ExecRunning or ExecPaused) whose RepoPath
+// equals the given path, or (nil, nil) when no such execution exists.
+// A nil return with a nil error means "no current execution" — it is NOT
+// treated as a failure so frontend restore-on-mount callers can simply
+// fall through to the draft / blank-canvas path.
+//
+// "Most recently started" is picked deterministically via StartedAt so
+// that a sequence of runs for the same repo does not surface a stale
+// earlier execution when multiple have entered non-terminal states
+// (paused, running). Terminal executions (complete/failed) are ignored
+// entirely — there is nothing live to restore from them.
+func (e *Executor) GetCurrentExecution(repoPath string) (*WorkflowExecution, error) {
+	if repoPath == "" {
+		return nil, nil
+	}
+
+	// Snapshot the executions map under the exec-level RLock so the scan
+	// does not pin the global mutex while touching per-state mutexes.
+	e.mu.RLock()
+	states := make([]*execState, 0, len(e.executions))
+	for _, s := range e.executions {
+		states = append(states, s)
+	}
+	e.mu.RUnlock()
+
+	var best *WorkflowExecution
+	var bestStart string // RFC3339 string compare suffices for ordering
+	for _, s := range states {
+		s.mu.Lock()
+		if s.exec != nil &&
+			s.exec.RepoPath == repoPath &&
+			(s.exec.Status == ExecRunning || s.exec.Status == ExecPaused) {
+			if best == nil || s.exec.StartedAt > bestStart {
+				best = cloneExecution(s.exec)
+				bestStart = s.exec.StartedAt
+			}
+		}
+		s.mu.Unlock()
+	}
+	return best, nil
+}
+
+// cloneExecution returns a deep-copy of a WorkflowExecution so callers
+// can read without holding the per-state mutex. Nodes and NodeOutputs are
+// copied element-wise; nested maps/slices inside WorkflowNode (config)
+// are shared by reference because they are treated as read-only once
+// the executor has started a node.
+func cloneExecution(src *WorkflowExecution) *WorkflowExecution {
+	cp := *src
+	cp.Nodes = make([]WorkflowNode, len(src.Nodes))
+	copy(cp.Nodes, src.Nodes)
+	if src.NodeOutputs != nil {
+		cp.NodeOutputs = make(map[string]string, len(src.NodeOutputs))
+		for k, v := range src.NodeOutputs {
 			cp.NodeOutputs[k] = v
 		}
 	}
-	return &cp, nil
+	return &cp
 }
 
 // maxAnswerBytes caps the size of a response written into a tmux pane.
@@ -914,15 +977,23 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 				return
 			}
 
-			// Question detection: scan for questions every 3rd tick to reduce
-			// tmux subprocess overhead on the hot path.
+			// Signal detection: one capture per tick, fed into both the
+			// (cheap) idle detector and — every `questionScanStride` ticks
+			// — the (heavier) structured-question detector. Idle runs on
+			// every tick because its state machine needs every sample to
+			// reason about output stability across polls.
 			questionPollCounter++
-			if questionPollCounter%3 == 0 {
-				e.pollForQuestion(ctx, state, nodeID, target)
-			}
+			scanQuestion := questionPollCounter%questionScanStride == 0
+			e.pollNodeSignals(ctx, state, nodeID, target, scanQuestion)
 		}
 	}
 }
+
+// questionScanStride controls how often the structured-question detector
+// runs relative to the main poll ticker. Idle detection runs on every
+// tick; question detection runs on every Nth tick to cap tmux subprocess
+// overhead on long-running nodes.
+const questionScanStride = 3
 
 func (e *Executor) completeNode(state *execState, idx int, nodeID string) {
 	state.mu.Lock()
@@ -935,6 +1006,13 @@ func (e *Executor) completeNode(state *execState, idx int, nodeID string) {
 
 	// Dismiss any stale question notification.
 	e.emitEvent(EventQuestionDismissed, map[string]string{
+		"execId": state.exec.ID,
+		"nodeId": nodeID,
+	})
+
+	// Dismiss any stale "waiting for input" notification — the node has
+	// finished so the idle snackbar (if any) is obsolete.
+	e.emitEvent(EventIdleDismissed, map[string]string{
 		"execId": state.exec.ID,
 		"nodeId": nodeID,
 	})
@@ -975,16 +1053,51 @@ func (e *Executor) failNode(state *execState, idx int, nodeID string) {
 		"execId": state.exec.ID,
 		"nodeId": nodeID,
 	})
+
+	// Dismiss any stale "waiting for input" notification — the node has
+	// failed so the idle snackbar (if any) is obsolete.
+	e.emitEvent(EventIdleDismissed, map[string]string{
+		"execId": state.exec.ID,
+		"nodeId": nodeID,
+	})
 }
 
-// pollForQuestion captures tmux output and checks for a Claude CLI question.
-// If a new question is detected (different hash from last), it emits a bmad:node:question event.
-func (e *Executor) pollForQuestion(ctx context.Context, state *execState, nodeID, target string) {
+// pollNodeSignals captures the pane output ONCE per tick and feeds both
+// the (cheap) idle detector and — every `questionScanStride` ticks — the
+// heavier structured-question detector. Sharing the capture halves tmux
+// subprocess overhead on nodes that otherwise use both detectors.
+//
+// scanQuestion controls whether the question detector runs on this tick.
+// pollForIdle always runs because its state machine needs every sample
+// to reason about output stability.
+func (e *Executor) pollNodeSignals(ctx context.Context, state *execState, nodeID, target string, scanQuestion bool) {
 	captured, err := e.captureQuestionOutput(ctx, target)
 	if err != nil {
 		return // tmux capture failed — skip silently
 	}
+	e.pollForIdle(state, nodeID, target, captured)
+	if scanQuestion {
+		e.pollForQuestionFromCapture(state, nodeID, target, captured)
+	}
+}
 
+// pollForQuestion is the historical entry point that still performs its
+// own capture. Retained for backwards compatibility with any future
+// callers that only need question detection without the idle pipeline.
+// Production code paths now go through pollNodeSignals.
+func (e *Executor) pollForQuestion(ctx context.Context, state *execState, nodeID, target string) {
+	captured, err := e.captureQuestionOutput(ctx, target)
+	if err != nil {
+		return
+	}
+	e.pollForQuestionFromCapture(state, nodeID, target, captured)
+}
+
+// pollForQuestionFromCapture is the shared core of structured-question
+// polling that works against a pre-captured pane payload. Splitting
+// capture from detection lets pollNodeSignals share a single tmux call
+// between idle and question scanning.
+func (e *Executor) pollForQuestionFromCapture(state *execState, nodeID, target, captured string) {
 	question, options, found := detectQuestion(captured)
 	if !found {
 		return
@@ -1013,6 +1126,76 @@ func (e *Executor) pollForQuestion(ctx context.Context, state *execState, nodeID
 		TmuxTarget: target,
 		Timestamp:  time.Now().UnixMilli(),
 		QuestionID: qHash,
+	})
+}
+
+// pollForIdle drives the "waiting for user input" snackbar state machine
+// for a single node. The detector is deliberately conservative: an idle
+// event fires only when
+//
+//  1. detectIdlePrompt matches the current capture (tail has a bare `❯`
+//     Claude CLI prompt), AND
+//  2. the capture hash is identical to the previous poll (so the pane
+//     has been quiescent for at least one pollInterval).
+//
+// The stability check avoids false positives during live claude turns
+// where the prompt line is momentarily visible between frames. When the
+// output hash changes after an idle event has been emitted, the opposite
+// transition fires EventIdleDismissed so the frontend snackbar clears.
+//
+// Dedup semantics:
+//   - EventIdle fires AT MOST once per idle window. Subsequent polls that
+//     continue to see the stable idle prompt are no-ops.
+//   - EventIdleDismissed fires exactly once when the output hash changes
+//     AFTER an EventIdle has been emitted. Plain output churn without a
+//     prior idle emission is silent.
+func (e *Executor) pollForIdle(state *execState, nodeID, target, captured string) {
+	curHash := hashCapturedOutput(captured)
+	isIdle := detectIdlePrompt(captured)
+
+	state.mu.Lock()
+	prevHash := state.lastOutputHash[nodeID]
+	wasEmitted := state.idleEmitted[nodeID]
+	state.lastOutputHash[nodeID] = curHash
+
+	// Hash changed → pane activity. If we had previously emitted an idle
+	// event for this node, dismiss it so the snackbar clears. Either way,
+	// we cannot emit a NEW idle event on this tick because stability
+	// requires the next poll to observe the SAME hash.
+	if curHash != prevHash {
+		if wasEmitted {
+			state.idleEmitted[nodeID] = false
+			execID := state.exec.ID
+			state.mu.Unlock()
+			e.emitEvent(EventIdleDismissed, map[string]string{
+				"execId": execID,
+				"nodeId": nodeID,
+			})
+			return
+		}
+		state.mu.Unlock()
+		return
+	}
+
+	// Hash unchanged → pane has been stable since the last poll. Emit the
+	// idle event only if (a) the tail actually looks like an idle prompt,
+	// and (b) we have not already emitted for this window.
+	if wasEmitted || !isIdle {
+		state.mu.Unlock()
+		return
+	}
+	state.idleEmitted[nodeID] = true
+	execID := state.exec.ID
+	repoPath := state.exec.RepoPath
+	state.mu.Unlock()
+
+	e.emitEvent(EventIdle, IdleEvent{
+		ExecID:     execID,
+		NodeID:     nodeID,
+		RepoPath:   repoPath,
+		RepoName:   filepath.Base(repoPath),
+		TmuxTarget: target,
+		Timestamp:  time.Now().UnixMilli(),
 	})
 }
 

@@ -214,13 +214,18 @@ func (b *Bridge) handleWS(w http.ResponseWriter, r *http.Request) {
 // first. The cross-cancel pattern guarantees that closing either side
 // always cascades to the other — there is no scenario where one goroutine
 // stays blocked after the other has exited.
-func (b *Bridge) proxyTmuxSession(parentCtx context.Context, ws *websocket.Conn, sessionName string) {
+//
+// The name parameter may be either a bare session name ("bmad-foo-…") or a
+// full pane target ("bmad-foo-…:0.0"). The frontend passes TmuxTarget (the
+// full form) directly via the WebSocket URL path, while tests dial with the
+// bare name. normalizeBMADPaneTarget strips any existing ":window.pane"
+// suffix before reappending the canonical ":0.0" so both forms resolve to
+// the same pane.
+func (b *Bridge) proxyTmuxSession(parentCtx context.Context, ws *websocket.Conn, name string) {
 	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()
 
-	// BMAD always launches one window with one pane — :0.0 is the only
-	// addressable target.
-	paneTarget := sessionName + ":0.0"
+	paneTarget := normalizeBMADPaneTarget(name)
 
 	att, err := b.tmuxAdapter.Attach(ctx, paneTarget)
 	if err != nil {
@@ -311,4 +316,22 @@ func truncateForClose(reason string) string {
 		return reason
 	}
 	return reason[:closeReasonMaxBytes]
+}
+
+// normalizeBMADPaneTarget accepts either a bare BMAD session name
+// ("bmad-foo-main-node-deadbeef") or a full pane target carrying a
+// ":window.pane" suffix ("bmad-foo-main-node-deadbeef:0.0") and returns the
+// canonical pane target that BMAD guarantees exists.
+//
+// BMAD always launches one window with one pane via `tmux new-session`, so
+// ":0.0" is the only addressable target. The frontend passes the stored
+// TmuxTarget (which already includes ":0.0") directly via the WebSocket URL
+// path, while unit tests dial with the bare session name. Stripping any
+// existing suffix before reappending ":0.0" makes both call sites converge
+// on the same target instead of producing ":0.0:0.0" for the frontend path.
+func normalizeBMADPaneTarget(name string) string {
+	if i := strings.Index(name, ":"); i >= 0 {
+		name = name[:i]
+	}
+	return name + ":0.0"
 }

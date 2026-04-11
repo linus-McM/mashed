@@ -530,6 +530,7 @@ export namespace domain {
 	    read: boolean;
 	    priority: number;
 	    tokensUsed: number;
+	    tokenSamples?: number[];
 	    tokensMax: number;
 	    tmuxTarget: string;
 	    pid: number;
@@ -560,6 +561,7 @@ export namespace domain {
 	        this.read = source["read"];
 	        this.priority = source["priority"];
 	        this.tokensUsed = source["tokensUsed"];
+	        this.tokenSamples = source["tokenSamples"];
 	        this.tokensMax = source["tokensMax"];
 	        this.tmuxTarget = source["tmuxTarget"];
 	        this.pid = source["pid"];

@@ -1032,6 +1032,135 @@ func TestGetExecution_ReturnsCopy(t *testing.T) {
 	assert.NotEqual(t, a.Nodes[0].Label, b.Nodes[0].Label)
 }
 
+// ── GetCurrentExecution ────────────────────────────────────────────────
+//
+// GetCurrentExecution is the restore-on-mount hook used by the frontend
+// when the WorkflowBuilder loads. It scans the in-memory executions map
+// for the most-recently-started NON-TERMINAL execution (Running or
+// Paused) whose RepoPath matches the caller. Completed/failed executions
+// are ignored because there is nothing live to restore from them.
+
+// seedExecState registers a minimal execState directly in the executor,
+// bypassing the runner goroutine. Tests use this to drive
+// GetCurrentExecution through deterministic scenarios (no wall-clock
+// waiting, no background command execution).
+func seedExecState(t *testing.T, h *testHarness, execID, repoPath string, status WorkflowExecStatus, startedAt string) {
+	t.Helper()
+	state := &execState{
+		exec: &WorkflowExecution{
+			ID:          execID,
+			WorkflowID:  "wf-" + execID,
+			RepoPath:    repoPath,
+			Status:      status,
+			StartedAt:   startedAt,
+			NodeOutputs: map[string]string{},
+			Nodes: []WorkflowNode{
+				{ID: "node-A", Label: "A", Status: NodeRunning},
+			},
+		},
+		cancel:           func() {},
+		inDegree:         map[string]int{"node-A": 0},
+		outEdges:         map[string][]WorkflowEdge{},
+		lastQuestionHash: map[string]string{},
+		lastOutputHash:   map[string]string{},
+		idleEmitted:      map[string]bool{},
+	}
+	h.executor.mu.Lock()
+	h.executor.executions[execID] = state
+	h.executor.mu.Unlock()
+}
+
+func TestGetCurrentExecution_EmptyRepoPath(t *testing.T) {
+	h := newHarness(t)
+	seedExecState(t, h, "e1", "/tmp/repoA", ExecRunning, "2026-04-11T10:00:00Z")
+
+	got, err := h.executor.GetCurrentExecution("")
+	require.NoError(t, err, "empty repoPath must not be an error")
+	assert.Nil(t, got, "empty repoPath must return nil — no ambiguous global match")
+}
+
+func TestGetCurrentExecution_NoExecutions(t *testing.T) {
+	h := newHarness(t)
+
+	got, err := h.executor.GetCurrentExecution("/tmp/repoA")
+	require.NoError(t, err, "missing execution is not an error")
+	assert.Nil(t, got, "empty executions map must return nil")
+}
+
+func TestGetCurrentExecution_NoMatchingRepo(t *testing.T) {
+	h := newHarness(t)
+	seedExecState(t, h, "e1", "/tmp/repoA", ExecRunning, "2026-04-11T10:00:00Z")
+	seedExecState(t, h, "e2", "/tmp/repoB", ExecRunning, "2026-04-11T10:00:00Z")
+
+	got, err := h.executor.GetCurrentExecution("/tmp/repoC")
+	require.NoError(t, err)
+	assert.Nil(t, got, "unrelated running executions must not match the query")
+}
+
+func TestGetCurrentExecution_SingleRunningMatch(t *testing.T) {
+	h := newHarness(t)
+	seedExecState(t, h, "e1", "/tmp/repoA", ExecRunning, "2026-04-11T10:00:00Z")
+
+	got, err := h.executor.GetCurrentExecution("/tmp/repoA")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, "e1", got.ID)
+	assert.Equal(t, ExecRunning, got.Status)
+}
+
+func TestGetCurrentExecution_PausedCountsAsNonTerminal(t *testing.T) {
+	h := newHarness(t)
+	seedExecState(t, h, "e1", "/tmp/repoA", ExecPaused, "2026-04-11T10:00:00Z")
+
+	got, err := h.executor.GetCurrentExecution("/tmp/repoA")
+	require.NoError(t, err)
+	require.NotNil(t, got, "paused exec is still restorable state")
+	assert.Equal(t, ExecPaused, got.Status)
+}
+
+func TestGetCurrentExecution_IgnoresTerminalExecutions(t *testing.T) {
+	h := newHarness(t)
+	seedExecState(t, h, "e-done", "/tmp/repoA", ExecComplete, "2026-04-11T10:00:00Z")
+	seedExecState(t, h, "e-failed", "/tmp/repoA", ExecFailed, "2026-04-11T11:00:00Z")
+
+	got, err := h.executor.GetCurrentExecution("/tmp/repoA")
+	require.NoError(t, err)
+	assert.Nil(t, got,
+		"complete and failed executions must never match — nothing live to restore")
+}
+
+func TestGetCurrentExecution_PicksLatestByStartedAt(t *testing.T) {
+	h := newHarness(t)
+	seedExecState(t, h, "e-old", "/tmp/repoA", ExecRunning, "2026-04-11T08:00:00Z")
+	seedExecState(t, h, "e-mid", "/tmp/repoA", ExecPaused, "2026-04-11T09:30:00Z")
+	seedExecState(t, h, "e-new", "/tmp/repoA", ExecRunning, "2026-04-11T12:00:00Z")
+
+	got, err := h.executor.GetCurrentExecution("/tmp/repoA")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, "e-new", got.ID,
+		"when multiple non-terminal executions match, pick the one with the latest StartedAt")
+}
+
+func TestGetCurrentExecution_ReturnsDeepCopy(t *testing.T) {
+	h := newHarness(t)
+	seedExecState(t, h, "e1", "/tmp/repoA", ExecRunning, "2026-04-11T10:00:00Z")
+
+	got, err := h.executor.GetCurrentExecution("/tmp/repoA")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	got.Nodes[0].Label = "mutated-by-caller"
+
+	// Fetch again — the caller's mutation must NOT leak into the stored
+	// state. This is the same invariant as TestGetExecution_ReturnsCopy,
+	// applied to the new restore path.
+	fresh, err := h.executor.GetCurrentExecution("/tmp/repoA")
+	require.NoError(t, err)
+	require.NotNil(t, fresh)
+	assert.NotEqual(t, "mutated-by-caller", fresh.Nodes[0].Label,
+		"stored execState.exec.Nodes must not be observably mutated by caller")
+}
+
 // ── Dynamic Executor — Condition Branching ──
 
 // conditionRunner returns a CommandRunner for condition/merge tests. The
@@ -2586,6 +2715,8 @@ func seedResponseState(t *testing.T, h *testHarness, execID, nodeID, tmuxTarget,
 		inDegree:         map[string]int{nodeID: 0},
 		outEdges:         map[string][]WorkflowEdge{},
 		lastQuestionHash: map[string]string{nodeID: hash},
+		lastOutputHash:   map[string]string{},
+		idleEmitted:      map[string]bool{},
 	}
 	h.executor.mu.Lock()
 	h.executor.executions[execID] = state

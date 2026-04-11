@@ -179,6 +179,24 @@ func (a *App) GetBmadExecution(execID string) (*bmad.WorkflowExecution, error) {
 	return a.bmadExecutor.GetExecution(execID)
 }
 
+// GetBmadCurrentExecution returns a deep copy of the most recently
+// started non-terminal execution (running or paused) whose RepoPath
+// matches the given path, or nil when no such execution exists.
+//
+// This is the restore-on-mount hook the WorkflowBuilder calls when a
+// user re-enters a repo's workspace: if a workflow is mid-run, the
+// frontend loads the associated workflow definition and repaints per-
+// node statuses so the canvas shows the live execution state. Returning
+// (nil, nil) for "no match" is intentional — the frontend falls through
+// to its autosave-draft / blank-canvas paths without treating absence
+// as an error.
+func (a *App) GetBmadCurrentExecution(repoPath string) (*bmad.WorkflowExecution, error) {
+	if a.bmadExecutor == nil {
+		return nil, fmt.Errorf("bmad executor not initialized")
+	}
+	return a.bmadExecutor.GetCurrentExecution(repoPath)
+}
+
 // ── BMAD Agent Management ──
 
 // ListBmadAgents returns all custom agent configurations.

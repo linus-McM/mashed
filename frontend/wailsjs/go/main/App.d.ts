@@ -21,6 +21,8 @@ export function GetAgentLog(arg1:string):Promise<Array<domain.LogLine>>;
 
 export function GetArtifactStatus(arg1:string,arg2:string):Promise<boolean>;
 
+export function GetBmadCurrentExecution(arg1:string):Promise<bmad.WorkflowExecution>;
+
 export function GetBmadExecution(arg1:string):Promise<bmad.WorkflowExecution>;
 
 export function GetBmadModules():Promise<Array<bmad.ModuleDef>>;

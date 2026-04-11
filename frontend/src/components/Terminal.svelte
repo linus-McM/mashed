@@ -1,5 +1,13 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
+  // xterm.js ships its layout stylesheet separately from the JS module.
+  // Without this import .xterm-viewport stays `position: static` so the
+  // .xterm-screen rows end up rendered ~46k px below the wrapper instead
+  // of being overlaid by the viewport — the terminal modal appears blank
+  // even though content is streaming into the DOM. This is the required
+  // import per xterm.js docs and must stay statically imported so Vite
+  // bundles it with the component chunk.
+  import '@xterm/xterm/css/xterm.css';
   import { GetTerminalPort, GetAgentLog } from '../../wailsjs/go/main/App.js';
   import { EventsOn, EventsOff, ClipboardGetText, ClipboardSetText } from '../../wailsjs/runtime/runtime.js';
   import { currentTheme } from '../lib/stores/theme.js';

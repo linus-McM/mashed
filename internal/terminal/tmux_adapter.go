@@ -78,15 +78,20 @@ func DefaultCommandRunner(ctx context.Context, name string, args ...string) ([]b
 // ~10× within test budget while remaining cheap in production (one
 // short-lived `tmux list-panes` per tick per attachment).
 const (
-	watcherInterval  = 100 * time.Millisecond
-	pollingInterval  = 200 * time.Millisecond
-	runCmdTimeout    = 5 * time.Second
-	watcherRunCmdTO  = 3 * time.Second
-	stopRunCmdTO     = 2 * time.Second
-	liveChBuffer     = 64
-	fifoReadBuf      = 4096
-	scrollbackLines  = 5000
-	fifoFilePermBits = 0o600
+	watcherInterval = 100 * time.Millisecond
+	pollingInterval = 200 * time.Millisecond
+	runCmdTimeout   = 5 * time.Second
+	watcherRunCmdTO = 3 * time.Second
+	stopRunCmdTO    = 2 * time.Second
+	// fifoRetryInterval paces the reader goroutine when its non-blocking
+	// FIFO Read returns EAGAIN. Short enough that live output feels
+	// instant to the user; long enough that the retry loop never burns
+	// noticeable CPU while waiting for tmux pipe-pane's cat to connect.
+	fifoRetryInterval = 20 * time.Millisecond
+	liveChBuffer      = 64
+	fifoReadBuf       = 4096
+	scrollbackLines   = 5000
+	fifoFilePermBits  = 0o600
 
 	// Tmux binary + subcommand names used when invoking the runner.
 	// Names differ from the test-file constants (sub*) because tests and
@@ -142,7 +147,18 @@ type TmuxAttachment struct {
 	// fifoPath is empty in polling-fallback mode. The containing tmp dir
 	// is derived as filepath.Dir(fifoPath) at cleanup time.
 	fifoPath string
-	fifoFile *os.File // nil in polling-fallback mode
+	fifoFile *os.File // read side (O_RDONLY|O_NONBLOCK); nil in polling-fallback mode
+	// fifoKeepalive is a second handle to the FIFO opened O_WRONLY so the
+	// Go process itself is always a writer on the pipe. Without this,
+	// POSIX defines a FIFO with no writers as end-of-file, which races
+	// against the asynchronous `tmux pipe-pane "cat > fifo"` spawn: if
+	// the read side opens before cat connects, the very first Read on
+	// the read fd returns (0, io.EOF) and the attachment tears itself
+	// down before any live output can stream. Holding a WRONLY fd here
+	// makes the "no external writer" state invisible to the read fd, so
+	// the stream only terminates when Close() closes both handles.
+	// nil in polling-fallback mode.
+	fifoKeepalive *os.File
 
 	// fallbackPolling — do NOT rename; tmux_adapter_testhelpers_test.go
 	// pokes this field by name (attachmentIsPolling).
@@ -275,20 +291,45 @@ func (a *TmuxAdapter) startPipePane(att *TmuxAttachment) error {
 // att.liveCh, and a closer that waits for att.ctx to cancel and then closes
 // the file to unblock the reader.
 //
-// The FIFO is opened with O_RDONLY|O_NONBLOCK because:
+// The FIFO is opened TWICE: first O_RDONLY|O_NONBLOCK for reading, then
+// O_WRONLY|O_NONBLOCK as a keepalive writer. Both opens are needed to
+// correctly handle the race against tmux's async `pipe-pane "cat > fifo"`:
 //
-//   - O_RDONLY alone would block in open(2) until a writer (the tmux
-//     pipe-pane "cat > fifo") opens the far end, stalling Attach.
-//   - O_NONBLOCK puts the fd in non-blocking mode, which — combined with
-//     the Go runtime's detection of FIFOs as pollable — routes every Read
-//     through the netpoll. Close() of the file wakes the poller, so the
-//     reader goroutine exits promptly when Close is called.
+//   - O_RDONLY alone would block in open(2) until a writer opens the far
+//     end, stalling Attach indefinitely if cat never spawns.
+//   - O_RDONLY|O_NONBLOCK open succeeds immediately without a writer, and
+//     Go's netpoll integrates FIFO reads so Read blocks on the poller
+//     waiting for data.
+//   - BUT POSIX defines read() on a FIFO with no writers as returning 0
+//     bytes ("end of file"). startPipePane only queues a command to the
+//     tmux server and returns before `cat > fifo` has actually connected,
+//     so on a slow schedule the read fd is live before any writer exists.
+//     The first Read then returns (0, io.EOF) and tears the attachment
+//     down before live output can stream — users see a blank viewport
+//     that flips to "[disconnected]".
+//   - The O_WRONLY keepalive fd makes the Go process itself a writer on
+//     the FIFO. POSIX then guarantees no spurious EOF because there is
+//     always at least one writer from the kernel's POV. The read-side
+//     Read blocks on netpoll until actual data arrives (from cat, when
+//     it connects) or the closer goroutine closes both handles.
+//   - Opening WRONLY AFTER the RDONLY fd is safe: O_WRONLY|O_NONBLOCK on
+//     a FIFO with no reader would fail with ENXIO, but we have a reader
+//     (ourselves), so the open succeeds non-blockingly.
 func (a *TmuxAdapter) startFIFOReader(att *TmuxAttachment) error {
 	f, err := os.OpenFile(att.fifoPath, os.O_RDONLY|syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return err
 	}
 	att.fifoFile = f
+
+	// Keepalive writer — must be opened AFTER the reader fd is live, else
+	// O_WRONLY|O_NONBLOCK returns ENXIO. Non-fatal: if the keepalive open
+	// fails for any reason, the attachment still works, it is just
+	// susceptible to the pipe-pane race. Log and continue so we never
+	// regress from "works racily" to "does not attach at all".
+	if kf, kerr := os.OpenFile(att.fifoPath, os.O_WRONLY|syscall.O_NONBLOCK, 0); kerr == nil {
+		att.fifoKeepalive = kf
+	}
 
 	att.wg.Add(1)
 	go func() {
@@ -306,6 +347,23 @@ func (a *TmuxAdapter) startFIFOReader(att *TmuxAttachment) error {
 				}
 			}
 			if rerr != nil {
+				// EAGAIN ("resource temporarily unavailable") means the
+				// FIFO has at least one writer (the keepalive fd) but no
+				// data is currently available. Go's netpoll does not
+				// integrate FIFO EAGAIN reliably on macOS kqueue, so the
+				// error bubbles up to this goroutine. Treat it as "wait
+				// briefly and retry" so the reader keeps polling the fd
+				// until either data arrives (from tmux pipe-pane's cat
+				// connecting, or from subsequent pane output) or att.ctx
+				// is cancelled by the closer goroutine.
+				if errors.Is(rerr, syscall.EAGAIN) {
+					select {
+					case <-att.ctx.Done():
+						return
+					case <-time.After(fifoRetryInterval):
+						continue
+					}
+				}
 				if !errors.Is(rerr, io.EOF) && !errors.Is(rerr, os.ErrClosed) {
 					att.readErr.Store(rerr)
 				}
@@ -319,6 +377,14 @@ func (a *TmuxAdapter) startFIFOReader(att *TmuxAttachment) error {
 	go func() {
 		defer att.wg.Done()
 		<-att.ctx.Done()
+		// Close the keepalive WRONLY fd first: this transitions the FIFO
+		// to "no writers" which, combined with any pending buffered data
+		// draining, lets the reader observe a clean EOF after the final
+		// chunks are delivered. Then close the read fd to unblock the
+		// reader goroutine via its netpoll wake.
+		if att.fifoKeepalive != nil {
+			_ = att.fifoKeepalive.Close()
+		}
 		_ = f.Close() // unblocks the reader goroutine's f.Read
 	}()
 
@@ -519,6 +585,7 @@ func (att *TmuxAttachment) cleanupFIFO() error {
 	err := os.RemoveAll(filepath.Dir(att.fifoPath))
 	att.fifoPath = ""
 	att.fifoFile = nil
+	att.fifoKeepalive = nil
 	return err
 }
 

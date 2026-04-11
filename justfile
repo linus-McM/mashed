@@ -1,3 +1,7 @@
+# List all recipes
+default:
+    @just --list
+
 # Repo name used as tmux session prefix (auto-detected from directory name)
 repo := `basename $(git rev-parse --show-toplevel 2>/dev/null || basename $PWD)`
 # Random 4-digit suffix to allow multiple sessions of the same type
@@ -88,6 +92,10 @@ sessions:
     total=$((p_count + c_count))
     echo "  Total: $total sessions"
 
+# Tile all bmad-surfseer-* tmux sessions into a single viewer window
+view-bmad:
+    @bash scripts/tmux-bmad-viewer.sh
+
 # Attach to all repo-related tmux sessions in a single tmux window (switch with prefix+s)
 attach-all:
     #!/usr/bin/env bash
@@ -136,3 +144,133 @@ hooks-install:
 # Manually run pre-commit hooks without committing
 pre-check:
     lefthook run pre-commit
+
+
+# Claude tmux Swarm Discovery
+# Usage: just <recipe>
+
+
+
+# ── Session & Pane Enumeration ─────────────────────────────────────────────
+
+# List all active tmux sessions
+list_sessions:
+    tmux list-sessions
+
+# List all panes across all sessions with running command and PID
+panes:
+    tmux list-panes -a -F \
+        '#{session_name}:#{window_index}.#{pane_index} | cmd=#{pane_current_command} | pid=#{pane_pid}'
+
+# Full pane inventory — all fields useful for Claude Conductor
+panes-full:
+    tmux list-panes -a -F \
+        '#{session_id}|#{session_name}|#{window_index}|#{window_name}|#{pane_index}|#{pane_id}|#{pane_current_command}|#{pane_pid}|#{pane_title}'
+
+# ── Claude Detection ───────────────────────────────────────────────────────
+
+# Tier 1: Find panes where pane_current_command is directly 'claude'
+detect-direct:
+    @tmux list-panes -a -F \
+        '#{session_name}:#{window_index}.#{pane_index} | pid=#{pane_pid} | cmd=#{pane_current_command}' \
+    | grep ' cmd=claude'
+
+# Tier 2: Find claude processes via process tree (catches zsh-wrapped launches)
+detect-proctree:
+    @for pid in $(pgrep -x claude 2>/dev/null); do \
+        echo "claude PID: $pid"; \
+        tmux list-panes -a -F '#{pane_pid} #{pane_id} #{session_name}:#{window_index}.#{pane_index}' \
+        | awk -v pid="$pid" '$1 == pid {print "  tmux pane: " $2 " (" $3 ")"}'; \
+    done
+
+# Tier 3: Find panes whose visible output contains Claude Code UI markers
+detect-content:
+    @tmux list-panes -a -F '#{pane_id} #{session_name}:#{window_index}.#{pane_index}' \
+    | while read pane_id addr; do \
+        if tmux capture-pane -t "$pane_id" -p 2>/dev/null | grep -q "Claude\|claude>"; then \
+            echo "$pane_id  $addr"; \
+        fi; \
+    done
+
+# Run all three detection tiers
+detect-all:
+    @echo "=== Tier 1: Direct command match ==="
+    @just detect-direct || true
+    @echo ""
+    @echo "=== Tier 2: Process tree ==="
+    @just detect-proctree || true
+    @echo ""
+    @echo "=== Tier 3: Content capture ==="
+    @just detect-content || true
+
+# One-liner: filter panes running claude or node (agent wrapper)
+discover:
+    @tmux list-panes -a -F \
+        '#{session_name}|#{window_index}|#{pane_index}|#{pane_id}|#{pane_current_command}|#{pane_pid}' \
+    | awk -F'|' '$5 ~ /claude|node/ {print $1 ":" $2 "." $3 " | pane=" $4 " | cmd=" $5 " | pid=" $6}'
+
+# ── Pane Output Capture ────────────────────────────────────────────────────
+
+# Capture last 50 lines from a pane — usage: just capture PANE_ID
+# e.g. just capture %3
+capture PANE_ID:
+    tmux capture-pane -t {{PANE_ID}} -p -S -50
+
+# Capture last 100 lines from a pane
+capture-100 PANE_ID:
+    tmux capture-pane -t {{PANE_ID}} -p -S -100
+
+# Capture last 200 lines from a pane to a temp file
+capture-file PANE_ID:
+    tmux capture-pane -t {{PANE_ID}} -p -S -200 > /tmp/agent-{{PANE_ID}}-output.txt
+    @echo "Saved to /tmp/agent-{{PANE_ID}}-output.txt"
+
+# ── Agent Team Config ──────────────────────────────────────────────────────
+
+# List all Claude agent team configs
+teams:
+    @ls ~/.claude/teams/ 2>/dev/null || echo "No teams directory found"
+
+# Read a specific team config — usage: just team-config TEAM_NAME
+team-config TEAM_NAME:
+    cat ~/.claude/teams/{{TEAM_NAME}}/config.json
+
+# List task files for a team — usage: just team-tasks TEAM_NAME
+team-tasks TEAM_NAME:
+    @ls ~/.claude/tasks/{{TEAM_NAME}}/ 2>/dev/null || echo "No tasks found for {{TEAM_NAME}}"
+
+# ── Environment & Context ──────────────────────────────────────────────────
+
+# Show Claude-related env vars in current/target session
+env-check:
+    @echo "TMUX: ${TMUX:-not set}"
+    @echo "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: ${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-not set}"
+    @echo "CLAUDE_CODE_SPAWN_BACKEND: ${CLAUDE_CODE_SPAWN_BACKEND:-not set}"
+
+# Check if agent teams env var is set in a target session — usage: just env-session SESSION
+env-session SESSION:
+    tmux show-environment -t {{SESSION}} CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS 2>/dev/null \
+        || echo "Not set in session '{{SESSION}}'"
+
+# Show all pane PIDs mapped to their tmux address
+pid-map:
+    @tmux list-panes -a -F '#{pane_pid} -> #{session_name}:#{window_index}.#{pane_index} (#{pane_id})'
+
+# ── Process-Level Discovery ────────────────────────────────────────────────
+
+# All claude processes on the system
+procs:
+    @pgrep -a claude 2>/dev/null || ps aux | grep -i claude | grep -v grep
+
+# Map all claude PIDs back to their tmux panes
+pid-to-pane:
+    @for pid in $(pgrep -x claude 2>/dev/null); do \
+        match=$(tmux list-panes -a \
+            -F '#{pane_pid} #{pane_id} #{session_name}:#{window_index}.#{pane_index}' \
+            | awk -v p="$pid" '$1 == p'); \
+        if [ -n "$match" ]; then \
+            echo "PID $pid => $match"; \
+        else \
+            echo "PID $pid => (no matching tmux pane)"; \
+        fi; \
+    done

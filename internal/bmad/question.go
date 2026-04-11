@@ -28,10 +28,27 @@ var numberedOption = regexp.MustCompile(`^\d+\.\s+(.+)`)
 // emojiQuestion matches lines starting with the red question mark emoji.
 var emojiQuestion = regexp.MustCompile(`^❓\s+(.+)`)
 
+// claudePromptRune is the Claude CLI's empty-input prompt chevron.
+// It is NOT matched via a regex because Go's RE2 `\s` class only covers
+// ASCII whitespace ([\t\n\f\r ]) and the Claude CLI actually renders a
+// NO-BREAK SPACE (U+00A0) after the chevron, not a regular space. We
+// use strings.TrimSpace (which trims via unicode.IsSpace, so it handles
+// NBSP, ideographic space, and the rest of Unicode Zs correctly) and
+// compare the trimmed line to this rune directly. See detectIdlePrompt
+// for the call site and the regression test TestDetectIdlePrompt/NBSP.
+const claudePromptRune = "❯"
+
 // Event names for question detection/dismissal.
 const (
 	EventQuestion          = "bmad:node:question"
 	EventQuestionDismissed = "bmad:node:question:dismissed"
+	// EventIdle signals that a BMAD node's tmux pane is sitting at a
+	// Claude CLI input prompt with no recent output activity — i.e. claude
+	// is waiting for the user to type. Distinct from EventQuestion because
+	// there is no structured question text to surface; the frontend shows
+	// a "Waiting for input" style snackbar instead.
+	EventIdle          = "bmad:node:idle"
+	EventIdleDismissed = "bmad:node:idle:dismissed"
 )
 
 // QuestionEvent is emitted when Claude CLI asks the user a question.
@@ -45,6 +62,25 @@ type QuestionEvent struct {
 	TmuxTarget string   `json:"tmuxTarget"`
 	Timestamp  int64    `json:"timestamp"`
 	QuestionID string   `json:"questionId"`
+}
+
+// IdleEvent is emitted when a BMAD node's tmux pane has reached the
+// Claude CLI input prompt and its output has been stable for at least one
+// poll cycle — signalling that claude has finished its current turn and
+// is waiting on user input. The frontend surfaces this as a "Waiting for
+// input" snackbar distinct from the structured question snackbar.
+//
+// Unlike QuestionEvent there is no question text or options — the frontend
+// just prompts the user to open the terminal and type. A follow-up
+// EventIdleDismissed (with map[string]string{execId, nodeId}) fires as
+// soon as the pane emits new output or the node completes/fails.
+type IdleEvent struct {
+	ExecID     string `json:"execId"`
+	NodeID     string `json:"nodeId"`
+	RepoPath   string `json:"repoPath"`
+	RepoName   string `json:"repoName"`
+	TmuxTarget string `json:"tmuxTarget"`
+	Timestamp  int64  `json:"timestamp"`
 }
 
 // stripANSI removes ANSI escape sequences (CSI and OSC) from a string in a single pass.
@@ -123,6 +159,58 @@ func detectQuestion(output string) (question string, options []string, found boo
 func hashQuestion(q string) string {
 	h := sha256.Sum256([]byte(q))
 	return hex.EncodeToString(h[:])
+}
+
+// idlePromptScanTail bounds how many lines from the END of the captured
+// output detectIdlePrompt considers. The Claude CLI renders its input
+// prompt close to the bottom of the viewport, so anything earlier is
+// guaranteed stale ANSI history that can be ignored.
+const idlePromptScanTail = 30
+
+// detectIdlePrompt returns true when the captured tmux output ends with a
+// Claude CLI input prompt — specifically, when any of the last
+// idlePromptScanTail lines (after ANSI stripping) is just a `❯` chevron
+// with optional surrounding whitespace.
+//
+// This signal intentionally does NOT mean "a structured question is being
+// asked" — detectQuestion handles that case. It only answers the weaker
+// question "does the pane look like it is waiting for the user to type
+// something". Pair it with an output-stability check in the caller
+// (hash compared across two consecutive polls) so that transient prompt
+// renders during a claude turn are not mistaken for idle.
+//
+// Whitespace handling: the Claude CLI renders the cursor row as the
+// chevron followed by a NO-BREAK SPACE (U+00A0), NOT an ASCII space,
+// and tmux capture-pane preserves that exact byte sequence. Go RE2's
+// `\s` character class is ASCII-only, so any regex-based match of the
+// form `^\s*❯\s*$` would miss every real pane. We sidestep the entire
+// regex-vs-Unicode pitfall by using strings.TrimSpace — whose behaviour
+// is defined in terms of unicode.IsSpace and therefore strips NBSP,
+// ideographic space, and every other Zs category rune — and then
+// comparing the trimmed line to the chevron rune directly.
+func detectIdlePrompt(output string) bool {
+	if output == "" {
+		return false
+	}
+	cleaned := stripANSI(output)
+	lines := strings.Split(cleaned, "\n")
+	if len(lines) > idlePromptScanTail {
+		lines = lines[len(lines)-idlePromptScanTail:]
+	}
+	for _, line := range lines {
+		if strings.TrimSpace(line) == claudePromptRune {
+			return true
+		}
+	}
+	return false
+}
+
+// hashCapturedOutput returns a short hash of a tmux capture-pane payload,
+// used by pollForIdle to detect "pane output is unchanged since the
+// previous poll". Reuses SHA-256 (same as hashQuestion) for simplicity —
+// collisions would cause a missed idle dismissal, not a security issue.
+func hashCapturedOutput(output string) string {
+	return hashQuestion(output)
 }
 
 // escapeTmuxLiteral sanitises an answer string for `tmux send-keys -l`.

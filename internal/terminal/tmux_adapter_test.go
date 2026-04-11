@@ -617,19 +617,17 @@ func TestTmuxAttachment_ConcurrentReadSendInput(t *testing.T) {
 
 	var writerWG sync.WaitGroup
 	var readerWG sync.WaitGroup
-	stop := make(chan struct{})
 
-	// Reader goroutine: drain bytes until `stop` closes.
+	// Reader goroutine: drain bytes until Read surfaces a terminal error
+	// (which happens when we call att.Close() below). Any non-nil error is
+	// the signal to exit — we do not distinguish EOF from os.ErrClosed
+	// because this test only cares that the goroutine can both call
+	// att.Read concurrently with SendInput and terminate cleanly on close.
 	readerWG.Add(1)
 	go func() {
 		defer readerWG.Done()
 		buf := make([]byte, 256)
 		for {
-			select {
-			case <-stop:
-				return
-			default:
-			}
 			if _, err := att.Read(buf); err != nil {
 				return
 			}
@@ -661,8 +659,12 @@ func TestTmuxAttachment_ConcurrentReadSendInput(t *testing.T) {
 		t.Fatal("concurrent writers did not finish within context deadline")
 	}
 
-	// Signal the reader to stop and wait for it.
-	close(stop)
+	// Close the attachment to cancel its context — this is how the
+	// reader goroutine is signalled to exit. (Prior to the FIFO
+	// keepalive fix the reader would have exited on its own due to an
+	// accidental early-EOF race; that behaviour is now suppressed so
+	// the test must drive termination explicitly.)
+	_ = att.Close()
 	readerDone := make(chan struct{})
 	go func() {
 		readerWG.Wait()
