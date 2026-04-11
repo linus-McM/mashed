@@ -1,4 +1,5 @@
 <script>
+  import { tick } from 'svelte';
   import { SvelteFlow, Controls, MiniMap, Background, useSvelteFlow } from '@xyflow/svelte';
   import { Trash2, LayoutTemplate, ChevronRight, Maximize2 } from 'lucide-svelte';
   import DeletableEdge from './DeletableEdge.svelte';
@@ -33,6 +34,29 @@
   let contextMenu = null; // { x, y, nodeId?, nodeStatus?, flowPosition }
   let showTemplateSub = false;
 
+  // uiqa-08: keyboard nav state for context menu
+  // itemRefs holds bound <button> nodes in render order; activeIdx is the
+  // currently-focused index; previousFocus restores focus on close.
+  let itemRefs = [];
+  let activeIdx = 0;
+  let previousFocus = null;
+
+  // Top-level menu items in render order. Rebuilt reactively so ArrowDown/Up
+  // wrap lengths match the DOM. The "Add Template" entry is always present;
+  // "Delete Node" only when the menu opened on a node.
+  $: menuItemCount = contextMenu ? (contextMenu.nodeId ? 2 : 1) : 0;
+
+  async function openContextMenuFocus() {
+    // Capture the previously focused element (may be body/canvas) so we can
+    // restore it on close. Reset index, clear stale refs, then focus item 0
+    // after the menu has rendered.
+    previousFocus = (typeof document !== 'undefined' && document.activeElement) || null;
+    activeIdx = 0;
+    itemRefs = [];
+    await tick();
+    itemRefs[0]?.focus();
+  }
+
   function handleNodeContextMenu(e) {
     const node = e.detail.node;
     if (!node) return;
@@ -45,6 +69,7 @@
       nodeStatus: node.data?.status || 'pending',
       flowPosition: screenToFlowPosition({ x: e.detail.event.clientX, y: e.detail.event.clientY }),
     };
+    openContextMenuFocus();
   }
 
   function handlePaneContextMenu(e) {
@@ -57,11 +82,62 @@
       nodeStatus: null,
       flowPosition: screenToFlowPosition({ x: e.detail.event.clientX, y: e.detail.event.clientY }),
     };
+    openContextMenuFocus();
   }
 
   function closeContextMenu() {
+    if (!contextMenu) return;
     contextMenu = null;
     showTemplateSub = false;
+    itemRefs = [];
+    activeIdx = 0;
+    // Restore focus to the element that opened the menu.
+    const prev = previousFocus;
+    previousFocus = null;
+    if (prev && typeof prev.focus === 'function') {
+      try { prev.focus(); } catch { /* ignore */ }
+    }
+  }
+
+  function handleMenuKeydown(e) {
+    if (!contextMenu) return;
+    const count = menuItemCount;
+    if (count === 0) return;
+    switch (e.key) {
+      case 'Escape':
+        e.preventDefault();
+        closeContextMenu();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        activeIdx = (activeIdx + 1) % count;
+        itemRefs[activeIdx]?.focus();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        activeIdx = (activeIdx - 1 + count) % count;
+        itemRefs[activeIdx]?.focus();
+        break;
+      case 'Home':
+        e.preventDefault();
+        activeIdx = 0;
+        itemRefs[0]?.focus();
+        break;
+      case 'End':
+        e.preventDefault();
+        activeIdx = count - 1;
+        itemRefs[activeIdx]?.focus();
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        itemRefs[activeIdx]?.click();
+        break;
+      case 'Tab':
+        // Tab closes the menu (standard desktop menu behavior).
+        closeContextMenu();
+        break;
+    }
   }
 
   function contextDeleteNode() {
@@ -148,7 +224,7 @@
   }
 </script>
 
-<svelte:window on:click={closeContextMenu} />
+<svelte:window on:click={closeContextMenu} on:keydown={handleMenuKeydown} />
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="flow-wrap" on:drop={onDrop} on:dragover={onDragOver} role="application">
@@ -198,15 +274,17 @@
       class="context-menu"
       style="left: {contextMenu.x}px; top: {contextMenu.y}px;"
       on:click|stopPropagation
-      on:keydown={() => {}}
+      on:keydown|stopPropagation={handleMenuKeydown}
       role="menu"
-      tabindex="0"
     >
       {#if contextMenu.nodeId}
         <button
           class="context-item"
           class:disabled={contextMenu.nodeStatus === 'running'}
           on:click={contextDeleteNode}
+          bind:this={itemRefs[0]}
+          role="menuitem"
+          tabindex="-1"
         >
           <Trash2 size={13} />
           <span>Delete Node</span>
@@ -218,19 +296,28 @@
       <div class="context-submenu-wrap"
         on:mouseenter={() => showTemplateSub = true}
         on:mouseleave={() => showTemplateSub = false}
-        role="menuitem"
-        tabindex="0"
       >
-        <button class="context-item">
+        <button
+          class="context-item"
+          on:click={() => showTemplateSub = !showTemplateSub}
+          bind:this={itemRefs[contextMenu.nodeId ? 1 : 0]}
+          role="menuitem"
+          tabindex="-1"
+        >
           <LayoutTemplate size={13} />
           <span>Add Template</span>
           <ChevronRight size={12} class="submenu-arrow" />
         </button>
 
         {#if showTemplateSub && templates.length > 0}
-          <div class="context-submenu">
+          <div class="context-submenu" role="menu">
             {#each templates as tpl}
-              <button class="context-item" on:click={() => contextAddTemplate(tpl.id)}>
+              <button
+                class="context-item"
+                on:click={() => contextAddTemplate(tpl.id)}
+                role="menuitem"
+                tabindex="-1"
+              >
                 <span>{tpl.name}</span>
                 <span class="tpl-meta">{tpl.nodes?.length || 0} nodes</span>
               </button>

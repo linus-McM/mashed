@@ -119,6 +119,22 @@ body {
   outline-offset: 2px;
 }
 
+/* uiqa-08: keyboard focus ring — global
+   Applies a consistent accent outline to every native interactive element +
+   role="button" so keyboard users always see where focus landed. Component
+   scoped :focus-visible rules (e.g. .glow-btn) take precedence over this
+   fallback via CSS specificity. */
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.agent-row:focus-visible,
+.repo-header:focus-visible {
+  outline: 2px solid var(--accent-green);
+  outline-offset: 2px;
+}
+
 /* Lucide icons */
 .lucide-icon {
   display: inline-block;
