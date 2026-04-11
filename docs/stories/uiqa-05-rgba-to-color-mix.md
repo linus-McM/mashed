@@ -1,6 +1,6 @@
 # Story uiqa-05: rgba() → color-mix() Migration
 
-**Status:** ready
+**Status:** done
 **Size:** L
 **Priority:** P2
 **Domain:** frontend
