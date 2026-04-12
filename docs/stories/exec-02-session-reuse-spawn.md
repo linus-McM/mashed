@@ -1,6 +1,6 @@
 # exec-02: `spawnCommandSession` + `SendInputToTarget` + session-reuse resolver
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends on:** exec-00, exec-01
@@ -128,30 +128,30 @@ Feature: Session reuse and spawn helpers
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Extract `spawnCommandSession` from `executeProcessNode` (AC-1)
-  - [ ] Create a single helper that handles the bash-wrapped claude spawn and records TmuxTarget on the node
-  - [ ] Rewire `executeProcessNode` to call the helper
-  - [ ] Ensure the helper accepts an optional `commandName` so it can spawn with `/<cmd>` as the initial invocation
-- [ ] Task 2 — Add `SendInputToTarget` on the adapter (AC-2)
-  - [ ] Lift the hex-formatting loop out of `TmuxAttachment.SendInput` into a shared `formatSendKeysHex(data) []string` helper
-  - [ ] Implement `(*TmuxAdapter).SendInputToTarget(ctx, target, data) error`
-  - [ ] Add a unit test matching `TestTmuxAttachment_AC3_SendInputUsesSendKeysHex` style
-- [ ] Task 3 — Implement `resolveCommandSession` (AC-3, AC-4, AC-5, AC-6)
-  - [ ] Collect upstream node pointers from incoming edges
-  - [ ] Filter by live `TmuxTarget` via `tmux list-panes -F '#{pane_dead}'`
-  - [ ] Zero / one / many branches per the plan
-  - [ ] Return `(target, reused, err)`; caller (exec-03) handles the spawn on `reused=false`
-- [ ] Task 4 — Tests (AC-1 through AC-6)
-  - [ ] Refactor regression test: process-node spawn argv unchanged
-  - [ ] SendInputToTarget argv test
-  - [ ] Table test for resolveCommandSession with four cases
+- [x] Task 1 — Extract `spawnCommandSession` from `executeProcessNode` (AC-1)
+  - [x] Create a single helper that handles the bash-wrapped claude spawn and records TmuxTarget on the node
+  - [x] Rewire `executeProcessNode` to call the helper
+  - [x] Ensure the helper accepts an optional `commandName` so it can spawn with `/<cmd>` as the initial invocation
+- [x] Task 2 — Add `SendInputToTarget` on the adapter (AC-2)
+  - [x] Lift the hex-formatting loop out of `TmuxAttachment.SendInput` into a shared `formatSendKeysHex(data) []string` helper
+  - [x] Implement `(*TmuxAdapter).SendInputToTarget(ctx, target, data) error`
+  - [x] Add a unit test matching `TestTmuxAttachment_AC3_SendInputUsesSendKeysHex` style
+- [x] Task 3 — Implement `resolveCommandSession` (AC-3, AC-4, AC-5, AC-6)
+  - [x] Collect upstream node pointers from incoming edges
+  - [x] Filter by live `TmuxTarget` via `tmux list-panes -F '#{pane_dead}'`
+  - [x] Zero / one / many branches per the plan
+  - [x] Return `(target, reused, err)`; caller (exec-03) handles the spawn on `reused=false`
+- [x] Task 4 — Tests (AC-1 through AC-6)
+  - [x] Refactor regression test: process-node spawn argv unchanged
+  - [x] SendInputToTarget argv test
+  - [x] Table test for resolveCommandSession with four cases
 
 ## Definition of Done
 
-- [ ] All ACs verified by an automated test (Go table-driven; no "manually verified")
-- [ ] Coverage ≥ 80% on modified files
-- [ ] `go build ./... && go vet ./...` clean
-- [ ] `go test ./... -race -short` clean
-- [ ] `/simplify` run before sign-off
-- [ ] No hardcoded paths or magic numbers added
-- [ ] Existing tests still pass (zero regressions for TmuxAttachment.SendInput users)
+- [x] All ACs verified by an automated test (Go table-driven; no "manually verified")
+- [x] Coverage ≥ 80% on modified files
+- [x] `go build ./... && go vet ./...` clean
+- [x] `go test ./... -race -short` clean
+- [x] `/simplify` run before sign-off
+- [x] No hardcoded paths or magic numbers added
+- [x] Existing tests still pass (zero regressions for TmuxAttachment.SendInput users)

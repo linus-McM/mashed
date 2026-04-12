@@ -985,6 +985,145 @@ func (e *Executor) waitForIdleCompletion(ctx context.Context, state *execState, 
 	}
 }
 
+// spawnCommandSession handles the tmux spawn sequence shared by process and
+// command nodes: wraps the invocation string in bash -c for pane persistence,
+// creates a tmux session, records TmuxTarget and StartedAt on the node, and
+// emits the initial bmad:node:status with the target.
+//
+// invocation is the full inner command string (e.g.,
+// `claude --dangerously-skip-permissions --model opus "use brainstorming"` for
+// process nodes, or `claude --dangerously-skip-permissions --model opus "/simplify"`
+// for command nodes).
+func (e *Executor) spawnCommandSession(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID, repoPath, invocation string) (string, error) {
+	state.mu.Lock()
+	idx, ok := nodeIndex[nodeID]
+	label := ""
+	if ok {
+		label = state.exec.Nodes[idx].Label
+	}
+	state.mu.Unlock()
+
+	command := wrapInBashExec(invocation)
+
+	// Git errors here are non-fatal: the node continues with DetachedBranch
+	// so the workflow still runs when the repo is detached or unreachable.
+	// In true detached-HEAD state `git rev-parse --abbrev-ref HEAD` exits 0
+	// and prints the literal "HEAD", so treat that case the same as an error.
+	branch := DetachedBranch
+	if out, err := e.runCmd(ctx, "git", "-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD"); err == nil {
+		if trimmed := strings.TrimSpace(string(out)); trimmed != "" && trimmed != "HEAD" {
+			branch = trimmed
+		}
+	}
+
+	sessionName := BuildSessionName(repoPath, branch, label, nodeID, time.Now().UnixNano())
+
+	_, err := e.runCmd(ctx, "tmux", "new-session", "-d",
+		"-s", sessionName,
+		"-c", repoPath,
+		command,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	target := fmt.Sprintf("%s:0.0", sessionName)
+	now := time.Now().UTC().Format(time.RFC3339)
+	state.mu.Lock()
+	if ok {
+		state.exec.Nodes[idx].TmuxTarget = target
+		state.exec.Nodes[idx].StartedAt = now
+	}
+	state.mu.Unlock()
+	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning, TmuxTarget: target})
+
+	return target, nil
+}
+
+// resolveCommandSession scans incoming edges for a command node and returns
+// a live parent tmux session target if one exists. This enables session reuse:
+// a command node can inject its slash command into an already-running parent
+// session rather than spawning a fresh one.
+//
+// Returns:
+//   - (target, true, nil)  — a live parent session was found; caller injects into it
+//   - ("", false, nil)     — no live parent; caller should spawn a new session
+//   - ("", false, err)     — unexpected error during liveness check
+//
+// Multi-parent merge is a PUNT: when multiple live parents exist, the most
+// recently started (by StartedAt RFC3339 string compare) is picked and a
+// warning is logged. Real merge-node semantics are Phase 4+.
+func (e *Executor) resolveCommandSession(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID string) (string, bool, error) {
+	// Collect parent nodes via incoming edges (outEdges is keyed by source).
+	state.mu.Lock()
+	edges := make([]WorkflowEdge, 0)
+	for _, edgeList := range state.outEdges {
+		for _, edge := range edgeList {
+			if edge.Target == nodeID {
+				edges = append(edges, edge)
+			}
+		}
+	}
+
+	type parentInfo struct {
+		target    string
+		startedAt string
+		nodeID    string
+	}
+	var candidates []parentInfo
+	for _, edge := range edges {
+		idx, ok := nodeIndex[edge.Source]
+		if !ok {
+			continue
+		}
+		n := state.exec.Nodes[idx]
+		if n.TmuxTarget != "" {
+			candidates = append(candidates, parentInfo{
+				target:    n.TmuxTarget,
+				startedAt: n.StartedAt,
+				nodeID:    n.ID,
+			})
+		}
+	}
+	state.mu.Unlock()
+
+	if len(candidates) == 0 {
+		return "", false, nil
+	}
+
+	// Check pane liveness for each candidate.
+	var live []parentInfo
+	for _, c := range candidates {
+		out, err := e.runCmd(ctx, "tmux", "list-panes", "-t", c.target, "-F", "#{pane_dead}")
+		if err != nil {
+			// Session gone entirely — treat as dead.
+			continue
+		}
+		if strings.TrimSpace(string(out)) == "0" {
+			live = append(live, c)
+		}
+		// "1" or any other output = dead pane, skip.
+	}
+
+	if len(live) == 0 {
+		return "", false, nil
+	}
+
+	if len(live) == 1 {
+		return live[0].target, true, nil
+	}
+
+	// Multiple live parents: pick most recently started (RFC3339 string compare).
+	best := live[0]
+	for _, c := range live[1:] {
+		if c.startedAt > best.startedAt {
+			best = c
+		}
+	}
+	log.Printf("bmad: command node %s has %d live parents; reusing most recent (%s)", nodeID, len(live), best.nodeID)
+	return best.target, true, nil
+}
+
 // executeProcessNode runs a single process-type node: looks up the process
 // definition, builds the claude command, wraps it in bash -c for pane
 // persistence, spawns a tmux session, and waits for idle-prompt completion.
@@ -1016,39 +1155,16 @@ func (e *Executor) executeProcessNode(ctx context.Context, state *execState, nod
 	}
 	state.mu.Unlock()
 
-	// Build command and wrap in bash -c for pane persistence.
+	// Build the inner claude invocation for this process node.
 	contextStr := buildContextStringV3(proc, nodesCopy, nodeIndex, outputsCopy, repoPath)
 	innerCommand := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s "use %s%s"`, model, proc.SkillName, contextStr)
-	command := wrapInBashExec(innerCommand)
 
-	// Git errors here are non-fatal: the node continues with DetachedBranch
-	// so the workflow still runs when the repo is detached or unreachable.
-	// In true detached-HEAD state `git rev-parse --abbrev-ref HEAD` exits 0
-	// and prints the literal "HEAD", so treat that case the same as an error.
-	branch := DetachedBranch
-	if out, err := e.runCmd(ctx, "git", "-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD"); err == nil {
-		if trimmed := strings.TrimSpace(string(out)); trimmed != "" && trimmed != "HEAD" {
-			branch = trimmed
-		}
-	}
-
-	sessionName := BuildSessionName(repoPath, branch, nodesCopy[idx].Label, nodeID, time.Now().UnixNano())
-
-	_, err := e.runCmd(ctx, "tmux", "new-session", "-d",
-		"-s", sessionName,
-		"-c", repoPath,
-		command,
-	)
+	// Spawn the tmux session via the shared helper.
+	target, err := e.spawnCommandSession(ctx, state, nodeIndex, nodeID, repoPath, innerCommand)
 	if err != nil {
 		e.failNode(state, idx, nodeID)
 		return
 	}
-
-	target := fmt.Sprintf("%s:0.0", sessionName)
-	state.mu.Lock()
-	state.exec.Nodes[idx].TmuxTarget = target
-	state.mu.Unlock()
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning, TmuxTarget: target})
 
 	// Wait for idle-prompt completion (or pane death as fallback).
 	waitErr := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout)

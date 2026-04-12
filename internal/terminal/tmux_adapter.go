@@ -558,10 +558,34 @@ func (att *TmuxAttachment) SendInput(data []byte) error {
 	}
 	args := make([]string, 0, 4+len(data))
 	args = append(args, cmdSendKeys, "-H", "-t", att.target)
-	for _, b := range data {
-		args = append(args, fmt.Sprintf("%02x", b))
-	}
+	args = append(args, formatSendKeysHex(data)...)
 	return att.runTmux("tmux_send_input", args...)
+}
+
+// formatSendKeysHex converts a byte slice into the two-char lowercase hex
+// arguments expected by `tmux send-keys -H`. Shared by both
+// TmuxAttachment.SendInput (target from attachment) and
+// TmuxAdapter.SendInputToTarget (explicit target string).
+func formatSendKeysHex(data []byte) []string {
+	hex := make([]string, len(data))
+	for i, b := range data {
+		hex[i] = fmt.Sprintf("%02x", b)
+	}
+	return hex
+}
+
+// SendInputToTarget injects a raw byte sequence into a tmux pane identified by
+// target string, via `tmux send-keys -H`. Unlike TmuxAttachment.SendInput, this
+// does not require a live attachment — it operates on any target string directly.
+func (a *TmuxAdapter) SendInputToTarget(ctx context.Context, target string, data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+	args := make([]string, 0, 5+len(data))
+	args = append(args, cmdSendKeys, "-H", "-t", target)
+	args = append(args, formatSendKeysHex(data)...)
+	_, err := a.runCmd(ctx, cmdTmux, args...)
+	return err
 }
 
 // SendKey forwards a symbolic key (Enter, C-c, Tab, Up, BSpace, …) through

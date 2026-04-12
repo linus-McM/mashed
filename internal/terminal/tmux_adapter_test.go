@@ -722,3 +722,86 @@ func TestTmuxAttachment_ConcurrentReadSendInput(t *testing.T) {
 		t.Fatal("reader did not exit within context deadline")
 	}
 }
+
+// ---------------------------------------------------------------------------
+// AC-2 (exec-02): SendInputToTarget emits exact send-keys -H argv
+// ---------------------------------------------------------------------------
+
+func TestTmuxAdapter_SendInputToTarget_HexArgv(t *testing.T) {
+	ctx := newContext(t)
+
+	type caseDef struct {
+		name        string
+		target      string
+		input       []byte
+		expectedHex []string
+	}
+
+	cases := []caseDef{
+		{
+			name:        "slash command with newline",
+			target:      "bmad-abc:0.0",
+			input:       []byte("/simplify\n"),
+			expectedHex: []string{"2f", "73", "69", "6d", "70", "6c", "69", "66", "79", "0a"},
+		},
+		{
+			name:        "control code ctrl+c",
+			target:      "bmad-xyz:0.0",
+			input:       []byte{0x03},
+			expectedHex: []string{"03"},
+		},
+		{
+			name:        "UTF-8 multibyte",
+			target:      "test-session:0.0",
+			input:       []byte("❯"),
+			expectedHex: []string{"e2", "9d", "af"},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			mock := newMockRunner()
+			adapter := NewTmuxAdapter(mock.runner())
+			t.Cleanup(func() { _ = adapter.Close() })
+
+			err := adapter.SendInputToTarget(ctx, tc.target, tc.input)
+			require.NoError(t, err, "SendInputToTarget must succeed")
+
+			inv, ok := mock.findSubcommand(subSendKeys)
+			require.True(t, ok, "send-keys invocation must be recorded")
+			assert.Contains(t, inv.args, "-H",
+				"SendInputToTarget must pass -H (hex) to send-keys")
+			assert.Contains(t, inv.args, "-t",
+				"send-keys must include -t target flag")
+			assert.Contains(t, inv.args, tc.target,
+				"send-keys target must match the provided target")
+
+			// Positional hex args follow [send-keys, -H, -t, <target>].
+			var tIdx int
+			for i, a := range inv.args {
+				if a == "-t" {
+					tIdx = i
+					break
+				}
+			}
+			require.GreaterOrEqual(t, tIdx, 0, "-t flag must be present")
+			require.Greater(t, len(inv.args), tIdx+1, "-t must be followed by a target")
+			hexArgs := inv.args[tIdx+2:]
+			assert.Equal(t, tc.expectedHex, hexArgs,
+				"hex argv must match the input bytes one-to-one")
+		})
+	}
+}
+
+func TestTmuxAdapter_SendInputToTarget_EmptyIsNoOp(t *testing.T) {
+	ctx := newContext(t)
+	mock := newMockRunner()
+	adapter := NewTmuxAdapter(mock.runner())
+	t.Cleanup(func() { _ = adapter.Close() })
+
+	err := adapter.SendInputToTarget(ctx, "bmad-abc:0.0", nil)
+	require.NoError(t, err, "empty input must not error")
+	assert.Equal(t, 0, mock.countSubcommand(subSendKeys),
+		"empty input must not invoke send-keys")
+}

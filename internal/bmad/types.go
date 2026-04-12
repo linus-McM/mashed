@@ -98,6 +98,7 @@ type WorkflowNode struct {
 	Status     WorkflowNodeStatus `json:"status"`
 	Config     map[string]string  `json:"config"`
 	TmuxTarget string             `json:"tmuxTarget"`
+	StartedAt  string             `json:"startedAt,omitempty"`
 	StoryID    string             `json:"storyId,omitempty"`
 	NodeType   NodeType           `json:"nodeType,omitempty"`
 }
