@@ -72,6 +72,7 @@ images/*
 console-**.log
 nanobanana-output
 docs/repomixer/*
+repomix-output.xml
 .wolf
 .playwright-cli
 .playwright-mcp
