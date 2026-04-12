@@ -429,7 +429,7 @@ func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, m
 
 				switch effectiveType {
 				case NodeTypeProcess:
-					e.executeNode(ctx, state, nodeIndex, nID, repoPath, model)
+					e.executeProcessNode(ctx, state, nodeIndex, nID, repoPath, model)
 				case NodeTypeCondition, NodeTypeMerge:
 					e.executeControlNode(ctx, state, nodeIndex, nID, repoPath, model)
 				case NodeTypeTransform:
@@ -750,7 +750,7 @@ func (e *Executor) executeLoopNode(ctx context.Context, state *execState, nodeIn
 				wg.Add(1)
 				go func(id string) {
 					defer wg.Done()
-					e.executeNode(ctx, state, nodeIndex, id, repoPath, model)
+					e.executeProcessNode(ctx, state, nodeIndex, id, repoPath, model)
 				}(bID)
 			}
 			wg.Wait()
@@ -869,6 +869,11 @@ func (e *Executor) waitWhilePaused(ctx context.Context, state *execState) bool {
 // maxCaptureBytes is the maximum size of captured tmux output per node.
 const maxCaptureBytes = 102400
 
+// defaultProcessNodeTimeout is the maximum time executeProcessNode waits for
+// a claude session to produce output and return to its idle prompt before
+// declaring timeout (ErrIdleTimeoutNoStart).
+const defaultProcessNodeTimeout = 30 * time.Minute
+
 // captureOutput captures the tmux pane scrollback for the given target.
 // Output is capped at maxCaptureBytes; if larger, the beginning is truncated
 // (keeping the tail which contains the final output).
@@ -884,7 +889,106 @@ func (e *Executor) captureOutput(ctx context.Context, target string) (string, er
 	return s, nil
 }
 
-func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID, repoPath, model string) {
+// wrapInBashExec wraps a command inside bash -c '...; exec bash' so the tmux
+// pane survives after the inner command exits. Single quotes in the inner
+// command are escaped using the portable '\'' idiom.
+func wrapInBashExec(innerCommand string) string {
+	escaped := strings.ReplaceAll(innerCommand, `'`, `'\''`)
+	return fmt.Sprintf(`bash -c '%s; exec bash'`, escaped)
+}
+
+// waitForIdleCompletion drives a three-stage state machine that detects when
+// a claude session has finished producing output and returned to its idle
+// prompt. The stages are:
+//
+//  1. PRIMING — captures the baseline pane hash; idle cannot fire.
+//  2. WAITING_FOR_WORK — watches for the hash to change from baseline,
+//     indicating claude has started producing output. If the deadline
+//     expires before any change, returns ErrIdleTimeoutNoStart.
+//  3. WATCHING_FOR_IDLE — waits for the hash to stabilise (same value
+//     across two consecutive polls) AND detectIdlePrompt to return true.
+//
+// Pane death at any stage returns nil (legacy completion path).
+// Context cancellation returns ctx.Err().
+func (e *Executor) waitForIdleCompletion(ctx context.Context, state *execState, nodeID, target string, timeout time.Duration) error {
+	type idleStage int
+	const (
+		stagePriming idleStage = iota
+		stageWaitingForWork
+		stageWatchingForIdle
+	)
+
+	stage := stagePriming
+	var baselineHash string
+	var lastStableHash string
+	deadline := time.Now().Add(timeout)
+
+	ticker := time.NewTicker(e.pollInterval)
+	defer ticker.Stop()
+
+	var questionPollCounter int
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			// Check pane liveness first — pane death is an implicit
+			// completion signal at every stage.
+			out, err := e.runCmd(ctx, "tmux", "list-panes", "-t", target, "-F", "#{pane_dead}")
+			if err != nil {
+				return nil // session gone — treat as completion
+			}
+			if strings.TrimSpace(string(out)) == "1" {
+				return nil // pane dead — legacy completion
+			}
+
+			// Capture pane content for hashing and signal detection.
+			captured, err := e.captureQuestionOutput(ctx, target)
+			if err != nil {
+				continue // capture failed — skip this tick
+			}
+			currentHash := hashCapturedOutput(captured)
+
+			// Fire signal detection so snackbar events (idle/question)
+			// continue working. Idle detection runs every tick; question
+			// scanning runs every questionScanStride ticks.
+			questionPollCounter++
+			scanQuestion := questionPollCounter%questionScanStride == 0
+			e.pollForIdle(state, nodeID, target, captured)
+			if scanQuestion {
+				e.pollForQuestionFromCapture(state, nodeID, target, captured)
+			}
+
+			switch stage {
+			case stagePriming:
+				baselineHash = currentHash
+				stage = stageWaitingForWork
+
+			case stageWaitingForWork:
+				if currentHash != baselineHash {
+					lastStableHash = currentHash
+					stage = stageWatchingForIdle
+				} else if time.Now().After(deadline) {
+					return ErrIdleTimeoutNoStart
+				}
+
+			case stageWatchingForIdle:
+				if currentHash == lastStableHash && detectIdlePrompt(captured) {
+					return nil // stable + idle prompt → done
+				}
+				if currentHash != lastStableHash {
+					lastStableHash = currentHash
+				}
+			}
+		}
+	}
+}
+
+// executeProcessNode runs a single process-type node: looks up the process
+// definition, builds the claude command, wraps it in bash -c for pane
+// persistence, spawns a tmux session, and waits for idle-prompt completion.
+func (e *Executor) executeProcessNode(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID, repoPath, model string) {
 	idx := nodeIndex[nodeID]
 
 	// Mark running.
@@ -912,9 +1016,10 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 	}
 	state.mu.Unlock()
 
-	// Build command.
+	// Build command and wrap in bash -c for pane persistence.
 	contextStr := buildContextStringV3(proc, nodesCopy, nodeIndex, outputsCopy, repoPath)
-	command := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s "use %s%s"`, model, proc.SkillName, contextStr)
+	innerCommand := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s "use %s%s"`, model, proc.SkillName, contextStr)
+	command := wrapInBashExec(innerCommand)
 
 	// Git errors here are non-fatal: the node continues with DetachedBranch
 	// so the workflow still runs when the repo is detached or unreachable.
@@ -945,54 +1050,23 @@ func (e *Executor) executeNode(ctx context.Context, state *execState, nodeIndex 
 	state.mu.Unlock()
 	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning, TmuxTarget: target})
 
-	// Poll for completion.
-	ticker := time.NewTicker(e.pollInterval)
-	defer ticker.Stop()
-	// questionPollCounter throttles question scanning to every 3rd tick
-	// to reduce tmux subprocess overhead.
-	var questionPollCounter int
-	for {
-		select {
-		case <-ctx.Done():
-			e.failNode(state, idx, nodeID)
-			return
-		case <-ticker.C:
-			out, err := e.runCmd(ctx, "tmux", "list-panes", "-t", target, "-F", "#{pane_dead}")
-			if err != nil {
-				// Session gone — try to capture output (best-effort).
-				captured, captureErr := e.captureOutput(ctx, target)
-				if captureErr != nil {
-					log.Printf("bmad: failed to capture output for node %s: %v", nodeID, captureErr)
-				}
-				state.mu.Lock()
-				state.exec.NodeOutputs[nodeID] = captured
-				state.mu.Unlock()
-				e.completeNode(state, idx, nodeID)
-				return
-			}
-			if strings.TrimSpace(string(out)) == "1" {
-				// Capture output before completing (best-effort).
-				captured, captureErr := e.captureOutput(ctx, target)
-				if captureErr != nil {
-					log.Printf("bmad: failed to capture output for node %s: %v", nodeID, captureErr)
-				}
-				state.mu.Lock()
-				state.exec.NodeOutputs[nodeID] = captured
-				state.mu.Unlock()
-				e.completeNode(state, idx, nodeID)
-				return
-			}
+	// Wait for idle-prompt completion (or pane death as fallback).
+	waitErr := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout)
 
-			// Signal detection: one capture per tick, fed into both the
-			// (cheap) idle detector and — every `questionScanStride` ticks
-			// — the (heavier) structured-question detector. Idle runs on
-			// every tick because its state machine needs every sample to
-			// reason about output stability across polls.
-			questionPollCounter++
-			scanQuestion := questionPollCounter%questionScanStride == 0
-			e.pollNodeSignals(ctx, state, nodeID, target, scanQuestion)
-		}
+	// Capture output (best-effort) regardless of completion path.
+	captured, captureErr := e.captureOutput(ctx, target)
+	if captureErr != nil {
+		log.Printf("bmad: failed to capture output for node %s: %v", nodeID, captureErr)
 	}
+	state.mu.Lock()
+	state.exec.NodeOutputs[nodeID] = captured
+	state.mu.Unlock()
+
+	if waitErr != nil {
+		e.failNode(state, idx, nodeID)
+		return
+	}
+	e.completeNode(state, idx, nodeID)
 }
 
 // questionScanStride controls how often the structured-question detector

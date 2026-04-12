@@ -1,6 +1,6 @@
 # exec-01: `waitForIdleCompletion` state machine + `executeProcessNode` refactor
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** L
 **Depends on:** exec-00
@@ -143,28 +143,28 @@ Feature: Idle-prompt completion state machine
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Implement `waitForIdleCompletion` (AC-1, AC-2, AC-3, AC-4)
-  - [ ] Add the state-machine method with stages `stagePriming`, `stageWaitingForWork`, `stageWatchingForIdle`
-  - [ ] Call `pollNodeSignals` from each tick to preserve snackbar events
-  - [ ] Ticker on `e.pollInterval`, deadline check applies only to WAITING_FOR_WORK
-- [ ] Task 2 — Lift `executeNode` body into `executeProcessNode` (AC-5, AC-6)
-  - [ ] Rename the method and wire the thin dispatcher `executeNode` on `EffectiveType()` (default + process only; command branch remains fail-fast from skills-cmd-01)
-  - [ ] Wrap the claude invocation in `bash -c '...; exec bash'` with `'\''` escaping
-  - [ ] Replace the pane-death poll loop with a call to `waitForIdleCompletion`
-- [ ] Task 3 — Update shared mock helpers (AC-6)
-  - [ ] Add `SimulatePaneHashChange`, `SimulatePaneHashStable`, `SimulatePaneDead` test helpers
-  - [ ] Update every existing test that relied on the pane-death-only transition
-- [ ] Task 4 — Unit tests for the state machine (AC-1, AC-2, AC-3, AC-4)
-  - [ ] Five table cases: happy, no-work, pane-dead×2, ctx-cancel×3
-- [ ] Task 5 — Shell-quote escape test (AC-5)
-  - [ ] Dedicated test asserting argv for inner commands with `'`, `` ` ``, `$`, mixed
+- [x] Task 1 — Implement `waitForIdleCompletion` (AC-1, AC-2, AC-3, AC-4)
+  - [x] Add the state-machine method with stages `stagePriming`, `stageWaitingForWork`, `stageWatchingForIdle`
+  - [x] Call `pollNodeSignals` from each tick to preserve snackbar events
+  - [x] Ticker on `e.pollInterval`, deadline check applies only to WAITING_FOR_WORK
+- [x] Task 2 — Lift `executeNode` body into `executeProcessNode` (AC-5, AC-6)
+  - [x] Rename the method and wire the thin dispatcher `executeNode` on `EffectiveType()` (default + process only; command branch remains fail-fast from skills-cmd-01)
+  - [x] Wrap the claude invocation in `bash -c '...; exec bash'` with `'\''` escaping
+  - [x] Replace the pane-death poll loop with a call to `waitForIdleCompletion`
+- [x] Task 3 — Update shared mock helpers (AC-6)
+  - [x] Add `SimulatePaneHashChange`, `SimulatePaneHashStable`, `SimulatePaneDead` test helpers
+  - [x] Update every existing test that relied on the pane-death-only transition
+- [x] Task 4 — Unit tests for the state machine (AC-1, AC-2, AC-3, AC-4)
+  - [x] Five table cases: happy, no-work, pane-dead×2, ctx-cancel×3
+- [x] Task 5 — Shell-quote escape test (AC-5)
+  - [x] Dedicated test asserting argv for inner commands with `'`, `` ` ``, `$`, mixed
 
 ## Definition of Done
 
-- [ ] All ACs verified by an automated test (Go table-driven; no "manually verified")
-- [ ] Coverage ≥ 80% on modified files
-- [ ] `go build ./... && go vet ./...` clean
-- [ ] `go test ./... -race -short` clean — full BMAD suite, not just new tests
-- [ ] `/simplify` run before sign-off
-- [ ] No hardcoded paths or magic numbers added
-- [ ] Existing tests still pass (zero regressions)
+- [x] All ACs verified by an automated test (Go table-driven; no "manually verified")
+- [x] Coverage ≥ 80% on modified files
+- [x] `go build ./... && go vet ./...` clean
+- [x] `go test ./... -race -short` clean — full BMAD suite, not just new tests
+- [x] `/simplify` run before sign-off
+- [x] No hardcoded paths or magic numbers added
+- [x] Existing tests still pass (zero regressions)
