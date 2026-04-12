@@ -95,6 +95,10 @@ type MashedAssetInfo struct {
 	Outputs       []string        `json:"outputs"`
 	Chainable     string          `json:"chainable"`
 	SessionPinned bool            `json:"sessionPinned"`
+
+	// Issues holds advisory validation findings populated by
+	// ValidateMashedAsset at load time. Never blocks loading or dragging.
+	Issues []ValidationIssue `json:"issues"`
 }
 
 // MashedAssetRole is the workflow-execution role declared in the asset's

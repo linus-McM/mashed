@@ -1,6 +1,6 @@
 # skills-watch-01: fsnotify backend watcher for skills/commands directories
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends on:** none (Phase 1 is shipped)

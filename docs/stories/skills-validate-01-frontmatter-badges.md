@@ -1,6 +1,6 @@
 # skills-validate-01: Frontmatter validation badges on sidebar asset rows
 
-**Status:** ready
+**Status:** done
 **Domain:** fullstack
 **Size:** M
 **Depends on:** none (Phase 1 is shipped; pairs well with skills-watch-02 but not dependent)

@@ -65,6 +65,7 @@ type App struct {
 
 	bmadStorage  *bmad.Storage
 	bmadExecutor *bmad.Executor
+	assetWatcher *bmad.AssetWatcher
 
 	terminalSessions map[string]domain.TerminalSession
 	logFile          *os.File
@@ -222,10 +223,24 @@ func (a *App) startup(ctx context.Context) {
 		}
 		cleanupCancel()
 	}
+
+	// Start asset watcher for skills/commands directories.
+	assetRoots := bmad.AssetWatchRoots(a.activeRepoPath)
+	aw := bmad.NewAssetWatcher(assetRoots, func(event string, data interface{}) {
+		runtime.EventsEmit(a.ctx, event, data)
+	})
+	if err := aw.Start(a.ctx); err != nil {
+		log.Printf("bmad: asset watcher start failed (non-fatal): %v", err)
+	} else {
+		a.assetWatcher = aw
+	}
 }
 
 // shutdown is called by Wails when the app is closing.
 func (a *App) shutdown(ctx context.Context) {
+	if a.assetWatcher != nil {
+		a.assetWatcher.Stop()
+	}
 	if a.cancel != nil {
 		a.cancel()
 	}

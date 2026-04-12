@@ -305,7 +305,20 @@ func (a *App) ListAllMashedAssets(repoPath string) (bmad.GroupedMashedAssets, er
 		}
 	}
 
+	// Attach advisory validation issues to every loaded asset.
+	validateMashedGroup(result.LocalCommands, repoPath)
+	validateMashedGroup(result.GlobalCommands, repoPath)
+	validateMashedGroup(result.LocalSkills, repoPath)
+	validateMashedGroup(result.GlobalSkills, repoPath)
+
 	return result, nil
+}
+
+// validateMashedGroup runs ValidateMashedAsset on each asset in-place.
+func validateMashedGroup(assets []bmad.MashedAssetInfo, repoPath string) {
+	for i := range assets {
+		assets[i].Issues = bmad.ValidateMashedAsset(assets[i], repoPath)
+	}
 }
 
 // ── BMAD Modules ──
