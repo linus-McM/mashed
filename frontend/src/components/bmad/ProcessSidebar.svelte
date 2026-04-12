@@ -4,6 +4,7 @@
   import SprintPanel from './SprintPanel.svelte';
   import GitPanel from './GitPanel.svelte';
   import { GetConfig, SetSidebarWidth } from '../../../wailsjs/go/main/App.js';
+  import { MASHED_ASSET_MIME } from './dragMimeTypes.js';
 
   export let processes = [];
   export let templates = [];
@@ -59,7 +60,7 @@
    * rejects, so the user gets a visual "nope" signal without a crash.
    */
   function onMashedAssetDragStart(e, asset) {
-    e.dataTransfer.setData('application/mashed-asset', JSON.stringify({
+    e.dataTransfer.setData(MASHED_ASSET_MIME, JSON.stringify({
       name: asset.name,
       path: asset.path,
       kind: asset.kind,
@@ -325,6 +326,7 @@
                       draggable={asset.role === 'command'}
                       on:dragstart={(e) => onMashedAssetDragStart(e, asset)}
                       title={asset.description || asset.name}
+                      data-testid={`mashed-asset-${asset.name}`}
                     >
                       <span class="process-dot" style="background: {mashedGroupAccents[key]}" />
                       <span class="process-name">{asset.name}</span>

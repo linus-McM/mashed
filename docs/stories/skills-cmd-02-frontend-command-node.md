@@ -1,6 +1,6 @@
 # skills-cmd-02: Frontend `CommandNode.svelte` + drop handler
 
-**Status:** ready
+**Status:** done
 **Domain:** frontend
 **Size:** M
 **Depends on:** skills-cmd-01
@@ -124,37 +124,37 @@ Feature: Command node drag-and-drop
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Build `CommandNode.svelte` (AC-1, AC-3, AC-4)
-  - [ ] Copy `ProcessNode.svelte` as a starting point; strip the `in:`/`out:` rows
-  - [ ] Wire up `data.label`, `data.config.commandName`, `data.config.commandDescription`, `data.status`
-  - [ ] Use `Terminal` (or `Slash`) icon from `lucide-svelte`
-  - [ ] Verify every color is a `var(--…)` token
-- [ ] Task 2 — Register node type (AC-3)
-  - [ ] Import `CommandNode` in `WorkflowBuilder.svelte`
-  - [ ] Add `command: CommandNode` to the `nodeTypes` map
-  - [ ] Extend the load-side type resolution so `n.nodeType === 'command'` maps to Svelte-Flow `type: 'command'`
-- [ ] Task 3 — Extend drop handler (AC-1, AC-2)
-  - [ ] Add `application/mashed-asset` branch to `CanvasPane.svelte`'s drop handler
-  - [ ] Defensive `JSON.parse` with try/catch
-  - [ ] Reject payloads whose `role !== 'command'`
-  - [ ] Compute drop position via existing `project()` pattern
-  - [ ] Append to `$nodes` with the shape in Developer Notes
-- [ ] Task 4 — Tests (AC-1, AC-2, AC-3, AC-4)
-  - [ ] Playwright scenario: drag-drop a command onto the canvas via the `/playwright-cli` skill pattern
-  - [ ] Unit test: drop handler ignores `role: "skill"` payload
-  - [ ] Save + reload assertion via a JSON fixture
-  - [ ] Lint/regex check for color literals in `CommandNode.svelte`
+- [x] Task 1 — Build `CommandNode.svelte` (AC-1, AC-3, AC-4)
+  - [x] Copy `ProcessNode.svelte` as a starting point; strip the `in:`/`out:` rows
+  - [x] Wire up `data.label`, `data.config.commandName`, `data.config.commandDescription`, `data.status`
+  - [x] Use `Terminal` (or `Slash`) icon from `lucide-svelte`
+  - [x] Verify every color is a `var(--…)` token
+- [x] Task 2 — Register node type (AC-3)
+  - [x] Import `CommandNode` in `WorkflowBuilder.svelte`
+  - [x] Add `command: CommandNode` to the `nodeTypes` map
+  - [x] Extend the load-side type resolution so `n.nodeType === 'command'` maps to Svelte-Flow `type: 'command'`
+- [x] Task 3 — Extend drop handler (AC-1, AC-2)
+  - [x] Add `application/mashed-asset` branch to `CanvasPane.svelte`'s drop handler
+  - [x] Defensive `JSON.parse` with try/catch
+  - [x] Reject payloads whose `role !== 'command'`
+  - [x] Compute drop position via existing `project()` pattern
+  - [x] Append to `$nodes` with the shape in Developer Notes
+- [x] Task 4 — Tests (AC-1, AC-2, AC-3, AC-4)
+  - [x] Playwright scenario: drag-drop a command onto the canvas via the `/playwright-cli` skill pattern
+  - [x] Unit test: drop handler ignores `role: "skill"` payload
+  - [x] Save + reload assertion via a JSON fixture
+  - [x] Lint/regex check for color literals in `CommandNode.svelte`
 
 ## Definition of Done
 
-- [ ] All ACs verified by an automated test (Playwright + unit; no "manually verified")
-- [ ] Coverage ≥ 80% on modified files
-- [ ] `go build ./... && go vet ./...` clean (should be unaffected; still run to confirm)
-- [ ] `go test ./... -race -short` clean
-- [ ] Frontend build (`wails build` or dev compile) clean; no Svelte warnings
-- [ ] `/simplify` run before sign-off
-- [ ] No hardcoded paths, magic numbers, or color literals added
-- [ ] Existing tests still pass
+- [x] All ACs verified by an automated test (Playwright + unit; no "manually verified")
+- [x] Coverage ≥ 80% on modified files
+- [x] `go build ./... && go vet ./...` clean (should be unaffected; still run to confirm)
+- [x] `go test ./... -race -short` clean
+- [x] Frontend build (`wails build` or dev compile) clean; no Svelte warnings
+- [x] `/simplify` run before sign-off
+- [x] No hardcoded paths, magic numbers, or color literals added
+- [x] Existing tests still pass
 
 ## Design Brief
 

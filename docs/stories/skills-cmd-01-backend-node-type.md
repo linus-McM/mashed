@@ -1,6 +1,6 @@
 # skills-cmd-01: Backend `NodeTypeCommand` + fail-fast dispatch
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** S
 **Depends on:** none
@@ -82,24 +82,24 @@ Feature: Command node dispatch
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Add `NodeTypeCommand` constant (AC-1)
-  - [ ] Declare `NodeTypeCommand NodeType = "command"` in `internal/bmad/types.go`
-  - [ ] Confirm `EffectiveType()` returns the new constant for nodes whose `NodeType == "command"`
-- [ ] Task 2 — Add fail-fast dispatch in `executeNode` (AC-2, AC-3)
-  - [ ] Wrap current `executeNode` body so it inspects `EffectiveType()` under `state.mu`
-  - [ ] Add `case NodeTypeCommand:` branch invoking `failNode` with a log line
-  - [ ] Ensure the default branch runs the existing process-node code path untouched
-- [ ] Task 3 — Tests (AC-1, AC-2, AC-3)
-  - [ ] Round-trip test for `NodeTypeCommand` through `WorkflowDef` JSON
-  - [ ] Fail-fast test using the `CommandRunner` mock (assert zero tmux invocations, node status transitions to failed)
-  - [ ] Regression assertion that a baseline process-node test still passes unchanged
+- [x] Task 1 — Add `NodeTypeCommand` constant (AC-1)
+  - [x] Declare `NodeTypeCommand NodeType = "command"` in `internal/bmad/types.go`
+  - [x] Confirm `EffectiveType()` returns the new constant for nodes whose `NodeType == "command"`
+- [x] Task 2 — Add fail-fast dispatch in `executeNode` (AC-2, AC-3)
+  - [x] Wrap current `executeNode` body so it inspects `EffectiveType()` under `state.mu`
+  - [x] Add `case NodeTypeCommand:` branch invoking `failNode` with a log line
+  - [x] Ensure the default branch runs the existing process-node code path untouched
+- [x] Task 3 — Tests (AC-1, AC-2, AC-3)
+  - [x] Round-trip test for `NodeTypeCommand` through `WorkflowDef` JSON
+  - [x] Fail-fast test using the `CommandRunner` mock (assert zero tmux invocations, node status transitions to failed)
+  - [x] Regression assertion that a baseline process-node test still passes unchanged
 
 ## Definition of Done
 
-- [ ] All ACs verified by an automated test (Go table-driven; no "manually verified")
-- [ ] Coverage ≥ 80% on modified files (`go test -coverprofile=cover.out ./internal/bmad/... && go tool cover -func=cover.out`)
-- [ ] `go build ./... && go vet ./...` clean
-- [ ] `go test ./... -race -short` clean
-- [ ] `/simplify` run before sign-off
-- [ ] No hardcoded paths or magic numbers added
-- [ ] Existing tests still pass
+- [x] All ACs verified by an automated test (Go table-driven; no "manually verified")
+- [x] Coverage ≥ 80% on modified files (`go test -coverprofile=cover.out ./internal/bmad/... && go tool cover -func=cover.out`)
+- [x] `go build ./... && go vet ./...` clean
+- [x] `go test ./... -race -short` clean
+- [x] `/simplify` run before sign-off
+- [x] No hardcoded paths or magic numbers added
+- [x] Existing tests still pass

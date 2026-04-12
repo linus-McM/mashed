@@ -3,6 +3,8 @@
   import { SvelteFlow, Controls, MiniMap, Background, useSvelteFlow } from '@xyflow/svelte';
   import { Trash2, LayoutTemplate, ChevronRight, Maximize2 } from 'lucide-svelte';
   import DeletableEdge from './DeletableEdge.svelte';
+  import { handleMashedAssetDrop } from './canvasPaneDropHandler.js';
+  import { MASHED_ASSET_MIME } from './dragMimeTypes.js';
 
   export let nodes;
   export let edges;
@@ -187,6 +189,18 @@
         const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
         onDropStory(storyData, position);
       } catch { /* invalid JSON — ignore */ }
+      return;
+    }
+    // Mashed-ready commands. Delegated to the pure handler so the
+    // unit-test contract and the integration cannot drift.
+    const mashedAssetRaw = e.dataTransfer.getData(MASHED_ASSET_MIME);
+    if (mashedAssetRaw) {
+      const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      $nodes = handleMashedAssetDrop({
+        raw: mashedAssetRaw,
+        position,
+        currentNodes: $nodes,
+      });
     }
   }
 

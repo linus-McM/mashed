@@ -26,6 +26,7 @@
   import ProcessSidebar from '../components/bmad/ProcessSidebar.svelte';
   import CanvasPane from '../components/bmad/CanvasPane.svelte';
   import ProcessNode from '../components/bmad/ProcessNode.svelte';
+  import CommandNode from '../components/bmad/CommandNode.svelte';
   import ConditionNode from '../components/bmad/ConditionNode.svelte';
   import LoopNode from '../components/bmad/LoopNode.svelte';
   import LoopUntilNode from '../components/bmad/LoopUntilNode.svelte';
@@ -80,6 +81,7 @@
     loopUntil: LoopUntilNode,
     transform: TransformNode,
     merge: MergeNode,
+    command: CommandNode,
   };
 
   const nodes = writable([]);
@@ -224,6 +226,33 @@
       // the running state immediately, without the user having to
       // re-pick the workflow from the sidebar.
       await restoreForRepo(repoPath);
+    }
+
+    // Dev-only test seams for the Playwright AC spec — drive the
+    // builder directly without round-tripping through the filesystem
+    // or save/open UI. `import.meta.env.DEV` is a Vite static literal
+    // so the block dead-code-eliminates in production.
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      window.__mashed_loadWorkflowFixture = (def) => {
+        try {
+          loadNodesEdges(def);
+          return true;
+        } catch (err) {
+          console.error('Failed to load workflow fixture:', err);
+          return false;
+        }
+      };
+      window.__mashed_seedMashedAssets = (grouped) => {
+        groupedMashedAssets = grouped || { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
+        return true;
+      };
+    }
+  });
+
+  onDestroy(() => {
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      delete window.__mashed_loadWorkflowFixture;
+      delete window.__mashed_seedMashedAssets;
     }
   });
 

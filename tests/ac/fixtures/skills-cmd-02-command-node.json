@@ -1,0 +1,26 @@
+{
+  "id": "wf-fixture-cmd-02",
+  "name": "skills-cmd-02 fixture",
+  "description": "Single command node fixture for AC-3 (save/reload symmetry).",
+  "repoPath": "",
+  "nodes": [
+    {
+      "id": "cmd-fixture-1",
+      "processId": "",
+      "label": "simplify",
+      "position": { "x": 100, "y": 100 },
+      "status": "pending",
+      "config": {
+        "commandName": "simplify",
+        "commandPath": "/tmp/simplify.md",
+        "commandDescription": "Review recent changes"
+      },
+      "tmuxTarget": "",
+      "nodeType": "command"
+    }
+  ],
+  "edges": [],
+  "isTemplate": false,
+  "createdAt": "2026-04-12T00:00:00Z",
+  "updatedAt": "2026-04-12T00:00:00Z"
+}

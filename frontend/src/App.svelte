@@ -77,6 +77,19 @@
     } else {
       currentView = 'setup';
     }
+
+    // Dev-only navigation seam for the Playwright AC spec — lets it
+    // jump straight to WorkflowBuilder without driving the feed flow.
+    // `import.meta.env.DEV` is a Vite static literal, so the entire
+    // block dead-code-eliminates in production.
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      window.__mashed_gotoWorkflows = (repoPath = '') => {
+        builderRepoPath = repoPath || '';
+        builderRepoBranch = '';
+        currentView = 'workflows';
+        return true;
+      };
+    }
   });
 
   EventsOn('agent:notification', (event) => {
