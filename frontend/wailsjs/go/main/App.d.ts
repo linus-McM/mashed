@@ -91,8 +91,6 @@ export function ListAllAgents(arg1:string):Promise<bmad.GroupedAgents>;
 
 export function ListAllMashedAssets(arg1:string):Promise<bmad.GroupedMashedAssets>;
 
-export function SaveMashedAssetFrontmatter(arg1:string, arg2:{[key: string]: any}):Promise<void>;
-
 export function ListBmadAgents():Promise<Array<bmad.BmadAgentConfig>>;
 
 export function ListBmadTemplates():Promise<Array<bmad.WorkflowDef>>;
@@ -152,6 +150,8 @@ export function ResumeBmadWorkflow(arg1:string):Promise<void>;
 export function SaveBmadAgent(arg1:bmad.BmadAgentConfig):Promise<void>;
 
 export function SaveBmadWorkflow(arg1:bmad.WorkflowDef):Promise<void>;
+
+export function SaveMashedAssetFrontmatter(arg1:string,arg2:Record<string, any>):Promise<void>;
 
 export function SaveTheme(arg1:string,arg2:string):Promise<void>;
 

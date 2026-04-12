@@ -115,6 +115,22 @@ export namespace bmad {
 		    return a;
 		}
 	}
+	export class ValidationIssue {
+	    field: string;
+	    message: string;
+	    severity: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ValidationIssue(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.field = source["field"];
+	        this.message = source["message"];
+	        this.severity = source["severity"];
+	    }
+	}
 	export class MashedAssetInfo {
 	    name: string;
 	    path: string;
@@ -127,6 +143,7 @@ export namespace bmad {
 	    outputs: string[];
 	    chainable: string;
 	    sessionPinned: boolean;
+	    issues: ValidationIssue[];
 	
 	    static createFrom(source: any = {}) {
 	        return new MashedAssetInfo(source);
@@ -145,7 +162,26 @@ export namespace bmad {
 	        this.outputs = source["outputs"];
 	        this.chainable = source["chainable"];
 	        this.sessionPinned = source["sessionPinned"];
+	        this.issues = this.convertValues(source["issues"], ValidationIssue);
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class GroupedMashedAssets {
 	    localCommands: MashedAssetInfo[];
@@ -343,6 +379,7 @@ export namespace bmad {
 		}
 	}
 	
+	
 	export class WorkflowEdge {
 	    id: string;
 	    source: string;
@@ -371,6 +408,7 @@ export namespace bmad {
 	    status: string;
 	    config: Record<string, string>;
 	    tmuxTarget: string;
+	    startedAt?: string;
 	    storyId?: string;
 	    nodeType?: string;
 	
@@ -387,6 +425,7 @@ export namespace bmad {
 	        this.status = source["status"];
 	        this.config = source["config"];
 	        this.tmuxTarget = source["tmuxTarget"];
+	        this.startedAt = source["startedAt"];
 	        this.storyId = source["storyId"];
 	        this.nodeType = source["nodeType"];
 	    }

@@ -8,7 +8,7 @@
     "style": "xml",
     "parsableStyle": false,
     "fileSummary": true,
-    "directoryStructure": true,
+    "directoryStructure": false,
     "files": true,
     "removeComments": false,
     "removeEmptyLines": false,
