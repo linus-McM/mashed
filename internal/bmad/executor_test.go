@@ -2408,8 +2408,7 @@ func TestGetArtifactStatus_Exists(t *testing.T) {
 	require.NoError(t, os.MkdirAll(artifactDir, 0o755))
 	require.NoError(t, os.WriteFile(filepath.Join(artifactDir, "PRD.md"), []byte("# PRD"), 0o644))
 
-	exists, fullPath, err := GetArtifactStatus(repoDir, "PRD.md")
-	require.NoError(t, err)
+	exists, fullPath := GetArtifactStatus(repoDir, "PRD.md")
 	assert.True(t, exists)
 	assert.Equal(t, filepath.Join(repoDir, "_bmad-output", "planning-artifacts", "PRD.md"), fullPath)
 }
@@ -2417,8 +2416,7 @@ func TestGetArtifactStatus_Exists(t *testing.T) {
 func TestGetArtifactStatus_Missing(t *testing.T) {
 	repoDir := t.TempDir()
 
-	exists, fullPath, err := GetArtifactStatus(repoDir, "PRD.md")
-	require.NoError(t, err)
+	exists, fullPath := GetArtifactStatus(repoDir, "PRD.md")
 	assert.False(t, exists)
 	assert.Equal(t, filepath.Join(repoDir, "_bmad-output", "planning-artifacts", "PRD.md"), fullPath)
 }
@@ -2426,8 +2424,7 @@ func TestGetArtifactStatus_Missing(t *testing.T) {
 func TestGetArtifactStatus_UnmappedArtifact(t *testing.T) {
 	repoDir := t.TempDir()
 
-	exists, fullPath, err := GetArtifactStatus(repoDir, "code")
-	require.NoError(t, err)
+	exists, fullPath := GetArtifactStatus(repoDir, "code")
 	assert.False(t, exists)
 	assert.Empty(t, fullPath, "unmapped artifact should return empty path")
 }

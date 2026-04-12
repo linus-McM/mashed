@@ -1013,7 +1013,7 @@
     // happen BEFORE loadNodesEdges so workflowName is correct when the
     // snapshot is captured.
     try {
-      const wf = await CreateFromTemplate(templateId, repoPath);
+      const wf = await CreateFromTemplate(repoPath, templateId);
       currentWorkflow = wf;
       workflowName = wf.name;
       loadNodesEdges(wf);
@@ -1088,7 +1088,7 @@
     nodeProgress = { completed: 0, total: $nodes.length };
 
     try {
-      executionId = await StartBmadWorkflow(currentWorkflow.id, repoPath, model || defaultModelId);
+      executionId = await StartBmadWorkflow(repoPath, currentWorkflow.id, model || defaultModelId);
       executionStatus = 'running';
     } catch (err) {
       execError = String(err);

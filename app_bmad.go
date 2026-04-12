@@ -71,7 +71,7 @@ func (a *App) ListBmadTemplates() []bmad.WorkflowDef {
 }
 
 // CreateFromTemplate deep-copies a built-in template into a user workflow.
-func (a *App) CreateFromTemplate(templateID, repoPath string) (bmad.WorkflowDef, error) {
+func (a *App) CreateFromTemplate(repoPath, templateID string) (bmad.WorkflowDef, error) {
 	if a.bmadStorage == nil {
 		return bmad.WorkflowDef{}, fmt.Errorf("bmad storage not initialized")
 	}
@@ -126,7 +126,7 @@ func (a *App) UpdateStoryStatus(repoPath, storyID, newStatus string) error {
 // ── BMAD Execution ──
 
 // StartBmadWorkflow begins executing a workflow and returns the execution ID.
-func (a *App) StartBmadWorkflow(workflowID, repoPath, model string) (string, error) {
+func (a *App) StartBmadWorkflow(repoPath, workflowID, model string) (string, error) {
 	if a.bmadExecutor == nil {
 		return "", fmt.Errorf("bmad executor not initialized")
 	}
@@ -354,8 +354,8 @@ func (a *App) GetNodeOutput(execID, nodeID string) (string, error) {
 }
 
 // GetArtifactStatus checks whether a BMAD artifact exists at its expected path.
-// Returns (exists, resolvedPath, error). Unmapped artifacts return (false, "", nil).
-func (a *App) GetArtifactStatus(repoPath, artifactName string) (bool, string, error) {
+// Returns (exists, resolvedPath). Unmapped artifacts return (false, "").
+func (a *App) GetArtifactStatus(repoPath, artifactName string) (bool, string) {
 	return bmad.GetArtifactStatus(repoPath, artifactName)
 }
 

@@ -170,6 +170,9 @@ func (a *App) CreateRepo(name string, isPublic bool, installBmad bool) {
 
 // GitListBranches returns all local branches for a repo, with the current branch marked.
 func (a *App) GitListBranches(repoPath string) ([]BranchInfo, error) {
+	if repoPath == "" {
+		return nil, fmt.Errorf("repo path is required")
+	}
 	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "branch", "--format=%(refname:short)\t%(HEAD)")
 	out, err := cmd.Output()
 	if err != nil {
@@ -247,6 +250,9 @@ func (a *App) GitCreateBranch(repoPath, prefix, name string, autoCommit bool) er
 // RepoStatus returns git dirty state, open PR count, and ahead/behind counts for a repo.
 func (a *App) RepoStatus(repoPath string) RepoStatusInfo {
 	result := RepoStatusInfo{}
+	if repoPath == "" {
+		return result
+	}
 
 	// Check dirty (uncommitted changes including untracked files)
 	statusCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "status", "--porcelain")
@@ -710,11 +716,17 @@ Keep it factual based on the diff.
 
 // GetScopedDiff returns the changed files for a directory.
 func (a *App) GetScopedDiff(dir string) (*domain.ScopedDiff, error) {
+	if dir == "" {
+		return nil, fmt.Errorf("directory path is required")
+	}
 	return git.ScopedDiff(dir)
 }
 
 // GetWorktrees returns worktrees for a repo.
 func (a *App) GetWorktrees(repoPath string) ([]domain.WorktreeInfo, error) {
+	if repoPath == "" {
+		return nil, fmt.Errorf("repo path is required")
+	}
 	return git.DetectWorktrees(repoPath)
 }
 
@@ -751,6 +763,9 @@ func (a *App) WriteFile(path, content string) error {
 
 // ReadFile returns the contents of a file as a string.
 func (a *App) ReadFile(path string) (string, error) {
+	if path == "" {
+		return "", fmt.Errorf("file path is required")
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("read file %s: %w", path, err)
@@ -811,6 +826,9 @@ func (a *App) ReadFileBase64(path string) (string, error) {
 
 // ReadFileDiff returns the git diff for a specific file.
 func (a *App) ReadFileDiff(repoPath, filePath string) (string, error) {
+	if repoPath == "" {
+		return "", fmt.Errorf("repo path is required")
+	}
 	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "HEAD", "--", filePath)
 	out, err := cmd.Output()
 	if err != nil {
@@ -827,6 +845,9 @@ func (a *App) ReadFileDiff(repoPath, filePath string) (string, error) {
 
 // ReadFileAtHead returns the content of a file at the HEAD commit.
 func (a *App) ReadFileAtHead(repoPath, filePath string) (string, error) {
+	if repoPath == "" {
+		return "", fmt.Errorf("repo path is required")
+	}
 	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "show", "HEAD:"+filePath)
 	out, err := cmd.Output()
 	if err != nil {

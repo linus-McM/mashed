@@ -147,7 +147,6 @@ func (a *App) findUnclaimed(sessionDir string, claimed map[string]bool) *domain.
 		return files[i].mod.After(files[j].mod)
 	})
 
-	// Return the first unclaimed file
 	for _, f := range files {
 		if claimed[f.key] {
 			continue

@@ -127,7 +127,10 @@ func loadConfig() mashedConfig {
 		return mashedConfig{}
 	}
 	var cfg mashedConfig
-	json.Unmarshal(data, &cfg)
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		log.Printf("warning: malformed config.json, ignoring: %v", err)
+		return mashedConfig{}
+	}
 	return cfg
 }
 

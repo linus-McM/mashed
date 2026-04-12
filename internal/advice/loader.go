@@ -141,7 +141,6 @@ func LoadAdviceBody(repoPath, modeName string) (string, error) {
 // loadAdviceBodyFromDirs is the internal implementation for LoadAdviceBody.
 func loadAdviceBodyFromDirs(modeName string, bundledFS *embed.FS, globalDir, localDir string) (string, error) {
 	// Check in priority order: local > global > bundled
-	// Return the first match found.
 
 	// Local (highest priority)
 	if localDir != "" {
