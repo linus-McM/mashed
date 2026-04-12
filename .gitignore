@@ -21,7 +21,8 @@ mashed
 node_modules
 frontend/dist
 images/*
-.DS_Store
+# macOS Finder metadata — ignore at any depth
+**/.DS_Store
 *.log
 *.png
 !frontend/src/**/*.png
@@ -74,13 +75,7 @@ docs/repomixer/*
 .wolf
 .playwright-cli
 .playwright-mcp
-.DS_Store
-docs/.DS_Store
 
 # mashed screenshots
 .screenshots/
-docs/.DS_Store
-.DS_Store
-.DS_Store
 todo.md
-.DS_Store
