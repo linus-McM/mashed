@@ -39,6 +39,7 @@
   import ArrayEditorModal from '../components/bmad/ArrayEditorModal.svelte';
   import QuestionResponseModal from '../components/bmad/QuestionResponseModal.svelte';
   import NameWorkflowModal from '../components/bmad/NameWorkflowModal.svelte';
+  import SkillEditorModal from '../components/bmad/SkillEditorModal.svelte';
   import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
   import CanvasFailureToast from '../components/bmad/CanvasFailureToast.svelte';
   import { parseFriendlyTarget } from '../lib/bmadSessionName';
@@ -179,6 +180,9 @@
   let outputModalContent = '';
   let outputModalLabel = '';
   let outputLoading = false;
+
+  // Skill editor modal state
+  let editingAsset = null;
 
   // Array editor modal state
   let showArrayModal = false;
@@ -1018,6 +1022,7 @@
     on:delete-workflow={deleteWorkflow}
     on:create-custom-template={newWorkflow}
     on:branch-changed={(e) => { if (e.detail?.branch) repoBranch = e.detail.branch; }}
+    on:editAsset={(e) => { editingAsset = e.detail; }}
   />
 
   <div class="canvas-area">
@@ -1181,6 +1186,14 @@
       on:save={handleNameModalSave}
       on:discard={handleNameModalDiscard}
       on:cancel={handleNameModalCancel}
+    />
+  {/if}
+
+  {#if editingAsset}
+    <SkillEditorModal
+      asset={editingAsset}
+      on:close={() => { editingAsset = null; }}
+      on:save={() => { editingAsset = null; }}
     />
   {/if}
 </div>

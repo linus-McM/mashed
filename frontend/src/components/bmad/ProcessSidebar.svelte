@@ -3,6 +3,7 @@
   import { ChevronDown, ChevronRight, Trash2, GitBranch, Repeat, Target, Filter, GitMerge } from 'lucide-svelte';
   import SprintPanel from './SprintPanel.svelte';
   import GitPanel from './GitPanel.svelte';
+  import ValidationBadge from './ValidationBadge.svelte';
   import { GetConfig, SetSidebarWidth } from '../../../wailsjs/go/main/App.js';
   import { MASHED_ASSET_MIME } from './dragMimeTypes.js';
 
@@ -52,6 +53,14 @@
     openMashedGroup = openMashedGroup === key ? null : key;
   }
 
+  let isDragging = false;
+
+  function onMashedAssetContextMenu(e, asset) {
+    if (isDragging) return;
+    e.preventDefault();
+    dispatch('editAsset', asset);
+  }
+
   /**
    * Drag handler for a mashed asset. Only commands (bmadRole: command)
    * are actually draggable onto the canvas — the executor cannot chain
@@ -60,6 +69,7 @@
    * rejects, so the user gets a visual "nope" signal without a crash.
    */
   function onMashedAssetDragStart(e, asset) {
+    isDragging = true;
     e.dataTransfer.setData(MASHED_ASSET_MIME, JSON.stringify({
       name: asset.name,
       path: asset.path,
@@ -69,6 +79,10 @@
       description: asset.description || '',
     }));
     e.dataTransfer.effectAllowed = asset.role === 'command' ? 'move' : 'none';
+  }
+
+  function onMashedAssetDragEnd() {
+    isDragging = false;
   }
 
   /** Count across all four groups so the tab can show a badge when empty. */
@@ -325,11 +339,16 @@
                       class:disabled={asset.role !== 'command'}
                       draggable={asset.role === 'command'}
                       on:dragstart={(e) => onMashedAssetDragStart(e, asset)}
+                      on:dragend={onMashedAssetDragEnd}
+                      on:contextmenu={(e) => onMashedAssetContextMenu(e, asset)}
                       title={asset.description || asset.name}
                       data-testid={`mashed-asset-${asset.name}`}
                     >
                       <span class="process-dot" style="background: {mashedGroupAccents[key]}" />
                       <span class="process-name">{asset.name}</span>
+                      {#if asset.issues && asset.issues.length > 0}
+                        <ValidationBadge issues={asset.issues} assetId={asset.name} />
+                      {/if}
                       {#if asset.role === 'skill'}
                         <span class="module-badge">pinned</span>
                       {/if}

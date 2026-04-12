@@ -1,6 +1,6 @@
 # skills-editor-01: Skill editor modal shell + sidebar right-click entrypoint
 
-**Status:** ready
+**Status:** done
 **Domain:** frontend
 **Size:** S
 **Depends on:** none (Phase 1 is shipped)
@@ -97,30 +97,30 @@ Feature: Skill editor modal shell
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Build modal shell (AC-3, AC-4)
-  - [ ] Create `SkillEditorModal.svelte` with the full form
-  - [ ] Implement focus trap and Escape / backdrop close
-  - [ ] Use design-system tokens exclusively
-- [ ] Task 2 — Sidebar contextmenu handler (AC-1)
-  - [ ] Add `on:contextmenu|preventDefault` to the mashed-asset row
-  - [ ] Dispatch an `editAsset` event with the asset payload
-- [ ] Task 3 — Host state in `WorkflowBuilder.svelte` (AC-1, AC-2)
-  - [ ] Track `editingAsset | null`
-  - [ ] Render the modal when non-null
-  - [ ] Handle close → `editingAsset = null`
-- [ ] Task 4 — Tests (AC-1, AC-2, AC-3, AC-4)
-  - [ ] Playwright: right-click opens, Escape closes, backdrop closes, Tab traps focus
-  - [ ] Lint/regex check for color literals
+- [x] Task 1 — Build modal shell (AC-3, AC-4)
+  - [x] Create `SkillEditorModal.svelte` with the full form
+  - [x] Implement focus trap and Escape / backdrop close
+  - [x] Use design-system tokens exclusively
+- [x] Task 2 — Sidebar contextmenu handler (AC-1)
+  - [x] Add `on:contextmenu|preventDefault` to the mashed-asset row
+  - [x] Dispatch an `editAsset` event with the asset payload
+- [x] Task 3 — Host state in `WorkflowBuilder.svelte` (AC-1, AC-2)
+  - [x] Track `editingAsset | null`
+  - [x] Render the modal when non-null
+  - [x] Handle close → `editingAsset = null`
+- [x] Task 4 — Tests (AC-1, AC-2, AC-3, AC-4)
+  - [x] Playwright: right-click opens, Escape closes, backdrop closes, Tab traps focus
+  - [x] Lint/regex check for color literals
 
 ## Definition of Done
 
-- [ ] All ACs verified by an automated test (Playwright; no "manually verified")
-- [ ] Coverage ≥ 80% on modified files
-- [ ] `go build ./... && go vet ./...` clean
-- [ ] `go test ./... -race -short` clean
-- [ ] `/simplify` run before sign-off
-- [ ] No hardcoded paths, magic numbers, or color literals added
-- [ ] Existing tests still pass
+- [x] All ACs verified by an automated test (Playwright; no "manually verified")
+- [x] Coverage ≥ 80% on modified files
+- [x] `go build ./... && go vet ./...` clean
+- [x] `go test ./... -race -short` clean
+- [x] `/simplify` run before sign-off
+- [x] No hardcoded paths, magic numbers, or color literals added
+- [x] Existing tests still pass
 
 ## Design Brief
 

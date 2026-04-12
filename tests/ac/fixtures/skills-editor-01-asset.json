@@ -1,0 +1,13 @@
+{
+  "name": "simplify",
+  "path": ".claude/skills/simplify/SKILL.md",
+  "description": "Review changed code for reuse, quality, and efficiency, then fix any issues found.",
+  "kind": "skill",
+  "source": "local",
+  "role": "command",
+  "completion": "idle",
+  "inputs": ["repo", "branch"],
+  "outputs": ["summary"],
+  "chainable": "single",
+  "sessionPinned": false
+}
