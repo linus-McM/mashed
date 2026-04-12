@@ -436,6 +436,12 @@ func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, m
 					e.executeTransformNode(ctx, state, nodeIndex, nID)
 				case NodeTypeLoop, NodeTypeLoopUntil:
 					e.executeLoopNode(ctx, state, nodeIndex, nID, repoPath, model)
+				case NodeTypeCommand:
+					// Phase 3 will implement command execution. Fail fast so a
+					// canvas containing a command node never silently hangs on
+					// the process-node path.
+					log.Printf("bmad: command nodes not yet runnable (Phase 3)")
+					e.failNode(state, nodeIndex[nID], nID)
 				default:
 					log.Printf("bmad: unknown node type %s, skipping: %s", effectiveType, nID)
 					e.skipNode(state, nodeIndex[nID], nID)

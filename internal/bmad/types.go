@@ -81,6 +81,7 @@ const (
 	NodeTypeLoopUntil NodeType = "loopUntil"
 	NodeTypeTransform NodeType = "transform"
 	NodeTypeMerge     NodeType = "merge"
+	NodeTypeCommand   NodeType = "command"
 )
 
 // WorkflowNode is a process instance placed on the canvas.
