@@ -19,6 +19,11 @@ var (
 	ErrStoryNotFound       = errors.New("bmad: story not found in sprint status")
 	ErrInvalidCondition    = errors.New("bmad: invalid condition")
 	ErrAnswerTooLong       = errors.New("bmad: answer exceeds size limit")
+	// ErrIdleTimeoutNoStart is returned when pollForIdle exhausts its
+	// timeout budget before claude produces any new output after command
+	// injection — the "stuck at idle baseline" failure mode, distinct
+	// from a completion timeout that fires during normal processing.
+	ErrIdleTimeoutNoStart = errors.New("bmad: idle wait timed out before claude produced output")
 )
 
 // BmadPhase groups processes into lifecycle stages.

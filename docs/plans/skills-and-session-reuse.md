@@ -354,6 +354,24 @@ isn't bash, or claude's exit code triggers bash's `errexit`. Try
 `bash --norc -c '... ; exec bash'` or use `$SHELL` instead of a
 literal `bash`.
 
+### Verification outcomes
+
+Recorded against Claude Code v2.1.101 / macOS on 2026-04-12. Each
+invariant is now replayed offline by a test in
+`internal/bmad/exec_verify_test.go` — no live tmux, no live claude.
+Fixtures live under `internal/bmad/testdata/exec_verify/`.
+
+| ID | Invariant | Status | Test | Notes / escape hatches |
+|----|-----------|--------|------|------------------------|
+| V1 | Slash-command injection via `send-keys -H` | **PASS** (2026-04-12) | `TestVerifySlashInjectionFixture`, `TestVerifySendInputArgv` | Claude echoed `/simplify` and entered `✳ Baking…` processing state. Hex sequence that worked: `2f 73 69 6d 70 6c 69 66 79 0d` — note the trailing **`0d` (CR)**, not `0a` (LF). `TestVerifySendInputArgv` locks in both CR and LF terminators so a future refactor that flips bytes fails loudly. If `internal/terminal/tmux_adapter.go` ever emits a different terminator for `[]byte("/simplify\n")`, re-record the fixture against the new byte. |
+| V2 | Pane hash stability at idle | **PASS** (2026-04-12) | `TestVerifyIdleStabilityFixture` | 5/5 captures byte-identical after a 30 s settle. **Caveat:** startup has a ~15–25 s transient phase where the status bar transitions (e.g. "VSCode disconnected" → "Claude in Chrome enabled"). `pollForIdle`'s overall timeout budget MUST exceed 25 s to avoid false `ErrIdleTimeoutNoStart`. Two-stable-polls guard remains safe; no need to escalate to three. |
+| V3 | Session survival after `/exit` under `bash -c 'claude ...; exec bash'` | **PASS** (2026-04-12) | `TestVerifySessionSurvivalFixture` | Fixture captures `0 bash` — pane alive, foreground = shell. **Caveat:** `pane_current_command` shows `bash` BOTH before and after claude's exit because the wrapper `bash` is the pane's direct foreground process throughout; the child `claude` process is invisible to `list-panes`. `pane_current_command` alone therefore cannot distinguish pre-exit from post-exit state. The verification was cross-checked during recording by killing the child `claude` PID and confirming the `exec bash` took over via a shell probe (`echo PROBE_OK`). Downstream code that wants to assert "claude is no longer running" must use a direct PID check, not `pane_current_command`. |
+
+`ErrIdleTimeoutNoStart` is now declared in `internal/bmad/types.go`'s
+existing sentinel block and is ready for the exec-01 pollForIdle
+rewrite to return it when the startup transient exceeds its timeout
+budget.
+
 ### The problem, stated precisely
 
 **Current `executeNode` completion path** — `internal/bmad/executor.go:942-989`:

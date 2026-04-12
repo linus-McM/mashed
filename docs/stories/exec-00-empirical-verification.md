@@ -1,6 +1,6 @@
 # exec-00: Empirical verification gate — slash-injection, idle stability, crash survival
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends on:** none
@@ -124,28 +124,28 @@ Feature: Phase 3 empirical verification gate
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Record the three fixtures manually (AC-1, AC-2, AC-3)
-  - [ ] Run the Verification 1 script against a live claude session; commit the capture file
-  - [ ] Run the Verification 2 script; commit the multi-capture file
-  - [ ] Run the Verification 3 script; commit the list-panes output
-  - [ ] If any fails, document the escape hatch in plan §Phase 3 "Verification outcomes" and re-record
-- [ ] Task 2 — Write the three replay tests (AC-1, AC-2, AC-3)
-  - [ ] `TestVerifySlashInjectionFixture` — parses the capture, asserts recognition, asserts expected `send-keys -H` argv from `tmux_adapter.SendInput`
-  - [ ] `TestVerifyIdleStabilityFixture` — hashes all three captures and asserts equality
-  - [ ] `TestVerifySessionSurvivalFixture` — parses list-panes output, asserts `pane_dead=0` and shell current command
-- [ ] Task 3 — Declare `ErrIdleTimeoutNoStart` sentinel (for exec-01 handoff)
-  - [ ] Add `var ErrIdleTimeoutNoStart = errors.New("bmad: idle wait timed out before claude produced output")` in `internal/bmad/executor.go`
-- [ ] Task 4 — Document verification outcomes (AC-4)
-  - [ ] Append a "Verification outcomes" subsection to `docs/plans/skills-and-session-reuse.md` with date, results, escape hatches
-  - [ ] Ensure the eventual Phase 3 commit message includes the same table
+- [x] Task 1 — Record the three fixtures manually (AC-1, AC-2, AC-3)
+  - [x] Run the Verification 1 script against a live claude session; commit the capture file
+  - [x] Run the Verification 2 script; commit the multi-capture file
+  - [x] Run the Verification 3 script; commit the list-panes output
+  - [x] If any fails, document the escape hatch in plan §Phase 3 "Verification outcomes" and re-record
+- [x] Task 2 — Write the three replay tests (AC-1, AC-2, AC-3)
+  - [x] `TestVerifySlashInjectionFixture` — parses the capture, asserts recognition, asserts expected `send-keys -H` argv from `tmux_adapter.SendInput`
+  - [x] `TestVerifyIdleStabilityFixture` — hashes all three captures and asserts equality
+  - [x] `TestVerifySessionSurvivalFixture` — parses list-panes output, asserts `pane_dead=0` and shell current command
+- [x] Task 3 — Declare `ErrIdleTimeoutNoStart` sentinel (for exec-01 handoff)
+  - [x] Add `var ErrIdleTimeoutNoStart = errors.New("bmad: idle wait timed out before claude produced output")` in `internal/bmad/executor.go`
+- [x] Task 4 — Document verification outcomes (AC-4)
+  - [x] Append a "Verification outcomes" subsection to `docs/plans/skills-and-session-reuse.md` with date, results, escape hatches
+  - [x] Ensure the eventual Phase 3 commit message includes the same table
 
 ## Definition of Done
 
-- [ ] All ACs verified by an automated test (Go table-driven replay tests; no live tmux; no "manually verified")
-- [ ] Coverage ≥ 80% on modified files (`go test -coverprofile=cover.out ./internal/bmad/... && go tool cover -func=cover.out`)
-- [ ] `go build ./... && go vet ./...` clean
-- [ ] `go test ./... -race -short` clean, offline, no tmux required
-- [ ] `/simplify` run before sign-off
-- [ ] No hardcoded paths or magic numbers added (fixture paths via `testdata/` convention only)
-- [ ] Plan doc "Verification outcomes" subsection written
-- [ ] Existing tests still pass
+- [x] All ACs verified by an automated test (Go table-driven replay tests; no live tmux; no "manually verified")
+- [x] Coverage ≥ 80% on modified files (`go test -coverprofile=cover.out ./internal/bmad/... && go tool cover -func=cover.out`)
+- [x] `go build ./... && go vet ./...` clean
+- [x] `go test ./... -race -short` clean, offline, no tmux required
+- [x] `/simplify` run before sign-off
+- [x] No hardcoded paths or magic numbers added (fixture paths via `testdata/` convention only)
+- [x] Plan doc "Verification outcomes" subsection written
+- [x] Existing tests still pass

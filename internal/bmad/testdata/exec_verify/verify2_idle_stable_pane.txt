@@ -1,0 +1,130 @@
+=== CAPTURE_1 ===
+ ▐▛███▜▌   Claude Code v2.1.101
+▝▜█████▛▘  Opus 4.6 (1M context) with high effort · Claude Max
+  ▘▘ ▝▝    ~/Development/mashed
+
+  /remote-control is active · Code in CLI or at
+  https://claude.ai/code/session_01SGW7gX89jhi4ftApzcF7DX
+
+────────────────────────────────────────────────────────────────────────────────
+❯ 
+────────────────────────────────────────────────────────────────────────────────
+   cwd: /Users/linus/Development/mashed  mashed    ⎇ dev      Thinkin...
+   Model: Opus 4.6 (1M context)          Total: —  Ctx: 0.0%  Ctx: 0 ...
+  ⏵⏵ bypass permissions on (shift+tab to cycle)
+                                                                      0 tokens
+
+
+
+
+
+
+
+
+
+
+=== END_CAPTURE_1 ===
+=== CAPTURE_2 ===
+ ▐▛███▜▌   Claude Code v2.1.101
+▝▜█████▛▘  Opus 4.6 (1M context) with high effort · Claude Max
+  ▘▘ ▝▝    ~/Development/mashed
+
+  /remote-control is active · Code in CLI or at
+  https://claude.ai/code/session_01SGW7gX89jhi4ftApzcF7DX
+
+────────────────────────────────────────────────────────────────────────────────
+❯ 
+────────────────────────────────────────────────────────────────────────────────
+   cwd: /Users/linus/Development/mashed  mashed    ⎇ dev      Thinkin...
+   Model: Opus 4.6 (1M context)          Total: —  Ctx: 0.0%  Ctx: 0 ...
+  ⏵⏵ bypass permissions on (shift+tab to cycle)
+                                                                      0 tokens
+
+
+
+
+
+
+
+
+
+
+=== END_CAPTURE_2 ===
+=== CAPTURE_3 ===
+ ▐▛███▜▌   Claude Code v2.1.101
+▝▜█████▛▘  Opus 4.6 (1M context) with high effort · Claude Max
+  ▘▘ ▝▝    ~/Development/mashed
+
+  /remote-control is active · Code in CLI or at
+  https://claude.ai/code/session_01SGW7gX89jhi4ftApzcF7DX
+
+────────────────────────────────────────────────────────────────────────────────
+❯ 
+────────────────────────────────────────────────────────────────────────────────
+   cwd: /Users/linus/Development/mashed  mashed    ⎇ dev      Thinkin...
+   Model: Opus 4.6 (1M context)          Total: —  Ctx: 0.0%  Ctx: 0 ...
+  ⏵⏵ bypass permissions on (shift+tab to cycle)
+                                                                      0 tokens
+
+
+
+
+
+
+
+
+
+
+=== END_CAPTURE_3 ===
+=== CAPTURE_4 ===
+ ▐▛███▜▌   Claude Code v2.1.101
+▝▜█████▛▘  Opus 4.6 (1M context) with high effort · Claude Max
+  ▘▘ ▝▝    ~/Development/mashed
+
+  /remote-control is active · Code in CLI or at
+  https://claude.ai/code/session_01SGW7gX89jhi4ftApzcF7DX
+
+────────────────────────────────────────────────────────────────────────────────
+❯ 
+────────────────────────────────────────────────────────────────────────────────
+   cwd: /Users/linus/Development/mashed  mashed    ⎇ dev      Thinkin...
+   Model: Opus 4.6 (1M context)          Total: —  Ctx: 0.0%  Ctx: 0 ...
+  ⏵⏵ bypass permissions on (shift+tab to cycle)
+                                                                      0 tokens
+
+
+
+
+
+
+
+
+
+
+=== END_CAPTURE_4 ===
+=== CAPTURE_5 ===
+ ▐▛███▜▌   Claude Code v2.1.101
+▝▜█████▛▘  Opus 4.6 (1M context) with high effort · Claude Max
+  ▘▘ ▝▝    ~/Development/mashed
+
+  /remote-control is active · Code in CLI or at
+  https://claude.ai/code/session_01SGW7gX89jhi4ftApzcF7DX
+
+────────────────────────────────────────────────────────────────────────────────
+❯ 
+────────────────────────────────────────────────────────────────────────────────
+   cwd: /Users/linus/Development/mashed  mashed    ⎇ dev      Thinkin...
+   Model: Opus 4.6 (1M context)          Total: —  Ctx: 0.0%  Ctx: 0 ...
+  ⏵⏵ bypass permissions on (shift+tab to cycle)
+                                                                      0 tokens
+
+
+
+
+
+
+
+
+
+
+=== END_CAPTURE_5 ===

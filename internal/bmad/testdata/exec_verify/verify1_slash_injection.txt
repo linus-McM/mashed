@@ -1,0 +1,24 @@
+ ▐▛███▜▌   Claude Code v2.1.101
+▝▜█████▛▘  Opus 4.6 (1M context) with high effort · Claude Max
+  ▘▘ ▝▝    ~/Development/mashed
+
+  /remote-control is active · Code in CLI or at
+  https://claude.ai/code/session_01DKJwrhjWLx6cvnWN7bgbkj
+
+❯ /simplify
+
+✳ Baking… (3s · thinking with high effort)
+
+────────────────────────────────────────────────────────────────────────────────
+❯ 
+────────────────────────────────────────────────────────────────────────────────
+   cwd: /Users/linus/Development/mashed  mashed    ⎇ dev      Thinkin...
+   Model: Opus 4.6 (1M context)          Total: —  Ctx: 0.0%  Ctx: 0 ...
+  ⏵⏵ bypass permissions on (shift+tab to cycle)
+                                                                      0 tokens
+                                               Visual Studio Code disconnected
+
+
+
+
+
