@@ -208,6 +208,34 @@ func (e *Executor) StopWorkflow(execID string) error {
 	return nil
 }
 
+// killWorkflowChainTails kills every unique tmux session held by any node in
+// the workflow. Because chained command nodes share a session, bareSessionName
+// dedupes to one kill-session call per chain tail. Errors are swallowed — an
+// already-dead session is harmless.
+func (e *Executor) killWorkflowChainTails(state *execState) {
+	state.mu.Lock()
+	seen := map[string]struct{}{}
+	for _, node := range state.exec.Nodes {
+		if node.TmuxTarget == "" {
+			continue
+		}
+		seen[bareSessionName(node.TmuxTarget)] = struct{}{}
+	}
+	state.mu.Unlock()
+
+	var wg sync.WaitGroup
+	for session := range seen {
+		wg.Add(1)
+		go func(s string) {
+			defer wg.Done()
+			killCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+			_, _ = e.runCmd(killCtx, "tmux", "kill-session", "-t", s)
+		}(session)
+	}
+	wg.Wait()
+}
+
 // GetExecution returns a copy of the execution state.
 func (e *Executor) GetExecution(execID string) (*WorkflowExecution, error) {
 	state, err := e.getState(execID)
@@ -378,6 +406,15 @@ func (e *Executor) getState(execID string) (*execState, error) {
 // It replaces the static tier-based run() with dynamic in-degree tracking
 // that supports condition branching and merge nodes.
 func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, model string) {
+	defer func() {
+		state.mu.Lock()
+		status := state.exec.Status
+		state.mu.Unlock()
+		if status == ExecComplete || status == ExecFailed {
+			e.killWorkflowChainTails(state)
+		}
+	}()
+
 	nodeIndex := buildNodeIndex(state.exec.Nodes)
 
 	for {

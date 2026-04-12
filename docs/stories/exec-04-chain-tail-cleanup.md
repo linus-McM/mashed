@@ -1,6 +1,6 @@
 # exec-04: `killWorkflowChainTails` terminal-state cleanup
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** S
 **Depends on:** exec-03
@@ -128,26 +128,26 @@ Feature: Workflow terminal-state chain-tail cleanup
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Implement `killWorkflowChainTails` (AC-1, AC-4)
-  - [ ] Build the dedup set via `bareSessionName` under `state.mu`
-  - [ ] Iterate and kill with `context.Background()` + 2s timeout per call
-  - [ ] Log swallowed errors at debug level
-- [ ] Task 2 — Wire into terminal-state transitions (AC-2, AC-3)
-  - [ ] Identify where `ExecComplete` is set in the workflow runner; call the finalizer before the goroutine returns
-  - [ ] Same for `ExecFailed`
-- [ ] Task 3 — Tests (AC-1 through AC-5)
-  - [ ] Unit test for dedup
-  - [ ] Integration test for ExecComplete path
-  - [ ] Integration test for ExecFailed path
-  - [ ] Negative test for no-target workflows
-  - [ ] Regression run of existing `CleanupStaleSessions` tests
+- [x] Task 1 — Implement `killWorkflowChainTails` (AC-1, AC-4)
+  - [x] Build the dedup set via `bareSessionName` under `state.mu`
+  - [x] Iterate and kill with `context.Background()` + 2s timeout per call
+  - [x] Log swallowed errors at debug level
+- [x] Task 2 — Wire into terminal-state transitions (AC-2, AC-3)
+  - [x] Identify where `ExecComplete` is set in the workflow runner; call the finalizer before the goroutine returns
+  - [x] Same for `ExecFailed`
+- [x] Task 3 — Tests (AC-1 through AC-5)
+  - [x] Unit test for dedup
+  - [x] Integration test for ExecComplete path
+  - [x] Integration test for ExecFailed path
+  - [x] Negative test for no-target workflows
+  - [x] Regression run of existing `CleanupStaleSessions` tests
 
 ## Definition of Done
 
-- [ ] All ACs verified by an automated test
-- [ ] Coverage ≥ 80% on modified files
-- [ ] `go build ./... && go vet ./...` clean
-- [ ] `go test ./... -race -short` clean
-- [ ] `/simplify` run before sign-off
-- [ ] No hardcoded paths or magic numbers added
-- [ ] Existing tests still pass
+- [x] All ACs verified by an automated test
+- [x] Coverage ≥ 80% on modified files
+- [x] `go build ./... && go vet ./...` clean
+- [x] `go test ./... -race -short` clean
+- [x] `/simplify` run before sign-off
+- [x] No hardcoded paths or magic numbers added
+- [x] Existing tests still pass
