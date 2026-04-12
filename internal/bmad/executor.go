@@ -437,11 +437,7 @@ func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, m
 				case NodeTypeLoop, NodeTypeLoopUntil:
 					e.executeLoopNode(ctx, state, nodeIndex, nID, repoPath, model)
 				case NodeTypeCommand:
-					// Phase 3 will implement command execution. Fail fast so a
-					// canvas containing a command node never silently hangs on
-					// the process-node path.
-					log.Printf("bmad: command nodes not yet runnable (Phase 3)")
-					e.failNode(state, nodeIndex[nID], nID)
+					e.executeCommandNode(ctx, state, nodeIndex, nID, repoPath, model)
 				default:
 					log.Printf("bmad: unknown node type %s, skipping: %s", effectiveType, nID)
 					e.skipNode(state, nodeIndex[nID], nID)
@@ -1122,6 +1118,88 @@ func (e *Executor) resolveCommandSession(ctx context.Context, state *execState, 
 	}
 	log.Printf("bmad: command node %s has %d live parents; reusing most recent (%s)", nodeID, len(live), best.nodeID)
 	return best.target, true, nil
+}
+
+// injectSlashCommand sends a slash command into an existing tmux pane via
+// `tmux send-keys -H`. The payload is `/<commandName>\n` encoded as hex bytes.
+func (e *Executor) injectSlashCommand(ctx context.Context, target, commandName string) error {
+	data := []byte("/" + commandName + "\n")
+	args := make([]string, 0, 4+len(data))
+	args = append(args, "send-keys", "-H", "-t", target)
+	for _, b := range data {
+		args = append(args, fmt.Sprintf("%02x", b))
+	}
+	_, err := e.runCmd(ctx, "tmux", args...)
+	return err
+}
+
+// executeCommandNode runs a single command-type node: resolves or spawns a
+// session, injects the slash command (if reusing), waits for idle completion,
+// captures output, and marks the node complete.
+func (e *Executor) executeCommandNode(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID, repoPath, model string) {
+	idx := nodeIndex[nodeID]
+
+	// Mark running and read commandName in a single critical section.
+	state.mu.Lock()
+	state.exec.Nodes[idx].Status = NodeRunning
+	state.exec.CurrentNode = nodeID
+	commandName := state.exec.Nodes[idx].Config["commandName"]
+	state.mu.Unlock()
+	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+
+	if commandName == "" {
+		log.Printf("bmad: command node %s missing commandName in config", nodeID)
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	// Resolve an existing parent session.
+	target, reused, err := e.resolveCommandSession(ctx, state, nodeIndex, nodeID)
+	if err != nil {
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	// No live parent → spawn a fresh session with the slash command as initial invocation.
+	if !reused {
+		innerCommand := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s "/%s"`, model, commandName)
+		target, err = e.spawnCommandSession(ctx, state, nodeIndex, nodeID, repoPath, innerCommand)
+		if err != nil {
+			e.failNode(state, idx, nodeID)
+			return
+		}
+	}
+
+	// Reused session → record target (spawnCommandSession already does this
+	// for the spawn path) and inject the slash command.
+	if reused {
+		state.mu.Lock()
+		state.exec.Nodes[idx].TmuxTarget = target
+		state.mu.Unlock()
+		e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning, TmuxTarget: target})
+
+		if err := e.injectSlashCommand(ctx, target, commandName); err != nil {
+			e.failNode(state, idx, nodeID)
+			return
+		}
+	}
+
+	// Wait for idle-prompt completion (or pane death as fallback).
+	if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout); err != nil {
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	// Capture output (best-effort) regardless of completion path.
+	captured, captureErr := e.captureOutput(ctx, target)
+	if captureErr != nil {
+		log.Printf("bmad: failed to capture output for command node %s: %v", nodeID, captureErr)
+	}
+	state.mu.Lock()
+	state.exec.NodeOutputs[nodeID] = captured
+	state.mu.Unlock()
+
+	e.completeNode(state, idx, nodeID)
 }
 
 // executeProcessNode runs a single process-type node: looks up the process

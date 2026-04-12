@@ -1,6 +1,6 @@
 # exec-03: `executeCommandNode` + slash-command injection + dispatcher wire-up
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends on:** exec-00, exec-01, exec-02
@@ -138,32 +138,32 @@ Feature: Command node execution
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Implement `injectSlashCommand` (AC-1)
-  - [ ] Thin wrapper around `e.tmuxAdapter.SendInputToTarget(ctx, target, []byte("/"+name+"\n"))`
-  - [ ] Unit test for exact argv
-- [ ] Task 2 — Implement `executeCommandNode` (AC-2, AC-3, AC-4, AC-6)
-  - [ ] Full flow per Developer Notes step-by-step
-  - [ ] Emit `bmad:node:status` twice if needed (pre-resolve, post-resolve-with-target)
-  - [ ] Fail-fast on missing `commandName`
-  - [ ] Call sequence: resolve → spawn (if needed) → inject (if reused) → wait → capture → complete
-- [ ] Task 3 — Wire the dispatcher (AC-5)
-  - [ ] Replace the Phase 2 fail-fast branch in `executeNode` with a call to `executeCommandNode`
-  - [ ] Remove (or archive) the `"command nodes not yet runnable"` log line
-- [ ] Task 4 — Integration tests (AC-2, AC-3, AC-6)
-  - [ ] 3-node DAG `process → command → command` via mock runner; assert shared target + injection sequence
-  - [ ] Single-command-node DAG; assert spawn path
-  - [ ] Reused-session timing test; assert ordering of inject vs wait
-- [ ] Task 5 — Manual smoke test in Wails dev app (documented in commit message)
-  - [ ] Drag a command onto a canvas with a process node upstream
-  - [ ] Click Run
-  - [ ] Confirm the command injects and completes
+- [x] Task 1 — Implement `injectSlashCommand` (AC-1)
+  - [x] Thin wrapper around `e.tmuxAdapter.SendInputToTarget(ctx, target, []byte("/"+name+"\n"))`
+  - [x] Unit test for exact argv
+- [x] Task 2 — Implement `executeCommandNode` (AC-2, AC-3, AC-4, AC-6)
+  - [x] Full flow per Developer Notes step-by-step
+  - [x] Emit `bmad:node:status` twice if needed (pre-resolve, post-resolve-with-target)
+  - [x] Fail-fast on missing `commandName`
+  - [x] Call sequence: resolve → spawn (if needed) → inject (if reused) → wait → capture → complete
+- [x] Task 3 — Wire the dispatcher (AC-5)
+  - [x] Replace the Phase 2 fail-fast branch in `executeNode` with a call to `executeCommandNode`
+  - [x] Remove (or archive) the `"command nodes not yet runnable"` log line
+- [x] Task 4 — Integration tests (AC-2, AC-3, AC-6)
+  - [x] 3-node DAG `process → command → command` via mock runner; assert shared target + injection sequence
+  - [x] Single-command-node DAG; assert spawn path
+  - [x] Reused-session timing test; assert ordering of inject vs wait
+- [x] Task 5 — Manual smoke test in Wails dev app (documented in commit message)
+  - [x] Drag a command onto a canvas with a process node upstream
+  - [x] Click Run
+  - [x] Confirm the command injects and completes
 
 ## Definition of Done
 
-- [ ] All ACs verified by an automated test (Go table-driven + integration; no "manually verified")
-- [ ] Coverage ≥ 80% on modified files
-- [ ] `go build ./... && go vet ./...` clean
-- [ ] `go test ./... -race -short` clean
-- [ ] `/simplify` run before sign-off
-- [ ] No hardcoded paths or magic numbers added
-- [ ] Existing tests still pass
+- [x] All ACs verified by an automated test (Go table-driven + integration; no "manually verified")
+- [x] Coverage ≥ 80% on modified files
+- [x] `go build ./... && go vet ./...` clean
+- [x] `go test ./... -race -short` clean
+- [x] `/simplify` run before sign-off
+- [x] No hardcoded paths or magic numbers added
+- [x] Existing tests still pass
