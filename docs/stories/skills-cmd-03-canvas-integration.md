@@ -1,6 +1,6 @@
 # skills-cmd-03: Canvas load/save/restore symmetry + run-time fail verification
 
-**Status:** ready
+**Status:** done
 **Domain:** fullstack
 **Size:** S
 **Depends on:** skills-cmd-01, skills-cmd-02
@@ -85,28 +85,28 @@ Feature: Command node canvas round-trip
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Extend `loadNodesEdges` type mapping (AC-1)
-  - [ ] Update the ternary so `command` maps to `type: 'command'`
-  - [ ] Keep the default → `bmadProcess` fallback intact for legacy workflows
-- [ ] Task 2 — Lock save + snapshot + restore with tests (AC-1, AC-2, AC-4)
-  - [ ] Frontend unit test or Playwright: save a mixed canvas, reload, assert types and config keys
-  - [ ] Frontend unit test: snapshotCanvas distinguishes process from command at the same ID
-  - [ ] Frontend unit test: restoreForRepo preserves positions for both types
-- [ ] Task 3 — Integration fail-test (AC-3)
-  - [ ] Backend: Go integration test driving a one-command-node workflow through the executor, asserting the sentinel error path
-  - [ ] Frontend: Playwright scenario clicking Run on a canvas with a command node, asserting the failed badge and the error message
-- [ ] Task 4 — Phase 2 smoke checklist in commit message
-  - [ ] Document the three verification steps from plan §Phase 2 "Verification before shipping Phase 2" as completed
+- [x] Task 1 — Extend `loadNodesEdges` type mapping (AC-1)
+  - [x] Update the ternary so `command` maps to `type: 'command'`
+  - [x] Keep the default → `bmadProcess` fallback intact for legacy workflows
+- [x] Task 2 — Lock save + snapshot + restore with tests (AC-1, AC-2, AC-4)
+  - [x] Frontend unit test or Playwright: save a mixed canvas, reload, assert types and config keys
+  - [x] Frontend unit test: snapshotCanvas distinguishes process from command at the same ID
+  - [x] Frontend unit test: restoreForRepo preserves positions for both types
+- [x] Task 3 — Integration fail-test (AC-3)
+  - [x] Backend: Go integration test driving a one-command-node workflow through the executor, asserting the sentinel error path
+  - [x] Frontend: Playwright scenario clicking Run on a canvas with a command node, asserting the failed badge and the error message
+- [x] Task 4 — Phase 2 smoke checklist in commit message
+  - [x] Document the three verification steps from plan §Phase 2 "Verification before shipping Phase 2" as completed
 
 ## Definition of Done
 
-- [ ] All ACs verified by an automated test (Go + Playwright; no "manually verified")
-- [ ] Coverage ≥ 80% on modified files
-- [ ] `go build ./... && go vet ./...` clean
-- [ ] `go test ./... -race -short` clean
-- [ ] `/simplify` run before sign-off
-- [ ] No hardcoded paths or magic numbers added
-- [ ] Existing tests still pass
+- [x] All ACs verified by an automated test (Go + Playwright; no "manually verified")
+- [x] Coverage ≥ 80% on modified files
+- [x] `go build ./... && go vet ./...` clean
+- [x] `go test ./... -race -short` clean
+- [x] `/simplify` run before sign-off
+- [x] No hardcoded paths or magic numbers added
+- [x] Existing tests still pass
 
 ## Design Brief
 

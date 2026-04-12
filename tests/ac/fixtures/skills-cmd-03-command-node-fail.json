@@ -1,0 +1,26 @@
+{
+  "id": "wf-fixture-cmd-03-fail",
+  "name": "skills-cmd-03 fail fixture",
+  "description": "Single command node workflow used by the AC-3 fail Playwright spec.",
+  "repoPath": "",
+  "nodes": [
+    {
+      "id": "cmd-fail-1",
+      "processId": "",
+      "label": "simplify",
+      "position": { "x": 180, "y": 160 },
+      "status": "pending",
+      "config": {
+        "commandName": "simplify",
+        "commandPath": "/tmp/simplify.md",
+        "commandDescription": "Review recent changes"
+      },
+      "tmuxTarget": "",
+      "nodeType": "command"
+    }
+  ],
+  "edges": [],
+  "isTemplate": false,
+  "createdAt": "2026-04-12T00:00:00Z",
+  "updatedAt": "2026-04-12T00:00:00Z"
+}

@@ -40,7 +40,17 @@
   import QuestionResponseModal from '../components/bmad/QuestionResponseModal.svelte';
   import NameWorkflowModal from '../components/bmad/NameWorkflowModal.svelte';
   import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
+  import CanvasFailureToast from '../components/bmad/CanvasFailureToast.svelte';
   import { parseFriendlyTarget } from '../lib/bmadSessionName';
+  import {
+    snapshotCanvas,
+    canvasNodesToWorkflowNodes,
+    canvasEdgesToWorkflowEdges,
+    workflowNodesToCanvasNodes,
+    workflowEdgesToCanvasEdges,
+    COMMAND_NODE_SENTINEL_PHRASE,
+    COMMAND_NODE_SENTINEL_DEFAULT_BODY,
+  } from '../lib/workflowSerialisation.js';
 
   export let repoPath = '';
   export let repoBranch = '';
@@ -127,28 +137,9 @@
   /** @type {null | ((decision: 'save' | 'discard' | 'cancel', name?: string) => void)} */
   let nameModalResolver = null;
 
-  /** Structural canvas snapshot used for dirty detection. */
-  function snapshotCanvas(nodesArr, edgesArr, name) {
-    return JSON.stringify({
-      name: name || '',
-      nodes: (nodesArr || []).map((n) => ({
-        id: n.id,
-        type: n.type || '',
-        x: Math.round(n.position?.x || 0),
-        y: Math.round(n.position?.y || 0),
-        processId: n.data?.processId || '',
-        label: n.data?.label || '',
-        config: n.data?.config || {},
-      })),
-      edges: (edgesArr || []).map((e) => ({
-        id: e.id,
-        source: e.source,
-        target: e.target,
-        sourceHandle: e.sourceHandle || '',
-        targetHandle: e.targetHandle || '',
-      })),
-    });
-  }
+  // Phase 2 sentinel toast: surfaced when a command node transitions to
+  // `failed`. Phase 3 will replace the fail-fast with real execution.
+  let failureToastMessage = '';
 
   // Dirty flag re-evaluates whenever nodes/edges/name change. Discard-latch
   // short-circuits to false so the view-switch triggered by a Discard click
@@ -246,6 +237,23 @@
         groupedMashedAssets = grouped || { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
         return true;
       };
+      // skills-cmd-03 AC-3 test seam: Playwright needs a way to assert
+      // that the frontend surfaces the Phase 2 sentinel failure without
+      // having to round-trip through a real backend execution (which
+      // requires a valid repoPath on disk). This seam invokes the same
+      // code path the EventsOn('bmad:node:status') listener would run
+      // when the executor emits NodeFailed for a command node.
+      window.__mashed_simulateNodeFailure = (nodeId, message) => {
+        if (!$nodes.some((n) => n.id === nodeId)) return false;
+        $nodes = $nodes.map((n) =>
+          n.id === nodeId
+            ? { ...n, data: { ...n.data, status: 'failed' } }
+            : n,
+        );
+        failureToastMessage = message || COMMAND_NODE_SENTINEL_DEFAULT_BODY;
+        updateProgress();
+        return true;
+      };
     }
   });
 
@@ -253,6 +261,7 @@
     if (import.meta.env.DEV && typeof window !== 'undefined') {
       delete window.__mashed_loadWorkflowFixture;
       delete window.__mashed_seedMashedAssets;
+      delete window.__mashed_simulateNodeFailure;
     }
   });
 
@@ -373,9 +382,24 @@
       }
       return n;
     });
+    const updatedNode = $nodes.find(n => n.id === event.nodeId);
     // Update selected node if it matches
-    if (selectedNode && selectedNode.id === event.nodeId) {
-      selectedNode = $nodes.find(n => n.id === event.nodeId) || selectedNode;
+    if (selectedNode && selectedNode.id === event.nodeId && updatedNode) {
+      selectedNode = updatedNode;
+    }
+    // Phase 2 sentinel detection: a command node flipping to `failed` is,
+    // by construction, the "command nodes not yet runnable" case — the
+    // backend executor's default branch logs that phrase then calls
+    // failNode. When NodeStatusEvent grows a `message` field, we prefer
+    // it; until then, svelte-flow type is the authoritative signal.
+    if (event.status === 'failed') {
+      const eventMessage = typeof event.message === 'string' ? event.message : '';
+      const isCommandFailure =
+        (updatedNode && updatedNode.type === 'command') ||
+        eventMessage.toLowerCase().includes(COMMAND_NODE_SENTINEL_PHRASE);
+      if (isCommandFailure) {
+        failureToastMessage = eventMessage || COMMAND_NODE_SENTINEL_DEFAULT_BODY;
+      }
     }
     updateProgress();
   });
@@ -714,24 +738,8 @@
         name: workflowName,
         description: '',
         repoPath: repoPath,
-        nodes: $nodes.map(n => ({
-          id: n.id,
-          processId: n.data.processId || '',
-          label: n.data.label,
-          position: n.position,
-          status: n.data.status || 'pending',
-          config: n.data.config || {},
-          tmuxTarget: n.data.tmuxTarget || '',
-          storyId: n.data.storyId || '',
-          nodeType: n.data.nodeType || '',
-        })),
-        edges: $edges.map(e => ({
-          id: e.id,
-          source: e.source,
-          target: e.target,
-          sourceHandle: e.sourceHandle || '',
-          targetHandle: e.targetHandle || '',
-        })),
+        nodes: canvasNodesToWorkflowNodes($nodes),
+        edges: canvasEdgesToWorkflowEdges($edges),
         isTemplate: false,
         templateId: currentWorkflow?.templateId || '',
         createdAt: currentWorkflow?.createdAt || new Date().toISOString(),
@@ -849,34 +857,13 @@
   }
 
   function loadNodesEdges(wf) {
-    $nodes = (wf.nodes || []).map(n => ({
-      id: n.id,
-      type: n.nodeType && n.nodeType !== 'process' ? n.nodeType : 'bmadProcess',
-      position: n.position,
-      data: {
-        label: n.label,
-        processId: n.processId || '',
-        nodeType: n.nodeType || '',
-        process: n.processId ? processes.find(p => p.id === n.processId) || null : null,
-        status: n.status || 'pending',
-        config: n.config || {},
-        tmuxTarget: n.tmuxTarget || '',
-        storyId: n.storyId || '',
-        storyStatus: n.storyStatus || '',
-      },
-    }));
-    $edges = (wf.edges || []).map(e => {
-      const label = inferEdgeLabel(e.sourceHandle);
-      return {
-        id: e.id,
-        source: e.source,
-        target: e.target,
-        sourceHandle: e.sourceHandle || undefined,
-        targetHandle: e.targetHandle || undefined,
-        label,
-        data: { label },
-      };
-    });
+    // skills-cmd-03 AC-1: the type-mapping ternary inside
+    // workflowNodesToCanvasNodes routes `nodeType === 'command'` to
+    // svelte-flow `type: 'command'` (rendered by CommandNode.svelte) while
+    // preserving the legacy `bmadProcess` fallback for blank / `'process'`
+    // nodeTypes. Unit-tested in workflowSerialisation.test.js.
+    $nodes = workflowNodesToCanvasNodes(wf.nodes, processes);
+    $edges = workflowEdgesToCanvasEdges(wf.edges, inferEdgeLabel);
     selectedNode = null;
     updateProgress();
     // Loading an existing workflow is a "clean" state by definition —
@@ -952,6 +939,9 @@
   async function handleExecStart(e) {
     const { model } = e.detail;
     execError = '';
+    // Clear any stale Phase 2 sentinel toast from a previous run attempt
+    // so the user sees a fresh state when they click Run again.
+    failureToastMessage = '';
 
     // Auto-save before executing. The old code inferred failure from
     // the absence of currentWorkflow.id after the call; now that
@@ -1103,6 +1093,13 @@
         on:open-output={handleOpenOutput}
         on:edit-items={handleEditItems}
       />
+
+      {#if failureToastMessage}
+        <CanvasFailureToast
+          message={failureToastMessage}
+          onDismiss={() => (failureToastMessage = '')}
+        />
+      {/if}
     </div>
 
     {#if execError}
