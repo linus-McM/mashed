@@ -1,7 +1,8 @@
 <script>
   import { createEventDispatcher, onMount, tick } from 'svelte';
-  import { fly, fade } from 'svelte/transition';
+  import { fly, fade, slide } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
+  import { SaveMashedAssetFrontmatter } from '../../../wailsjs/go/main/App.js';
 
   /** @type {import('../../../../wailsjs/go/models').bmad.MashedAssetInfo} */
   export let asset;
@@ -22,7 +23,10 @@
   let mashedInputs = (asset?.inputs || []).join(', ');
   let mashedOutputs = (asset?.outputs || []).join(', ');
 
-  $: canSave = (name || '').trim().length > 0;
+  let saving = false;
+  let saveError = '';
+
+  $: canSave = (name || '').trim().length > 0 && !saving;
 
   // ── Focus trap ──
   let modalEl;
@@ -48,6 +52,10 @@
   function handleKeydown(e) {
     if (e.key === 'Escape') {
       e.preventDefault();
+      if (saveError) {
+        saveError = '';
+        return;
+      }
       handleCancel();
       return;
     }
@@ -88,18 +96,30 @@
     dispatch('close');
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!canSave) return;
-    dispatch('save', {
+    saving = true;
+    saveError = '';
+
+    const frontmatter = {
       name: name.trim(),
       description,
-      role: mashedRole,
-      completion: mashedCompletion,
-      chainable: mashedChainable,
-      sessionPinned: mashedSessionPinned,
-      inputs: mashedInputs.split(',').map(s => s.trim()).filter(Boolean),
-      outputs: mashedOutputs.split(',').map(s => s.trim()).filter(Boolean),
-    });
+      mashedRole,
+      mashedCompletion,
+      mashedChainable,
+      mashedSessionPinned,
+      mashedInputs: mashedInputs.split(',').map(s => s.trim()).filter(Boolean),
+      mashedOutputs: mashedOutputs.split(',').map(s => s.trim()).filter(Boolean),
+    };
+
+    try {
+      await SaveMashedAssetFrontmatter(asset.path, frontmatter);
+      dispatch('save', { path: asset.path });
+    } catch (err) {
+      saveError = String(err);
+    } finally {
+      saving = false;
+    }
   }
 
   function handleBackdropClick() {
@@ -238,15 +258,24 @@
 
     <!-- Footer -->
     <div class="modal-footer">
-      <button class="btn btn-cancel" type="button" on:click={handleCancel}>Cancel</button>
-      <button
-        class="btn btn-save"
-        type="button"
-        on:click={handleSave}
-        disabled={!canSave}
-      >
-        Save
-      </button>
+      {#if saveError}
+        <div class="inline-error" transition:slide={{ duration: 150, easing: cubicOut }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          {saveError}
+        </div>
+      {/if}
+      <div class="action-row">
+        <button class="btn btn-cancel" type="button" on:click={handleCancel} disabled={saving}>Cancel</button>
+        <button
+          class="btn btn-save"
+          class:saving
+          type="button"
+          on:click={handleSave}
+          disabled={!canSave}
+        >
+          {saving ? 'Saving\u2026' : 'Save'}
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -337,8 +366,28 @@
     padding: var(--sp-md) var(--sp-xl) var(--sp-lg);
     border-top: 1px solid var(--border-subtle);
     display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+  }
+
+  .action-row {
+    display: flex;
     justify-content: flex-end;
     gap: var(--sp-sm);
+  }
+
+  .inline-error {
+    padding: var(--sp-sm) var(--sp-md);
+    background: color-mix(in srgb, var(--accent-red) 10%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--accent-red) 30%, transparent);
+    border-radius: var(--radius-sm);
+    color: var(--accent-red);
+    font-family: var(--font-ui);
+    font-size: var(--text-label);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
   }
 
   .field-grid {
@@ -456,6 +505,7 @@
     background: var(--accent-green);
     color: var(--bg-deepest);
     font-weight: 600;
+    min-width: 120px;
   }
   .btn-save:hover:not(:disabled) {
     background: color-mix(in srgb, var(--accent-green) 85%, white);
@@ -464,4 +514,21 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+  .btn-save.saving {
+    opacity: 0.8;
+    cursor: not-allowed;
+    background: color-mix(in srgb, var(--accent-green) 70%, transparent);
+  }
+  .btn-save.saving::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: var(--sp-xs);
+    border-radius: 50%;
+    border: 2px solid var(--bg-deepest);
+    border-top-color: transparent;
+    animation: spin 700ms linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>

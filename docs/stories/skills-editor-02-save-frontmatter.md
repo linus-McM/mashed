@@ -1,6 +1,6 @@
 # skills-editor-02: Save frontmatter round-trip via new Wails binding
 
-**Status:** ready
+**Status:** done
 **Domain:** fullstack
 **Size:** M
 **Depends on:** skills-editor-01

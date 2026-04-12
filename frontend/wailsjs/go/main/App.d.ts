@@ -91,6 +91,8 @@ export function ListAllAgents(arg1:string):Promise<bmad.GroupedAgents>;
 
 export function ListAllMashedAssets(arg1:string):Promise<bmad.GroupedMashedAssets>;
 
+export function SaveMashedAssetFrontmatter(arg1:string, arg2:{[key: string]: any}):Promise<void>;
+
 export function ListBmadAgents():Promise<Array<bmad.BmadAgentConfig>>;
 
 export function ListBmadTemplates():Promise<Array<bmad.WorkflowDef>>;

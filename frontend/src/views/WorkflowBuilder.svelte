@@ -2,7 +2,8 @@
   import { SvelteFlowProvider } from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
   import { writable } from 'svelte/store';
-  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import { createEventDispatcher, onMount, onDestroy, tick } from 'svelte';
+  import { fly } from 'svelte/transition';
   import { Save } from 'lucide-svelte';
   import { EventsOn } from '../../wailsjs/runtime/runtime.js';
   import { GetBmadProcesses, ListBmadTemplates, ListBmadWorkflowsByRepo,
@@ -183,6 +184,9 @@
 
   // Skill editor modal state
   let editingAsset = null;
+  let lastSavedPath = '';
+  let showSaveToast = false;
+  let saveToastPath = '';
 
   // Array editor modal state
   let showArrayModal = false;
@@ -247,6 +251,10 @@
       // requires a valid repoPath on disk). This seam invokes the same
       // code path the EventsOn('bmad:node:status') listener would run
       // when the executor emits NodeFailed for a command node.
+      window.__mashed_simulateAssetsChanged = () => {
+        refetchMashedAssets();
+        return true;
+      };
       window.__mashed_simulateNodeFailure = (nodeId, message) => {
         if (!$nodes.some((n) => n.id === nodeId)) return false;
         $nodes = $nodes.map((n) =>
@@ -265,6 +273,7 @@
     if (import.meta.env.DEV && typeof window !== 'undefined') {
       delete window.__mashed_loadWorkflowFixture;
       delete window.__mashed_seedMashedAssets;
+      delete window.__mashed_simulateAssetsChanged;
       delete window.__mashed_simulateNodeFailure;
     }
   });
@@ -449,11 +458,92 @@
     }, 400);
   });
 
+  // ── Live sidebar reload on disk changes (skills-watch-02) ──
+  //
+  // The backend AssetWatcher (skills-watch-01) emits 'bmad:assets:changed'
+  // when skill/command files change on disk. We re-fetch and diff the list
+  // to update the sidebar reactively.
+  let assetsFetching = false;
+  let assetsError = false;
+  let flashedPaths = {};
+  let assetFetchDirty = false;
+
+  /**
+   * Flatten all four mashed-asset groups into a Map<path, serialized>
+   * for efficient diff detection between fetches.
+   */
+  function flattenAssetPaths(grouped) {
+    const map = new Map();
+    for (const key of ['localCommands', 'globalCommands', 'localSkills', 'globalSkills']) {
+      for (const asset of grouped?.[key] || []) {
+        map.set(asset.path, JSON.stringify(asset));
+      }
+    }
+    return map;
+  }
+
+  async function refetchMashedAssets() {
+    if (assetsFetching) {
+      assetFetchDirty = true;
+      return;
+    }
+    assetsFetching = true;
+    assetsError = false;
+
+    // Capture scroll position before refetch
+    const tabContent = document.querySelector('.sidebar .tab-content');
+    const prevScroll = tabContent?.scrollTop ?? 0;
+
+    try {
+      const prevPaths = flattenAssetPaths(groupedMashedAssets);
+      const newGrouped = await ListAllMashedAssets(repoPath || '');
+
+      // Compute diff: new paths → 'created', changed paths → 'updated'
+      const newPaths = flattenAssetPaths(newGrouped);
+      const flashed = {};
+      for (const [path, serialized] of newPaths) {
+        if (!prevPaths.has(path)) {
+          flashed[path] = 'created';
+        } else if (prevPaths.get(path) !== serialized) {
+          flashed[path] = 'updated';
+        }
+      }
+
+      groupedMashedAssets = newGrouped || { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
+      flashedPaths = flashed;
+
+      // Clear flash classes after animation completes
+      if (Object.keys(flashed).length > 0) {
+        setTimeout(() => { flashedPaths = {}; }, 400);
+      }
+
+      // Restore scroll after Svelte re-renders the keyed list
+      await tick();
+      if (tabContent) tabContent.scrollTop = prevScroll;
+
+    } catch (e) {
+      console.error('bmad:assets:changed refetch failed:', e);
+      assetsError = true;
+      setTimeout(() => { assetsError = false; }, 2000);
+    } finally {
+      assetsFetching = false;
+      if (assetFetchDirty) {
+        assetFetchDirty = false;
+        refetchMashedAssets();
+      }
+    }
+  }
+
+  const cancelAssetsListener = EventsOn('bmad:assets:changed', () => {
+    refetchMashedAssets();
+  });
+
   onDestroy(() => {
     if (cancelStatusListener) cancelStatusListener();
     if (cancelArtifactListener) cancelArtifactListener();
     if (cancelExecListener) cancelExecListener();
     if (cancelSprintListener) cancelSprintListener();
+    if (cancelAssetsListener) cancelAssetsListener();
   });
 
   function updateProgress() {
@@ -855,6 +945,27 @@
     if (nameModalResolver) nameModalResolver('cancel');
   }
 
+  async function handleAssetSaved(e) {
+    const savedPath = e.detail?.path || '';
+    editingAsset = null;
+    lastSavedPath = savedPath;
+
+    // Refresh sidebar data.
+    try {
+      groupedMashedAssets = await ListAllMashedAssets(repoPath || '');
+    } catch {
+      groupedMashedAssets = { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
+    }
+
+    // Show toast and auto-dismiss after 2500ms.
+    saveToastPath = savedPath;
+    showSaveToast = true;
+    setTimeout(() => { showSaveToast = false; }, 2500);
+
+    // Clear row flash highlight after 400ms.
+    setTimeout(() => { lastSavedPath = ''; }, 400);
+  }
+
   async function handleBackRequest() {
     const ok = await tryLeave();
     if (ok) dispatch('back');
@@ -1017,6 +1128,9 @@
     {repoPath}
     {repoBranch}
     {groupedMashedAssets}
+    {assetsFetching}
+    {assetsError}
+    {flashedPaths}
     on:use-template={useTemplate}
     on:load-workflow={loadWorkflow}
     on:delete-workflow={deleteWorkflow}
@@ -1193,8 +1307,19 @@
     <SkillEditorModal
       asset={editingAsset}
       on:close={() => { editingAsset = null; }}
-      on:save={() => { editingAsset = null; }}
+      on:save={handleAssetSaved}
     />
+  {/if}
+
+  {#if showSaveToast}
+    <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+    <div class="save-toast" on:click={() => { showSaveToast = false; }} transition:fly={{ y: -8, duration: 150 }}>
+      <svg class="toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      <div class="toast-body">
+        <span class="toast-text">Asset saved</span>
+        <span class="toast-path">{saveToastPath}</span>
+      </div>
+    </div>
   {/if}
 </div>
 
@@ -1425,5 +1550,34 @@
   .terminal-modal-body {
     flex: 1;
     overflow: hidden;
+  }
+
+  /* ── Save toast ── */
+  .save-toast {
+    position: fixed;
+    top: var(--sp-lg);
+    right: var(--sp-lg);
+    padding: var(--sp-sm) var(--sp-md);
+    background: var(--bg-elevated);
+    border: 1px solid color-mix(in srgb, var(--accent-green) 40%, transparent);
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 40px color-mix(in srgb, var(--bg-deepest) 80%, transparent);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    z-index: 500;
+    cursor: pointer;
+  }
+  .toast-icon { color: var(--accent-green); }
+  .toast-body { display: flex; flex-direction: column; gap: 2px; }
+  .toast-text {
+    font-family: var(--font-ui);
+    font-size: var(--text-body);
+    color: var(--text-primary);
+  }
+  .toast-path {
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    color: var(--text-dim);
   }
 </style>

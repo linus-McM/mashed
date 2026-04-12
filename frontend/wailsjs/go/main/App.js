@@ -174,6 +174,10 @@ export function ListAllMashedAssets(arg1) {
   return window['go']['main']['App']['ListAllMashedAssets'](arg1);
 }
 
+export function SaveMashedAssetFrontmatter(arg1, arg2) {
+  return window['go']['main']['App']['SaveMashedAssetFrontmatter'](arg1, arg2);
+}
+
 export function ListBmadAgents() {
   return window['go']['main']['App']['ListBmadAgents']();
 }

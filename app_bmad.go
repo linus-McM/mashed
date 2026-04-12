@@ -321,6 +321,17 @@ func validateMashedGroup(assets []bmad.MashedAssetInfo, repoPath string) {
 	}
 }
 
+// SaveMashedAssetFrontmatter persists edited frontmatter fields back to
+// the asset's markdown file on disk, preserving key order, non-mashed
+// fields, and the body verbatim. The write is atomic (tempfile+rename).
+//
+// After a successful write the caller should re-invoke ListAllMashedAssets
+// to refresh the sidebar. Path validation rejects writes outside .claude/
+// directories.
+func (a *App) SaveMashedAssetFrontmatter(assetPath string, frontmatter map[string]interface{}) error {
+	return bmad.WriteMashedAssetFrontmatter(assetPath, frontmatter)
+}
+
 // ── BMAD Modules ──
 
 // GetBmadModules returns all available BMAD modules.
