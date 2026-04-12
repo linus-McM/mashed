@@ -64,27 +64,6 @@ func (h *testHarness) eventsByName(name string) []eventRecord {
 	return out
 }
 
-// successRunner simulates immediate success: tmux new-session succeeds,
-// then list-panes returns "1" (pane_dead) on first poll.
-func successRunner() CommandRunner {
-	return func(ctx context.Context, name string, args ...string) ([]byte, error) {
-		if len(args) > 0 && args[0] == "list-panes" {
-			return []byte("1\n"), nil
-		}
-		return []byte("ok"), nil
-	}
-}
-
-// failRunner simulates tmux new-session failure.
-func failRunner() CommandRunner {
-	return func(ctx context.Context, name string, args ...string) ([]byte, error) {
-		if len(args) > 0 && args[0] == "new-session" {
-			return nil, fmt.Errorf("tmux failed")
-		}
-		return []byte("1\n"), nil
-	}
-}
-
 // delayRunner simulates a node that runs for a given duration.
 func delayRunner(d time.Duration) CommandRunner {
 	started := make(map[string]time.Time)

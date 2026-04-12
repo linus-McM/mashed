@@ -1,6 +1,6 @@
 # exec-05: Executor test suite migration + full regression
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends on:** exec-01, exec-02, exec-03, exec-04
@@ -109,32 +109,32 @@ Feature: Executor test suite migration
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Canonical helpers (AC-1)
-  - [ ] Consolidate the four helpers in a single mock file
-  - [ ] Add godoc comments mapping each to its state-machine stage
-- [ ] Task 2 — Test sweep (AC-4)
-  - [ ] Grep for `"#{pane_dead}"` across `internal/bmad/*_test.go`
-  - [ ] Replace every literal with a canonical helper call
-  - [ ] Relax exact-count assertions to "at least N" where appropriate
-- [ ] Task 3 — Full suite run + fixes (AC-2)
-  - [ ] `go test ./internal/bmad/... -race -short -count=1`
-  - [ ] Fix any flaky or broken test; NEVER `t.Skip`
-- [ ] Task 4 — Coverage check (AC-3)
-  - [ ] `go test -coverprofile=cover.out ./internal/bmad/...`
-  - [ ] `go tool cover -func=cover.out | grep executor.go`
-  - [ ] Add targeted tests if < 80%
-- [ ] Task 5 — Smoke test + commit message (AC-5)
-  - [ ] Run `wails dev`, drag a command onto a canvas with a process parent, click Run
-  - [ ] Capture the tmux pane output after completion
-  - [ ] Attach excerpt/screenshot to commit message
+- [x] Task 1 — Canonical helpers (AC-1)
+  - [x] Consolidate the four helpers in a single mock file
+  - [x] Add godoc comments mapping each to its state-machine stage
+- [x] Task 2 — Test sweep (AC-4)
+  - [x] Grep for `"#{pane_dead}"` across `internal/bmad/*_test.go`
+  - [x] Replace every literal with a canonical helper call
+  - [x] Relax exact-count assertions to "at least N" where appropriate
+- [x] Task 3 — Full suite run + fixes (AC-2)
+  - [x] `go test ./internal/bmad/... -race -short -count=1`
+  - [x] Fix any flaky or broken test; NEVER `t.Skip`
+- [x] Task 4 — Coverage check (AC-3)
+  - [x] `go test -coverprofile=cover.out ./internal/bmad/...`
+  - [x] `go tool cover -func=cover.out | grep executor.go`
+  - [x] Add targeted tests if < 80%
+- [x] Task 5 — Smoke test + commit message (AC-5)
+  - [x] Run `wails dev`, drag a command onto a canvas with a process parent, click Run
+  - [x] Capture the tmux pane output after completion
+  - [x] Attach excerpt/screenshot to commit message
 
 ## Definition of Done
 
-- [ ] All ACs verified by an automated test or a documented commit-message smoke run
-- [ ] Coverage ≥ 80% on `internal/bmad/executor.go` specifically
-- [ ] `go build ./... && go vet ./...` clean
-- [ ] `go test ./... -race -short -count=1` clean, zero skips
-- [ ] `/simplify` run before sign-off
-- [ ] No hardcoded paths, magic numbers, or legacy mock patterns remain
-- [ ] Phase 3 commit message contains: verification outcomes (from exec-00), smoke-test artefact, coverage delta
-- [ ] Existing tests still pass
+- [x] All ACs verified by an automated test or a documented commit-message smoke run
+- [x] Coverage ≥ 80% on `internal/bmad/executor.go` specifically
+- [x] `go build ./... && go vet ./...` clean
+- [x] `go test ./... -race -short -count=1` clean, zero skips
+- [x] `/simplify` run before sign-off
+- [x] No hardcoded paths, magic numbers, or legacy mock patterns remain
+- [x] Phase 3 commit message contains: verification outcomes (from exec-00), smoke-test artefact, coverage delta
+- [x] Existing tests still pass

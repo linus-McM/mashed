@@ -11,47 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// idleMockRunner builds a CommandRunner that simulates a sequence of pane
-// captures and pane-death transitions for waitForIdleCompletion tests.
-//
-// captureSeq: successive capture-pane outputs (cycled if ticks exceed length).
-// paneDeadAtTick: tick number (1-indexed) at which list-panes reports dead.
-//
-//	0 means pane never dies.
-//
-// The runner also returns "ok" for any other command (new-session, git, etc.).
-func idleMockRunner(captureSeq []string, paneDeadAtTick int) (CommandRunner, *int32) {
-	var captureCount int32
-	var listPaneCount int32
-	runner := CommandRunner(func(ctx context.Context, name string, args ...string) ([]byte, error) {
-		if name == "tmux" && len(args) > 0 {
-			switch args[0] {
-			case "list-panes":
-				tick := int(atomic.AddInt32(&listPaneCount, 1))
-				if paneDeadAtTick > 0 && tick >= paneDeadAtTick {
-					return []byte("1\n"), nil
-				}
-				return []byte("0\n"), nil
-			case "capture-pane":
-				idx := int(atomic.AddInt32(&captureCount, 1)) - 1
-				if idx < len(captureSeq) {
-					return []byte(captureSeq[idx]), nil
-				}
-				// Cycle the last entry if ticks exceed sequence length.
-				return []byte(captureSeq[len(captureSeq)-1]), nil
-			}
-		}
-		return []byte("ok"), nil
-	})
-	return runner, &captureCount
-}
-
-// makeIdleOutput returns a string that detectIdlePrompt will recognise as
-// an idle claude CLI prompt (trailing ❯ on the last non-empty line).
-func makeIdleOutput(prefix string) string {
-	return fmt.Sprintf("%s\n❯\n", prefix)
-}
-
 // newWaitIdleState creates a minimal execState suitable for
 // waitForIdleCompletion tests. It provides the maps that pollForIdle
 // and pollForQuestionFromCapture need.
