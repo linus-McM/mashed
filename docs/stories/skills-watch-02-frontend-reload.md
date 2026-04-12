@@ -1,6 +1,6 @@
 # skills-watch-02: Frontend reactive reload on `bmad:assets:changed`
 
-**Status:** ready
+**Status:** done
 **Domain:** frontend
 **Size:** S
 **Depends on:** skills-watch-01

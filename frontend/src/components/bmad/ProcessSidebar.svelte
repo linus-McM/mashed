@@ -23,6 +23,12 @@
    * @type {{ localCommands: any[], globalCommands: any[], localSkills: any[], globalSkills: any[] }}
    */
   export let groupedMashedAssets = { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
+  /** True while a refetch triggered by bmad:assets:changed is in flight. */
+  export let assetsFetching = false;
+  /** True for ~2s after a refetch fails (transient error indicator). */
+  export let assetsError = false;
+  /** Map of asset path → 'created' | 'updated' for 400ms row flash. */
+  export let flashedPaths = {};
 
   const dispatch = createEventDispatcher();
 
@@ -84,6 +90,18 @@
   function onMashedAssetDragEnd() {
     isDragging = false;
   }
+
+  // Delay showing the sync dot by 50ms to avoid flicker on fast fetches
+  let showSyncDot = false;
+  let syncDotTimer = null;
+  $: if (assetsFetching) {
+    syncDotTimer = setTimeout(() => { showSyncDot = true; }, 50);
+  } else {
+    clearTimeout(syncDotTimer);
+    showSyncDot = false;
+  }
+
+  onDestroy(() => { clearTimeout(syncDotTimer); });
 
   /** Count across all four groups so the tab can show a badge when empty. */
   $: totalMashedAssets =
@@ -186,7 +204,7 @@
     <button class="tab" class:active={activeTab === 'templates'} on:click={() => activeTab = 'templates'}>Templates</button>
     <button class="tab" class:active={activeTab === 'sprint'} on:click={() => activeTab = 'sprint'}>Sprint</button>
     <button class="tab" class:active={activeTab === 'processes'} on:click={() => activeTab = 'processes'}>Processes</button>
-    <button class="tab" class:active={activeTab === 'skills'} on:click={() => activeTab = 'skills'}>Skills</button>
+    <button class="tab" class:active={activeTab === 'skills'} class:error-state={assetsError} on:click={() => activeTab = 'skills'}>Skills{#if showSyncDot && activeTab === 'skills'}<span class="sync-indicator" />{/if}</button>
     <button class="tab" class:active={activeTab === 'saved'} on:click={() => activeTab = 'saved'}>Saved</button>
     <button class="tab" class:active={activeTab === 'git'} on:click={() => activeTab = 'git'}>Git</button>
   </div>
@@ -337,6 +355,8 @@
                     <div
                       class="process-item"
                       class:disabled={asset.role !== 'command'}
+                      class:just-created={flashedPaths[asset.path] === 'created'}
+                      class:just-saved={flashedPaths[asset.path] === 'updated'}
                       draggable={asset.role === 'command'}
                       on:dragstart={(e) => onMashedAssetDragStart(e, asset)}
                       on:dragend={onMashedAssetDragEnd}
@@ -680,5 +700,52 @@
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-muted);
+  }
+
+  /* ── skills-watch-02: sync indicator + row flash ── */
+
+  .tab .sync-indicator {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-left: var(--sp-xs);
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: var(--glow-spread) color-mix(in srgb, var(--accent-green) 80%, transparent);
+    vertical-align: middle;
+  }
+
+  .tab.error-state {
+    color: var(--accent-amber);
+    transition: color var(--duration-medium) var(--ease-enter);
+  }
+
+  .process-item.just-created {
+    animation: row-create-flash 400ms var(--ease-enter);
+  }
+
+  .process-item.just-saved {
+    animation: row-update-flash 400ms var(--ease-enter);
+  }
+
+  @keyframes row-create-flash {
+    0%   { background: color-mix(in srgb, var(--accent-blue) 15%, transparent); }
+    100% { background: transparent; }
+  }
+
+  @keyframes row-update-flash {
+    0%   { background: color-mix(in srgb, var(--accent-green) 15%, transparent); }
+    100% { background: transparent; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .tab .sync-indicator {
+      animation: sync-dot-pulse 1500ms var(--ease-move) infinite;
+    }
+  }
+
+  @keyframes sync-dot-pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.15); }
   }
 </style>

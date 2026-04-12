@@ -467,6 +467,8 @@
   let assetsError = false;
   let flashedPaths = {};
   let assetFetchDirty = false;
+  let flashTimer = null;
+  let errorTimer = null;
 
   /**
    * Flatten all four mashed-asset groups into a Map<path, serialized>
@@ -513,8 +515,9 @@
       flashedPaths = flashed;
 
       // Clear flash classes after animation completes
+      clearTimeout(flashTimer);
       if (Object.keys(flashed).length > 0) {
-        setTimeout(() => { flashedPaths = {}; }, 400);
+        flashTimer = setTimeout(() => { flashedPaths = {}; }, 400);
       }
 
       // Restore scroll after Svelte re-renders the keyed list
@@ -524,7 +527,8 @@
     } catch (e) {
       console.error('bmad:assets:changed refetch failed:', e);
       assetsError = true;
-      setTimeout(() => { assetsError = false; }, 2000);
+      clearTimeout(errorTimer);
+      errorTimer = setTimeout(() => { assetsError = false; }, 2000);
     } finally {
       assetsFetching = false;
       if (assetFetchDirty) {
@@ -544,6 +548,8 @@
     if (cancelExecListener) cancelExecListener();
     if (cancelSprintListener) cancelSprintListener();
     if (cancelAssetsListener) cancelAssetsListener();
+    clearTimeout(flashTimer);
+    clearTimeout(errorTimer);
   });
 
   function updateProgress() {
