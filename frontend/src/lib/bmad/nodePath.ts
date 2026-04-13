@@ -13,3 +13,10 @@ export function getNodePath(node: unknown, dir: PathDirection): string {
   const value = (config as Record<string, unknown>)[key];
   return typeof value === 'string' ? value : '';
 }
+
+export function formatBreadcrumb(path: unknown): string {
+  if (typeof path !== 'string' || path === '') return '\u2014';
+  const base = path.split('/').pop();
+  if (!base) return '\u2014';
+  return '.../' + base;
+}

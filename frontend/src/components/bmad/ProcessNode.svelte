@@ -1,6 +1,7 @@
 <script>
   import { Handle, Position } from '@xyflow/svelte';
   import { Search, Briefcase, Palette, Building2, Code, FileText, TestTube } from 'lucide-svelte';
+  import { getNodePath, formatBreadcrumb } from '../../lib/bmad/nodePath';
 
   export let data = {};
   // svelte-ignore unused-export-let
@@ -39,6 +40,11 @@
   $: artifactStatus = data.artifactStatus || null;
   $: hasArtifacts = artifactStatus && (artifactStatus.found?.length > 0 || artifactStatus.missing?.length > 0);
 
+  $: inputPath = getNodePath({ data }, 'in');
+  $: outputPath = getNodePath({ data }, 'out');
+  $: inputBreadcrumb = formatBreadcrumb(inputPath);
+  $: outputBreadcrumb = formatBreadcrumb(outputPath);
+
   import { storyStatusColors } from '../../lib/sprintColors.js';
 </script>
 
@@ -58,12 +64,26 @@
         <span class="artifact-label">in:</span>
         <span class="artifact-list">{inputs.join(', ')}</span>
       </div>
+      <div
+        class="breadcrumb-row"
+        class:unresolved={!inputPath}
+        title={inputPath || 'unresolved'}
+      >
+        {inputBreadcrumb}
+      </div>
     {/if}
 
     {#if outputs.length > 0}
       <div class="artifacts">
         <span class="artifact-label">out:</span>
         <span class="artifact-list">{outputs.join(', ')}</span>
+      </div>
+      <div
+        class="breadcrumb-row"
+        class:unresolved={!outputPath}
+        title={outputPath || 'unresolved'}
+      >
+        {outputBreadcrumb}
       </div>
     {/if}
 
@@ -307,5 +327,29 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .breadcrumb-row {
+    display: flex;
+    gap: var(--sp-xs);
+    padding: 0 0 0 calc(var(--sp-sm) + 4px);
+    margin-bottom: var(--sp-2xs);
+    min-height: 12px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 400;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    transition: color var(--duration-short) var(--ease-enter);
+    user-select: text;
+  }
+
+  .breadcrumb-row.unresolved {
+    opacity: 0.7;
   }
 </style>
