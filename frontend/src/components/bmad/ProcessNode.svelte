@@ -170,19 +170,23 @@
   .artifacts {
     display: flex;
     gap: 4px;
-    font-size: 9px;
-    color: var(--text-muted);
+    font-size: 10px;
+    color: var(--text-primary);
     line-height: 1.3;
     margin-bottom: 2px;
   }
 
   .artifact-label {
-    color: var(--text-dim);
+    color: var(--text-muted);
     flex-shrink: 0;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
   }
 
   .artifact-list {
+    color: var(--text-primary);
+    font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

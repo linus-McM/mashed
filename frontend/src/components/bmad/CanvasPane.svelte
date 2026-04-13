@@ -314,7 +314,7 @@
         <button
           class="context-item"
           on:click={() => showTemplateSub = !showTemplateSub}
-          bind:this={itemRefs[contextMenu.nodeId ? 1 : 0]}
+          bind:this={itemRefs[contextMenu?.nodeId ? 1 : 0]}
           role="menuitem"
           tabindex="-1"
         >

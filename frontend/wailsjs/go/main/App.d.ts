@@ -19,7 +19,7 @@ export function ExplainDiffHunk(arg1:string,arg2:string,arg3:string):Promise<str
 
 export function GetAgentLog(arg1:string):Promise<Array<domain.LogLine>>;
 
-export function GetArtifactStatus(arg1:string,arg2:string):Promise<boolean>;
+export function GetArtifactStatus(arg1:string,arg2:string):Promise<boolean|string>;
 
 export function GetBmadCurrentExecution(arg1:string):Promise<bmad.WorkflowExecution>;
 
