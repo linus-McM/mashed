@@ -5,14 +5,14 @@ import "errors"
 
 // Sentinel errors for registry lookups.
 var (
-	ErrProcessNotFound  = errors.New("bmad: process not found")
-	ErrWorkflowNotFound = errors.New("bmad: workflow not found")
-	ErrModuleNotFound   = errors.New("bmad: module not found")
-	ErrAgentNotFound   = errors.New("bmad: agent not found")
-	ErrInvalidID       = errors.New("bmad: invalid ID")
-	ErrExecNotFound    = errors.New("bmad: execution not found")
-	ErrExecNotRunning  = errors.New("bmad: execution not running")
-	ErrExecNotPaused   = errors.New("bmad: execution not paused")
+	ErrProcessNotFound     = errors.New("bmad: process not found")
+	ErrWorkflowNotFound    = errors.New("bmad: workflow not found")
+	ErrModuleNotFound      = errors.New("bmad: module not found")
+	ErrAgentNotFound       = errors.New("bmad: agent not found")
+	ErrInvalidID           = errors.New("bmad: invalid ID")
+	ErrExecNotFound        = errors.New("bmad: execution not found")
+	ErrExecNotRunning      = errors.New("bmad: execution not running")
+	ErrExecNotPaused       = errors.New("bmad: execution not paused")
 	ErrCyclicWorkflow      = errors.New("bmad: workflow contains a cycle")
 	ErrSprintFileNotFound  = errors.New("bmad: sprint status file not found")
 	ErrSprintFileMalformed = errors.New("bmad: sprint status file is malformed")
@@ -91,16 +91,27 @@ const (
 
 // WorkflowNode is a process instance placed on the canvas.
 type WorkflowNode struct {
-	ID         string             `json:"id"`
-	ProcessID  string             `json:"processId"`
-	Label      string             `json:"label"`
-	Position   Position           `json:"position"`
-	Status     WorkflowNodeStatus `json:"status"`
-	Config     map[string]string  `json:"config"`
-	TmuxTarget string             `json:"tmuxTarget"`
-	StartedAt  string             `json:"startedAt,omitempty"`
-	StoryID    string             `json:"storyId,omitempty"`
-	NodeType   NodeType           `json:"nodeType,omitempty"`
+	ID        string             `json:"id"`
+	ProcessID string             `json:"processId"`
+	Label     string             `json:"label"`
+	Position  Position           `json:"position"`
+	Status    WorkflowNodeStatus `json:"status"`
+	// Config carries per-node configuration as a flat string map.
+	//
+	// Reserved keys (read by the BMAD canvas breadcrumb renderer —
+	// frontend/src/lib/bmad/nodePath.ts):
+	//   - "inputPath":  absolute filesystem path to the resolved input artifact,
+	//                   or empty string when unresolved.
+	//   - "outputPath": absolute filesystem path to the resolved output artifact,
+	//                   or empty string when unresolved.
+	//
+	// Empty string means unresolved — the UI renders an em-dash breadcrumb.
+	// Unknown keys are ignored by consumers; marshaling round-trips unchanged.
+	Config     map[string]string `json:"config"`
+	TmuxTarget string            `json:"tmuxTarget"`
+	StartedAt  string            `json:"startedAt,omitempty"`
+	StoryID    string            `json:"storyId,omitempty"`
+	NodeType   NodeType          `json:"nodeType,omitempty"`
 }
 
 // EffectiveType returns the node's type, defaulting to NodeTypeProcess for
@@ -155,12 +166,12 @@ const (
 // WorkflowExecution is a running instance of a WorkflowDef.
 type WorkflowExecution struct {
 	ID          string             `json:"id"`
-	WorkflowID  string            `json:"workflowId"`
-	RepoPath    string            `json:"repoPath"`
+	WorkflowID  string             `json:"workflowId"`
+	RepoPath    string             `json:"repoPath"`
 	Status      WorkflowExecStatus `json:"status"`
-	Nodes       []WorkflowNode    `json:"nodes"`
-	StartedAt   string            `json:"startedAt"`
-	CurrentNode string            `json:"currentNode"`
+	Nodes       []WorkflowNode     `json:"nodes"`
+	StartedAt   string             `json:"startedAt"`
+	CurrentNode string             `json:"currentNode"`
 	NodeOutputs map[string]string  `json:"nodeOutputs,omitempty"`
 }
 
