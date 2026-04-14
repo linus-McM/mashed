@@ -8,6 +8,7 @@
   // toxic neon leaked back in last time).
   import { Handle, Position } from '@xyflow/svelte';
   import { Terminal } from 'lucide-svelte';
+  import { getNodePath, formatBreadcrumb } from '../../lib/bmad/nodePath';
 
   export let data = {};
   // svelte-ignore unused-export-let
@@ -18,6 +19,11 @@
   $: status = data.status || 'pending';
   $: commandName = config.commandName || data.label || 'command';
   $: commandDescription = config.commandDescription || '';
+
+  $: inputPath = getNodePath({ data }, 'in');
+  $: outputPath = getNodePath({ data }, 'out');
+  $: inputBreadcrumb = formatBreadcrumb(inputPath);
+  $: outputBreadcrumb = formatBreadcrumb(outputPath);
 </script>
 
 <div
@@ -38,6 +44,19 @@
     {#if commandDescription}
       <div class="description">{commandDescription}</div>
     {/if}
+
+    {#if inputPath}
+      <div class="breadcrumb-row" title={inputPath}>
+        {inputBreadcrumb}
+      </div>
+    {/if}
+    <div
+      class="breadcrumb-row"
+      class:unresolved={!outputPath}
+      title={outputPath || 'unresolved'}
+    >
+      {outputBreadcrumb}
+    </div>
 
     <div class="status-row">
       {#if status === 'pending'}
@@ -199,5 +218,29 @@
     font-size: var(--text-label);
     color: var(--text-muted);
     line-height: 1;
+  }
+
+  .breadcrumb-row {
+    display: flex;
+    gap: var(--sp-xs);
+    padding: 0 0 0 calc(var(--sp-sm) + 4px);
+    margin-bottom: var(--sp-2xs);
+    min-height: 12px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 400;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    transition: color var(--duration-short) var(--ease-enter);
+    user-select: text;
+  }
+
+  .breadcrumb-row.unresolved {
+    opacity: 0.7;
   }
 </style>

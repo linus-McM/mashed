@@ -1,0 +1,43 @@
+[
+  {
+    "id": "proc-fixture-1",
+    "type": "bmadProcess",
+    "position": { "x": 100, "y": 120 },
+    "data": {
+      "label": "Analyze brief",
+      "processId": "analyst-analyze",
+      "process": {
+        "id": "analyst-analyze",
+        "name": "Analyze brief",
+        "phase": "analysis",
+        "agentRole": "analyst",
+        "inputs": ["brief.md"],
+        "outputs": ["analysis.md"]
+      },
+      "status": "pending",
+      "config": {
+        "inputPath": "/tmp/fixture/brief.md",
+        "outputPath": "/tmp/fixture/analysis.md"
+      },
+      "nodeType": "bmadProcess"
+    }
+  },
+  {
+    "id": "cmd-fixture-1",
+    "type": "command",
+    "position": { "x": 400, "y": 120 },
+    "data": {
+      "label": "simplify",
+      "processId": "",
+      "status": "pending",
+      "config": {
+        "commandName": "simplify",
+        "commandPath": "/tmp/simplify.md",
+        "commandDescription": "Review recent changes",
+        "inputPath": "/tmp/fixture/analysis.md",
+        "outputPath": "/tmp/fixture/simplify-report.md"
+      },
+      "nodeType": "command"
+    }
+  }
+]
