@@ -245,16 +245,6 @@
         groupedMashedAssets = grouped || { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
         return true;
       };
-      // breadcrumbs-03 AC smoke seam: Playwright injects fully-formed
-      // canvas nodes (with `data.process` inline) to assert that every
-      // `.process-node` and `.command-node` renders at least one
-      // `.breadcrumb-row`. Bypasses the processes registry + serialisation
-      // layer so the smoke test stays hermetic from backend state.
-      window.__mashed_seedCanvasNodes = (nodesArr) => {
-        if (!Array.isArray(nodesArr)) return false;
-        $nodes = nodesArr;
-        return true;
-      };
       // skills-cmd-03 AC-3 test seam: Playwright needs a way to assert
       // that the frontend surfaces the Phase 2 sentinel failure without
       // having to round-trip through a real backend execution (which
@@ -283,7 +273,6 @@
     if (import.meta.env.DEV && typeof window !== 'undefined') {
       delete window.__mashed_loadWorkflowFixture;
       delete window.__mashed_seedMashedAssets;
-      delete window.__mashed_seedCanvasNodes;
       delete window.__mashed_simulateAssetsChanged;
       delete window.__mashed_simulateNodeFailure;
     }
