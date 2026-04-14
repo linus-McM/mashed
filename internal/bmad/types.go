@@ -24,6 +24,14 @@ var (
 	// injection — the "stuck at idle baseline" failure mode, distinct
 	// from a completion timeout that fires during normal processing.
 	ErrIdleTimeoutNoStart = errors.New("bmad: idle wait timed out before claude produced output")
+	// ErrDuplicateMultiFileLabel is returned when a MultiFileLoader node's
+	// entries contain two labels with the same non-empty value. Positional
+	// fallback labels (empty user-provided label) never collide because the
+	// executor assigns unique file[N] suffixes by position.
+	ErrDuplicateMultiFileLabel = errors.New("bmad: duplicate multiFileLoader label")
+	// ErrMultiFileTooMany is returned when a MultiFileLoader config exceeds
+	// the per-node entry cap (64).
+	ErrMultiFileTooMany = errors.New("bmad: too many multiFileLoader entries")
 )
 
 // BmadPhase groups processes into lifecycle stages.
@@ -87,7 +95,18 @@ const (
 	NodeTypeTransform NodeType = "transform"
 	NodeTypeMerge     NodeType = "merge"
 	NodeTypeCommand   NodeType = "command"
+	// NodeTypeMultiFileLoader is a synchronous utility node that emits one
+	// resolved output path per configured entry. See Story breadcrumbs-07.
+	NodeTypeMultiFileLoader NodeType = "multiFileLoader"
 )
+
+// MultiFileEntry is one configured {label, path} pair for a MultiFileLoader
+// node. Entries are serialized as a JSON array into node.Config["entries"].
+// An empty Label falls back to positional file[N] keys at execution time.
+type MultiFileEntry struct {
+	Label string `json:"label"`
+	Path  string `json:"path"`
+}
 
 // WorkflowNode is a process instance placed on the canvas.
 type WorkflowNode struct {

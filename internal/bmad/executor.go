@@ -479,6 +479,8 @@ func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, m
 					e.executeLoopNode(ctx, state, nodeIndex, nID, repoPath, model)
 				case NodeTypeCommand:
 					e.executeCommandNode(ctx, state, nodeIndex, nID, repoPath, model)
+				case NodeTypeMultiFileLoader:
+					e.executeMultiFileLoader(ctx, state, nodeIndex, nID, repoPath)
 				default:
 					log.Printf("bmad: unknown node type %s, skipping: %s", effectiveType, nID)
 					e.skipNode(state, nodeIndex[nID], nID)
@@ -1590,6 +1592,135 @@ func (e *Executor) executeTransformNode(ctx context.Context, state *execState, n
 	state.mu.Unlock()
 
 	e.completeNode(state, idx, nodeID)
+}
+
+// executeMultiFileLoader resolves the configured {label, path} entries of a
+// MultiFileLoader node and surfaces them via OutputPaths + a
+// NodeArtifactEvent. See Story breadcrumbs-07.
+//
+// Behaviour:
+//   - Parse Config["entries"] as a JSON array of MultiFileEntry.
+//   - Reject >64 entries (ErrMultiFileTooMany).
+//   - Reject duplicate non-empty labels (ErrDuplicateMultiFileLabel).
+//   - For each entry, resolve relative Path against repoPath, stat the result,
+//     and record it under entry.Label (or "file[N]" for empty labels).
+//   - Missing files are tolerated: the key is appended to Missing rather than
+//     failing the node.
+func (e *Executor) executeMultiFileLoader(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID, repoPath string) {
+	state.mu.Lock()
+	idx := nodeIndex[nodeID]
+	cfg := make(map[string]string, len(state.exec.Nodes[idx].Config))
+	for k, v := range state.exec.Nodes[idx].Config {
+		cfg[k] = v
+	}
+	if state.exec.NodeOutputs == nil {
+		state.exec.NodeOutputs = make(map[string]string)
+	}
+	state.mu.Unlock()
+
+	// failValidation records the error text, marks the node failed, and
+	// terminates the execution with ExecFailed. MultiFileLoader validation
+	// errors (malformed config) are NOT retriable — unlike process-node
+	// failures they should not leave the execution in ExecPaused awaiting
+	// user intervention.
+	failValidation := func(msg string) {
+		state.mu.Lock()
+		state.exec.NodeOutputs[nodeID] = msg
+		state.mu.Unlock()
+		e.failNode(state, idx, nodeID)
+		state.mu.Lock()
+		state.exec.Status = ExecFailed
+		state.paused = false
+		state.cancel()
+		state.mu.Unlock()
+		e.emitEvent("bmad:execution:status", ExecStatusEvent{ExecID: state.exec.ID, Status: ExecFailed})
+	}
+
+	// Parse entries JSON.
+	var entries []MultiFileEntry
+	if raw := cfg["entries"]; raw != "" {
+		if err := json.Unmarshal([]byte(raw), &entries); err != nil {
+			failValidation(fmt.Errorf("bmad: parse entries: %w", err).Error())
+			return
+		}
+	}
+
+	// Validate: cap.
+	if len(entries) > 64 {
+		failValidation(ErrMultiFileTooMany.Error())
+		return
+	}
+
+	// Validate: duplicate non-empty labels.
+	seen := make(map[string]struct{}, len(entries))
+	for _, entry := range entries {
+		if entry.Label == "" {
+			continue
+		}
+		if _, dup := seen[entry.Label]; dup {
+			failValidation(fmt.Errorf("%w: %s", ErrDuplicateMultiFileLabel, entry.Label).Error())
+			return
+		}
+		seen[entry.Label] = struct{}{}
+	}
+
+	// Emit running status.
+	state.mu.Lock()
+	state.exec.Nodes[idx].Status = NodeRunning
+	state.exec.CurrentNode = nodeID
+	state.mu.Unlock()
+	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+
+	// Resolve each entry.
+	outputPaths := make(map[string]string, len(entries))
+	missing := make([]string, 0)
+	found := make([]string, 0, len(entries))
+	for i, entry := range entries {
+		key := entry.Label
+		if key == "" {
+			key = fmt.Sprintf("file[%d]", i)
+		}
+		path := entry.Path
+		if !filepath.IsAbs(path) {
+			path = filepath.Join(repoPath, path)
+		}
+		// Containment: a relative entry must not escape repoPath via "..".
+		// Absolute entries are allowed (user explicitly chose an out-of-repo
+		// file); only the join-with-repoPath path requires the check.
+		if !filepath.IsAbs(entry.Path) {
+			rel, err := filepath.Rel(repoPath, path)
+			if err != nil || strings.HasPrefix(rel, "..") {
+				missing = append(missing, key)
+				continue
+			}
+		}
+		if _, err := os.Stat(path); err != nil {
+			missing = append(missing, key)
+			continue
+		}
+		outputPaths[key] = path
+		found = append(found, key)
+	}
+
+	// Write OutputPaths + mark complete.
+	state.mu.Lock()
+	if state.exec.Nodes[idx].OutputPaths == nil {
+		state.exec.Nodes[idx].OutputPaths = make(map[string]string, len(outputPaths))
+	}
+	for k, v := range outputPaths {
+		state.exec.Nodes[idx].OutputPaths[k] = v
+	}
+	state.exec.Nodes[idx].Status = NodeComplete
+	state.mu.Unlock()
+
+	e.emitEvent("bmad:node:artifacts", NodeArtifactEvent{
+		ExecID:  state.exec.ID,
+		NodeID:  nodeID,
+		Found:   found,
+		Missing: missing,
+		Paths:   outputPaths,
+	})
+	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeComplete})
 }
 
 // extractRegex applies a regex to input and returns the first capture group

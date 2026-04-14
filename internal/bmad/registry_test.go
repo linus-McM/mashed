@@ -193,7 +193,7 @@ func TestWorkflowDef_OmitsEmptyTemplateID(t *testing.T) {
 
 func TestAC1_RegistryExpansion_ProcessCount(t *testing.T) {
 	procs := AllProcesses()
-	assert.Len(t, procs, 33, "registry must contain 33 processes (25 existing + 7 new + 1 utility)")
+	assert.Len(t, procs, 34, "registry must contain 34 processes (25 existing + 7 new + 2 utilities)")
 }
 
 func TestAC1_RegistryExpansion_NewProcesses(t *testing.T) {

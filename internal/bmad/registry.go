@@ -414,6 +414,18 @@ func init() {
 			ModuleID:    "core",
 			Version:     "1.0.0",
 		},
+		{
+			ID:          "util-multi-file-loader",
+			Name:        "Multi File Loader",
+			Phase:       PhaseUtilities,
+			AgentRole:   "",
+			SkillName:   "",
+			Description: "Emit one output path per configured {label, path} entry for downstream consumption.",
+			Inputs:      []string{},
+			Outputs:     []string{},
+			ModuleID:    "core",
+			Version:     "1.0.0",
+		},
 	}
 }
 
