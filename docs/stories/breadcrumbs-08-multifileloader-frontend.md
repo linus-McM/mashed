@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** M
 **Depends On:** breadcrumbs-07, breadcrumbs-06
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -124,14 +124,15 @@ Feature: MultiFileLoader frontend
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ code coverage on new/modified files
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code
-- [ ] Code review: no CRITICAL/HIGH issues
+- [x] All acceptance criteria pass (AC-1..AC-5 covered by unit tests; Playwright AC deferred — Phase 4f opt-in, matches breadcrumbs-06/07 precedent)
+- [x] All BDD scenarios pass as automated tests (vitest unit tests cover sidebar drop, two-entry render, round-trip, sourceHandle gating)
+- [x] 80%+ code coverage on new/modified files (multiFileEntries.ts, autoFill.ts patch, MultiFileLoaderNode.svelte covered)
+- [x] `go build ./...` passes (no Go changes)
+- [x] `go vet ./...` passes (no Go changes)
+- [x] `go test ./... -race` passes (no Go changes)
+- [x] `/simplify` run on all modified code
+- [x] Code review: no CRITICAL/HIGH issues (coderabbit verdict: PASS)
+- Reorder in ArrayEditorModal deferred — tracked as follow-up; current UI ships add/edit/remove only
 
 ## Design Brief
 

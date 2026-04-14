@@ -33,6 +33,7 @@
   import LoopUntilNode from '../components/bmad/LoopUntilNode.svelte';
   import TransformNode from '../components/bmad/TransformNode.svelte';
   import MergeNode from '../components/bmad/MergeNode.svelte';
+  import MultiFileLoaderNode from '../components/bmad/MultiFileLoaderNode.svelte';
   import ExecutionBar from '../components/bmad/ExecutionBar.svelte';
   import NodeConfigPanel from '../components/bmad/NodeConfigPanel.svelte';
   import AgentConfigModal from '../components/bmad/AgentConfigModal.svelte';
@@ -95,6 +96,7 @@
     transform: TransformNode,
     merge: MergeNode,
     command: CommandNode,
+    multiFileLoader: MultiFileLoaderNode,
   };
 
   const nodes = writable([]);
@@ -624,6 +626,23 @@
   }
 
   function onDropProcess(processId, position) {
+    if (processId === 'util-multi-file-loader') {
+      const newNode = {
+        id: `node-${Date.now()}`,
+        type: 'multiFileLoader',
+        position,
+        data: {
+          label: 'Multi File Loader',
+          processId,
+          nodeType: 'multiFileLoader',
+          status: 'pending',
+          config: { entries: '[]' },
+        },
+      };
+      $nodes = [...$nodes, newNode];
+      return;
+    }
+
     const process = processes.find(p => p.id === processId);
     if (!process) return;
 

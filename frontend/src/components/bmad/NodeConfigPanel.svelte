@@ -1,8 +1,13 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
-  import { X, Terminal, FileText, FolderOpen, List } from 'lucide-svelte';
+  import { X, Terminal, FileText, FolderOpen, List, Plus, Minus } from 'lucide-svelte';
   import { PickFile, ReadFile, ListModels } from '../../../wailsjs/go/main/App.js';
   import { parseFriendlyTarget } from '../../lib/bmadSessionName';
+  import {
+    parseEntries,
+    stringifyEntries,
+    hasDuplicateLabels,
+  } from '../../lib/bmad/multiFileEntries';
 
   export let node = null;
   export let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
@@ -74,6 +79,12 @@
   $: nodeType = node?.data?.nodeType || '';
   $: isProcessNode = !nodeType || nodeType === 'process';
   $: isFileLoader = node?.data?.processId === 'util-file-loader';
+  $: isMultiFileLoader = nodeType === 'multiFileLoader';
+  // Reorder is deferred — ArrayEditorModal only handles string arrays and
+  // the MultiFileLoader entry editor inlines add/edit/delete only. Upstream
+  // story AC-2 mentions "reorder" which we are flagging as a follow-up.
+  let mflEntries = [];
+  $: mflDuplicates = hasDuplicateLabels(mflEntries);
 
   let filePath = '';
   let filePreview = '';
@@ -127,6 +138,7 @@
     extractType = cfg.extractType || 'regex';
     extractPattern = cfg.extractPattern || '';
     filePath = cfg.filePath || '';
+    mflEntries = parseEntries(cfg.entries || '[]');
   }
 
   $: label = node?.data?.label || 'Node';
@@ -148,7 +160,9 @@
   }
 
   function emitUpdate() {
-    const config = isFileLoader
+    const config = isMultiFileLoader
+      ? { entries: stringifyEntries(mflEntries) }
+      : isFileLoader
       ? { filePath }
       : isProcessNode
       ? { model: modelOverride, context: customContext, agentId: selectedAgent }
@@ -162,6 +176,30 @@
       ? { extractType, extractPattern, sourceNode }
       : {};
     dispatch('update', { nodeId: node.id, config });
+  }
+
+  function addMflEntry() {
+    mflEntries = [...mflEntries, { label: '', path: '' }];
+    emitUpdate();
+  }
+
+  function removeMflEntry(index) {
+    mflEntries = mflEntries.filter((_, i) => i !== index);
+    emitUpdate();
+  }
+
+  function updateMflEntry(index, field, value) {
+    mflEntries = mflEntries.map((e, i) => (i === index ? { ...e, [field]: value } : e));
+    emitUpdate();
+  }
+
+  async function browseMflEntry(index) {
+    try {
+      const path = await PickFile('Select a file');
+      if (path) updateMflEntry(index, 'path', path);
+    } catch (e) {
+      console.error('File picker failed:', e);
+    }
   }
 
   function close() {
@@ -181,7 +219,43 @@
     </div>
 
     <div class="panel-body">
-      {#if isFileLoader}
+      {#if isMultiFileLoader}
+        <div class="field">
+          <label class="field-label">Entries</label>
+          <div class="mfl-entries">
+            {#each mflEntries as entry, i (i)}
+              <div class="mfl-row" class:dup-row={entry.label && mflDuplicates.has(entry.label)}>
+                <input
+                  class="field-input mfl-label"
+                  type="text"
+                  value={entry.label}
+                  on:input={(e) => updateMflEntry(i, 'label', e.target.value)}
+                  on:blur={emitUpdate}
+                  placeholder={`file[${i}]`}
+                />
+                <input
+                  class="field-input mfl-path"
+                  type="text"
+                  value={entry.path}
+                  on:input={(e) => updateMflEntry(i, 'path', e.target.value)}
+                  on:blur={emitUpdate}
+                  placeholder="/absolute/path"
+                />
+                <button class="mfl-btn" on:click={() => browseMflEntry(i)} title="Browse file">
+                  <FolderOpen size={12} />
+                </button>
+                <button class="mfl-btn remove" on:click={() => removeMflEntry(i)} title="Remove entry">
+                  <Minus size={12} />
+                </button>
+              </div>
+            {/each}
+          </div>
+          <button class="browse-btn" on:click={addMflEntry}>
+            <Plus size={13} />
+            Add Entry
+          </button>
+        </div>
+      {:else if isFileLoader}
         <div class="field">
           <label class="field-label">File Path</label>
           <div class="file-picker-row">
@@ -707,5 +781,51 @@
     color: var(--text-muted);
     text-transform: uppercase;
     font-size: 9px;
+  }
+
+  .mfl-entries {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-xs);
+    margin-bottom: var(--sp-xs);
+  }
+
+  .mfl-row {
+    display: flex;
+    gap: var(--sp-xs);
+    align-items: center;
+    padding: var(--sp-2xs);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+  }
+
+  .mfl-row.dup-row {
+    border-color: var(--accent-red);
+  }
+
+  .mfl-label { width: 60px; flex-shrink: 0; }
+  .mfl-path { flex: 1; min-width: 0; }
+
+  .mfl-btn {
+    background: none;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    padding: var(--sp-2xs);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color 100ms ease, border-color 100ms ease;
+  }
+
+  .mfl-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-emphasis);
+  }
+
+  .mfl-btn.remove:hover {
+    color: var(--accent-red);
+    border-color: var(--accent-red);
   }
 </style>

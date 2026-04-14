@@ -247,18 +247,20 @@ describe('computeAutoFill — not-an-input', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Edge with sourceHandle set — match by artifact name, not handle (breadcrumbs-08 handles that)
+// Edge with sourceHandle set — breadcrumbs-08 contract: when non-empty,
+// sourceHandle MUST equal the artifact key or the edge is skipped for that
+// artifact. Matching-by-name sourceHandle still routes normally.
 // ---------------------------------------------------------------------------
 
-describe('computeAutoFill — sourceHandle has no effect on artifact matching', () => {
+describe('computeAutoFill — sourceHandle gates by exact artifact name (breadcrumbs-08)', () => {
   it('TestStory6_SourceHandleSet_MatchesByArtifactName', () => {
     const event = makeEvent('nodeA', { 'PRD.md': '/abs/PRD.md' });
     const nodes: NodeCanvas[] = [
       makeNode('nodeA', [], {}),
       makeNode('nodeB', ['PRD.md'], {}),
     ];
-    // sourceHandle present but should not affect process-to-process matching
-    const edges: EdgeCanvas[] = [makeEdge('nodeA', 'nodeB', { sourceHandle: 'out-PRD.md' })];
+    // sourceHandle = artifact name — edge routes the artifact as expected.
+    const edges: EdgeCanvas[] = [makeEdge('nodeA', 'nodeB', { sourceHandle: 'PRD.md' })];
 
     const result = computeAutoFill(event, nodes, edges);
 

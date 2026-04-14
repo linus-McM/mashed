@@ -50,6 +50,14 @@ export function computeAutoFill(
 
   for (const [artifactName, incomingPath] of Object.entries(paths)) {
     for (const edge of outgoing) {
+      // breadcrumbs-08: when an edge carries a non-empty sourceHandle,
+      // it addresses a single named output on the upstream node — route
+      // only that artifact through this edge. Legacy process-to-process
+      // edges omit sourceHandle and keep name-based matching.
+      if (typeof edge.sourceHandle === 'string' && edge.sourceHandle !== '') {
+        if (artifactName !== edge.sourceHandle) continue;
+      }
+
       const target = nodeById.get(edge.target);
       if (!target) continue;
 
