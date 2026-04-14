@@ -105,11 +105,15 @@ func (e *Executor) StartWorkflow(parentCtx context.Context, workflowID, repoPath
 		return nil, err
 	}
 
-	// Build execution with copies of nodes, all pending.
+	// Build execution with copies of nodes, all pending. Clear prior
+	// OutputPaths/InputPaths per architectural decision #1b (stale paths
+	// from a previous run must not leak into a fresh execution).
 	nodes := make([]WorkflowNode, len(wf.Nodes))
 	for i, n := range wf.Nodes {
 		nodes[i] = n
 		nodes[i].Status = NodePending
+		nodes[i].OutputPaths = map[string]string{}
+		nodes[i].InputPaths = map[string]string{}
 	}
 
 	execID := fmt.Sprintf("exec-%s-%d", workflowID, time.Now().UnixMilli())
@@ -1343,14 +1347,45 @@ func (e *Executor) completeNode(state *execState, idx int, nodeID string) {
 		proc, ok := ProcessByID(node.ProcessID)
 		if ok && len(proc.Outputs) > 0 {
 			found, missing := VerifyArtifacts(repoPath, proc.Outputs)
+			paths := resolveOutputPaths(repoPath, proc.Outputs)
+
+			state.mu.Lock()
+			if state.exec.Nodes[idx].OutputPaths == nil {
+				state.exec.Nodes[idx].OutputPaths = map[string]string{}
+			}
+			for name, p := range paths {
+				state.exec.Nodes[idx].OutputPaths[name] = p
+			}
+			state.mu.Unlock()
+
 			e.emitEvent("bmad:node:artifacts", NodeArtifactEvent{
 				ExecID:  state.exec.ID,
 				NodeID:  nodeID,
 				Found:   found,
 				Missing: missing,
+				Paths:   paths,
 			})
 		}
 	}
+}
+
+// resolveOutputPaths returns a map of artifact name → absolute resolved
+// path for every output artifact that maps (via artifacts.go) AND exists
+// on disk under repoPath. Unmapped artifacts ("code", "tests", "any-doc",
+// "file-path") and missing files are omitted silently.
+func resolveOutputPaths(repoPath string, outputs []string) map[string]string {
+	paths := make(map[string]string, len(outputs))
+	for _, name := range outputs {
+		resolved := ResolveArtifactPath(name, repoPath)
+		if resolved == "" {
+			continue
+		}
+		if _, err := os.Stat(resolved); err != nil {
+			continue
+		}
+		paths[name] = resolved
+	}
+	return paths
 }
 
 func (e *Executor) failNode(state *execState, idx int, nodeID string) {

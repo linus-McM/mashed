@@ -112,6 +112,14 @@ type WorkflowNode struct {
 	StartedAt  string            `json:"startedAt,omitempty"`
 	StoryID    string            `json:"storyId,omitempty"`
 	NodeType   NodeType          `json:"nodeType,omitempty"`
+	// OutputPaths holds resolved absolute paths for each output artifact
+	// (by artifact name) that existed on disk when the node transitioned
+	// to NodeComplete. Unmapped or missing artifacts are omitted.
+	// Populated by the executor — see Story breadcrumbs-05.
+	OutputPaths map[string]string `json:"outputPaths,omitempty"`
+	// InputPaths holds resolved absolute paths for input artifacts,
+	// reserved for a future pass. See Story breadcrumbs-05.
+	InputPaths map[string]string `json:"inputPaths,omitempty"`
 }
 
 // EffectiveType returns the node's type, defaulting to NodeTypeProcess for
@@ -225,6 +233,10 @@ type NodeArtifactEvent struct {
 	NodeID  string   `json:"nodeId"`
 	Found   []string `json:"found"`
 	Missing []string `json:"missing"`
+	// Paths maps each found output artifact name to its resolved
+	// absolute path. Populated by the executor on node completion —
+	// see Story breadcrumbs-05.
+	Paths map[string]string `json:"paths"`
 }
 
 // ControlFlowNodeDef describes a control flow node type for the frontend sidebar.

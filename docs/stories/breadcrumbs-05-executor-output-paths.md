@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** M
 **Depends On:** breadcrumbs-01, breadcrumbs-04
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -161,31 +161,30 @@ Feature: Executor writes OutputPaths on complete
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add OutputPaths + InputPaths fields to WorkflowNode (AC-1, AC-6)
-  - [ ] Add `OutputPaths map[string]string \`json:"outputPaths,omitempty"\`` in `internal/bmad/types.go`
-  - [ ] Add `InputPaths map[string]string \`json:"inputPaths,omitempty"\`` for symmetry (used by breadcrumbs-06)
-  - [ ] Round-trip test with legacy JSON
-- [ ] Task 2: `fileExists` helper in executor.go (AC-1, AC-3)
-  - [ ] Stat-based helper, treats all errors as missing (mirror `artifacts.go` convention, corpus 16342)
-- [ ] Task 3: Populate OutputPaths on node complete (AC-1, AC-2, AC-3)
-  - [ ] In the node-complete codepath of `runDynamic` / node worker, iterate `node.Outputs`
-  - [ ] Use `ResolveArtifactPath` + `fileExists`; skip empty/missing
-  - [ ] Wrap map init + writes in `state.mu.Lock()` / `Unlock()`
-- [ ] Task 4: Emit updated event payload (AC-1)
-  - [ ] Extend `NodeArtifactEvent` with `Paths map[string]string` (types.go line 20907)
-  - [ ] Populate it alongside `Found` / `Missing` in the emit call
-- [ ] Task 5: Clear on start (AC-4)
-  - [ ] In `StartWorkflow`, after building exec node copies, zero `OutputPaths` + `InputPaths`
-- [ ] Task 6: Race test (AC-5)
-  - [ ] Fake command runner + two parallel ready nodes; assert populated under `-race`
+- [x] Task 1: Add OutputPaths + InputPaths fields to WorkflowNode (AC-1, AC-6)
+  - [x] Add `OutputPaths map[string]string` in `internal/bmad/types.go`
+  - [x] Add `InputPaths map[string]string` for symmetry (used by breadcrumbs-06)
+  - [x] Round-trip test with legacy JSON (AC-6)
+- [x] Task 2: Use ResolveArtifactPath + os.Stat to skip missing (AC-1, AC-3)
+- [x] Task 3: Populate OutputPaths on node complete (AC-1, AC-2, AC-3)
+  - [x] `resolveOutputPaths` helper iterates `proc.Outputs`
+  - [x] Skip empty/missing silently
+  - [x] Write under `state.mu.Lock()` / `Unlock()`
+- [x] Task 4: Emit updated event payload (AC-1)
+  - [x] `NodeArtifactEvent.Paths map[string]string` added
+  - [x] Populated alongside `Found` / `Missing`
+- [x] Task 5: Clear on start (AC-4)
+  - [x] `StartWorkflow` zeroes `OutputPaths` + `InputPaths` per node
+- [x] Task 6: Race test (AC-5)
+  - [x] Two parallel `completeNode` goroutines; pass under `-race`
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ code coverage on new/modified files
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code
-- [ ] Code review: no CRITICAL/HIGH issues
+- [x] All acceptance criteria pass (7/7 ACs in executor_outputpaths_test.go)
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ code coverage on new/modified files (bmad 91.0%, completeNode 96.2%, resolveOutputPaths 100%)
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code
+- [x] Code review: no CRITICAL/HIGH issues (coderabbit PASS)
