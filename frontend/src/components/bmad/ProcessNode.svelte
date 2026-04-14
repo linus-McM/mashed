@@ -40,11 +40,6 @@
   $: artifactStatus = data.artifactStatus || null;
   $: hasArtifacts = artifactStatus && (artifactStatus.found?.length > 0 || artifactStatus.missing?.length > 0);
 
-  $: inputPath = getNodePath({ data }, 'in');
-  $: outputPath = getNodePath({ data }, 'out');
-  $: inputBreadcrumb = formatBreadcrumb(inputPath);
-  $: outputBreadcrumb = formatBreadcrumb(outputPath);
-
   import { storyStatusColors } from '../../lib/sprintColors.js';
 </script>
 
@@ -59,33 +54,35 @@
       <span class="node-label">{label}</span>
     </div>
 
-    {#if inputs.length > 0}
+    {#each inputs as name}
       <div class="artifacts">
         <span class="artifact-label">in:</span>
-        <span class="artifact-list">{inputs.join(', ')}</span>
+        <span class="artifact-list">{name}</span>
       </div>
+      {@const inPath = getNodePath({ data }, 'in', name)}
       <div
         class="breadcrumb-row"
-        class:unresolved={!inputPath}
-        title={inputPath || 'unresolved'}
+        class:unresolved={!inPath}
+        title={inPath || 'unresolved'}
       >
-        {inputBreadcrumb}
+        {formatBreadcrumb(inPath)}
       </div>
-    {/if}
+    {/each}
 
-    {#if outputs.length > 0}
-      <div class="artifacts">
+    {#each outputs as name, i}
+      <div class="artifacts" class:out-first={i === 0 && inputs.length > 0}>
         <span class="artifact-label">out:</span>
-        <span class="artifact-list">{outputs.join(', ')}</span>
+        <span class="artifact-list">{name}</span>
       </div>
+      {@const outPath = getNodePath({ data }, 'out', name)}
       <div
         class="breadcrumb-row"
-        class:unresolved={!outputPath}
-        title={outputPath || 'unresolved'}
+        class:unresolved={!outPath}
+        title={outPath || 'unresolved'}
       >
-        {outputBreadcrumb}
+        {formatBreadcrumb(outPath)}
       </div>
-    {/if}
+    {/each}
 
     <div class="status-row">
       {#if status === 'pending'}
@@ -351,5 +348,9 @@
 
   .breadcrumb-row.unresolved {
     opacity: 0.7;
+  }
+
+  .artifacts.out-first {
+    margin-top: var(--sp-2xs);
   }
 </style>
