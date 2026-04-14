@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** S
 **Depends On:** breadcrumbs-02
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -81,27 +81,27 @@ Feature: Breadcrumb row parity across node components
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Read breadcrumbs-01 discovery findings (AC-1)
-  - [ ] Enumerate target components for this story
-  - [ ] Record decision (component vs no-op) at top of PR description
-- [ ] Task 2 (conditional): Add breadcrumb row to File Loader component if dedicated (AC-1, AC-2)
-  - [ ] Insert markup identical to ProcessNode.svelte pattern
-  - [ ] Reuse `.breadcrumb-row` CSS
-- [ ] Task 3 (conditional): Add breadcrumb row to CommandNode.svelte if it exists (AC-1)
-  - [ ] Same pattern as Task 2
-- [ ] Task 4: Playwright smoke test (AC-1, AC-3)
-  - [ ] Assert every node rendered in a multi-node workflow has `.breadcrumb-row`
+- [x] Task 1: Read breadcrumbs-01 discovery findings (AC-1)
+  - [x] Enumerate target components for this story
+  - [x] Record decision (component vs no-op) at top of PR description
+- [x] Task 2 (conditional): Add breadcrumb row to File Loader component if dedicated (AC-1, AC-2) — **N/A**: File Loader renders via ProcessNode (covered by breadcrumbs-02).
+  - [x] Insert markup identical to ProcessNode.svelte pattern
+  - [x] Reuse `.breadcrumb-row` CSS
+- [x] Task 3 (conditional): Add breadcrumb row to CommandNode.svelte if it exists (AC-1) — CommandNode DOES exist (breadcrumbs-01 discovery was incorrect).
+  - [x] Same pattern as Task 2
+- [x] Task 4: Playwright smoke test (AC-1, AC-3)
+  - [x] Assert every node rendered in a multi-node workflow has `.breadcrumb-row`
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ code coverage on new/modified files
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code
-- [ ] Code review: no CRITICAL/HIGH issues
+- [x] All acceptance criteria pass (AC-1, AC-2 via unit + Playwright; AC-3 via regression test)
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ code coverage on new/modified files (CommandNode.svelte: 83.33%)
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code
+- [x] Code review: no CRITICAL/HIGH issues (coderabbit:code-reviewer PASS; ui-architect design critique 9.2/10)
 
 ## Design Brief
 
