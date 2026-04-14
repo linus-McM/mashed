@@ -44,6 +44,7 @@
   import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
   import CanvasFailureToast from '../components/bmad/CanvasFailureToast.svelte';
   import { parseFriendlyTarget } from '../lib/bmadSessionName';
+  import { computeAutoFill } from '../lib/bmad/autoFill';
   import {
     snapshotCanvas,
     canvasNodesToWorkflowNodes,
@@ -417,6 +418,7 @@
     updateProgress();
   });
 
+  let autoFillSaveTimer = null;
   const cancelArtifactListener = EventsOn('bmad:node:artifacts', (event) => {
     if (!event?.nodeId || (executionId && event.execId !== executionId)) return;
     $nodes = $nodes.map(n => {
@@ -428,6 +430,38 @@
       }
       return n;
     });
+
+    // breadcrumbs-06: Downstream auto-fill of empty InputPaths from resolved
+    // upstream OutputPaths. Per plan lines 138-144, fan-out is deferred — a
+    // single upstream path is copied to every connected downstream slot that
+    // accepts the artifact and is currently empty. Populated slots never clobber.
+    if (event.paths && typeof event.paths === 'object' && Object.keys(event.paths).length > 0) {
+      const { updates } = computeAutoFill(event, $nodes, $edges);
+      if (updates.length > 0) {
+        const byTarget = new Map();
+        for (const u of updates) {
+          if (!byTarget.has(u.nodeId)) byTarget.set(u.nodeId, []);
+          byTarget.get(u.nodeId).push(u);
+        }
+        $nodes = $nodes.map(n => {
+          const nodeUpdates = byTarget.get(n.id);
+          if (!nodeUpdates) return n;
+          const prevConfig = n.data?.config || {};
+          const nextInputPaths = { ...(prevConfig.inputPaths || {}) };
+          for (const u of nodeUpdates) nextInputPaths[u.artifactName] = u.path;
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              config: { ...prevConfig, inputPaths: nextInputPaths },
+            },
+          };
+        });
+        clearTimeout(autoFillSaveTimer);
+        autoFillSaveTimer = setTimeout(() => { saveWorkflow(); }, 500);
+      }
+    }
+
     if (selectedNode && selectedNode.id === event.nodeId) {
       selectedNode = $nodes.find(n => n.id === event.nodeId) || selectedNode;
     }
@@ -550,6 +584,7 @@
     if (cancelAssetsListener) cancelAssetsListener();
     clearTimeout(flashTimer);
     clearTimeout(errorTimer);
+    clearTimeout(autoFillSaveTimer);
   });
 
   function updateProgress() {
