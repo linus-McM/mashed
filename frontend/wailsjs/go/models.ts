@@ -411,6 +411,8 @@ export namespace bmad {
 	    startedAt?: string;
 	    storyId?: string;
 	    nodeType?: string;
+	    outputPaths?: Record<string, string>;
+	    inputPaths?: Record<string, string>;
 	
 	    static createFrom(source: any = {}) {
 	        return new WorkflowNode(source);
@@ -428,6 +430,8 @@ export namespace bmad {
 	        this.startedAt = source["startedAt"];
 	        this.storyId = source["storyId"];
 	        this.nodeType = source["nodeType"];
+	        this.outputPaths = source["outputPaths"];
+	        this.inputPaths = source["inputPaths"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -13,7 +13,7 @@ g_session:
 
 # Start a Claude session (default model) in tmux
 c_session:
-    @claude --dangerously-skip-permissions "/caveman"
+    @claude --dangerously-skip-permissions --model 'opus' "/caveman"
 
 # Start Claude with Sonnet model in tmux
 sonnet:
