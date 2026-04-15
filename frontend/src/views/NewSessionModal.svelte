@@ -478,7 +478,7 @@
   .subtitle strong {
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-label);
   }
 
   /* ── Scrollable body ────────────────────────────────── */
@@ -604,11 +604,11 @@
   .chip-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: var(--sp-sm);
   }
 
   .chip {
-    padding: 6px 12px;
+    padding: var(--sp-sm) var(--sp-md);
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);

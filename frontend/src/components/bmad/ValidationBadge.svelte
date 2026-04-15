@@ -183,7 +183,7 @@
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    margin-top: 6px;
+    margin-top: var(--sp-sm);
     flex-shrink: 0;
   }
   .issue-dot.warn { background: var(--accent-amber); }

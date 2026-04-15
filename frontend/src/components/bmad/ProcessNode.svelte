@@ -187,7 +187,7 @@
   .artifacts {
     display: flex;
     gap: 4px;
-    font-size: 10px;
+    font-size: var(--text-label);
     color: var(--text-primary);
     line-height: 1.3;
     margin-bottom: 2px;
