@@ -85,3 +85,8 @@ playwright-report/
 # mashed screenshots
 .screenshots/
 todo.md
+.env.local
+.env.development
+.env.test
+.env.production
+.env*
