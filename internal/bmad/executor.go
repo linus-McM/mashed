@@ -1014,7 +1014,15 @@ func (e *Executor) waitForIdleCompletion(ctx context.Context, state *execState, 
 
 			case stageWatchingForIdle:
 				if currentHash == lastStableHash && detectIdlePrompt(captured) {
-					return nil // stable + idle prompt → done
+					// Question gate: if the recent output contains a question
+					// (structured or natural language), don't auto-complete.
+					// The process is waiting for user input — keep polling so
+					// the idle/question snackbar stays visible and downstream
+					// nodes don't start.
+					if hasRecentQuestion(captured) {
+						continue
+					}
+					return nil // stable + idle prompt + no question → done
 				}
 				if currentHash != lastStableHash {
 					lastStableHash = currentHash
@@ -1266,7 +1274,7 @@ func (e *Executor) executeProcessNode(ctx context.Context, state *execState, nod
 		return
 	}
 
-	// Snapshot nodes and outputs under lock for context string building.
+	// Snapshot nodes, outputs, and incoming edges under lock for context string building.
 	state.mu.Lock()
 	nodesCopy := make([]WorkflowNode, len(state.exec.Nodes))
 	copy(nodesCopy, state.exec.Nodes)
@@ -1274,10 +1282,19 @@ func (e *Executor) executeProcessNode(ctx context.Context, state *execState, nod
 	for k, v := range state.exec.NodeOutputs {
 		outputsCopy[k] = v
 	}
+	// Collect edges targeting this node for edge-based context passing.
+	var incomingEdges []WorkflowEdge
+	for _, edgeList := range state.outEdges {
+		for _, edge := range edgeList {
+			if edge.Target == nodeID {
+				incomingEdges = append(incomingEdges, edge)
+			}
+		}
+	}
 	state.mu.Unlock()
 
 	// Build the inner claude invocation for this process node.
-	contextStr := buildContextStringV3(proc, nodesCopy, nodeIndex, outputsCopy, repoPath)
+	contextStr := buildContextStringV3(proc, nodesCopy, nodeIndex, outputsCopy, repoPath, incomingEdges, nodeID)
 	innerCommand := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s "use %s%s"`, model, proc.SkillName, contextStr)
 
 	// Spawn the tmux session via the shared helper.
@@ -1785,14 +1802,26 @@ func extractLines(input, pattern string) string {
 }
 
 // buildContextStringV3 builds the context string for a process node, including
-// file-aware artifact matching (from upstream processes) and extracted transform data.
+// file-aware artifact matching (from upstream processes), edge-based context
+// passing, and extracted transform data.
+//
+// Context is passed via two mechanisms:
+//  1. Artifact name matching — upstream outputs matched to proc.Inputs by name.
+//  2. Edge-based passing — direct upstream nodes (connected by edges) pass their
+//     outputs even when artifact names don't match. This ensures processes with
+//     empty Inputs (e.g. Code Review, Product Brief) still receive context from
+//     their upstream nodes in the workflow graph.
+//
 // When repoPath is non-empty, it resolves artifact paths on disk and provides
 // file-path instructions. When repoPath is empty or the artifact is unmapped,
 // it falls back to hint-style messages.
-func buildContextStringV3(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[string]int, nodeOutputs map[string]string, repoPath string) string {
+func buildContextStringV3(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[string]int, nodeOutputs map[string]string, repoPath string, edges []WorkflowEdge, currentNodeID string) string {
 	var parts []string
 
-	// Artifact matching with file-path resolution.
+	// Track which artifact names have been mentioned to avoid duplicates.
+	mentioned := make(map[string]bool)
+
+	// 1. Artifact name matching with file-path resolution.
 	if len(proc.Inputs) > 0 {
 		needed := make(map[string]bool)
 		for _, input := range proc.Inputs {
@@ -1810,6 +1839,7 @@ func buildContextStringV3(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[s
 				if !needed[output] {
 					continue
 				}
+				mentioned[output] = true
 				resolvedPath := ResolveArtifactPath(output, repoPath)
 				if resolvedPath == "" {
 					// Unmapped artifact — fall back to hint.
@@ -1826,7 +1856,44 @@ func buildContextStringV3(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[s
 		}
 	}
 
-	// Include transform data from completed transform nodes.
+	// 2. Edge-based context: for direct upstream nodes connected by edges,
+	//    pass their outputs even if artifact names were not matched above.
+	//    This covers processes with empty Inputs like Code Review and Product Brief.
+	for _, edge := range edges {
+		if edge.Target != currentNodeID {
+			continue
+		}
+		srcIdx, ok := nodeIndex[edge.Source]
+		if !ok {
+			continue
+		}
+		srcNode := nodes[srcIdx]
+		if srcNode.Status != NodeComplete {
+			continue
+		}
+		upstream, ok := ProcessByID(srcNode.ProcessID)
+		if !ok {
+			continue
+		}
+		for _, output := range upstream.Outputs {
+			if mentioned[output] {
+				continue
+			}
+			mentioned[output] = true
+			resolvedPath := ResolveArtifactPath(output, repoPath)
+			if resolvedPath == "" {
+				parts = append(parts, fmt.Sprintf(" The upstream process '%s' produced '%s' -- use it as input.", upstream.Name, output))
+				continue
+			}
+			if _, err := os.Stat(resolvedPath); err == nil {
+				parts = append(parts, fmt.Sprintf(" Read the artifact '%s' from file '%s' and use it as input.", output, resolvedPath))
+			} else {
+				parts = append(parts, fmt.Sprintf(" The upstream process '%s' should have produced '%s' at '%s' but it was not found. Proceed with best effort.", upstream.Name, output, resolvedPath))
+			}
+		}
+	}
+
+	// 3. Include transform data from completed transform nodes.
 	const maxTransformDataLen = 2000
 	for _, n := range nodes {
 		if n.Status != NodeComplete || n.EffectiveType() != NodeTypeTransform {
@@ -1842,7 +1909,7 @@ func buildContextStringV3(proc ProcessDef, nodes []WorkflowNode, nodeIndex map[s
 		parts = append(parts, fmt.Sprintf(" The data transform '%s' extracted: %s", n.Label, data))
 	}
 
-	// Include current loop item if a loop with items is active.
+	// 4. Include current loop item if a loop with items is active.
 	for _, n := range nodes {
 		nt := n.EffectiveType()
 		if nt != NodeTypeLoop && nt != NodeTypeLoopUntil {

@@ -213,6 +213,54 @@ func hashCapturedOutput(output string) string {
 	return hashQuestion(output)
 }
 
+// questionGateScanTail bounds how many lines from the end of the captured
+// output hasRecentQuestion inspects. Questions from skills typically appear
+// within the last 15 lines before the idle prompt.
+const questionGateScanTail = 15
+
+// minQuestionLength avoids false positives from very short lines that
+// happen to end with "?" (e.g. single-word fragments, table cells).
+const minQuestionLength = 8
+
+// hasRecentQuestion checks whether the captured tmux output contains a
+// question near the end — either a structured CLI question (? prefix,
+// bordered, emoji) or a natural language line ending with "?".
+//
+// This is used as a gate in waitForIdleCompletion: when a question is
+// detected near the idle prompt, auto-completion is blocked so the user
+// can respond via the tmux session. The node stays in "running" state
+// and downstream nodes do not start.
+//
+// False positives (non-question lines ending with "?") are acceptable —
+// they keep the node running slightly longer, and the user sees an idle
+// snackbar. False negatives are worse because they auto-complete a node
+// that is genuinely waiting for user input.
+func hasRecentQuestion(captured string) bool {
+	cleaned := stripANSI(captured)
+	lines := strings.Split(cleaned, "\n")
+	if len(lines) > questionGateScanTail {
+		lines = lines[len(lines)-questionGateScanTail:]
+	}
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || trimmed == claudePromptRune {
+			continue
+		}
+		// Structured question patterns (Claude CLI format).
+		if questionPrefix.MatchString(trimmed) ||
+			borderedQuestionPrefix.MatchString(trimmed) ||
+			emojiQuestion.MatchString(trimmed) {
+			return true
+		}
+		// Natural language question: line ends with "?" and is long enough
+		// to be a real sentence, not a table cell or fragment.
+		if strings.HasSuffix(trimmed, "?") && len(trimmed) >= minQuestionLength {
+			return true
+		}
+	}
+	return false
+}
+
 // escapeTmuxLiteral sanitises an answer string for `tmux send-keys -l`.
 //
 // The BMAD executor invokes tmux directly via exec.Command (no shell), and

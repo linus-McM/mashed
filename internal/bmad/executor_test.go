@@ -1754,7 +1754,7 @@ func TestBuildContextStringV3_IncludesTransformData(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-create-prd")
-	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "")
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "", nil, "B")
 	assert.Contains(t, result, "Version Extract")
 	assert.Contains(t, result, "3.4.5")
 }
@@ -1771,7 +1771,7 @@ func TestBuildContextStringV3_TruncatesLongData(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-brainstorming")
-	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "")
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "", nil, "B")
 	assert.Contains(t, result, "Big Transform")
 	// The data portion should be capped at 2000 chars.
 	assert.LessOrEqual(t, len(result), 2100, "result should not contain full 3000-char data")
@@ -1788,7 +1788,7 @@ func TestBuildContextStringV3_IncludesArtifactMatching(t *testing.T) {
 	nodeOutputs := map[string]string{}
 
 	proc, _ := ProcessByID("bmad-create-prd")
-	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "")
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "", nil, "B")
 	assert.Contains(t, result, "upstream process")
 	assert.Contains(t, result, "product-brief")
 }
@@ -1805,7 +1805,7 @@ func TestBuildContextStringV3_EmptyTransformData(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-brainstorming")
-	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "")
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "", nil, "B")
 	assert.NotContains(t, result, "Empty Transform", "empty transform data should not appear")
 }
 
@@ -1820,7 +1820,7 @@ func TestBuildContextStringV3_SkipsNonCompleteTransforms(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-brainstorming")
-	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "")
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "", nil, "B")
 	assert.NotContains(t, result, "Pending Transform", "non-complete transform should not appear")
 }
 
@@ -1920,7 +1920,7 @@ func TestBuildContextStringV3_FilePathResolution(t *testing.T) {
 			proc, ok := ProcessByID(tt.procID)
 			require.True(t, ok)
 
-			result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, tmpDir)
+			result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, tmpDir, nil, "downstream")
 
 			for _, want := range tt.wantContain {
 				assert.Contains(t, result, want, "expected result to contain %q", want)
@@ -1951,12 +1951,108 @@ func TestBuildContextStringV3_TransformDataPreservedWithRepoPath(t *testing.T) {
 	}
 
 	proc, _ := ProcessByID("bmad-create-prd")
-	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, tmpDir)
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, tmpDir, nil, "B")
 
 	// Should contain both file-path info AND transform data.
 	assert.Contains(t, result, "Read the artifact 'product-brief' from file")
 	assert.Contains(t, result, "Version Extract")
 	assert.Contains(t, result, "3.4.5")
+}
+
+// ── Edge-Based Context Passing ──
+
+func TestBuildContextStringV3_EdgeBasedContext_EmptyInputs(t *testing.T) {
+	// Code Review has Inputs: [] but is edge-connected to Dev Story (Outputs: ["code", "tests"]).
+	// Edge-based context should pass upstream outputs even without artifact name matching.
+	nodes := []WorkflowNode{
+		{ID: "A", ProcessID: "bmad-dev-story", Label: "Develop Story", Status: NodeComplete, Config: map[string]string{}},
+		{ID: "B", ProcessID: "bmad-code-review", Label: "Code Review", Status: NodePending, Config: map[string]string{}},
+	}
+	edges := []WorkflowEdge{
+		{ID: "e1", Source: "A", Target: "B"},
+	}
+	nodeIndex := buildNodeIndex(nodes)
+	nodeOutputs := map[string]string{}
+
+	proc, _ := ProcessByID("bmad-code-review")
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "", edges, "B")
+	assert.Contains(t, result, "Develop Story")
+	assert.Contains(t, result, "code")
+	assert.Contains(t, result, "tests")
+}
+
+func TestBuildContextStringV3_EdgeBasedContext_WithFileResolution(t *testing.T) {
+	// Product Brief has Inputs: [] but is edge-connected to Brainstorming.
+	// brainstorm-notes is an unmapped artifact, so it should produce a hint-style message.
+	nodes := []WorkflowNode{
+		{ID: "A", ProcessID: "bmad-brainstorming", Label: "Brainstorming", Status: NodeComplete, Config: map[string]string{}},
+		{ID: "B", ProcessID: "bmad-product-brief", Label: "Product Brief", Status: NodePending, Config: map[string]string{}},
+	}
+	edges := []WorkflowEdge{
+		{ID: "e1", Source: "A", Target: "B"},
+	}
+	nodeIndex := buildNodeIndex(nodes)
+	nodeOutputs := map[string]string{}
+
+	proc, _ := ProcessByID("bmad-product-brief")
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "", edges, "B")
+	assert.Contains(t, result, "Brainstorming")
+	assert.Contains(t, result, "brainstorm-notes")
+}
+
+func TestBuildContextStringV3_EdgeBasedContext_NoDuplicates(t *testing.T) {
+	// When artifact name matching already covers an output, edge-based context
+	// should NOT duplicate it.
+	nodes := []WorkflowNode{
+		{ID: "A", ProcessID: "bmad-product-brief", Label: "Product Brief", Status: NodeComplete, Config: map[string]string{}},
+		{ID: "B", ProcessID: "bmad-create-prd", Label: "Create PRD", Status: NodePending, Config: map[string]string{}},
+	}
+	edges := []WorkflowEdge{
+		{ID: "e1", Source: "A", Target: "B"},
+	}
+	nodeIndex := buildNodeIndex(nodes)
+	nodeOutputs := map[string]string{}
+
+	proc, _ := ProcessByID("bmad-create-prd") // Inputs: ["product-brief"]
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "", edges, "B")
+	// The artifact should be mentioned by exactly one context message, not duplicated
+	// by both artifact matching and edge-based context. Count the message prefix
+	// (not the raw substring, which also appears in file paths).
+	assert.Equal(t, 1, strings.Count(result, "'product-brief'"), "product-brief should be referenced in exactly one context message")
+}
+
+func TestBuildContextStringV3_EdgeBasedContext_NonConnectedNodeIgnored(t *testing.T) {
+	// Node C is complete but NOT edge-connected to B. Its outputs should NOT
+	// appear in edge-based context (only artifact name matching can pick them up).
+	nodes := []WorkflowNode{
+		{ID: "A", ProcessID: "bmad-brainstorming", Label: "Brainstorming", Status: NodeComplete, Config: map[string]string{}},
+		{ID: "B", ProcessID: "bmad-code-review", Label: "Code Review", Status: NodePending, Config: map[string]string{}},
+	}
+	// No edge connecting A to B.
+	edges := []WorkflowEdge{}
+	nodeIndex := buildNodeIndex(nodes)
+	nodeOutputs := map[string]string{}
+
+	proc, _ := ProcessByID("bmad-code-review")
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "", edges, "B")
+	assert.Empty(t, result, "no context without edges or matching inputs")
+}
+
+func TestBuildContextStringV3_EdgeBasedContext_SkipsNonCompleteUpstream(t *testing.T) {
+	// Upstream node is connected by edge but not yet complete.
+	nodes := []WorkflowNode{
+		{ID: "A", ProcessID: "bmad-dev-story", Label: "Develop Story", Status: NodeRunning, Config: map[string]string{}},
+		{ID: "B", ProcessID: "bmad-code-review", Label: "Code Review", Status: NodePending, Config: map[string]string{}},
+	}
+	edges := []WorkflowEdge{
+		{ID: "e1", Source: "A", Target: "B"},
+	}
+	nodeIndex := buildNodeIndex(nodes)
+	nodeOutputs := map[string]string{}
+
+	proc, _ := ProcessByID("bmad-code-review")
+	result := buildContextStringV3(proc, nodes, nodeIndex, nodeOutputs, "", edges, "B")
+	assert.Empty(t, result, "running upstream should not produce context")
 }
 
 // ── Loop / LoopUntil Execution ──

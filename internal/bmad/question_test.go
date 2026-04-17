@@ -963,3 +963,75 @@ func TestPollForIdle_EmitsIdleEventPayload(t *testing.T) {
 	assert.NotZero(t, captured.Timestamp,
 		"Timestamp must be set to the emission time")
 }
+
+// ── hasRecentQuestion (Question Gate) ──
+
+func TestHasRecentQuestion(t *testing.T) {
+	tests := []struct {
+		name     string
+		captured string
+		want     bool
+	}{
+		{
+			name:     "structured_question_prefix",
+			captured: "some output\n? Do you want to continue?\n❯\n",
+			want:     true,
+		},
+		{
+			name:     "emoji_question",
+			captured: "output line\n❓ Which option do you prefer?\n❯\n",
+			want:     true,
+		},
+		{
+			name:     "bordered_question",
+			captured: "output\n│ ? What should I build? │\n❯\n",
+			want:     true,
+		},
+		{
+			name:     "natural_language_question",
+			captured: "Agent Roster\n───────\nWhat do you want to discuss?\n───────\n❯\n",
+			want:     true,
+		},
+		{
+			name:     "natural_language_question_with_context",
+			captured: "Welcome! The team is ready.\nWhat would you like to build today?\n❯\n",
+			want:     true,
+		},
+		{
+			name:     "no_question_just_idle",
+			captured: "Task completed successfully.\nAll files written.\n❯\n",
+			want:     false,
+		},
+		{
+			name:     "short_fragment_not_question",
+			captured: "Done.\nOK?\n❯\n",
+			want:     false, // "OK?" is only 3 chars, below minQuestionLength
+		},
+		{
+			name:     "empty_output",
+			captured: "",
+			want:     false,
+		},
+		{
+			name:     "question_too_far_from_end",
+			captured: "What do you want?\n" + strings.Repeat("line\n", 20) + "❯\n",
+			want:     false, // question is beyond questionGateScanTail
+		},
+		{
+			name:     "question_within_scan_window",
+			captured: strings.Repeat("line\n", 5) + "What do you want to discuss?\n❯\n",
+			want:     true,
+		},
+		{
+			name:     "ansi_stripped_before_check",
+			captured: "\x1b[32mWhat do you want to build?\x1b[0m\n❯\n",
+			want:     true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := hasRecentQuestion(tt.captured)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

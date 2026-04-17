@@ -20,8 +20,8 @@ sonnet:
     @tmux new-session -d -s {{repo}}-sonnet-{{rand}} 'claude --dangerously-skip-permissions --model "sonnet"' && tmux attach -t {{repo}}-sonnet-{{rand}}
 
 # Start Claude with Opus model in tmux
-opus: r_mix
-    @tmux new-session -d -s {{repo}}-opus-{{rand}} 'claude --dangerously-skip-permissions' && tmux attach -t {{repo}}-opus-{{rand}}
+opus:
+    claude --dangerously-skip-permissions
 
 # Start Claude with Haiku model in tmux
 haiku:
