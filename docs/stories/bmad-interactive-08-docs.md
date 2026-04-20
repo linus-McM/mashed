@@ -1,6 +1,6 @@
 # bmad-interactive-08: Docs — mark spec implemented and update CLAUDE.md
 
-**Status:** ready
+**Status:** done
 **Domain:** docs-only
 **Size:** S
 **Depends On:** bmad-interactive-01, bmad-interactive-02, bmad-interactive-03, bmad-interactive-04, bmad-interactive-05, bmad-interactive-06, bmad-interactive-07

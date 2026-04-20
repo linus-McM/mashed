@@ -2,7 +2,7 @@
 
 > **Date:** 2026-04-17
 > **Scope:** First-class support for interactive BMAD processes (brainstorming, product-brief, party-mode, advanced-elicitation) with typed input/output contracts, declared suspension states, explicit downstream blocking, and iteration gates.
-> **Status:** Design spec — not yet implemented.
+> **Status:** Implemented (v1 shipped in stories S1-S7). See `docs/stories/bmad-interactive-0N-*.md`.
 > **Replaces:** Implicit tmux-heuristic gating in `internal/bmad/executor.go` (kept as fallback for autonomous nodes).
 > **Related:** `docs/repomixer/bmad-method/bmad-method.xml` (upstream BMAD reference), `internal/bmad/question.go` (current gate implementation).
 
@@ -66,6 +66,8 @@ Legacy tmux question/idle detection stays as a **fallback** for autonomous nodes
 ---
 
 ## 3. Core Types
+
+> Implemented in [`bmad-interactive-01-types.md`](stories/bmad-interactive-01-types.md).
 
 All new types live in `internal/bmad/types.go`. Existing types gain optional fields (marked `NEW`).
 
@@ -338,6 +340,8 @@ Key properties:
 
 ## 5. Executor Integration
 
+> Routing + suspension implemented in [`bmad-interactive-02`](stories/bmad-interactive-02-executor-routing.md) / [`bmad-interactive-03`](stories/bmad-interactive-03-suspension-respond.md); iteration gate + round loop in [`bmad-interactive-04`](stories/bmad-interactive-04-iteration-gate.md).
+
 ### 5.1 Routing
 
 `runDynamic`'s ready-set dispatch (`internal/bmad/executor.go:25481`) gains a branch on `Mode`:
@@ -531,6 +535,8 @@ These never fire for interactive nodes: the declared flow owns all pausing.
 
 ## 7. Persistence and Resume
 
+> Implemented in [`bmad-interactive-05`](stories/bmad-interactive-05-persistence-resume.md).
+
 ### 7.1 Snapshot triggers
 
 Snapshot is written to `~/.mashed/workflows/{id}/execution.json` on every:
@@ -695,6 +701,8 @@ func validateInput(spec InputSpec, value string) error {
 
 ## 9. Frontend Contract
 
+> Implemented in [`bmad-interactive-06`](stories/bmad-interactive-06-frontend-modal.md).
+
 ### 9.1 Status display
 
 `frontend/src/components/bmad/ProcessNode.svelte`:
@@ -741,6 +749,8 @@ Legacy `bmad:node:question` subscription stays for autonomous fallback path.
 ---
 
 ## 10. Reference Process Specs
+
+> Registry entries populated in [`bmad-interactive-07`](stories/bmad-interactive-07-registry-entries.md).
 
 Four `ProcessDef` entries in `internal/bmad/registry.go` gain Mode + InputSpecs + Gate. Presented as JSON snippets for readability.
 
@@ -975,14 +985,14 @@ Each round: `method` (with 5 fresh options) → apply → `apply-changes` (yes/n
 
 | Sprint story | Scope | Verification |
 |---|---|---|
-| S1: Types | Add new types to `types.go` + JSON round-trip tests | Existing tests pass; new table-driven test in `types_test.go` |
-| S2: Executor routing | Add `executeInteractiveNode` + routing switch; no-op for empty InputSpecs | All autonomous templates still run end-to-end |
-| S3: Suspension + RespondToInput | Suspension primitive, waiter channels, snapshot hooks | Integration test: node with one user input completes after RespondToInput |
-| S4: Iteration gate | Gate evaluator + round loop | Integration test: 3-round iterative process with `MaxRounds=3` auto-exits |
-| S5: Persistence | Snapshot extension + `GetBmadCurrentExecution` re-emit | Integration test: kill executor mid-awaiting, restart, snackbar re-appears |
-| S6: Frontend modal | `InputResponseModal.svelte` + shape widgets + snackbar rename | Playwright tests per shape (`tests/ac/bmad-input-*.spec.ts`) |
-| S7: Registry entries | Populate brainstorm / brief / party / elicitation entries | Smoke tests invoking each via the UI |
-| S8: Docs | Update `CLAUDE.md` BMAD section + this doc marked "implemented" | N/A |
+| [S1: Types](stories/bmad-interactive-01-types.md) | Add new types to `types.go` + JSON round-trip tests | Existing tests pass; new table-driven test in `types_test.go` |
+| [S2: Executor routing](stories/bmad-interactive-02-executor-routing.md) | Add `executeInteractiveNode` + routing switch; no-op for empty InputSpecs | All autonomous templates still run end-to-end |
+| [S3: Suspension + RespondToInput](stories/bmad-interactive-03-suspension-respond.md) | Suspension primitive, waiter channels, snapshot hooks | Integration test: node with one user input completes after RespondToInput |
+| [S4: Iteration gate](stories/bmad-interactive-04-iteration-gate.md) | Gate evaluator + round loop | Integration test: 3-round iterative process with `MaxRounds=3` auto-exits |
+| [S5: Persistence](stories/bmad-interactive-05-persistence-resume.md) | Snapshot extension + `GetBmadCurrentExecution` re-emit | Integration test: kill executor mid-awaiting, restart, snackbar re-appears |
+| [S6: Frontend modal](stories/bmad-interactive-06-frontend-modal.md) | `InputResponseModal.svelte` + shape widgets + snackbar rename | Playwright tests per shape (`tests/ac/bmad-input-*.spec.ts`) |
+| [S7: Registry entries](stories/bmad-interactive-07-registry-entries.md) | Populate brainstorm / brief / party / elicitation entries | Smoke tests invoking each via the UI |
+| [S8: Docs](stories/bmad-interactive-08-docs.md) | Update `CLAUDE.md` BMAD section + this doc marked "implemented" | N/A |
 
 ### 11.3 Rollback plan
 
