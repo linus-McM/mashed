@@ -217,7 +217,7 @@
   }
 
   .artifact-label {
-    color: var(--text-muted);
+    color: var(--text-secondary);
     flex-shrink: 0;
     font-weight: 600;
     text-transform: uppercase;
@@ -226,7 +226,7 @@
 
   .artifact-list {
     color: var(--text-primary);
-    font-weight: 500;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -360,7 +360,7 @@
     font-weight: 400;
     line-height: 1.3;
     font-variant-numeric: tabular-nums;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -370,7 +370,8 @@
   }
 
   .breadcrumb-row.unresolved {
-    opacity: 0.7;
+    color: var(--text-dim);
+    opacity: 1;
   }
 
   .artifacts.out-first {
