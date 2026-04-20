@@ -7,7 +7,25 @@ import (
 	"time"
 
 	"mashed/internal/bmad"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
+
+// appEmitHook is a test-only injection point for Wails event emission. When
+// non-nil, (*App).emitEvent calls the hook instead of runtime.EventsEmit so
+// unit tests can observe events without a live Wails context. Production
+// callers never set it.
+var appEmitHook func(eventName string, data ...any)
+
+// emitEvent fans a Wails event out to the frontend. Tests can intercept by
+// setting appEmitHook; otherwise the default is runtime.EventsEmit.
+func (a *App) emitEvent(event string, data ...any) {
+	if appEmitHook != nil {
+		appEmitHook(event, data...)
+		return
+	}
+	runtime.EventsEmit(a.ctx, event, data...)
+}
 
 // ── BMAD Workflow CRUD ──
 
@@ -161,14 +179,25 @@ func (a *App) StopBmadWorkflow(execID string) error {
 	return a.bmadExecutor.StopWorkflow(execID)
 }
 
-// RespondToQuestion injects a user's answer into the Claude CLI tmux pane for
-// the given node and dispatches Enter. Used by the frontend Question modal to
-// unblock a workflow that is waiting on interactive input.
+// RespondToQuestion is the legacy response shim for autonomous nodes whose
+// tmux pane surfaced an unstructured Claude CLI question. Interactive
+// processes (schema §3) should use RespondToInput instead.
 func (a *App) RespondToQuestion(execID, nodeID, answer string) error {
 	if a.bmadExecutor == nil {
-		return fmt.Errorf("bmad executor not initialized")
+		return bmad.ErrExecNotInitialized
 	}
-	return a.bmadExecutor.RespondToQuestion(execID, nodeID, answer)
+	return a.bmadExecutor.RespondToQuestionLegacy(execID, nodeID, answer)
+}
+
+// RespondToInput records a user-supplied answer for a suspended interactive
+// node input (schema §8.2). Validation failures emit EventInputInvalid and
+// return a wrapped sentinel; the node stays in NodeAwaitingInput so the UI
+// can retry without re-suspending.
+func (a *App) RespondToInput(execID, nodeID, inputID, value string) error {
+	if a.bmadExecutor == nil {
+		return bmad.ErrExecNotInitialized
+	}
+	return a.bmadExecutor.RespondToInput(execID, nodeID, inputID, value)
 }
 
 // GetBmadExecution returns the current state of an execution.
@@ -194,7 +223,42 @@ func (a *App) GetBmadCurrentExecution(repoPath string) (*bmad.WorkflowExecution,
 	if a.bmadExecutor == nil {
 		return nil, fmt.Errorf("bmad executor not initialized")
 	}
-	return a.bmadExecutor.GetCurrentExecution(repoPath)
+	exec, err := a.bmadExecutor.GetCurrentExecution(repoPath)
+	if err != nil {
+		return nil, err
+	}
+	// Fallback: when no in-memory execution matches (cold start / app
+	// restart), scan the on-disk snapshot directory for a non-terminal
+	// execution tagged with this repoPath (§7.2).
+	if exec == nil {
+		loaded, lerr := bmad.LoadExecutionFromDisk(repoPath)
+		if lerr != nil {
+			return nil, lerr
+		}
+		exec = loaded
+	}
+	if exec == nil {
+		return nil, nil
+	}
+	// Terminal executions must not surface to the restore-on-mount path —
+	// there is nothing live to resume.
+	if exec.Status == bmad.ExecComplete || exec.Status == bmad.ExecFailed {
+		return nil, nil
+	}
+
+	// Re-emit awaiting_input for every pending prompt so the frontend
+	// snackbar re-appears after restart. Deferred to a goroutine so the
+	// return happens first — the UI subscribes on mount and would miss
+	// events fired before the bindings resolve.
+	if len(exec.PendingPrompts) > 0 {
+		prompts := append([]bmad.PendingPrompt(nil), exec.PendingPrompts...)
+		go func() {
+			for _, p := range prompts {
+				a.emitEvent("bmad:node:awaiting_input", p)
+			}
+		}()
+	}
+	return exec, nil
 }
 
 // ── BMAD Agent Management ──

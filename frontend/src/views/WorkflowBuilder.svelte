@@ -40,7 +40,21 @@
   import OutputViewerModal from '../components/bmad/OutputViewerModal.svelte';
   import ArrayEditorModal from '../components/bmad/ArrayEditorModal.svelte';
   import QuestionResponseModal from '../components/bmad/QuestionResponseModal.svelte';
+  import InputResponseModal from '../components/bmad/InputResponseModal.svelte';
+  import NodeInputSnackbarStack from '../components/bmad/NodeInputSnackbarStack.svelte';
   import NameWorkflowModal from '../components/bmad/NameWorkflowModal.svelte';
+  import {
+    interactiveInput,
+    upsertPrompt,
+    resolveInput,
+    setValidationError,
+    updateRound,
+    openModal as openInteractiveModal,
+    closeModal as closeInteractiveModal,
+    openModalForNode,
+    pushToast,
+    dismissNode,
+  } from '../stores/interactiveInput';
   import SkillEditorModal from '../components/bmad/SkillEditorModal.svelte';
   import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
   import CanvasFailureToast from '../components/bmad/CanvasFailureToast.svelte';
@@ -578,12 +592,137 @@
     refetchMashedAssets();
   });
 
+  // S6: interactive input event wiring (awaiting_input / input_resolved /
+  // input_invalid / round_complete / gate_satisfied / round_limit / aborted).
+  function annotatePrompt(payload) {
+    if (!payload || !payload.nodeId) return null;
+    const node = $nodes.find((n) => n.id === payload.nodeId);
+    const process = node?.data?.process || {};
+    const specs = Array.isArray(process.inputSpecs) ? process.inputSpecs : [];
+    const spec = specs.find((s) => s && s.id === payload.inputId) || {};
+    return {
+      execId: payload.execId || executionId || '',
+      nodeId: payload.nodeId,
+      inputId: payload.inputId,
+      prompt: payload.prompt,
+      shape: payload.shape,
+      options: payload.options || [],
+      round: payload.round || 0,
+      createdAt: payload.createdAt || Date.now(),
+      promptId: payload.promptId || '',
+      required: payload.required !== undefined ? payload.required : (spec.required ?? true),
+      helpText: payload.helpText || spec.helpText || '',
+      maxLength: payload.maxLength || spec.maxLength || 0,
+      maxRounds: payload.maxRounds || process.gate?.maxRounds || 0,
+      repoName: repoPath ? repoPath.split('/').pop() : '',
+      repoPath,
+    };
+  }
+
+  function applyNodeDataPatch(nodeId, patch) {
+    $nodes = $nodes.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, ...patch } } : n));
+  }
+
+  function flashGate(nodeId) {
+    applyNodeDataPatch(nodeId, { gateFlash: true, status: 'complete' });
+    setTimeout(() => applyNodeDataPatch(nodeId, { gateFlash: false }), 400);
+  }
+
+  const bmadEventHandlers = {
+    'bmad:node:awaiting_input': (event) => {
+      if (executionId && event?.execId && event.execId !== executionId) return;
+      const prompt = annotatePrompt(event);
+      if (!prompt) return;
+      upsertPrompt(prompt);
+      applyNodeDataPatch(prompt.nodeId, { status: 'awaiting_input' });
+      if (prompt.round > 0) updateRound(prompt.nodeId, prompt.round);
+    },
+    'bmad:node:input_resolved': (event) => {
+      if (!event?.nodeId || !event?.inputId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      resolveInput(event.nodeId, event.inputId);
+    },
+    'bmad:node:input_invalid': (event) => {
+      if (!event?.nodeId || !event?.inputId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      setValidationError(event.nodeId, event.inputId, event.reason || 'Invalid input');
+    },
+    'bmad:node:round_complete': (event) => {
+      if (!event?.nodeId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      updateRound(event.nodeId, event.round || 0);
+      applyNodeDataPatch(event.nodeId, { nodeRound: event.round || 0 });
+    },
+    'bmad:node:gate_satisfied': (event) => {
+      if (!event?.nodeId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      dismissNode(event.nodeId);
+      flashGate(event.nodeId);
+      pushToast('success', event.reason || 'Gate satisfied');
+    },
+    'bmad:node:round_limit': (event) => {
+      if (!event?.nodeId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      dismissNode(event.nodeId);
+      flashGate(event.nodeId);
+      pushToast('warn', 'Reached round limit — process ended');
+    },
+    'bmad:node:aborted': (event) => {
+      if (!event?.nodeId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      dismissNode(event.nodeId);
+      applyNodeDataPatch(event.nodeId, { status: 'failed' });
+      pushToast('error', event.reason || 'Node aborted');
+    },
+  };
+
+  const bmadListenerCancels = Object.entries(bmadEventHandlers).map(([name, fn]) => EventsOn(name, fn));
+
+  if (import.meta.env.DEV && typeof window !== 'undefined') {
+    window.__mashedEmitBmadEvent = (name, payload) => {
+      const fn = bmadEventHandlers[name];
+      if (!fn) return false;
+      fn(payload);
+      return true;
+    };
+  }
+
+  // Skip for non-required prompts: send an empty string; backend treats as skip.
+  async function handleInputSkip(prompt) {
+    if (!prompt) return;
+    try {
+      const { RespondToInput } = await import('../../wailsjs/go/main/App.js');
+      await RespondToInput(prompt.execId || executionId || '', prompt.nodeId, prompt.inputId, '');
+    } catch (e) {
+      console.warn('skip input failed', e);
+    }
+  }
+
+  // Sync rounds store -> node data so ProcessNode re-renders round counter.
+  $: if ($interactiveInput.rounds) {
+    const patches = $interactiveInput.rounds;
+    let changed = false;
+    const next = $nodes.map((n) => {
+      const r = patches[n.id];
+      if (typeof r === 'number' && n.data?.nodeRound !== r) {
+        changed = true;
+        return { ...n, data: { ...n.data, nodeRound: r } };
+      }
+      return n;
+    });
+    if (changed) $nodes = next;
+  }
+
   onDestroy(() => {
     if (cancelStatusListener) cancelStatusListener();
     if (cancelArtifactListener) cancelArtifactListener();
     if (cancelExecListener) cancelExecListener();
     if (cancelSprintListener) cancelSprintListener();
     if (cancelAssetsListener) cancelAssetsListener();
+    bmadListenerCancels.forEach((c) => c && c());
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      delete window.__mashedEmitBmadEvent;
+    }
     clearTimeout(flashTimer);
     clearTimeout(errorTimer);
     clearTimeout(autoFillSaveTimer);
@@ -686,7 +825,12 @@
 
   function onNodeClick(detail) {
     const node = detail.node;
-    if (node) selectedNode = node;
+    if (node) {
+      selectedNode = node;
+      if (node.data?.status === 'awaiting_input') {
+        openModalForNode(node.id);
+      }
+    }
   }
 
   function onNodesDelete(deletedNodes) {
@@ -1350,6 +1494,23 @@
       question={activeQuestion}
       on:responded={handleQuestionResponded}
       on:close={handleQuestionClose}
+    />
+  {/if}
+
+  <!-- S6: Interactive input snackbar + modal. Snackbar surfaces all
+       PendingPrompts in the store; clicking a Respond button opens the modal. -->
+  <NodeInputSnackbarStack
+    pendingPrompts={$interactiveInput.pendingPrompts}
+    on:respond={(e) => openInteractiveModal(e.detail.prompt)}
+    on:skip={(e) => handleInputSkip(e.detail.prompt)}
+  />
+
+  {#if $interactiveInput.activeModal}
+    <InputResponseModal
+      prompt={$interactiveInput.activeModal}
+      execId={executionId || $interactiveInput.activeModal.execId || ''}
+      repoName={repoPath ? repoPath.split('/').pop() : ''}
+      on:close={closeInteractiveModal}
     />
   {/if}
 

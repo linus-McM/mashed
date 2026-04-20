@@ -278,6 +278,10 @@ export function RepoStatus(arg1) {
   return window['go']['main']['App']['RepoStatus'](arg1);
 }
 
+export function RespondToInput(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['RespondToInput'](arg1, arg2, arg3, arg4);
+}
+
 export function RespondToQuestion(arg1, arg2, arg3) {
   return window['go']['main']['App']['RespondToQuestion'](arg1, arg2, arg3);
 }

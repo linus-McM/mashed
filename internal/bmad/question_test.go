@@ -25,9 +25,11 @@ func questionTestWorkflow(id string) WorkflowDef {
 		Name: "Question Test " + id,
 		Nodes: []WorkflowNode{
 			{
-				ID:        "node-A",
-				ProcessID: "bmad-brainstorming",
-				Label:     "Brainstorm",
+				ID: "node-A",
+				// bmad-domain-research is autonomous; bmad-brainstorming is
+				// interactive after S7 and would suspend waiting for user input.
+				ProcessID: "bmad-domain-research",
+				Label:     "Domain Research",
 				Position:  Position{X: 0, Y: 0},
 				Status:    NodePending,
 				Config:    map[string]string{},

@@ -47,6 +47,20 @@
   --duration-medium: 150ms;
   --overlay-backdrop: rgba(0, 0, 0, 0.6);
   --glow-spread: 0 0 12px;
+
+  /* S6 interactive prompt tokens */
+  --modal-width-min: 360px;
+  --modal-width-wide: 720px;
+  --modal-height-editor: 480px;
+  --duration-shake: 250ms;
+  --duration-tick: 600ms;
+  --duration-flash: 400ms;
+  --z-canvas: 1;
+  --z-snackbar: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --btn-min-wide: 96px;
+  --font-code: 'JetBrains Mono', 'Geist Mono', ui-monospace, monospace;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
