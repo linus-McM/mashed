@@ -145,6 +145,8 @@ export function RepoStatus(arg1:string):Promise<main.RepoStatusInfo>;
 
 export function RespondToQuestion(arg1:string,arg2:string,arg3:string):Promise<void>;
 
+export function RespondToInput(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
+
 export function ResumeBmadWorkflow(arg1:string):Promise<void>;
 
 export function SaveBmadAgent(arg1:bmad.BmadAgentConfig):Promise<void>;

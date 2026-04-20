@@ -1,6 +1,6 @@
 <script>
   import { Handle, Position } from '@xyflow/svelte';
-  import { Search, Briefcase, Palette, Building2, Code, FileText, TestTube } from 'lucide-svelte';
+  import { Search, Briefcase, Palette, Building2, Code, FileText, TestTube, MessageCircleQuestion } from 'lucide-svelte';
   import { getNodePath, formatBreadcrumb } from '../../lib/bmad/nodePath';
 
   export let data = {};
@@ -39,11 +39,25 @@
   $: storyStatus = data.storyStatus || '';
   $: artifactStatus = data.artifactStatus || null;
   $: hasArtifacts = artifactStatus && (artifactStatus.found?.length > 0 || artifactStatus.missing?.length > 0);
+  $: nodeRound = data.nodeRound || 0;
+  $: maxRounds = process.gate?.maxRounds || data.maxRounds || 0;
+  $: gateFlash = !!data.gateFlash;
+  $: roundText = (() => {
+    if (!nodeRound || nodeRound <= 0) return '';
+    if (maxRounds > 0) return `${nodeRound} / ${maxRounds}`;
+    return `${nodeRound} rounds`;
+  })();
 
   import { storyStatusColors } from '../../lib/sprintColors.js';
 </script>
 
-<div class="process-node" class:selected class:running={status === 'running'}>
+<div
+  class="process-node"
+  class:selected
+  class:running={status === 'running'}
+  class:awaiting={status === 'awaiting_input'}
+  class:gate-flash={gateFlash}
+>
   <div class="phase-bar" style="background: {phaseColor}" />
 
   <div class="node-body">
@@ -84,6 +98,10 @@
       </div>
     {/each}
 
+    {#if roundText}
+      <div class="round-counter" data-testid="round-counter">{roundText}</div>
+    {/if}
+
     <div class="status-row">
       {#if status === 'pending'}
         <span class="status-dot pending" />
@@ -91,6 +109,11 @@
       {:else if status === 'running'}
         <span class="status-dot running-dot" />
         <span class="status-text running-text">running</span>
+      {:else if status === 'awaiting_input'}
+        <span class="awaiting-badge" aria-label="Awaiting input" data-testid="awaiting-badge">
+          <MessageCircleQuestion size={11} />
+        </span>
+        <span class="status-text awaiting-text">awaiting</span>
       {:else if status === 'complete'}
         <span class="status-check">&#10003;</span>
         <span class="status-text complete-text">complete</span>
@@ -352,5 +375,69 @@
 
   .artifacts.out-first {
     margin-top: var(--sp-2xs);
+  }
+
+  /* S6: awaiting_input badge + round counter */
+  .awaiting-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent-amber) 15%, transparent);
+    color: var(--accent-amber);
+    flex-shrink: 0;
+  }
+
+  .awaiting-text { color: var(--accent-amber); }
+
+  .round-counter {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent-amber);
+    letter-spacing: 0.04em;
+    padding-top: var(--sp-2xs);
+    margin-top: var(--sp-2xs);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .process-node.awaiting .awaiting-badge {
+      animation: awaiting-pulse 1800ms var(--ease-move) infinite;
+    }
+    .process-node.awaiting {
+      animation: awaiting-node-pulse 1800ms var(--ease-move) infinite;
+    }
+  }
+
+  @keyframes awaiting-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-amber) 0%, transparent);
+      background: color-mix(in srgb, var(--accent-amber) 15%, transparent);
+    }
+    50% {
+      box-shadow: var(--glow-spread) color-mix(in srgb, var(--accent-amber) 60%, transparent);
+      background: color-mix(in srgb, var(--accent-amber) 30%, transparent);
+    }
+  }
+
+  @keyframes awaiting-node-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-amber) 0%, transparent); }
+    50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-amber) 25%, transparent); }
+  }
+
+  .process-node.gate-flash {
+    animation: gate-flash var(--duration-flash) var(--ease-exit) 1;
+  }
+
+  @keyframes gate-flash {
+    0% { background: color-mix(in srgb, var(--accent-amber) 30%, transparent); }
+    50% {
+      background: color-mix(in srgb, var(--accent-green) 40%, transparent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-green) 35%, transparent);
+    }
+    100% { background: var(--bg-elevated); }
   }
 </style>

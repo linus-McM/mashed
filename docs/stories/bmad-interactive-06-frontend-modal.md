@@ -1,6 +1,6 @@
 # bmad-interactive-06: Frontend modal + snackbar + shape widgets
 
-**Status:** ready
+**Status:** done
 **Domain:** frontend
 **Size:** L
 **Depends On:** bmad-interactive-03 (event contract)
