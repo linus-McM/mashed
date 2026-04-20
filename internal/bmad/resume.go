@@ -76,7 +76,7 @@ func (e *Executor) resumeInteractiveNode(ctx context.Context, state *execState, 
 	}
 
 	recap := renderRecap(proc, history)
-	prompt := buildInteractivePrompt(proc, resolved) + "\n\n## Previous session recap\n" + recap
+	prompt := buildInteractivePrompt(proc, resolved, state, nodeID) + "\n\n## Previous session recap\n" + recap
 
 	// Short session name keeps the resume tmux argv concise; the
 	// spawnCommandSession path uses a longer repo/branch-prefixed name

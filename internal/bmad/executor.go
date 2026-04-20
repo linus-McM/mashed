@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -514,7 +515,13 @@ func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, m
 					state.mu.Lock()
 					procID := state.exec.Nodes[idx].ProcessID
 					state.mu.Unlock()
-					if proc, ok := ProcessByID(procID); ok {
+					// util-file-loader is a synchronous utility: read the
+					// configured file into NodeOutputs/OutputPaths so
+					// downstream nodes receive the contents through the
+					// normal context-building path. No tmux, no claude.
+					if procID == "util-file-loader" {
+						e.executeFileLoader(ctx, state, nodeIndex, nID, repoPath)
+					} else if proc, ok := ProcessByID(procID); ok {
 						switch proc.Mode {
 						case InteractGuided, InteractIterative, InteractParty:
 							if testHookExecuteInteractiveNode != nil {
@@ -1812,6 +1819,114 @@ func (e *Executor) executeMultiFileLoader(ctx context.Context, state *execState,
 	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeComplete})
 }
 
+// fileLoaderMaxBytes caps how much of the configured file flows into
+// NodeOutputs. 256 KiB is generous for text artifacts (the spec docs cap
+// at ~8 KiB for context injection; the full contents live on disk via
+// OutputPaths for callers that need them).
+const fileLoaderMaxBytes = 256 * 1024
+
+// executeFileLoader reads the file configured on a util-file-loader node
+// into NodeOutputs (contents, capped) and OutputPaths["file-path"]
+// (absolute path). This is the synchronous replacement for the previous
+// behaviour of spawning an empty-skill claude session that did nothing
+// useful. Downstream nodes — both autonomous (buildContextStringV3) and
+// interactive (buildInteractivePrompt) — pick up the upstream output
+// through the normal context path.
+func (e *Executor) executeFileLoader(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID, repoPath string) {
+	state.mu.Lock()
+	idx := nodeIndex[nodeID]
+	cfg := make(map[string]string, len(state.exec.Nodes[idx].Config))
+	for k, v := range state.exec.Nodes[idx].Config {
+		cfg[k] = v
+	}
+	if state.exec.NodeOutputs == nil {
+		state.exec.NodeOutputs = make(map[string]string)
+	}
+	state.mu.Unlock()
+
+	// Mark running so the UI shows the transition before the read.
+	e.setStatus(state, idx, nodeID, NodeRunning)
+
+	raw := strings.TrimSpace(cfg["filePath"])
+	if raw == "" {
+		e.recordNodeError(state, idx, nodeID, "bmad: file loader: filePath not configured")
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	abs := raw
+	if !filepath.IsAbs(abs) {
+		abs = filepath.Join(repoPath, raw)
+	}
+	abs = filepath.Clean(abs)
+
+	// Containment check for relative paths mirrors MultiFileLoader. Absolute
+	// paths are allowed (user explicitly picked a file outside the repo).
+	if !filepath.IsAbs(raw) && repoPath != "" {
+		rel, err := filepath.Rel(filepath.Clean(repoPath), abs)
+		if err != nil || strings.HasPrefix(rel, "..") {
+			e.recordNodeError(state, idx, nodeID, fmt.Sprintf("bmad: file loader: %s is outside repo root", raw))
+			e.failNode(state, idx, nodeID)
+			return
+		}
+	}
+
+	info, err := os.Stat(abs)
+	if err != nil {
+		e.recordNodeError(state, idx, nodeID, fmt.Sprintf("bmad: file loader: stat %s: %v", abs, err))
+		e.failNode(state, idx, nodeID)
+		return
+	}
+	if info.IsDir() {
+		e.recordNodeError(state, idx, nodeID, fmt.Sprintf("bmad: file loader: %s is a directory", abs))
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	contents, err := os.ReadFile(abs)
+	if err != nil {
+		e.recordNodeError(state, idx, nodeID, fmt.Sprintf("bmad: file loader: read %s: %v", abs, err))
+		e.failNode(state, idx, nodeID)
+		return
+	}
+	truncated := false
+	if len(contents) > fileLoaderMaxBytes {
+		contents = contents[:fileLoaderMaxBytes]
+		truncated = true
+	}
+
+	state.mu.Lock()
+	state.exec.NodeOutputs[nodeID] = string(contents)
+	if state.exec.Nodes[idx].OutputPaths == nil {
+		state.exec.Nodes[idx].OutputPaths = map[string]string{}
+	}
+	state.exec.Nodes[idx].OutputPaths["file-path"] = abs
+	state.mu.Unlock()
+
+	e.emit("bmad:node:artifacts", NodeArtifactEvent{
+		ExecID: state.exec.ID,
+		NodeID: nodeID,
+		Found:  []string{"file-path"},
+		Paths:  map[string]string{"file-path": abs},
+	})
+	if truncated {
+		log.Printf("bmad: file loader %s truncated %s at %d bytes", nodeID, abs, fileLoaderMaxBytes)
+	}
+
+	e.completeNode(state, idx, nodeID)
+}
+
+// recordNodeError stores a user-visible error string in NodeOutputs so the
+// UI can surface it through the usual output-inspection path.
+func (e *Executor) recordNodeError(state *execState, idx int, nodeID, msg string) {
+	state.mu.Lock()
+	if state.exec.NodeOutputs == nil {
+		state.exec.NodeOutputs = make(map[string]string)
+	}
+	state.exec.NodeOutputs[nodeID] = msg
+	state.mu.Unlock()
+}
+
 // extractRegex applies a regex to input and returns the first capture group
 // (or the full match if no groups). Returns "" on no match or invalid pattern.
 func extractRegex(input, pattern string) string {
@@ -2125,7 +2240,7 @@ func (e *Executor) executeInteractiveNode(
 	}
 
 	// C. Start tmux session carrying the rendered prompt.
-	prompt := buildInteractivePrompt(proc, resolved)
+	prompt := buildInteractivePrompt(proc, resolved, state, nodeID)
 	innerCommand := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s %q`, model, prompt)
 	target, err := e.spawnCommandSession(ctx, state, nodeIndex, nodeID, repoPath, innerCommand)
 	if err != nil {
@@ -2561,10 +2676,27 @@ func loadRegistryCSV(path string) ([][]string, error) {
 	return rows, nil
 }
 
+// interactivePromptUpstreamCap bounds how much upstream content embeds
+// per upstream node. The autonomous path caps at 2000 (upstreamOutputCap);
+// interactive nodes can afford more since the whole prompt isn't fighting a
+// tmux context window — 8 KiB gives enough room for a loaded file.
+const interactivePromptUpstreamCap = 8 * 1024
+
 // buildInteractivePrompt renders a markdown prompt block for an interactive
 // process, mirroring the autonomous buildContextStringV3 shape so claude sees
-// a familiar structure.
-func buildInteractivePrompt(proc ProcessDef, resolved resolvedInputs) string {
+// a familiar structure. It includes:
+//   - the process name + description
+//   - the resolved InputSpecs (user answers, file artifacts, env, registry)
+//   - any upstream nodes wired via incoming edges — their NodeOutputs go
+//     into a "## Upstream context" block and their OutputPaths into a
+//     "**Path:**" line so File Loader + similar utilities automatically
+//     surface to the session without requiring an explicit InputFromUpstream
+//     spec.
+//
+// state/nodeID are optional: pass nil/"" (resume flow) to skip upstream
+// injection and render spec-only — callers that already composed a recap
+// block don't need duplicate upstream content.
+func buildInteractivePrompt(proc ProcessDef, resolved resolvedInputs, state *execState, nodeID string) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# %s\n\n", proc.Name)
 	if proc.Description != "" {
@@ -2581,8 +2713,82 @@ func buildInteractivePrompt(proc ProcessDef, resolved resolvedInputs) string {
 			}
 			fmt.Fprintf(&b, "- %s: %s\n", spec.ID, truncate(v, upstreamOutputCap))
 		}
+		b.WriteString("\n")
+	}
+	if state != nil && nodeID != "" {
+		appendUpstreamContext(&b, state, nodeID)
 	}
 	return b.String()
+}
+
+// appendUpstreamContext writes one "## Upstream context — {label} ({id})"
+// block per incoming edge whose source produced either a NodeOutputs entry
+// or an OutputPaths["file-path"] entry. Order is stable by source nodeID
+// so successive calls are deterministic.
+func appendUpstreamContext(b *strings.Builder, state *execState, nodeID string) {
+	state.mu.Lock()
+	// Collect unique upstream node IDs from the outEdges adjacency list.
+	var sources []string
+	seen := map[string]struct{}{}
+	for _, edges := range state.outEdges {
+		for _, edge := range edges {
+			if edge.Target != nodeID {
+				continue
+			}
+			if _, dup := seen[edge.Source]; dup {
+				continue
+			}
+			seen[edge.Source] = struct{}{}
+			sources = append(sources, edge.Source)
+		}
+	}
+	// Index by node ID for O(1) lookup on the snapshot pass.
+	byID := make(map[string]WorkflowNode, len(state.exec.Nodes))
+	for _, n := range state.exec.Nodes {
+		byID[n.ID] = n
+	}
+	type upstream struct {
+		id       string
+		label    string
+		output   string
+		filePath string
+	}
+	upstreams := make([]upstream, 0, len(sources))
+	for _, src := range sources {
+		node, ok := byID[src]
+		if !ok {
+			continue
+		}
+		up := upstream{id: src, label: node.Label}
+		if up.label == "" {
+			up.label = src
+		}
+		if v, ok := state.exec.NodeOutputs[src]; ok {
+			up.output = v
+		}
+		if node.OutputPaths != nil {
+			if p, ok := node.OutputPaths["file-path"]; ok {
+				up.filePath = p
+			}
+		}
+		if up.output == "" && up.filePath == "" {
+			continue
+		}
+		upstreams = append(upstreams, up)
+	}
+	state.mu.Unlock()
+
+	sort.Slice(upstreams, func(i, j int) bool { return upstreams[i].id < upstreams[j].id })
+	for _, up := range upstreams {
+		fmt.Fprintf(b, "## Upstream context — %s (%s)\n", up.label, up.id)
+		if up.filePath != "" {
+			fmt.Fprintf(b, "**Path:** %s\n", up.filePath)
+		}
+		if up.output != "" {
+			fmt.Fprintf(b, "\n```\n%s\n```\n", truncate(up.output, interactivePromptUpstreamCap))
+		}
+		b.WriteString("\n")
+	}
 }
 
 // verifyOutputs checks every declared OutputSpec against the filesystem
