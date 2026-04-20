@@ -100,6 +100,52 @@ func (e *Executor) resumeInteractiveNode(ctx context.Context, state *execState, 
 	return nil
 }
 
+// RehydrateFromSnapshot registers a disk-loaded WorkflowExecution back into
+// the executor's in-memory map so subsequent calls to RespondToInput,
+// GetExecution, StopWorkflow, etc. find it through getState(execID). Without
+// this step, a restored execution has a live snackbar (re-emit in
+// GetBmadCurrentExecution) but Send fails with ErrExecNotFound because the
+// executor has no memory of the exec (§7.2 resume gap).
+//
+// Safe to call repeatedly: if the execID already lives in the map the
+// existing state is returned unchanged. Spawns a rehydratePending pass so
+// each PendingPrompt gains a waiter goroutine. Does NOT re-spawn the round
+// loop — the user can respond to the outstanding prompt, but the
+// subsequent round will not auto-advance until the executor gains a
+// proper resume-from-round-N path (deferred).
+func (e *Executor) RehydrateFromSnapshot(exec *WorkflowExecution) (*execState, error) {
+	if exec == nil || exec.ID == "" {
+		return nil, fmt.Errorf("RehydrateFromSnapshot: nil or missing exec ID")
+	}
+	e.mu.Lock()
+	if existing, ok := e.executions[exec.ID]; ok {
+		e.mu.Unlock()
+		return existing, nil
+	}
+	// Build edge + in-degree maps from the snapshot so ready-set math and
+	// upstream-context helpers work against the rehydrated state even
+	// though no round loop is running.
+	inDegree := make(map[string]int, len(exec.Nodes))
+	outEdgesMap := map[string][]WorkflowEdge{}
+	for _, n := range exec.Nodes {
+		inDegree[n.ID] = 0
+	}
+	state := &execState{
+		exec:             exec,
+		cancel:           func() {}, // resume has no owning ctx; stop is a no-op
+		inDegree:         inDegree,
+		outEdges:         outEdgesMap,
+		lastQuestionHash: map[string]string{},
+		lastOutputHash:   map[string]string{},
+		idleEmitted:      map[string]bool{},
+	}
+	e.executions[exec.ID] = state
+	e.mu.Unlock()
+
+	e.rehydratePending(state)
+	return state, nil
+}
+
 // rehydratePending re-launches a waiter goroutine per PendingPrompt on restore
 // so a subsequent RespondToInput can release the blocked responder exactly as
 // it would during normal runtime (§7.1). The waiter channel is registered

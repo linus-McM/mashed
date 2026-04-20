@@ -616,3 +616,107 @@ func TestStopWhileAwaitingRestoreProducesAbortedState(t *testing.T) {
 			"if this passes trivially because in-memory map is empty, the go-engineer "+
 			"must also add disk-load+filter logic to CurrentExecution for the restore-on-mount path")
 }
+
+// TestRehydrateFromSnapshot_RegistersExecForRespond addresses the gap where
+// GetBmadCurrentExecution loaded a snapshot + re-emitted awaiting_input but
+// RespondToInput subsequently failed with ErrExecNotFound because the
+// executor never registered the exec back into its in-memory map.
+func TestRehydrateFromSnapshot_RegistersExecForRespond(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	exec := NewExecutor(storage, func(string, interface{}) {})
+
+	snap := &WorkflowExecution{
+		ID:       "exec-rehydrate-test",
+		RepoPath: "/tmp/demo-repo",
+		Status:   ExecRunning,
+		Nodes: []WorkflowNode{{
+			ID:        "party",
+			ProcessID: "test-rehydrate-proc",
+			Status:    NodeAwaitingInput,
+		}},
+		PendingPrompts: []PendingPrompt{{
+			NodeID: "party", InputID: "message", Prompt: "turn?", Shape: ShapeFree, Round: 2, PromptID: "abc123",
+		}},
+	}
+	testRegistry = append(testRegistry, ProcessDef{
+		ID:         "test-rehydrate-proc",
+		Mode:       InteractParty,
+		SkillName:  "test",
+		InputSpecs: []InputSpec{{ID: "message", Source: InputFromUser, Shape: ShapeFree}},
+	})
+	t.Cleanup(func() { testRegistry = testRegistry[:len(testRegistry)-1] })
+
+	// Before rehydrate: getState must fail.
+	if _, err := exec.getState(snap.ID); err == nil {
+		t.Fatalf("expected ErrExecNotFound before rehydrate")
+	}
+
+	if _, err := exec.RehydrateFromSnapshot(snap); err != nil {
+		t.Fatalf("RehydrateFromSnapshot: %v", err)
+	}
+
+	state, err := exec.getState(snap.ID)
+	if err != nil {
+		t.Fatalf("getState after rehydrate: %v", err)
+	}
+	if state.exec.ID != snap.ID {
+		t.Fatalf("wrong exec in map: %s", state.exec.ID)
+	}
+
+	// Responding must succeed end-to-end: validates, stores value, signals
+	// the waiter goroutine spawned by rehydratePending.
+	if err := exec.RespondToInput(snap.ID, "party", "message", "hello"); err != nil {
+		t.Fatalf("RespondToInput after rehydrate: %v", err)
+	}
+
+	// Give rehydratePending's goroutine a moment to observe the released
+	// waiter and flip status back to running + remove the prompt.
+	for i := 0; i < 50; i++ {
+		state.mu.Lock()
+		done := len(state.exec.PendingPrompts) == 0
+		state.mu.Unlock()
+		if done {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	state.mu.Lock()
+	got := state.exec.NodeInputs["party"]["message"]
+	prompts := len(state.exec.PendingPrompts)
+	state.mu.Unlock()
+	if got != "hello" {
+		t.Fatalf("NodeInputs[party][message] = %q; want hello", got)
+	}
+	if prompts != 0 {
+		t.Fatalf("PendingPrompts still has %d entries after respond", prompts)
+	}
+}
+
+func TestRehydrateFromSnapshot_IdempotentOnSecondCall(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	exec := NewExecutor(storage, func(string, interface{}) {})
+	snap := &WorkflowExecution{ID: "exec-idem", RepoPath: "/r", Status: ExecRunning, Nodes: []WorkflowNode{{ID: "n", Status: NodeRunning}}}
+	s1, err := exec.RehydrateFromSnapshot(snap)
+	if err != nil {
+		t.Fatalf("first: %v", err)
+	}
+	s2, err := exec.RehydrateFromSnapshot(snap)
+	if err != nil {
+		t.Fatalf("second: %v", err)
+	}
+	if s1 != s2 {
+		t.Fatalf("second rehydrate returned a different state pointer")
+	}
+}

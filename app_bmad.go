@@ -230,12 +230,14 @@ func (a *App) GetBmadCurrentExecution(repoPath string) (*bmad.WorkflowExecution,
 	// Fallback: when no in-memory execution matches (cold start / app
 	// restart), scan the on-disk snapshot directory for a non-terminal
 	// execution tagged with this repoPath (§7.2).
+	fromDisk := false
 	if exec == nil {
 		loaded, lerr := bmad.LoadExecutionFromDisk(repoPath)
 		if lerr != nil {
 			return nil, lerr
 		}
 		exec = loaded
+		fromDisk = exec != nil
 	}
 	if exec == nil {
 		return nil, nil
@@ -244,6 +246,15 @@ func (a *App) GetBmadCurrentExecution(repoPath string) (*bmad.WorkflowExecution,
 	// there is nothing live to resume.
 	if exec.Status == bmad.ExecComplete || exec.Status == bmad.ExecFailed {
 		return nil, nil
+	}
+	// Register a disk-loaded exec back into the executor's in-memory map
+	// so RespondToInput / StopWorkflow / GetExecution can find it. Without
+	// this the snackbar re-appears but Send fails with "execution not
+	// found" because the executor had no memory of the exec after restart.
+	if fromDisk {
+		if _, rerr := a.bmadExecutor.RehydrateFromSnapshot(exec); rerr != nil {
+			return nil, rerr
+		}
 	}
 
 	// Re-emit awaiting_input for every pending prompt so the frontend
