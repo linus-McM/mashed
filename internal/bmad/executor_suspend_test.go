@@ -47,12 +47,13 @@ func hookEvents(t *testing.T) func() []struct{ name string; payload interface{} 
 	t.Helper()
 	var mu sync.Mutex
 	var captured []struct{ name string; payload interface{} }
-	testEventHook = func(event string, payload interface{}) {
+	hook := func(event string, payload interface{}) {
 		mu.Lock()
 		captured = append(captured, struct{ name string; payload interface{} }{event, payload})
 		mu.Unlock()
 	}
-	t.Cleanup(func() { testEventHook = nil })
+	testEventHook.Store(hook)
+	t.Cleanup(func() { testEventHook.Store((func(event string, payload interface{}))(nil)) })
 	return func() []struct{ name string; payload interface{} } {
 		mu.Lock()
 		defer mu.Unlock()

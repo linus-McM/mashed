@@ -1,6 +1,6 @@
 # bmad-interactive-05: Persistence extension + restore-on-mount re-emit
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends On:** bmad-interactive-03
@@ -271,9 +271,9 @@ Feature: Persistence and resume for interactive processes
 - [ ] Task 6: `rehydratePending` goroutine spawn (AC-2, AC-5)
   - [ ] Launch one waiter goroutine per pending prompt on restore
   - [ ] Channel release flows identically to S3
-- [ ] Task 7: Tests (all ACs)
-  - [ ] `executor_resume_test.go` — snapshot round-trip, re-emit, dead-pane recap
-  - [ ] `app_bmad_resume_test.go` — Wails binding re-emit timing
+- [x] Task 7: Tests (all ACs)
+  - [x] `executor_resume_test.go` — snapshot round-trip, re-emit, dead-pane recap
+  - [x] `app_bmad_resume_test.go` — Wails binding re-emit timing
 
 ## Definition of Done
 

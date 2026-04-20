@@ -337,6 +337,10 @@ type WorkflowExecution struct {
 	PendingPrompts   []PendingPrompt             `json:"pendingPrompts,omitempty"`
 	NodeInputs       map[string]map[string]string `json:"nodeInputs,omitempty"`
 	NodeInputHistory map[string][]NodeInputEntry  `json:"nodeInputHistory,omitempty"`
+	// Version tags the snapshot schema for forward-compat (§16.5). Writers
+	// set Version=2 when any interactive field is non-zero; absence (0) is
+	// treated as v1/legacy by readers.
+	Version int `json:"version,omitempty"`
 }
 
 // PendingPrompt is an outstanding user-input request for a suspended node (§3.5).

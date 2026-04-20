@@ -2,6 +2,8 @@ package bmad
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -118,8 +120,21 @@ func resolveOptions(spec InputSpec, _ *execState) []string {
 // persistSnapshot writes state.exec to ~/.mashed/workflows/{execID}/execution.json
 // atomically (tempfile + rename). Called on every PendingPrompts / NodeInputs
 // transition so a crash leaves the latest suspension visible to restore paths.
+//
+// Concurrency: snapshotMu serialises the marshal→write→rename sequence per
+// execution so concurrent writers cannot race on a shared tempfile name.
+// Version=2 is stamped when any interactive field is non-zero (§16.5).
 func (e *Executor) persistSnapshot(state *execState) error {
+	state.snapshotMu.Lock()
+	defer state.snapshotMu.Unlock()
+
 	state.mu.Lock()
+	if len(state.exec.PendingPrompts) > 0 ||
+		len(state.exec.NodeInputs) > 0 ||
+		len(state.exec.NodeInputHistory) > 0 ||
+		len(state.exec.NodeRounds) > 0 {
+		state.exec.Version = snapshotVersionInteractive
+	}
 	data, err := json.MarshalIndent(state.exec, "", "  ")
 	execID := state.exec.ID
 	state.mu.Unlock()
@@ -134,11 +149,29 @@ func (e *Executor) persistSnapshot(state *execState) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("mkdir snapshot: %w", err)
 	}
-	tmp := filepath.Join(dir, "execution.json.tmp")
+	// Unique tempfile per call avoids POSIX rename collisions when the
+	// snapshotMu guard is bypassed (e.g. by another process in the same
+	// HOME). snapshotMu covers the intra-process case.
+	tmp := filepath.Join(dir, fmt.Sprintf("execution.json.%d.%s.tmp", os.Getpid(), randHex8()))
 	if err := os.WriteFile(tmp, data, 0o644); err != nil {
 		return fmt.Errorf("write snapshot: %w", err)
 	}
-	return os.Rename(tmp, filepath.Join(dir, "execution.json"))
+	if err := os.Rename(tmp, filepath.Join(dir, "execution.json")); err != nil {
+		_ = os.Remove(tmp)
+		return fmt.Errorf("rename snapshot: %w", err)
+	}
+	return nil
+}
+
+// snapshotVersionInteractive is the schema version tag for snapshots that
+// carry at least one interactive field (§16.5).
+const snapshotVersionInteractive = 2
+
+// randHex8 returns 8 random hex chars for tempfile uniqueness.
+func randHex8() string {
+	var b [4]byte
+	_, _ = rand.Read(b[:])
+	return hex.EncodeToString(b[:])
 }
 
 // suspendForSpec transitions a node into NodeAwaitingInput, emits the

@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -68,6 +69,9 @@ type execState struct {
 	// suspendForSpec/RespondToInput. Keyed by "nodeID/inputID".
 	waiters   map[string]chan struct{}
 	waitersMu sync.Mutex
+	// snapshotMu serialises persistSnapshot calls for this execution so
+	// concurrent writers cannot race on the tempfile→rename path (§15.1).
+	snapshotMu sync.Mutex
 }
 
 // Executor manages workflow executions.
@@ -98,17 +102,20 @@ func (e *Executor) SetCommandRunner(runner CommandRunner) {
 
 // testEventHook, when non-nil, is called synchronously by e.emit. Tests set
 // this via hookEvents() to capture events from the production emit path.
-// Declared here so the emit wrapper can reference it without pulling test
-// files into the build. Production callers leave it nil.
-var testEventHook func(event string, payload interface{})
+// Atomic pointer: concurrent test setup/teardown + running executor goroutines
+// read/write this through atomic.Value — a plain var is racy when a prior
+// test's lingering goroutine reads the hook after the next test has cleared it.
+var testEventHook atomic.Value // holds func(event string, payload interface{})
 
 // emit invokes the registered event emitter and — when non-nil — the
 // test-only testEventHook. Centralising emission through this helper lets
 // white-box tests capture events from the production emit path via
 // hookEvents() regardless of how NewExecutor's emitter field was wired.
 func (e *Executor) emit(name string, payload interface{}) {
-	if testEventHook != nil {
-		testEventHook(name, payload)
+	if v := testEventHook.Load(); v != nil {
+		if hook, ok := v.(func(event string, payload interface{})); ok && hook != nil {
+			hook(name, payload)
+		}
 	}
 	if e.emitEvent != nil {
 		e.emitEvent(name, payload)
