@@ -1,6 +1,6 @@
 # bmad-interactive-07: Registry entries for the four reference interactive processes
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends On:** bmad-interactive-01, bmad-interactive-03, bmad-interactive-04

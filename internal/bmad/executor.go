@@ -1,6 +1,7 @@
 package bmad
 
 import (
+	"bytes"
 	"context"
 	"encoding/csv"
 	"encoding/json"
@@ -2471,16 +2472,9 @@ func registryLookup(ref string) (string, error) {
 		return "", errors.New("registryLookup: empty path")
 	}
 
-	f, err := os.Open(path)
+	rows, err := loadRegistryCSV(path)
 	if err != nil {
-		return "", fmt.Errorf("registryLookup: open %s: %w", path, err)
-	}
-	defer f.Close()
-
-	reader := csv.NewReader(f)
-	rows, err := reader.ReadAll()
-	if err != nil {
-		return "", fmt.Errorf("registryLookup: parse %s: %w", path, err)
+		return "", err
 	}
 	if len(rows) < 2 {
 		return "", fmt.Errorf("registryLookup: %s has no data rows", path)
@@ -2488,7 +2482,8 @@ func registryLookup(ref string) (string, error) {
 	header := rows[0]
 	data := rows[1:]
 
-	// Column extract: return first data row's value in the named column.
+	// Column extract: return all data rows' values in the named column joined
+	// by newline so callers can split into an options list.
 	if column != "" {
 		colIdx := -1
 		for i, h := range header {
@@ -2500,7 +2495,13 @@ func registryLookup(ref string) (string, error) {
 		if colIdx < 0 {
 			return "", fmt.Errorf("registryLookup: column %q not in %s", column, path)
 		}
-		return data[0][colIdx], nil
+		parts := make([]string, 0, len(data))
+		for _, row := range data {
+			if colIdx < len(row) {
+				parts = append(parts, row[colIdx])
+			}
+		}
+		return strings.Join(parts, "\n"), nil
 	}
 
 	// Query: ?random=N — N random rows, newline-joined first-column values.
@@ -2524,6 +2525,40 @@ func registryLookup(ref string) (string, error) {
 
 	// No column or query: return first data row's first column.
 	return data[0][0], nil
+}
+
+// loadRegistryCSV parses a CSV referenced by path. It prefers the embedded
+// registryFS (testdata/*.csv) for bare filenames so production registry refs
+// like "registry:brain-methods.csv#technique_name" resolve without hitting the
+// host filesystem. Absolute or relative paths that do not match an embedded
+// fixture fall through to os.Open — tests still pass absolute TempDir paths.
+func loadRegistryCSV(path string) ([][]string, error) {
+	// Try the embed FS first: bare name, then testdata/<name>.
+	candidates := []string{path}
+	if !strings.Contains(path, "/") {
+		candidates = append(candidates, "testdata/"+path)
+	}
+	for _, name := range candidates {
+		if data, err := registryFS.ReadFile(name); err == nil {
+			rows, cErr := csv.NewReader(bytes.NewReader(data)).ReadAll()
+			if cErr != nil {
+				return nil, fmt.Errorf("registryLookup: parse embed %s: %w", name, cErr)
+			}
+			return rows, nil
+		}
+	}
+
+	// Fall back to disk — tests still pass absolute TempDir paths.
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("registryLookup: open %s: %w", path, err)
+	}
+	defer f.Close()
+	rows, err := csv.NewReader(f).ReadAll()
+	if err != nil {
+		return nil, fmt.Errorf("registryLookup: parse %s: %w", path, err)
+	}
+	return rows, nil
 }
 
 // buildInteractivePrompt renders a markdown prompt block for an interactive

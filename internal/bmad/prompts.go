@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -101,8 +102,9 @@ func renderPrompt(spec InputSpec, _ *execState, _ string) string {
 }
 
 // resolveOptions returns spec.Options when set, otherwise attempts a registry
-// lookup for spec.OptionsRef. Unresolvable refs produce nil (the UI then
-// renders a free-text input).
+// lookup for spec.OptionsRef. The registryLookup result is a newline-joined
+// list of candidate values, so split into individual options for the UI.
+// Unresolvable refs produce nil (the UI then renders a free-text input).
 func resolveOptions(spec InputSpec, _ *execState) []string {
 	if len(spec.Options) > 0 {
 		return spec.Options
@@ -111,10 +113,21 @@ func resolveOptions(spec InputSpec, _ *execState) []string {
 		return nil
 	}
 	v, err := registryLookup(spec.OptionsRef)
-	if err != nil {
+	if err != nil || v == "" {
 		return nil
 	}
-	return []string{v}
+	lines := strings.Split(v, "\n")
+	out := make([]string, 0, len(lines))
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			out = append(out, line)
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 // persistSnapshot writes state.exec to ~/.mashed/workflows/{execID}/execution.json

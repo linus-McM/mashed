@@ -21,11 +21,21 @@ func validateInput(spec InputSpec, value string) error {
 
 	switch spec.Shape {
 	case ShapeChoice:
-		if !containsString(spec.Options, value) {
-			return fmt.Errorf("value must be one of %v: %w", spec.Options, ErrInvalidInput)
+		// When OptionsRef is set but static Options is empty, the option list
+		// is resolved dynamically per-round (e.g. registry:methods.csv?random=5).
+		// Strict list-membership validation is skipped because the resolved
+		// snapshot lives in PendingPrompt.Options, not on the InputSpec.
+		if len(spec.Options) > 0 {
+			if !containsString(spec.Options, value) {
+				return fmt.Errorf("value must be one of %v: %w", spec.Options, ErrInvalidInput)
+			}
 		}
 
 	case ShapeMultiChoice:
+		if len(spec.Options) == 0 {
+			// Same dynamic-options relaxation as ShapeChoice above.
+			break
+		}
 		for _, v := range strings.Split(value, ",") {
 			trimmed := strings.TrimSpace(v)
 			if !containsString(spec.Options, trimmed) {

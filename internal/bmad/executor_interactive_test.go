@@ -108,7 +108,7 @@ func saveDownstreamWorkflow(t *testing.T, s *Storage) string {
 			},
 			{
 				ID:        "n2",
-				ProcessID: "bmad-brainstorming", // any real registry entry
+				ProcessID: "bmad-domain-research", // autonomous process (Mode == "")
 				Label:     "Downstream",
 				Status:    NodePending,
 				NodeType:  NodeTypeProcess,
@@ -425,7 +425,10 @@ func TestResolveInputsTable(t *testing.T) {
 					Required:   true,
 				},
 			},
-			wantResolved: map[string]string{"technique": "SCAMPER"}, // first row after header
+			// S7 refactor: column extract returns all rows newline-joined so
+			// resolveOptions can produce a full option list for ShapeChoice
+			// specs backed by OptionsRef.
+			wantResolved: map[string]string{"technique": "SCAMPER\nTRIZ"},
 		},
 	}
 
