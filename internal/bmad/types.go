@@ -353,6 +353,12 @@ type PendingPrompt struct {
 	Round     int        `json:"round"`
 	CreatedAt int64      `json:"createdAt"`
 	PromptID  string     `json:"promptId"`
+	// LastOutput carries the tmux pane capture from the previous round so
+	// the frontend modal can show what Claude just said. Empty on the
+	// first suspension (before any Claude turn exists). Future enhancement:
+	// if the capture contains a <MASHED_PROMPT>…</MASHED_PROMPT> sentinel
+	// (skill-authored), extract it and use that instead of the raw tail.
+	LastOutput string `json:"lastOutput,omitempty"`
 }
 
 // NodeInputEntry is one historical user answer for a node input (§3.5).

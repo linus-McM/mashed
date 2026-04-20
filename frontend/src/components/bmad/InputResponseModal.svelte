@@ -143,6 +143,9 @@
       </header>
 
       <div class="modal-body" class:editor={shape === 'json'}>
+        {#if prompt.lastOutput}
+          <pre class="last-output" data-testid="input-modal-last-output" aria-label="Previous turn output">{prompt.lastOutput}</pre>
+        {/if}
         <blockquote class="prompt-block" data-testid="input-modal-prompt">
           {prompt.prompt}
         </blockquote>
@@ -324,6 +327,22 @@
     font-size: var(--text-data);
     color: var(--text-primary);
     line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .last-output {
+    margin: 0 0 var(--sp-md) 0;
+    max-height: 320px;
+    overflow: auto;
+    background: var(--bg-deepest);
+    border-left: 3px solid var(--accent-amber);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: var(--sp-md) var(--sp-lg);
+    font-family: var(--font-code, var(--font-mono));
+    font-size: var(--text-label);
+    color: var(--text-secondary);
+    line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-word;
   }

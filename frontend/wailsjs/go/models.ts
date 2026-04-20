@@ -343,6 +343,7 @@ export namespace bmad {
 	    round: number;
 	    createdAt: number;
 	    promptId: string;
+	    lastOutput?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new PendingPrompt(source);
@@ -358,6 +359,7 @@ export namespace bmad {
 	        this.round = source["round"];
 	        this.createdAt = source["createdAt"];
 	        this.promptId = source["promptId"];
+	        this.lastOutput = source["lastOutput"];
 	    }
 	}
 	export class Position {

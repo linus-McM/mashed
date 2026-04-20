@@ -264,3 +264,37 @@ func TestBuildInteractivePrompt_TruncatesLargeUpstream(t *testing.T) {
 	assert.NotContains(t, got, huge)
 	assert.Contains(t, got, strings.Repeat("x", interactivePromptUpstreamCap))
 }
+
+// ── PendingPrompt.LastOutput + extractModalQuestion ────────────────────────────
+
+func TestExtractModalQuestion_Sentinel(t *testing.T) {
+	raw := "noise before\n<MASHED_PROMPT>Pick a color: red, blue, green</MASHED_PROMPT>\nnoise after"
+	assert.Equal(t, "Pick a color: red, blue, green", extractModalQuestion(raw))
+}
+
+func TestExtractModalQuestion_SentinelWins_OverTailFallback(t *testing.T) {
+	huge := strings.Repeat("x", modalQuestionCap+500)
+	raw := huge + "\n<MASHED_PROMPT>clean question</MASHED_PROMPT>"
+	got := extractModalQuestion(raw)
+	assert.Equal(t, "clean question", got, "sentinel body must be preferred even when the tail exceeds the cap")
+}
+
+func TestExtractModalQuestion_TailFallback_Truncates(t *testing.T) {
+	body := strings.Repeat("a", modalQuestionCap+2048)
+	got := extractModalQuestion(body)
+	assert.LessOrEqual(t, len(got), modalQuestionCap, "tail fallback must truncate to modalQuestionCap")
+	assert.NotEqual(t, body, got, "fallback must not return the full oversize input verbatim")
+}
+
+func TestExtractModalQuestion_EmptyPassThrough(t *testing.T) {
+	assert.Equal(t, "", extractModalQuestion(""))
+	assert.Equal(t, "", extractModalQuestion("   \n  "))
+}
+
+func TestExtractModalQuestion_UnclosedSentinel_FallsBackToTail(t *testing.T) {
+	raw := "content <MASHED_PROMPT>not closed"
+	got := extractModalQuestion(raw)
+	// No closing tag → tail fallback; full string fits under cap so it
+	// returns intact.
+	assert.Contains(t, got, "MASHED_PROMPT>not closed")
+}

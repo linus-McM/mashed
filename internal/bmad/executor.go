@@ -2232,7 +2232,7 @@ func (e *Executor) executeInteractiveNode(
 			break
 		}
 		for _, spec := range missing {
-			if sErr := e.suspendForSpec(ctx, state, nodeIndex, nodeID, 1, spec); sErr != nil {
+			if sErr := e.suspendForSpec(ctx, state, nodeIndex, nodeID, 1, spec, ""); sErr != nil {
 				e.failNode(state, idx, nodeID)
 				return
 			}
@@ -2313,8 +2313,15 @@ roundLoop:
 			break
 		}
 
-		// Suspend for the user's answer to feed round+1.
-		if sErr := e.suspendForSpec(ctx, state, nodeIndex, nodeID, round+1, nextSpec); sErr != nil {
+		// Suspend for the user's answer to feed round+1. Pass the last
+		// round's capture so the modal can show what Claude just said.
+		state.mu.Lock()
+		lastOutput := ""
+		if state.exec.NodeOutputs != nil {
+			lastOutput = state.exec.NodeOutputs[lastRoundKey]
+		}
+		state.mu.Unlock()
+		if sErr := e.suspendForSpec(ctx, state, nodeIndex, nodeID, round+1, nextSpec, lastOutput); sErr != nil {
 			e.failNode(state, idx, nodeID)
 			return
 		}

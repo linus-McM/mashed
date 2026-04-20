@@ -12,6 +12,48 @@ import (
 	"time"
 )
 
+// modalQuestionCap bounds the PendingPrompt.LastOutput payload. The event
+// bus ships this string on every awaiting_input event + persists it to
+// execution.json — 4 KiB balances readability (enough for a full Claude
+// turn) against payload bloat. Callers truncate on the tail, not the head:
+// the tail is the just-spoken question, the head is earlier context the
+// user already saw.
+const modalQuestionCap = 4 * 1024
+
+// extractModalQuestion pulls the best-available "question to show the user"
+// from a raw tmux capture. Hybrid strategy:
+//  1. If Claude authored a <MASHED_PROMPT>…</MASHED_PROMPT> sentinel (future
+//     skill work), use the sentinel body — it's the formatted question.
+//  2. Otherwise, fall back to the last ~4 KiB of the capture — noisy but
+//     always present.
+//
+// Empty input returns "" so the modal falls back to renderPrompt()'s static
+// spec.Prompt text.
+func extractModalQuestion(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	const openTag = "<MASHED_PROMPT>"
+	const closeTag = "</MASHED_PROMPT>"
+	if o := strings.LastIndex(raw, openTag); o >= 0 {
+		if c := strings.Index(raw[o+len(openTag):], closeTag); c >= 0 {
+			body := strings.TrimSpace(raw[o+len(openTag) : o+len(openTag)+c])
+			if body != "" {
+				return body
+			}
+		}
+	}
+	if len(raw) > modalQuestionCap {
+		raw = raw[len(raw)-modalQuestionCap:]
+		// Trim a partial first line so the user sees clean output.
+		if nl := strings.IndexByte(raw, '\n'); nl >= 0 && nl < 256 {
+			raw = raw[nl+1:]
+		}
+	}
+	return raw
+}
+
 // waiter returns (creating on first access) the release channel for a
 // (nodeID, inputID) suspension. Subsequent callers receive the same channel
 // so responders and suspenders share a rendezvous point.
@@ -200,16 +242,18 @@ func (e *Executor) suspendForSpec(
 	nodeID string,
 	round int,
 	spec InputSpec,
+	lastOutput string,
 ) error {
 	prompt := PendingPrompt{
-		NodeID:    nodeID,
-		InputID:   spec.ID,
-		Prompt:    renderPrompt(spec, state, nodeID),
-		Shape:     spec.Shape,
-		Options:   resolveOptions(spec, state),
-		Round:     round,
-		CreatedAt: time.Now().Unix(),
-		PromptID:  hashPendingPrompt(nodeID, spec.ID, round),
+		NodeID:     nodeID,
+		InputID:    spec.ID,
+		Prompt:     renderPrompt(spec, state, nodeID),
+		Shape:      spec.Shape,
+		Options:    resolveOptions(spec, state),
+		Round:      round,
+		CreatedAt:  time.Now().Unix(),
+		PromptID:   hashPendingPrompt(nodeID, spec.ID, round),
+		LastOutput: extractModalQuestion(lastOutput),
 	}
 
 	idx, ok := nodeIndex[nodeID]
