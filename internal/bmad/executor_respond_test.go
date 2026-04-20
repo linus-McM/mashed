@@ -60,11 +60,7 @@ func setupSuspension(t *testing.T, nodeID, processID string, spec InputSpec) *su
 	state.exec.RepoPath = t.TempDir()
 	execID := state.exec.ID
 
-	e := NewExecutor(nil, func(name string, data interface{}) {
-		if testEventHook != nil {
-			testEventHook(name, data)
-		}
-	})
+	e := NewExecutor(nil, func(name string, data interface{}) {})
 
 	// Register the state in the executor's executions map so RespondToInput
 	// can find it via getState(execID).
@@ -376,11 +372,7 @@ func TestRespondToInputNoPendingPrompt(t *testing.T) {
 
 	state, _ := newSuspendState(nodeID, processID, spec)
 	execID := state.exec.ID
-	e := NewExecutor(nil, func(name string, data interface{}) {
-		if testEventHook != nil {
-			testEventHook(name, data)
-		}
-	})
+	e := NewExecutor(nil, func(name string, data interface{}) {})
 	e.mu.Lock()
 	e.executions[execID] = state
 	e.mu.Unlock()
@@ -539,11 +531,7 @@ func TestRespondToInputConcurrencyNoPanic(t *testing.T) {
 		errCh  chan error
 	}
 	entries := make([]entry, N)
-	e := NewExecutor(nil, func(name string, data interface{}) {
-		if testEventHook != nil {
-			testEventHook(name, data)
-		}
-	})
+	e := NewExecutor(nil, func(name string, data interface{}) {})
 
 	for i := 0; i < N; i++ {
 		nodeID := fmt.Sprintf("n%d", i+1)

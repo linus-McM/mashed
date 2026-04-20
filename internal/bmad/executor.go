@@ -96,6 +96,25 @@ func (e *Executor) SetCommandRunner(runner CommandRunner) {
 	e.runCmd = runner
 }
 
+// testEventHook, when non-nil, is called synchronously by e.emit. Tests set
+// this via hookEvents() to capture events from the production emit path.
+// Declared here so the emit wrapper can reference it without pulling test
+// files into the build. Production callers leave it nil.
+var testEventHook func(event string, payload interface{})
+
+// emit invokes the registered event emitter and — when non-nil — the
+// test-only testEventHook. Centralising emission through this helper lets
+// white-box tests capture events from the production emit path via
+// hookEvents() regardless of how NewExecutor's emitter field was wired.
+func (e *Executor) emit(name string, payload interface{}) {
+	if testEventHook != nil {
+		testEventHook(name, payload)
+	}
+	if e.emitEvent != nil {
+		e.emitEvent(name, payload)
+	}
+}
+
 // StartWorkflow loads a workflow, validates its DAG, creates an execution, and
 // begins running nodes in topological order. The parent context allows callers
 // to cancel the workflow externally.
@@ -160,7 +179,7 @@ func (e *Executor) StartWorkflow(parentCtx context.Context, workflowID, repoPath
 	e.executions[execID] = state
 	e.mu.Unlock()
 
-	e.emitEvent("bmad:execution:status", ExecStatusEvent{ExecID: execID, Status: ExecRunning})
+	e.emit("bmad:execution:status", ExecStatusEvent{ExecID: execID, Status: ExecRunning})
 
 	go e.runDynamic(ctx, state, repoPath, model)
 
@@ -181,7 +200,7 @@ func (e *Executor) PauseWorkflow(execID string) error {
 	}
 	state.paused = true
 	state.exec.Status = ExecPaused
-	e.emitEvent("bmad:execution:status", ExecStatusEvent{ExecID: execID, Status: ExecPaused})
+	e.emit("bmad:execution:status", ExecStatusEvent{ExecID: execID, Status: ExecPaused})
 	return nil
 }
 
@@ -199,7 +218,7 @@ func (e *Executor) ResumeWorkflow(execID string) error {
 	}
 	state.paused = false
 	state.exec.Status = ExecRunning
-	e.emitEvent("bmad:execution:status", ExecStatusEvent{ExecID: execID, Status: ExecRunning})
+	e.emit("bmad:execution:status", ExecStatusEvent{ExecID: execID, Status: ExecRunning})
 	return nil
 }
 
@@ -214,7 +233,7 @@ func (e *Executor) StopWorkflow(execID string) error {
 
 	state.cancel()
 	state.exec.Status = ExecFailed
-	e.emitEvent("bmad:execution:status", ExecStatusEvent{ExecID: execID, Status: ExecFailed})
+	e.emit("bmad:execution:status", ExecStatusEvent{ExecID: execID, Status: ExecFailed})
 	return nil
 }
 
@@ -572,7 +591,7 @@ func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, m
 		if anyFailed && state.exec.Status == ExecRunning {
 			state.paused = true
 			state.exec.Status = ExecPaused
-			e.emitEvent("bmad:execution:status", ExecStatusEvent{ExecID: state.exec.ID, Status: ExecPaused})
+			e.emit("bmad:execution:status", ExecStatusEvent{ExecID: state.exec.ID, Status: ExecPaused})
 		}
 		state.mu.Unlock()
 
@@ -588,13 +607,13 @@ func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, m
 	for i, n := range state.exec.Nodes {
 		if n.Status == NodePending {
 			state.exec.Nodes[i].Status = NodeSkipped
-			e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: n.ID, Status: NodeSkipped})
+			e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: n.ID, Status: NodeSkipped})
 		}
 	}
 
 	if state.exec.Status == ExecRunning {
 		state.exec.Status = ExecComplete
-		e.emitEvent("bmad:execution:status", ExecStatusEvent{ExecID: state.exec.ID, Status: ExecComplete})
+		e.emit("bmad:execution:status", ExecStatusEvent{ExecID: state.exec.ID, Status: ExecComplete})
 	}
 	state.mu.Unlock()
 }
@@ -654,7 +673,7 @@ func (e *Executor) executeControlNode(ctx context.Context, state *execState, nod
 		state.exec.Nodes[idx].Status = NodeRunning
 		state.exec.CurrentNode = nodeID
 		state.mu.Unlock()
-		e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+		e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
 
 		// Parse condition from config.
 		condJSON := node.Config["condition"]
@@ -692,7 +711,7 @@ func (e *Executor) executeControlNode(ctx context.Context, state *execState, nod
 		state.exec.Nodes[idx].Status = NodeRunning
 		state.exec.CurrentNode = nodeID
 		state.mu.Unlock()
-		e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+		e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
 
 		e.completeNode(state, idx, nodeID)
 	}
@@ -710,7 +729,7 @@ func (e *Executor) executeLoopNode(ctx context.Context, state *execState, nodeIn
 	state.exec.Nodes[idx].Status = NodeRunning
 	state.exec.CurrentNode = nodeID
 	state.mu.Unlock()
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
 
 	// Parse maxIterations (default 10, cap at 100).
 	maxIter := 10
@@ -871,7 +890,7 @@ func (e *Executor) executeLoopNode(ctx context.Context, state *execState, nodeIn
 		state.mu.Lock()
 		state.exec.NodeOutputs[nodeIterKey(nodeID)] = strconv.Itoa(iter)
 		state.mu.Unlock()
-		e.emitEvent("bmad:node:status", NodeStatusEvent{
+		e.emit("bmad:node:status", NodeStatusEvent{
 			ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning, Iteration: iter,
 		})
 
@@ -916,7 +935,7 @@ func (e *Executor) skipBranchLocked(state *execState, nodeIndex map[string]int, 
 	}
 
 	state.exec.Nodes[idx].Status = NodeSkipped
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeSkipped})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeSkipped})
 
 	// Recursively skip downstream nodes.
 	for _, edge := range state.outEdges[nodeID] {
@@ -930,7 +949,7 @@ func (e *Executor) skipNode(state *execState, idx int, nodeID string) {
 	state.mu.Lock()
 	state.exec.Nodes[idx].Status = NodeSkipped
 	state.mu.Unlock()
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeSkipped})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeSkipped})
 }
 
 // waitWhilePaused blocks until unpaused or context is canceled. Returns false if canceled.
@@ -1127,7 +1146,7 @@ func (e *Executor) spawnCommandSession(ctx context.Context, state *execState, no
 		state.exec.Nodes[idx].StartedAt = now
 	}
 	state.mu.Unlock()
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning, TmuxTarget: target})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning, TmuxTarget: target})
 
 	return target, nil
 }
@@ -1241,7 +1260,7 @@ func (e *Executor) executeCommandNode(ctx context.Context, state *execState, nod
 	state.exec.CurrentNode = nodeID
 	commandName := state.exec.Nodes[idx].Config["commandName"]
 	state.mu.Unlock()
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
 
 	if commandName == "" {
 		log.Printf("bmad: command node %s missing commandName in config", nodeID)
@@ -1272,7 +1291,7 @@ func (e *Executor) executeCommandNode(ctx context.Context, state *execState, nod
 		state.mu.Lock()
 		state.exec.Nodes[idx].TmuxTarget = target
 		state.mu.Unlock()
-		e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning, TmuxTarget: target})
+		e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning, TmuxTarget: target})
 
 		if err := e.injectSlashCommand(ctx, target, commandName); err != nil {
 			e.failNode(state, idx, nodeID)
@@ -1309,7 +1328,7 @@ func (e *Executor) executeProcessNode(ctx context.Context, state *execState, nod
 	state.exec.Nodes[idx].Status = NodeRunning
 	state.exec.CurrentNode = nodeID
 	state.mu.Unlock()
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
 
 	// Look up the process definition (ProcessID is immutable, safe to read after init).
 	processID := state.exec.Nodes[idx].ProcessID
@@ -1381,17 +1400,17 @@ func (e *Executor) completeNode(state *execState, idx int, nodeID string) {
 	repoPath := state.exec.RepoPath
 	node := state.exec.Nodes[idx]
 	state.mu.Unlock()
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeComplete})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeComplete})
 
 	// Dismiss any stale question notification.
-	e.emitEvent(EventQuestionDismissed, map[string]string{
+	e.emit(EventQuestionDismissed, map[string]string{
 		"execId": state.exec.ID,
 		"nodeId": nodeID,
 	})
 
 	// Dismiss any stale "waiting for input" notification — the node has
 	// finished so the idle snackbar (if any) is obsolete.
-	e.emitEvent(EventIdleDismissed, map[string]string{
+	e.emit(EventIdleDismissed, map[string]string{
 		"execId": state.exec.ID,
 		"nodeId": nodeID,
 	})
@@ -1402,7 +1421,7 @@ func (e *Executor) completeNode(state *execState, idx int, nodeID string) {
 		if err := UpdateStoryStatus(repoPath, storyID, targetStatus); err != nil {
 			log.Printf("bmad: failed to update story %s status: %v", storyID, err)
 		} else {
-			e.emitEvent("bmad:sprint:updated", map[string]string{"storyId": storyID, "status": targetStatus})
+			e.emit("bmad:sprint:updated", map[string]string{"storyId": storyID, "status": targetStatus})
 		}
 	}
 
@@ -1422,7 +1441,7 @@ func (e *Executor) completeNode(state *execState, idx int, nodeID string) {
 			}
 			state.mu.Unlock()
 
-			e.emitEvent("bmad:node:artifacts", NodeArtifactEvent{
+			e.emit("bmad:node:artifacts", NodeArtifactEvent{
 				ExecID:  state.exec.ID,
 				NodeID:  nodeID,
 				Found:   found,
@@ -1456,17 +1475,17 @@ func (e *Executor) failNode(state *execState, idx int, nodeID string) {
 	state.mu.Lock()
 	state.exec.Nodes[idx].Status = NodeFailed
 	state.mu.Unlock()
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeFailed})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeFailed})
 
 	// Dismiss any stale question notification.
-	e.emitEvent(EventQuestionDismissed, map[string]string{
+	e.emit(EventQuestionDismissed, map[string]string{
 		"execId": state.exec.ID,
 		"nodeId": nodeID,
 	})
 
 	// Dismiss any stale "waiting for input" notification — the node has
 	// failed so the idle snackbar (if any) is obsolete.
-	e.emitEvent(EventIdleDismissed, map[string]string{
+	e.emit(EventIdleDismissed, map[string]string{
 		"execId": state.exec.ID,
 		"nodeId": nodeID,
 	})
@@ -1526,7 +1545,7 @@ func (e *Executor) pollForQuestionFromCapture(state *execState, nodeID, target, 
 	repoPath := state.exec.RepoPath
 	state.mu.Unlock()
 
-	e.emitEvent(EventQuestion, QuestionEvent{
+	e.emit(EventQuestion, QuestionEvent{
 		ExecID:     execID,
 		NodeID:     nodeID,
 		RepoPath:   repoPath,
@@ -1577,7 +1596,7 @@ func (e *Executor) pollForIdle(state *execState, nodeID, target, captured string
 			state.idleEmitted[nodeID] = false
 			execID := state.exec.ID
 			state.mu.Unlock()
-			e.emitEvent(EventIdleDismissed, map[string]string{
+			e.emit(EventIdleDismissed, map[string]string{
 				"execId": execID,
 				"nodeId": nodeID,
 			})
@@ -1599,7 +1618,7 @@ func (e *Executor) pollForIdle(state *execState, nodeID, target, captured string
 	repoPath := state.exec.RepoPath
 	state.mu.Unlock()
 
-	e.emitEvent(EventIdle, IdleEvent{
+	e.emit(EventIdle, IdleEvent{
 		ExecID:     execID,
 		NodeID:     nodeID,
 		RepoPath:   repoPath,
@@ -1620,7 +1639,7 @@ func (e *Executor) executeTransformNode(ctx context.Context, state *execState, n
 	state.exec.CurrentNode = nodeID
 	node := state.exec.Nodes[idx]
 	state.mu.Unlock()
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
 
 	// Read config.
 	sourceNodeID := node.Config["sourceNode"]
@@ -1695,7 +1714,7 @@ func (e *Executor) executeMultiFileLoader(ctx context.Context, state *execState,
 		state.paused = false
 		state.cancel()
 		state.mu.Unlock()
-		e.emitEvent("bmad:execution:status", ExecStatusEvent{ExecID: state.exec.ID, Status: ExecFailed})
+		e.emit("bmad:execution:status", ExecStatusEvent{ExecID: state.exec.ID, Status: ExecFailed})
 	}
 
 	// Parse entries JSON.
@@ -1731,7 +1750,7 @@ func (e *Executor) executeMultiFileLoader(ctx context.Context, state *execState,
 	state.exec.Nodes[idx].Status = NodeRunning
 	state.exec.CurrentNode = nodeID
 	state.mu.Unlock()
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeRunning})
 
 	// Resolve each entry.
 	outputPaths := make(map[string]string, len(entries))
@@ -1775,14 +1794,14 @@ func (e *Executor) executeMultiFileLoader(ctx context.Context, state *execState,
 	state.exec.Nodes[idx].Status = NodeComplete
 	state.mu.Unlock()
 
-	e.emitEvent("bmad:node:artifacts", NodeArtifactEvent{
+	e.emit("bmad:node:artifacts", NodeArtifactEvent{
 		ExecID:  state.exec.ID,
 		NodeID:  nodeID,
 		Found:   found,
 		Missing: missing,
 		Paths:   outputPaths,
 	})
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeComplete})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeComplete})
 }
 
 // extractRegex applies a regex to input and returns the first capture group
@@ -2106,16 +2125,116 @@ func (e *Executor) executeInteractiveNode(
 		return
 	}
 
-	// D. Wait for idle (single-round stub; S4 adds iteration).
-	if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout); err != nil {
-		e.failNode(state, idx, nodeID)
-		return
+	// D. Round loop — capture → non-user gate check → round-limit check →
+	// suspend for iteration input → reject check → user-answer gate check →
+	// inject answer → repeat. See story §5.2 D1-D5.
+	//
+	// Gate ordering rationale:
+	//   - GateRoundLimit / MaxRounds safety ceiling: evaluated after capture
+	//     so we emit round_limit (NOT gate_satisfied) when the cap is hit.
+	//   - GateArtifactExists / GateExpression: evaluated after capture — they
+	//     do not depend on the user's answer for this round.
+	//   - GateUserConfirm: evaluated AFTER suspendForSpec records the
+	//     answer, because the accept-token lives in the user's reply.
+	//   - Nil gate: single-round shortcut — exit after round 1.
+	execID := state.exec.ID
+	round := 1
+	var lastRoundKey string
+roundLoop:
+	for {
+		if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout); err != nil {
+			e.failNode(state, idx, nodeID)
+			return
+		}
+
+		roundKey := fmt.Sprintf("%s-round-%d", nodeID, round)
+		e.captureRoundOutput(ctx, state, nodeID, target, roundKey)
+		lastRoundKey = roundKey
+
+		state.mu.Lock()
+		if state.exec.NodeRounds == nil {
+			state.exec.NodeRounds = map[string]int{}
+		}
+		state.exec.NodeRounds[nodeID] = round
+		state.mu.Unlock()
+
+		_ = e.persistSnapshot(state)
+		e.emit(EventRoundComplete, roundCompletePayload(execID, nodeID, round, roundKey))
+
+		// MaxRounds safety ceiling — reported as round_limit (not
+		// gate_satisfied) per AC-3. Takes precedence over every gate kind.
+		if proc.Gate != nil && proc.Gate.MaxRounds > 0 && round >= proc.Gate.MaxRounds {
+			e.emit(EventRoundLimit, roundLimitPayload(execID, nodeID, round))
+			break
+		}
+
+		// Non-user-answer gates: artifact presence / custom expression
+		// can decide without suspending for more input.
+		if proc.Gate != nil {
+			switch proc.Gate.Kind {
+			case GateArtifactExists, GateExpression:
+				if hit, reason := e.checkGate(state, proc.Gate, nodeID, round); hit {
+					e.emit(EventGateSatisfied, gateSatisfiedPayload(execID, nodeID, round, reason))
+					break roundLoop
+				}
+			}
+		}
+
+		// Single-round process (nil gate) or process without an iteration
+		// input exits after round 1.
+		if proc.Gate == nil {
+			break
+		}
+		nextSpec, hasIter := proc.iterationInput()
+		if !hasIter {
+			break
+		}
+
+		// Suspend for the user's answer to feed round+1.
+		if sErr := e.suspendForSpec(ctx, state, nodeIndex, nodeID, round+1, nextSpec); sErr != nil {
+			e.failNode(state, idx, nodeID)
+			return
+		}
+
+		state.mu.Lock()
+		var answer string
+		if state.exec.NodeInputs != nil {
+			answer = state.exec.NodeInputs[nodeID][nextSpec.ID]
+		}
+		state.mu.Unlock()
+
+		// Reject-token check: user explicitly aborts the iteration.
+		if containsToken(proc.Gate.RejectTokens, answer) {
+			e.emit(EventAborted, abortedPayload(execID, nodeID, "rejected by user"))
+			e.failNode(state, idx, nodeID)
+			return
+		}
+
+		// GateUserConfirm: the user just answered; check accept tokens.
+		if proc.Gate.Kind == GateUserConfirm {
+			if hit, reason := e.checkGate(state, proc.Gate, nodeID, round); hit {
+				e.emit(EventGateSatisfied, gateSatisfiedPayload(execID, nodeID, round, reason))
+				break
+			}
+		}
+
+		if sErr := e.sendToSession(ctx, state, nodeID, answer); sErr != nil {
+			e.failNode(state, idx, nodeID)
+			return
+		}
+		round++
 	}
 
-	// Capture round output into NodeOutputs[nodeID]. Single-round stub uses
-	// nodeID directly to stay compatible with the autonomous convention;
-	// S4 switches to "<nodeID>-round-N".
-	e.captureRoundOutput(ctx, state, nodeID, target, nodeID)
+	// Mirror the last round's output under the canonical nodeID key so that
+	// downstream InputFromUpstream resolution finds the value without having
+	// to know about the round suffix (story Risks section).
+	if lastRoundKey != "" {
+		state.mu.Lock()
+		if state.exec.NodeOutputs != nil {
+			state.exec.NodeOutputs[nodeID] = state.exec.NodeOutputs[lastRoundKey]
+		}
+		state.mu.Unlock()
+	}
 
 	// E. Verify declared outputs.
 	if err := e.verifyOutputs(state, nodeID, proc.OutputSpecs, repoPath); err != nil {
@@ -2138,7 +2257,31 @@ func (e *Executor) setStatus(state *execState, idx int, nodeID string, status Wo
 		state.exec.CurrentNode = nodeID
 	}
 	state.mu.Unlock()
-	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: status})
+	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: status})
+}
+
+// sendToSession injects an answer into a node's tmux pane using two
+// send-keys calls — first a literal payload (escapeTmuxLiteral strips control
+// bytes) and then a standalone Enter — mirroring RespondToQuestionLegacy.
+func (e *Executor) sendToSession(ctx context.Context, state *execState, nodeID, answer string) error {
+	state.mu.Lock()
+	var target string
+	for _, n := range state.exec.Nodes {
+		if n.ID == nodeID {
+			target = n.TmuxTarget
+			break
+		}
+	}
+	state.mu.Unlock()
+
+	escaped := escapeTmuxLiteral(answer)
+	if _, err := e.runCmd(ctx, "tmux", "send-keys", "-t", target, "-l", escaped); err != nil {
+		return fmt.Errorf("send-keys literal: %w", err)
+	}
+	if _, err := e.runCmd(ctx, "tmux", "send-keys", "-t", target, "Enter"); err != nil {
+		return fmt.Errorf("send-keys enter: %w", err)
+	}
+	return nil
 }
 
 // captureRoundOutput captures the pane scrollback for the given tmux target

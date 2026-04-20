@@ -131,11 +131,7 @@ func TestSuspendForSpecEntersAwaitingInput(t *testing.T) {
 	state, nodeIndex := newSuspendState(nodeID, processID, spec)
 	state.exec.RepoPath = t.TempDir()
 
-	e := NewExecutor(nil, func(name string, data interface{}) {
-		if testEventHook != nil {
-			testEventHook(name, data)
-		}
-	})
+	e := NewExecutor(nil, func(name string, data interface{}) {})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	errCh := make(chan error, 1)
@@ -214,11 +210,7 @@ func TestSuspendForSpecCtxCancellationAborts(t *testing.T) {
 	state, nodeIndex := newSuspendState(nodeID, processID, spec)
 	state.exec.RepoPath = t.TempDir()
 
-	e := NewExecutor(nil, func(name string, data interface{}) {
-		if testEventHook != nil {
-			testEventHook(name, data)
-		}
-	})
+	e := NewExecutor(nil, func(name string, data interface{}) {})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	errCh := make(chan error, 1)

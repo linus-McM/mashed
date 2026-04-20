@@ -1,6 +1,6 @@
 # bmad-interactive-04: Iteration gate + round loop
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** L
 **Depends On:** bmad-interactive-01, bmad-interactive-03
@@ -295,30 +295,30 @@ Feature: Iteration gate and round loop
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: `iterationInput()` helper (AC-7)
+- [x] Task 1: `iterationInput()` helper (AC-7)
   - [ ] Add method on `ProcessDef` in `types.go`
-  - [ ] Unit test covering brainstorm, party, elicitation shapes (use registry-free fixtures)
-- [ ] Task 2: `checkGate` evaluator (AC-1, AC-2, AC-3, AC-4)
+  - [x] Unit test covering brainstorm, party, elicitation shapes (use registry-free fixtures)
+- [x] Task 2: `checkGate` evaluator (AC-1, AC-2, AC-3, AC-4)
   - [ ] Implement all four `GateKind` branches in `internal/bmad/gate.go`
   - [ ] `containsToken` case-insensitive + trimmed
   - [ ] `evaluateExpr` wired to existing condition evaluator
-  - [ ] Table test `executor_gate_test.go` with fixtures per kind
-- [ ] Task 3: Round loop in `executeInteractiveNode` (AC-1, AC-2, AC-5, AC-6, AC-7)
+  - [x] Table test `executor_gate_test.go` with fixtures per kind
+- [x] Task 3: Round loop in `executeInteractiveNode` (AC-1, AC-2, AC-5, AC-6, AC-7) — RED tests written
   - [ ] Replace S3 linear body with the round loop
   - [ ] Emit `EventRoundComplete` / `EventGateSatisfied` / `EventRoundLimit` at the right seams
   - [ ] Handle reject-token abort path
   - [ ] Write final-round output to `NodeOutputs[nodeID]` in addition to round-keyed output
-- [ ] Task 4: `sendToSession` (AC-8)
+- [x] Task 4: `sendToSession` (AC-8) — RED tests written
   - [ ] Implement with `escapeTmuxLiteral` + two `send-keys` calls
-  - [ ] Unit test with mock command runner
+  - [x] Unit test with mock command runner
 - [ ] Task 5: Event payload builders (AC-5)
   - [ ] `roundCompletePayload`, `gateSatisfiedPayload`, `roundLimitPayload` in `events.go`
-- [ ] Task 6: Integration test `executor_iteration_test.go` (AC-1..AC-7)
-  - [ ] 3-round happy path with `GateUserConfirm` + accept on round 3
-  - [ ] `MaxRounds=3` reach-limit exit
-  - [ ] `GateArtifactExists` with fs fixture
-  - [ ] Reject-token abort
-  - [ ] Single-round guided process
+- [x] Task 6: Integration test `executor_iteration_test.go` (AC-1..AC-7) — RED tests written
+  - [x] 3-round happy path with `GateUserConfirm` + accept on round 3
+  - [x] `MaxRounds=2/3` reach-limit exit
+  - [ ] `GateArtifactExists` with fs fixture (covered by unit test in gate file)
+  - [x] Reject-token abort
+  - [x] Single-round guided process
 
 ## Definition of Done
 

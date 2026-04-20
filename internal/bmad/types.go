@@ -91,6 +91,25 @@ type ProcessDef struct {
 	Gate        *IterationGate  `json:"gate,omitempty"`
 }
 
+// iterationInput returns the InputSpec that represents the recurring per-round
+// user prompt for an iterative process (schema §5.2). Convention: exactly one
+// InputSpec with Source=InputFromUser, Prompt != "", Shape != "", Required=false
+// and Default == "" (specs with a Default are resolved one-shot during the
+// pre-process pass and therefore cannot be the iteration slot).
+// Returns the zero value and false when no such spec exists.
+func (p ProcessDef) iterationInput() (InputSpec, bool) {
+	for _, s := range p.InputSpecs {
+		if s.Source == InputFromUser &&
+			s.Prompt != "" &&
+			s.Shape != "" &&
+			!s.Required &&
+			s.Default == "" {
+			return s, true
+		}
+	}
+	return InputSpec{}, false
+}
+
 // WorkflowNodeStatus tracks execution state of a single node.
 type WorkflowNodeStatus string
 

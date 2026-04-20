@@ -11,7 +11,41 @@ const (
 	EventInputResolved = "bmad:node:input_resolved"
 	EventInputInvalid  = "bmad:node:input_invalid"
 	EventAborted       = "bmad:node:aborted"
+
+	// Iteration loop events (schema §6, story bmad-interactive-04).
+	EventRoundComplete = "bmad:node:round_complete"
+	EventGateSatisfied = "bmad:node:gate_satisfied"
+	EventRoundLimit    = "bmad:node:round_limit"
 )
+
+// roundCompletePayload returns the payload for EventRoundComplete.
+func roundCompletePayload(execID, nodeID string, round int, outputKey string) map[string]any {
+	return map[string]any{
+		"execId":    execID,
+		"nodeId":    nodeID,
+		"round":     round,
+		"outputKey": outputKey,
+	}
+}
+
+// gateSatisfiedPayload returns the payload for EventGateSatisfied.
+func gateSatisfiedPayload(execID, nodeID string, round int, reason string) map[string]any {
+	return map[string]any{
+		"execId": execID,
+		"nodeId": nodeID,
+		"round":  round,
+		"reason": reason,
+	}
+}
+
+// roundLimitPayload returns the payload for EventRoundLimit.
+func roundLimitPayload(execID, nodeID string, round int) map[string]any {
+	return map[string]any{
+		"execId": execID,
+		"nodeId": nodeID,
+		"round":  round,
+	}
+}
 
 // valueHashLen is the number of hex chars kept from the SHA-256 digest for
 // event payloads (§14.3). 16 hex chars = 64 bits — collision-safe and compact.

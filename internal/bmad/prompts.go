@@ -184,13 +184,13 @@ func (e *Executor) suspendForSpec(
 	if err := e.persistSnapshot(state); err != nil {
 		return err
 	}
-	e.emitEvent(EventAwaitingInput, awaitingPayload(prompt))
+	e.emit(EventAwaitingInput, awaitingPayload(prompt))
 
 	select {
 	case <-waitCh:
 		// Response arrived; fall through to the wake-up block.
 	case <-ctx.Done():
-		e.emitEvent(EventAborted, abortedPayload(execID, nodeID, "workflow stopped"))
+		e.emit(EventAborted, abortedPayload(execID, nodeID, "workflow stopped"))
 		return ctx.Err()
 	}
 
@@ -210,7 +210,7 @@ func (e *Executor) suspendForSpec(
 	if err := e.persistSnapshot(state); err != nil {
 		return err
 	}
-	e.emitEvent(EventInputResolved, inputResolvedPayload(execID, nodeID, spec.ID, round, value))
+	e.emit(EventInputResolved, inputResolvedPayload(execID, nodeID, spec.ID, round, value))
 
 	state.mu.Lock()
 	state.exec.Nodes[idx].Status = NodeRunning
@@ -263,7 +263,7 @@ func (e *Executor) RespondToInput(execID, nodeID, inputID, value string) error {
 	}
 
 	if vErr := validateInput(spec, value); vErr != nil {
-		e.emitEvent(EventInputInvalid, invalidPayload(execID, nodeID, inputID, vErr.Error()))
+		e.emit(EventInputInvalid, invalidPayload(execID, nodeID, inputID, vErr.Error()))
 		return vErr
 	}
 
@@ -271,7 +271,7 @@ func (e *Executor) RespondToInput(execID, nodeID, inputID, value string) error {
 	if spec.Shape == ShapeFile {
 		resolved, fErr := resolveFileInput(value, repoPath)
 		if fErr != nil {
-			e.emitEvent(EventInputInvalid, invalidPayload(execID, nodeID, inputID, "path outside repository root"))
+			e.emit(EventInputInvalid, invalidPayload(execID, nodeID, inputID, "path outside repository root"))
 			return fErr
 		}
 		stored = resolved
