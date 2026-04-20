@@ -559,6 +559,7 @@ export namespace bmad {
 	    nodeType?: string;
 	    outputPaths?: Record<string, string>;
 	    inputPaths?: Record<string, string>;
+	    inputSpecs?: InputSpec[];
 	
 	    static createFrom(source: any = {}) {
 	        return new WorkflowNode(source);
@@ -578,6 +579,7 @@ export namespace bmad {
 	        this.nodeType = source["nodeType"];
 	        this.outputPaths = source["outputPaths"];
 	        this.inputPaths = source["inputPaths"];
+	        this.inputSpecs = this.convertValues(source["inputSpecs"], InputSpec);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -660,6 +662,7 @@ export namespace bmad {
 	    pendingPrompts?: PendingPrompt[];
 	    nodeInputs?: Record<string, any>;
 	    nodeInputHistory?: Record<string, Array<NodeInputEntry>>;
+	    version?: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new WorkflowExecution(source);
@@ -679,6 +682,7 @@ export namespace bmad {
 	        this.pendingPrompts = this.convertValues(source["pendingPrompts"], PendingPrompt);
 	        this.nodeInputs = source["nodeInputs"];
 	        this.nodeInputHistory = this.convertValues(source["nodeInputHistory"], Array<NodeInputEntry>, true);
+	        this.version = source["version"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

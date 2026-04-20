@@ -628,57 +628,64 @@
     setTimeout(() => applyNodeDataPatch(nodeId, { gateFlash: false }), 400);
   }
 
-  const cancelAwaitingListener = EventsOn('bmad:node:awaiting_input', (event) => {
-    if (executionId && event?.execId && event.execId !== executionId) return;
-    const prompt = annotatePrompt(event);
-    if (!prompt) return;
-    upsertPrompt(prompt);
-    applyNodeDataPatch(prompt.nodeId, { status: 'awaiting_input' });
-    if (prompt.round > 0) updateRound(prompt.nodeId, prompt.round);
-  });
+  const bmadEventHandlers = {
+    'bmad:node:awaiting_input': (event) => {
+      if (executionId && event?.execId && event.execId !== executionId) return;
+      const prompt = annotatePrompt(event);
+      if (!prompt) return;
+      upsertPrompt(prompt);
+      applyNodeDataPatch(prompt.nodeId, { status: 'awaiting_input' });
+      if (prompt.round > 0) updateRound(prompt.nodeId, prompt.round);
+    },
+    'bmad:node:input_resolved': (event) => {
+      if (!event?.nodeId || !event?.inputId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      resolveInput(event.nodeId, event.inputId);
+    },
+    'bmad:node:input_invalid': (event) => {
+      if (!event?.nodeId || !event?.inputId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      setValidationError(event.nodeId, event.inputId, event.reason || 'Invalid input');
+    },
+    'bmad:node:round_complete': (event) => {
+      if (!event?.nodeId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      updateRound(event.nodeId, event.round || 0);
+      applyNodeDataPatch(event.nodeId, { nodeRound: event.round || 0 });
+    },
+    'bmad:node:gate_satisfied': (event) => {
+      if (!event?.nodeId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      dismissNode(event.nodeId);
+      flashGate(event.nodeId);
+      pushToast('success', event.reason || 'Gate satisfied');
+    },
+    'bmad:node:round_limit': (event) => {
+      if (!event?.nodeId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      dismissNode(event.nodeId);
+      flashGate(event.nodeId);
+      pushToast('warn', 'Reached round limit — process ended');
+    },
+    'bmad:node:aborted': (event) => {
+      if (!event?.nodeId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      dismissNode(event.nodeId);
+      applyNodeDataPatch(event.nodeId, { status: 'failed' });
+      pushToast('error', event.reason || 'Node aborted');
+    },
+  };
 
-  const cancelResolvedListener = EventsOn('bmad:node:input_resolved', (event) => {
-    if (!event?.nodeId || !event?.inputId) return;
-    if (executionId && event.execId && event.execId !== executionId) return;
-    resolveInput(event.nodeId, event.inputId);
-  });
+  const bmadListenerCancels = Object.entries(bmadEventHandlers).map(([name, fn]) => EventsOn(name, fn));
 
-  const cancelInvalidListener = EventsOn('bmad:node:input_invalid', (event) => {
-    if (!event?.nodeId || !event?.inputId) return;
-    if (executionId && event.execId && event.execId !== executionId) return;
-    setValidationError(event.nodeId, event.inputId, event.reason || 'Invalid input');
-  });
-
-  const cancelRoundCompleteListener = EventsOn('bmad:node:round_complete', (event) => {
-    if (!event?.nodeId) return;
-    if (executionId && event.execId && event.execId !== executionId) return;
-    updateRound(event.nodeId, event.round || 0);
-    applyNodeDataPatch(event.nodeId, { nodeRound: event.round || 0 });
-  });
-
-  const cancelGateSatisfiedListener = EventsOn('bmad:node:gate_satisfied', (event) => {
-    if (!event?.nodeId) return;
-    if (executionId && event.execId && event.execId !== executionId) return;
-    dismissNode(event.nodeId);
-    flashGate(event.nodeId);
-    pushToast('success', event.reason || 'Gate satisfied');
-  });
-
-  const cancelRoundLimitListener = EventsOn('bmad:node:round_limit', (event) => {
-    if (!event?.nodeId) return;
-    if (executionId && event.execId && event.execId !== executionId) return;
-    dismissNode(event.nodeId);
-    flashGate(event.nodeId);
-    pushToast('warn', 'Reached round limit — process ended');
-  });
-
-  const cancelAbortedListener = EventsOn('bmad:node:aborted', (event) => {
-    if (!event?.nodeId) return;
-    if (executionId && event.execId && event.execId !== executionId) return;
-    dismissNode(event.nodeId);
-    applyNodeDataPatch(event.nodeId, { status: 'failed' });
-    pushToast('error', event.reason || 'Node aborted');
-  });
+  if (import.meta.env.DEV && typeof window !== 'undefined') {
+    window.__mashedEmitBmadEvent = (name, payload) => {
+      const fn = bmadEventHandlers[name];
+      if (!fn) return false;
+      fn(payload);
+      return true;
+    };
+  }
 
   // Skip for non-required prompts: send an empty string; backend treats as skip.
   async function handleInputSkip(prompt) {
@@ -712,13 +719,10 @@
     if (cancelExecListener) cancelExecListener();
     if (cancelSprintListener) cancelSprintListener();
     if (cancelAssetsListener) cancelAssetsListener();
-    if (cancelAwaitingListener) cancelAwaitingListener();
-    if (cancelResolvedListener) cancelResolvedListener();
-    if (cancelInvalidListener) cancelInvalidListener();
-    if (cancelRoundCompleteListener) cancelRoundCompleteListener();
-    if (cancelGateSatisfiedListener) cancelGateSatisfiedListener();
-    if (cancelRoundLimitListener) cancelRoundLimitListener();
-    if (cancelAbortedListener) cancelAbortedListener();
+    bmadListenerCancels.forEach((c) => c && c());
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      delete window.__mashedEmitBmadEvent;
+    }
     clearTimeout(flashTimer);
     clearTimeout(errorTimer);
     clearTimeout(autoFillSaveTimer);
