@@ -1,0 +1,1 @@
+{"id":"bmad-game-dev-studio","name":"Game Dev Studio","phase":"implementation","agentRole":"developer","skillName":"bmad-game-dev-studio","description":"Game development studio workflow for building games from a PRD.","inputs":["PRD.md"],"outputs":["code"],"moduleId":"bmgd","version":"1.0.0"}

@@ -25,12 +25,13 @@ func init() {
 			ModuleID:    "core",
 			Version:     "1.0.0",
 			// Interactive shape — schema §10.1.
-			Mode: InteractIterative,
+			Mode:             InteractIterative,
+			EnableAstAdapter: true,
 			InputSpecs: []InputSpec{
 				{ID: "topic", Source: InputFromUser, Shape: ShapeFree, Required: true, Prompt: "What topic do you want to brainstorm?", MaxLength: 500},
 				{ID: "approach", Source: InputFromUser, Shape: ShapeChoice, Required: true, Prompt: "How should we pick techniques?", Options: []string{"user-pick", "ai-recommend", "random", "progressive"}},
 				{ID: "technique", Source: InputFromRegistry, OptionsRef: "registry:brain-methods.csv#technique_name"},
-				{ID: "round-response", Source: InputFromUser, Shape: ShapeFree, Prompt: "Add ideas, pivot, or type 'done' when satisfied.", HelpText: "Type 'done' to wrap up; 'skip' to move to the next technique."},
+				{ID: "round-response", Source: InputFromUser, Shape: ShapeJSON, Prompt: "Add ideas, pivot, or type 'done' when satisfied.", HelpText: "Type 'done' to wrap up; 'skip' to move to the next technique."},
 			},
 			OutputSpecs: []OutputSpec{
 				{ID: "brainstorm-notes", Target: OutputToFile, ArtifactName: "brainstorm-notes", Description: "Organised brainstorm session notes"},
@@ -49,12 +50,13 @@ func init() {
 			ModuleID:    "core",
 			Version:     "1.0.0",
 			// Interactive shape — schema §10.2.
-			Mode: InteractGuided,
+			Mode:             InteractGuided,
+			EnableAstAdapter: true,
 			InputSpecs: []InputSpec{
 				{ID: "mode", Source: InputFromUser, Shape: ShapeChoice, Required: true, Prompt: "How do you want to work?", Options: []string{"guided", "yolo", "autonomous"}, Default: "guided"},
 				{ID: "existing-brief", Source: InputFromFile, ArtifactName: "product-brief"},
 				{ID: "brainstorm-input", Source: InputFromUpstream},
-				{ID: "stage-response", Source: InputFromUser, Shape: ShapeFree, Prompt: "{{stage_prompt}}", HelpText: "Type 'skip' to move on without more detail."},
+				{ID: "stage-response", Source: InputFromUser, Shape: ShapeJSON, Prompt: "{{stage_prompt}}", HelpText: "Type 'skip' to move on without more detail."},
 				{ID: "final-approval", Source: InputFromUser, Shape: ShapeApproval, Required: true, Prompt: "Approve this brief?"},
 			},
 			OutputSpecs: []OutputSpec{
@@ -334,13 +336,14 @@ func init() {
 			ModuleID:    "core",
 			Version:     "1.0.0",
 			// Interactive shape — schema §10.4.
-			Mode: InteractIterative,
+			Mode:             InteractIterative,
+			EnableAstAdapter: true,
 			InputSpecs: []InputSpec{
 				{ID: "target-content", Source: InputFromUpstream, Required: true},
 				// method recurs every round — marked Required=false so iterationInput() picks it.
 				// §10.4 JSON shows required=true for schema docs; the executor treats it as the
 				// per-round recurring slot per the prose under §10.4 and AC-2.
-				{ID: "method", Source: InputFromUser, Shape: ShapeChoice, Prompt: "Pick a reasoning method:", OptionsRef: "registry:methods.csv?random=5", HelpText: "[r] reshuffle · [a] see all · [x] accept and proceed"},
+				{ID: "method", Source: InputFromUser, Shape: ShapeJSON, Prompt: "Pick a reasoning method:", OptionsRef: "registry:methods.csv?random=5", HelpText: "[r] reshuffle · [a] see all · [x] accept and proceed"},
 				{ID: "apply-changes", Source: InputFromUser, Shape: ShapeApproval, Required: true, Prompt: "Apply these changes to the document?"},
 			},
 			OutputSpecs: []OutputSpec{
@@ -374,10 +377,11 @@ func init() {
 			ModuleID:    "core",
 			Version:     "1.0.0",
 			// Interactive shape — schema §10.3.
-			Mode: InteractParty,
+			Mode:             InteractParty,
+			EnableAstAdapter: true,
 			InputSpecs: []InputSpec{
 				{ID: "topic", Source: InputFromUser, Shape: ShapeFree, Required: true, Prompt: "What do you want the team to discuss?", MaxLength: 1000},
-				{ID: "message", Source: InputFromUser, Shape: ShapeFree, Prompt: "Your turn. Type 'exit' to end the conversation."},
+				{ID: "message", Source: InputFromUser, Shape: ShapeJSON, Prompt: "Your turn. Type 'exit' to end the conversation."},
 			},
 			OutputSpecs: []OutputSpec{
 				{ID: "transcript", Target: OutputToFile, ArtifactName: "retro-notes", Optional: true},

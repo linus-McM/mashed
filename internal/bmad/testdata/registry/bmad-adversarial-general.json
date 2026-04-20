@@ -1,0 +1,1 @@
+{"id":"bmad-adversarial-general","name":"Adversarial Review","phase":"support","agentRole":"qa","skillName":"bmad-adversarial-general","description":"Adversarial review to stress-test documents for weaknesses and blind spots.","inputs":["any-doc"],"outputs":["adversarial-report"],"moduleId":"core","version":"1.0.0"}

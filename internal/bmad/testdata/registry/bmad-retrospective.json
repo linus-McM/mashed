@@ -1,0 +1,1 @@
+{"id":"bmad-retrospective","name":"Retrospective","phase":"implementation","agentRole":"pm","skillName":"bmad-retrospective","description":"Conduct a sprint retrospective to identify improvements.","inputs":[],"outputs":["retro-notes"],"moduleId":"core","version":"1.0.0"}

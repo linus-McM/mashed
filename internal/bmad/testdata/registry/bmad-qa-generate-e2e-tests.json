@@ -1,0 +1,1 @@
+{"id":"bmad-qa-generate-e2e-tests","name":"QA Generate E2E Tests","phase":"implementation","agentRole":"qa","skillName":"bmad-qa-generate-e2e-tests","description":"Generate end-to-end tests from stories and existing code.","inputs":["code","story-*.md"],"outputs":["tests","any-doc"],"moduleId":"core","version":"1.0.0"}

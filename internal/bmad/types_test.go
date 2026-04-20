@@ -159,3 +159,47 @@ func TestStory1_AC4_LegacyWorkflowRoundTrip(t *testing.T) {
 		})
 	}
 }
+
+// ── Story ui-ast-U0, AC-1: ProcessDef.EnableAstAdapter round-trip ──
+//
+// RED Phase: EnableAstAdapter does not exist on ProcessDef yet. These tests
+// MUST fail until the go-engineer adds the field (GREEN phase). Compile
+// failure in this package blocks every bmad test — that is the intended RED
+// signal.
+func TestU0_AC1_ProcessDef_EnableAstAdapter_RoundTrip(t *testing.T) {
+	base := ProcessDef{
+		ID:          "bmad-test-u0",
+		Name:        "Test",
+		Phase:       PhaseAnalysis,
+		AgentRole:   RoleAnalyst,
+		SkillName:   "bmad-test-u0",
+		Description: "desc",
+		Inputs:      []string{},
+		Outputs:     []string{},
+		ModuleID:    "core",
+		Version:     "1.0.0",
+	}
+
+	t.Run("EnableAstAdapter=true marshals with key and round-trips", func(t *testing.T) {
+		p := base
+		p.EnableAstAdapter = true
+
+		data, err := json.Marshal(p)
+		require.NoError(t, err)
+		assert.Contains(t, string(data), `"enableAstAdapter":true`,
+			"JSON must include enableAstAdapter:true when the flag is set")
+
+		var decoded ProcessDef
+		require.NoError(t, json.Unmarshal(data, &decoded))
+		assert.True(t, decoded.EnableAstAdapter,
+			"decoded EnableAstAdapter must round-trip to true")
+	})
+
+	t.Run("EnableAstAdapter=false (zero) omits JSON key", func(t *testing.T) {
+		p := base
+		data, err := json.Marshal(p)
+		require.NoError(t, err)
+		assert.NotContains(t, string(data), "enableAstAdapter",
+			"JSON must omit enableAstAdapter key when the flag is zero (omitempty)")
+	})
+}

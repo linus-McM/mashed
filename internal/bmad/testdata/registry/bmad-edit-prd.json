@@ -1,0 +1,1 @@
+{"id":"bmad-edit-prd","name":"Edit PRD","phase":"planning","agentRole":"pm","skillName":"bmad-edit-prd","description":"Revise and refine an existing PRD based on feedback.","inputs":["PRD.md"],"outputs":["PRD.md"],"moduleId":"core","version":"1.0.0"}

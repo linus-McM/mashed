@@ -1,0 +1,1 @@
+{"id":"bmad-code-review","name":"Code Review","phase":"implementation","agentRole":"developer","skillName":"bmad-code-review","description":"Review code changes for quality, correctness, and adherence to standards.","inputs":[],"outputs":["review-report","code"],"moduleId":"core","version":"1.0.0"}

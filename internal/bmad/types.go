@@ -85,10 +85,14 @@ type ProcessDef struct {
 	ModuleID    string        `json:"moduleId"`
 	Version     string        `json:"version"`
 	// Interactive process fields (schema §3). Absent on legacy processes.
-	Mode        InteractionMode `json:"mode,omitempty"`
-	InputSpecs  []InputSpec     `json:"inputSpecs,omitempty"`
-	OutputSpecs []OutputSpec    `json:"outputSpecs,omitempty"`
-	Gate        *IterationGate  `json:"gate,omitempty"`
+	Mode InteractionMode `json:"mode,omitempty"`
+	// EnableAstAdapter opts the process into the Mashed UI AST adapter
+	// (docs/mashed-ui-ast-schema.md §9 Phase 0). Wired by U4; declarative
+	// only in U0. Default false; omitempty keeps pre-U0 JSON byte-identical.
+	EnableAstAdapter bool            `json:"enableAstAdapter,omitempty"`
+	InputSpecs       []InputSpec     `json:"inputSpecs,omitempty"`
+	OutputSpecs      []OutputSpec    `json:"outputSpecs,omitempty"`
+	Gate             *IterationGate  `json:"gate,omitempty"`
 }
 
 // iterationInput returns the InputSpec that represents the recurring per-round

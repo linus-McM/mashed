@@ -1,0 +1,1 @@
+{"id":"bmad-review-edge-case-hunter","name":"Review Edge Case Hunter","phase":"support","agentRole":"qa","skillName":"bmad-review-edge-case-hunter","description":"Hunt for edge cases, contradictions, and missing requirements in documents.","inputs":["any-doc"],"outputs":["edge-case-report"],"moduleId":"core","version":"1.0.0"}

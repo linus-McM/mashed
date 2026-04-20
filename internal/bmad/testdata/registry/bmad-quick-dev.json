@@ -1,0 +1,1 @@
+{"id":"bmad-quick-dev","name":"Quick Dev","phase":"implementation","agentRole":"developer","skillName":"bmad-quick-dev","description":"Rapid development of small features or fixes without a formal story.","inputs":[],"outputs":["code"],"moduleId":"core","version":"1.0.0"}

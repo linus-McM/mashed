@@ -1,0 +1,1 @@
+{"id":"bmad-create-prd","name":"Create PRD","phase":"planning","agentRole":"pm","skillName":"bmad-create-prd","description":"Draft a product requirements document from the product brief.","inputs":["product-brief"],"outputs":["PRD.md"],"moduleId":"core","version":"1.0.0"}

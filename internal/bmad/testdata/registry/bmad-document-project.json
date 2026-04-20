@@ -1,0 +1,1 @@
+{"id":"bmad-document-project","name":"Document Project","phase":"support","agentRole":"tech-writer","skillName":"bmad-document-project","description":"Generate comprehensive project documentation from existing artifacts.","inputs":["PRD.md","architecture.md"],"outputs":["project-docs"],"moduleId":"core","version":"1.0.0"}
