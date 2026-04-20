@@ -1,10 +1,11 @@
 # ui-ast-U0: Registry migration to ShapeJSON + per-process EnableAstAdapter opt-in
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends on:** none
 **Priority:** P0-critical
+**Landed:** 2026-04-21 (commit e0dfe49)
 
 ## Story
 
@@ -169,37 +170,37 @@ Feature: Registry migration to ShapeJSON + EnableAstAdapter opt-in
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add `ProcessDef.EnableAstAdapter` type field (AC-1)
-  - [ ] RED: write `TestProcessDef_EnableAstAdapter_RoundTrip` asserting both `true` and zero-value behaviour
-  - [ ] GREEN: add `EnableAstAdapter bool `json:"enableAstAdapter,omitempty"`` to `ProcessDef`
-  - [ ] REFACTOR: run `/simplify` on `internal/bmad/types.go`
-- [ ] Task 2: Capture pre-migration golden JSON for every registry process (AC-3)
-  - [ ] Write `internal/bmad/testdata/registry/<id>.json` for every process currently in `ProcessByID`
-  - [ ] Commit goldens before any migration edits so the regression is load-bearing
-- [ ] Task 3: Migrate the four interactive processes (AC-2)
-  - [ ] RED: write `TestRegistry_MigratedProcesses_ShapeJSON` (fails before edit)
-  - [ ] GREEN: flip iteration `Shape` to `ShapeJSON` + set `EnableAstAdapter: true` for each of the four
-  - [ ] Refresh the goldens for the four migrated IDs
-  - [ ] REFACTOR: run `/simplify` on `internal/bmad/registry.go`
-- [ ] Task 4: Lock non-migrated processes to golden JSON (AC-3)
-  - [ ] RED: write `TestRegistry_NonMigratedProcessesUnchanged` iterating the non-migrated ID set
-  - [ ] GREEN: confirm the test passes; no code change expected
-- [ ] Task 5: Extend `validateInput` `ShapeJSON` back-compat (AC-4)
-  - [ ] RED: write `TestValidateInput_ShapeJSON_BareStringAccepted`
-  - [ ] GREEN: add the "accept bare string when not valid JSON" branch in `internal/bmad/validate.go`
-  - [ ] REFACTOR: `/simplify`
-- [ ] Task 6: Confirm §11 Q6 resolution in tests + schema (AC-5)
-  - [ ] Add `TestRegistry_MigratedProcessesEnableAstAdapter` with the "Q6 resolved — enabled by default" comment
-  - [ ] Append a one-paragraph §11 addendum to `docs/bmad-interactive-process-schema.md` recording the 2026-04-21 decision: `UIAdapterEnabled` default TRUE; unreachable Ollama → `fallback:unreachable` per spec §4.8
+- [x] Task 1: Add `ProcessDef.EnableAstAdapter` type field (AC-1)
+  - [x] RED: write `TestProcessDef_EnableAstAdapter_RoundTrip` asserting both `true` and zero-value behaviour
+  - [x] GREEN: add `EnableAstAdapter bool `json:"enableAstAdapter,omitempty"`` to `ProcessDef`
+  - [x] REFACTOR: run `/simplify` on `internal/bmad/types.go`
+- [x] Task 2: Capture pre-migration golden JSON for every registry process (AC-3)
+  - [x] Write `internal/bmad/testdata/registry/<id>.json` for every process currently in `ProcessByID`
+  - [x] Commit goldens before any migration edits so the regression is load-bearing
+- [x] Task 3: Migrate the four interactive processes (AC-2)
+  - [x] RED: write `TestRegistry_MigratedProcesses_ShapeJSON` (fails before edit)
+  - [x] GREEN: flip iteration `Shape` to `ShapeJSON` + set `EnableAstAdapter: true` for each of the four
+  - [x] Refresh the goldens for the four migrated IDs
+  - [x] REFACTOR: run `/simplify` on `internal/bmad/registry.go`
+- [x] Task 4: Lock non-migrated processes to golden JSON (AC-3)
+  - [x] RED: write `TestRegistry_NonMigratedProcessesUnchanged` iterating the non-migrated ID set
+  - [x] GREEN: confirm the test passes; no code change expected
+- [x] Task 5: Extend `validateInput` `ShapeJSON` back-compat (AC-4)
+  - [x] RED: write `TestValidateInput_ShapeJSON_BareStringAccepted`
+  - [x] GREEN: add the "accept bare string when not valid JSON" branch in `internal/bmad/validate.go`
+  - [x] REFACTOR: `/simplify`
+- [x] Task 6: Confirm §11 Q6 resolution in tests + schema (AC-5)
+  - [x] Add `TestRegistry_MigratedProcessesEnableAstAdapter` with the "Q6 resolved — enabled by default" comment
+  - [x] Append a one-paragraph §11 addendum to `docs/bmad-interactive-process-schema.md` recording the 2026-04-21 decision: `UIAdapterEnabled` default TRUE; unreachable Ollama → `fallback:unreachable` per spec §4.8
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on modified code in `internal/bmad/types.go`, `registry.go`, `validate.go`
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on every modified Go file; no CRITICAL/HIGH findings
-- [ ] Story status flipped to `done`
-- [ ] Changes committed on branch
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on modified code in `internal/bmad/types.go`, `registry.go`, `validate.go`
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on every modified Go file; no CRITICAL/HIGH findings
+- [x] Story status flipped to `done`
+- [x] Changes committed on branch
