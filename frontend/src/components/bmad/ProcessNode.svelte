@@ -243,7 +243,8 @@
 
   .status-text {
     font-size: 9px;
-    color: var(--text-muted);
+    color: var(--text-secondary);
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
   }
@@ -256,7 +257,7 @@
   }
 
   .status-dot.pending {
-    background: var(--text-muted, #8b949e);
+    background: var(--text-secondary, #8a9cae);
   }
 
   .status-dot.running-dot {
