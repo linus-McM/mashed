@@ -208,6 +208,18 @@ func (a *App) GetBmadExecution(execID string) (*bmad.WorkflowExecution, error) {
 	return a.bmadExecutor.GetExecution(execID)
 }
 
+// GetInteractiveTranscript returns the ordered conversation transcript for
+// an interactive node — every captured Claude round output interleaved
+// with user answers from NodeInputHistory. Empty slice when the node has
+// no activity yet. Consumed by the InputResponseModal transcript pane so
+// users can re-read the full discussion while answering the current turn.
+func (a *App) GetInteractiveTranscript(execID, nodeID string) ([]bmad.InteractiveTurn, error) {
+	if a.bmadExecutor == nil {
+		return nil, fmt.Errorf("bmad executor not initialized")
+	}
+	return a.bmadExecutor.GetInteractiveTranscript(execID, nodeID)
+}
+
 // GetBmadCurrentExecution returns a deep copy of the most recently
 // started non-terminal execution (running or paused) whose RepoPath
 // matches the given path, or nil when no such execution exists.

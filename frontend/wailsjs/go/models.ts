@@ -255,6 +255,26 @@ export namespace bmad {
 	        this.helpText = source["helpText"];
 	    }
 	}
+	export class InteractiveTurn {
+	    round: number;
+	    role: string;
+	    inputId?: string;
+	    content: string;
+	    timestamp?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new InteractiveTurn(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.round = source["round"];
+	        this.role = source["role"];
+	        this.inputId = source["inputId"];
+	        this.content = source["content"];
+	        this.timestamp = source["timestamp"];
+	    }
+	}
 	export class IterationGate {
 	    kind: string;
 	    maxRounds?: number;

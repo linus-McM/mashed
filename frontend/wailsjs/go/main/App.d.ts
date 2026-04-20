@@ -43,6 +43,8 @@ export function GetEditorSettings():Promise<main.EditorSettings>;
 
 export function GetFontsDir():Promise<string>;
 
+export function GetInteractiveTranscript(arg1:string,arg2:string):Promise<Array<bmad.InteractiveTurn>>;
+
 export function GetNodeOutput(arg1:string,arg2:string):Promise<string>;
 
 export function GetNotifications():Promise<Array<domain.NotificationEvent>>;

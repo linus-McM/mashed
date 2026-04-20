@@ -720,3 +720,126 @@ func TestRehydrateFromSnapshot_IdempotentOnSecondCall(t *testing.T) {
 		t.Fatalf("second rehydrate returned a different state pointer")
 	}
 }
+
+// ── GetInteractiveTranscript ────────────────────────────────────────────────
+
+func TestGetInteractiveTranscript_OrdersClaudeThenUserPerRound(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	e := NewExecutor(storage, func(string, interface{}) {})
+
+	snap := &WorkflowExecution{
+		ID:       "exec-transcript-1",
+		RepoPath: "/tmp/demo",
+		Status:   ExecRunning,
+		Nodes: []WorkflowNode{{ID: "party", ProcessID: "util-file-loader", Status: NodeAwaitingInput}},
+		NodeOutputs: map[string]string{
+			"party-round-1": "Claude turn 1 text",
+			"party-round-2": "Claude turn 2 text",
+			"unrelated-key": "noise that must not leak into the transcript",
+		},
+		NodeRounds: map[string]int{"party": 2},
+		NodeInputHistory: map[string][]NodeInputEntry{
+			"party": {
+				{InputID: "message", Round: 1, Value: "user answer 1", Timestamp: 100},
+				{InputID: "message", Round: 2, Value: "user answer 2", Timestamp: 200},
+			},
+		},
+	}
+	if _, err := e.RehydrateFromSnapshot(snap); err != nil {
+		t.Fatalf("rehydrate: %v", err)
+	}
+
+	turns, err := e.GetInteractiveTranscript(snap.ID, "party")
+	if err != nil {
+		t.Fatalf("GetInteractiveTranscript: %v", err)
+	}
+	if len(turns) != 4 {
+		t.Fatalf("expected 4 turns, got %d: %+v", len(turns), turns)
+	}
+	if turns[0].Role != "claude" || turns[0].Round != 1 || turns[0].Content != "Claude turn 1 text" {
+		t.Errorf("turn[0] mismatch: %+v", turns[0])
+	}
+	if turns[1].Role != "user" || turns[1].Round != 1 || turns[1].Content != "user answer 1" {
+		t.Errorf("turn[1] mismatch: %+v", turns[1])
+	}
+	if turns[2].Role != "claude" || turns[2].Round != 2 {
+		t.Errorf("turn[2] mismatch: %+v", turns[2])
+	}
+	if turns[3].Role != "user" || turns[3].Round != 2 || turns[3].Timestamp != 200 {
+		t.Errorf("turn[3] mismatch (timestamp propagation): %+v", turns[3])
+	}
+}
+
+func TestGetInteractiveTranscript_EmptyNodeReturnsEmptySlice(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	e := NewExecutor(storage, func(string, interface{}) {})
+	snap := &WorkflowExecution{
+		ID: "e-empty", RepoPath: "/r", Status: ExecRunning,
+		Nodes: []WorkflowNode{{ID: "n", Status: NodePending}},
+	}
+	if _, err := e.RehydrateFromSnapshot(snap); err != nil {
+		t.Fatalf("rehydrate: %v", err)
+	}
+	turns, err := e.GetInteractiveTranscript("e-empty", "n")
+	if err != nil {
+		t.Fatalf("GetInteractiveTranscript: %v", err)
+	}
+	if len(turns) != 0 {
+		t.Fatalf("expected empty slice, got %+v", turns)
+	}
+}
+
+func TestGetInteractiveTranscript_SkipsMissingClaudeRoundButKeepsUser(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	e := NewExecutor(storage, func(string, interface{}) {})
+
+	// Simulates the first suspend: no Claude turn captured yet, but user
+	// already has a history entry from initial step-B inputs.
+	snap := &WorkflowExecution{
+		ID: "e-sparse", RepoPath: "/r", Status: ExecRunning,
+		Nodes:       []WorkflowNode{{ID: "n", Status: NodeAwaitingInput}},
+		NodeOutputs: map[string]string{}, // no round captures
+		NodeInputHistory: map[string][]NodeInputEntry{
+			"n": {{InputID: "topic", Round: 1, Value: "first answer", Timestamp: 1}},
+		},
+	}
+	if _, err := e.RehydrateFromSnapshot(snap); err != nil {
+		t.Fatalf("rehydrate: %v", err)
+	}
+	turns, err := e.GetInteractiveTranscript("e-sparse", "n")
+	if err != nil {
+		t.Fatalf("GetInteractiveTranscript: %v", err)
+	}
+	if len(turns) != 1 || turns[0].Role != "user" || turns[0].Content != "first answer" {
+		t.Fatalf("expected 1 user turn, got: %+v", turns)
+	}
+}
+
+func TestGetInteractiveTranscript_ExecNotFound(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	e := NewExecutor(storage, func(string, interface{}) {})
+	_, err = e.GetInteractiveTranscript("never-started", "n")
+	if err == nil {
+		t.Fatal("expected ErrExecNotFound")
+	}
+}

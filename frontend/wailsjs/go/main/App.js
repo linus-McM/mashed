@@ -78,6 +78,10 @@ export function GetFontsDir() {
   return window['go']['main']['App']['GetFontsDir']();
 }
 
+export function GetInteractiveTranscript(arg1, arg2) {
+  return window['go']['main']['App']['GetInteractiveTranscript'](arg1, arg2);
+}
+
 export function GetNodeOutput(arg1, arg2) {
   return window['go']['main']['App']['GetNodeOutput'](arg1, arg2);
 }

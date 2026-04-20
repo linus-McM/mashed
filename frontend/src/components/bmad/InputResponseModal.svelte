@@ -3,7 +3,7 @@
   import { fade, fly } from 'svelte/transition';
   import { cubicOut, cubicIn } from 'svelte/easing';
   import { X, MessageCircleQuestion } from 'lucide-svelte';
-  import { RespondToInput } from '../../../wailsjs/go/main/App.js';
+  import { RespondToInput, GetInteractiveTranscript } from '../../../wailsjs/go/main/App.js';
   import {
     interactiveInput,
     validationKey,
@@ -14,6 +14,8 @@
   import ApprovalWidget from './inputWidgets/ApprovalWidget.svelte';
   import FileInputWidget from './inputWidgets/FileInputWidget.svelte';
   import JsonInputWidget from './inputWidgets/JsonInputWidget.svelte';
+  import TranscriptPane from './TranscriptPane.svelte';
+  import { EventsOn } from '../../../wailsjs/runtime/runtime.js';
 
   /** @type {import('../../stores/interactiveInput').PendingPrompt | null} */
   export let prompt = null;
@@ -44,12 +46,50 @@
     setTimeout(() => { shaking = false; }, 250);
   }
 
+  /** @type {import('./TranscriptPane.svelte').Turn[]} */
+  let transcript = [];
+  let transcriptLoading = false;
+  let transcriptError = '';
+  /** @type {(() => void) | null} */
+  let cancelRoundListener = null;
+
+  async function loadTranscript() {
+    if (!prompt) return;
+    const eid = execId || prompt.execId || '';
+    if (!eid || !prompt.nodeId) return;
+    transcriptLoading = true;
+    transcriptError = '';
+    try {
+      const turns = await GetInteractiveTranscript(eid, prompt.nodeId);
+      transcript = Array.isArray(turns) ? turns : [];
+    } catch (err) {
+      transcriptError = err instanceof Error ? err.message : String(err);
+    } finally {
+      transcriptLoading = false;
+    }
+  }
+
   onMount(async () => {
     await tick();
+    loadTranscript();
+    // Refresh the transcript every time Claude finishes a round for this
+    // node — round_complete event carries {execId, nodeId, round}.
+    cancelRoundListener = EventsOn('bmad:node:round_complete', (event) => {
+      if (!prompt || !event) return;
+      if (event.nodeId !== prompt.nodeId) return;
+      loadTranscript();
+    });
   });
+
+  // Reload when the active prompt flips to a new node/exec — happens when
+  // the user closes one modal and a queued prompt opens another.
+  $: if (prompt && prompt.nodeId) {
+    loadTranscript();
+  }
 
   onDestroy(() => {
     shaking = false;
+    if (cancelRoundListener) cancelRoundListener();
   });
 
   /** @param {{ detail: { value: string } }} e */
@@ -143,9 +183,11 @@
       </header>
 
       <div class="modal-body" class:editor={shape === 'json'}>
-        {#if prompt.lastOutput}
-          <pre class="last-output" data-testid="input-modal-last-output" aria-label="Previous turn output">{prompt.lastOutput}</pre>
-        {/if}
+        <TranscriptPane
+          turns={transcript}
+          loading={transcriptLoading}
+          error={transcriptError}
+        />
         <blockquote class="prompt-block" data-testid="input-modal-prompt">
           {prompt.prompt}
         </blockquote>
@@ -229,9 +271,9 @@
 
   .modal-card {
     width: 100%;
-    max-width: 560px;
+    max-width: 880px;
     min-width: var(--modal-width-min);
-    max-height: 80vh;
+    max-height: 82vh;
     background: var(--bg-surface);
     border: 1px solid var(--border-emphasis);
     border-radius: var(--radius-lg);
@@ -327,22 +369,6 @@
     font-size: var(--text-data);
     color: var(--text-primary);
     line-height: 1.6;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-
-  .last-output {
-    margin: 0 0 var(--sp-md) 0;
-    max-height: 320px;
-    overflow: auto;
-    background: var(--bg-deepest);
-    border-left: 3px solid var(--accent-amber);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    padding: var(--sp-md) var(--sp-lg);
-    font-family: var(--font-code, var(--font-mono));
-    font-size: var(--text-label);
-    color: var(--text-secondary);
-    line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-word;
   }

@@ -285,6 +285,97 @@ func (e *Executor) GetExecution(execID string) (*WorkflowExecution, error) {
 	return cloneExecution(state.exec), nil
 }
 
+// InteractiveTurn is one half of an exchange during an interactive node —
+// either Claude's captured pane output for a round, or the user's answer
+// submitted via RespondToInput. The frontend transcript view orders these
+// by (Round asc, Role="claude" before Role="user") so the modal reads like
+// a chat log.
+type InteractiveTurn struct {
+	Round     int    `json:"round"`
+	Role      string `json:"role"` // "claude" | "user"
+	InputID   string `json:"inputId,omitempty"`
+	Content   string `json:"content"`
+	Timestamp int64  `json:"timestamp,omitempty"`
+}
+
+// GetInteractiveTranscript returns the ordered turn-by-turn history for an
+// interactive node: every captured Claude round output plus every user
+// answer recorded in NodeInputHistory. Empty slice when the node has no
+// activity yet. Used by the modal's transcript pane so users can re-read
+// the full conversation while answering the current turn — BMAD turns can
+// go deep, and the old single-line prompt hid everything.
+func (e *Executor) GetInteractiveTranscript(execID, nodeID string) ([]InteractiveTurn, error) {
+	state, err := e.getState(execID)
+	if err != nil {
+		return nil, err
+	}
+	state.mu.Lock()
+	defer state.mu.Unlock()
+	if state.exec == nil {
+		return nil, nil
+	}
+	// Collect Claude turns keyed by round from NodeOutputs["{nodeID}-round-N"].
+	claudeByRound := map[int]string{}
+	prefix := nodeID + "-round-"
+	for key, val := range state.exec.NodeOutputs {
+		if !strings.HasPrefix(key, prefix) {
+			continue
+		}
+		n, cErr := strconv.Atoi(key[len(prefix):])
+		if cErr != nil || n <= 0 {
+			continue
+		}
+		claudeByRound[n] = val
+	}
+	// User answers from NodeInputHistory preserve round + timestamp + inputID.
+	userEntries := state.exec.NodeInputHistory[nodeID]
+
+	// Round cap: whichever the executor considers "current" — NodeRounds is
+	// authoritative once the round loop has advanced; otherwise fall back
+	// to the max round observed in either map.
+	maxRound := 0
+	if r, ok := state.exec.NodeRounds[nodeID]; ok {
+		maxRound = r
+	}
+	for n := range claudeByRound {
+		if n > maxRound {
+			maxRound = n
+		}
+	}
+	for _, entry := range userEntries {
+		if entry.Round > maxRound {
+			maxRound = entry.Round
+		}
+	}
+	if maxRound == 0 {
+		return []InteractiveTurn{}, nil
+	}
+
+	turns := make([]InteractiveTurn, 0, maxRound*2)
+	for round := 1; round <= maxRound; round++ {
+		if content, ok := claudeByRound[round]; ok && content != "" {
+			turns = append(turns, InteractiveTurn{
+				Round:   round,
+				Role:    "claude",
+				Content: content,
+			})
+		}
+		for _, entry := range userEntries {
+			if entry.Round != round {
+				continue
+			}
+			turns = append(turns, InteractiveTurn{
+				Round:     round,
+				Role:      "user",
+				InputID:   entry.InputID,
+				Content:   entry.Value,
+				Timestamp: entry.Timestamp,
+			})
+		}
+	}
+	return turns, nil
+}
+
 // GetCurrentExecution returns a deep copy of the most recently started
 // NON-TERMINAL execution (ExecRunning or ExecPaused) whose RepoPath
 // equals the given path, or (nil, nil) when no such execution exists.
