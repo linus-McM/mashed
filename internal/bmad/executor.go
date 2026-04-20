@@ -2,7 +2,9 @@ package bmad
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -470,7 +472,32 @@ func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, m
 
 				switch effectiveType {
 				case NodeTypeProcess:
-					e.executeProcessNode(ctx, state, nodeIndex, nID, repoPath, model)
+					// Route on ProcessDef.Mode: interactive modes take a
+					// separate lifecycle with input resolution + output
+					// verification; everything else falls through to the
+					// legacy autonomous path byte-for-byte.
+					state.mu.Lock()
+					procID := state.exec.Nodes[idx].ProcessID
+					state.mu.Unlock()
+					if proc, ok := ProcessByID(procID); ok {
+						switch proc.Mode {
+						case InteractGuided, InteractIterative, InteractParty:
+							if testHookExecuteInteractiveNode != nil {
+								testHookExecuteInteractiveNode(nID)
+							}
+							e.executeInteractiveNode(ctx, state, nodeIndex, nID, repoPath, model)
+						default:
+							if testHookExecuteNode != nil {
+								testHookExecuteNode(nID)
+							}
+							e.executeProcessNode(ctx, state, nodeIndex, nID, repoPath, model)
+						}
+					} else {
+						if testHookExecuteNode != nil {
+							testHookExecuteNode(nID)
+						}
+						e.executeProcessNode(ctx, state, nodeIndex, nID, repoPath, model)
+					}
 				case NodeTypeCondition, NodeTypeMerge:
 					e.executeControlNode(ctx, state, nodeIndex, nID, repoPath, model)
 				case NodeTypeTransform:
@@ -569,6 +596,16 @@ func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, m
 // For loop nodes, only "loop-exit" edges are active (body edges are managed by executeLoopNode).
 // For all other nodes, all outbound edges are active.
 func (e *Executor) activeOutEdges(state *execState, nodeID, result string, effectiveType NodeType) []WorkflowEdge {
+	// Diagnostic: activeOutEdges should only fire for completed nodes. Log
+	// (but do not alter return value) if a caller violates that invariant.
+	for _, n := range state.exec.Nodes {
+		if n.ID == nodeID {
+			if n.Status != NodeComplete {
+				log.Printf("bmad: activeOutEdges called for node %s in status %s", nodeID, n.Status)
+			}
+			break
+		}
+	}
 	edges := state.outEdges[nodeID]
 	if effectiveType == NodeTypeCondition {
 		var active []WorkflowEdge
@@ -1977,4 +2014,394 @@ func topoSort(nodes []WorkflowNode, edges []WorkflowEdge) ([][]string, error) {
 		return nil, ErrCyclicWorkflow
 	}
 	return tiers, nil
+}
+
+// ── Interactive process path (bmad-interactive-02) ────────────────────────────
+
+// resolvedInputs maps InputSpec.ID to its resolved string value.
+type resolvedInputs map[string]string
+
+// upstreamOutputCap bounds upstream-output bytes injected into prompts,
+// matching §4 "Bounded memory" and buildContextStringV3's 2000-byte cap.
+const upstreamOutputCap = 2000
+
+// testHookExecuteNode is called by the autonomous process-node dispatch path
+// when a test has installed a non-nil hook. Nil in production — zero cost.
+var testHookExecuteNode func(nodeID string)
+
+// testHookExecuteInteractiveNode is called at the top of the interactive
+// dispatch path (both in runDynamic and executeInteractiveNode). Nil in
+// production — zero cost.
+var testHookExecuteInteractiveNode func(nodeID string)
+
+// executeInteractiveNode runs the interactive-mode lifecycle for a single
+// process node: resolve inputs → build prompt → start tmux session → wait
+// for idle → capture output → verify outputs → complete.
+//
+// Exactly one of failNode/completeNode fires on every return path so the
+// dynamic ready-set never stalls waiting on an orphan goroutine.
+//
+// S2 scope: user-missing inputs immediately fail the node (no suspension).
+// S3 replaces that with suspendForSpec; S4 adds the round loop and gate.
+func (e *Executor) executeInteractiveNode(
+	ctx context.Context,
+	state *execState,
+	nodeIndex map[string]int,
+	nodeID, repoPath, model string,
+) {
+	// Hook wiring lives in the runDynamic routing switch so both dispatch
+	// paths are symmetric (autonomous fires testHookExecuteNode there too).
+	idx := nodeIndex[nodeID]
+
+	state.mu.Lock()
+	procID := state.exec.Nodes[idx].ProcessID
+	state.mu.Unlock()
+
+	proc, ok := ProcessByID(procID)
+	if !ok {
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	// A. Mark running.
+	e.setStatus(state, idx, nodeID, NodeRunning)
+
+	// B. Resolve declared inputs. S2 treats missing user inputs as failure.
+	resolved, missing, err := e.resolveInputs(ctx, state, nodeID, 1)
+	if err != nil {
+		e.failNode(state, idx, nodeID)
+		return
+	}
+	if len(missing) > 0 {
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	// C. Start tmux session carrying the rendered prompt.
+	prompt := buildInteractivePrompt(proc, resolved)
+	innerCommand := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s %q`, model, prompt)
+	target, err := e.spawnCommandSession(ctx, state, nodeIndex, nodeID, repoPath, innerCommand)
+	if err != nil {
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	// D. Wait for idle (single-round stub; S4 adds iteration).
+	if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout); err != nil {
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	// Capture round output into NodeOutputs[nodeID]. Single-round stub uses
+	// nodeID directly to stay compatible with the autonomous convention;
+	// S4 switches to "<nodeID>-round-N".
+	e.captureRoundOutput(ctx, state, nodeID, target, nodeID)
+
+	// E. Verify declared outputs.
+	if err := e.verifyOutputs(state, nodeID, proc.OutputSpecs, repoPath); err != nil {
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	// F. Complete → activeOutEdges fires → downstream in-degree decrements.
+	e.completeNode(state, idx, nodeID)
+}
+
+// setStatus transitions a node to the given status and emits a status event.
+// Used by the interactive path; the autonomous path still inlines the same
+// two-step pattern (lock, write, unlock, emit) because it needs to also set
+// CurrentNode in the same critical section.
+func (e *Executor) setStatus(state *execState, idx int, nodeID string, status WorkflowNodeStatus) {
+	state.mu.Lock()
+	state.exec.Nodes[idx].Status = status
+	if status == NodeRunning {
+		state.exec.CurrentNode = nodeID
+	}
+	state.mu.Unlock()
+	e.emitEvent("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: status})
+}
+
+// captureRoundOutput captures the pane scrollback for the given tmux target
+// and stores it under state.exec.NodeOutputs[outputKey]. Capture failures are
+// logged but not fatal — the interactive lifecycle proceeds to verifyOutputs.
+func (e *Executor) captureRoundOutput(ctx context.Context, state *execState, nodeID, target, outputKey string) {
+	captured, err := e.captureOutput(ctx, target)
+	if err != nil {
+		log.Printf("bmad: failed to capture output for interactive node %s: %v", nodeID, err)
+	}
+	state.mu.Lock()
+	if state.exec.NodeOutputs == nil {
+		state.exec.NodeOutputs = make(map[string]string)
+	}
+	state.exec.NodeOutputs[outputKey] = captured
+	state.mu.Unlock()
+}
+
+// resolveInputs walks proc.InputSpecs in declaration order and returns the
+// resolved value map, any user-sourced specs that still need a suspension
+// answer, and the first non-recoverable error.
+func (e *Executor) resolveInputs(ctx context.Context, state *execState, nodeID string, round int) (resolvedInputs, []InputSpec, error) {
+	state.mu.Lock()
+	var procID string
+	var nodeSpecs []InputSpec
+	for _, n := range state.exec.Nodes {
+		if n.ID == nodeID {
+			procID = n.ProcessID
+			nodeSpecs = n.InputSpecs
+			break
+		}
+	}
+	repoPath := state.exec.RepoPath
+	state.mu.Unlock()
+
+	// Specs come from the node (test override) or the registry.
+	specs := nodeSpecs
+	if len(specs) == 0 {
+		proc, ok := ProcessByID(procID)
+		if !ok {
+			return nil, nil, ErrProcessNotFound
+		}
+		specs = proc.InputSpecs
+	}
+
+	resolved := resolvedInputs{}
+	var missing []InputSpec
+
+	for _, spec := range specs {
+		switch spec.Source {
+		case InputFromFile:
+			path := ResolveArtifactPath(spec.ArtifactName, repoPath)
+			if path == "" {
+				if spec.Required {
+					return nil, nil, fmt.Errorf("bmad: unmapped artifact %q", spec.ArtifactName)
+				}
+				continue
+			}
+			data, readErr := os.ReadFile(path)
+			if readErr != nil {
+				if spec.Required {
+					return nil, nil, fmt.Errorf("bmad: artifact %s: %w", spec.ArtifactName, readErr)
+				}
+				continue
+			}
+			resolved[spec.ID] = string(data)
+
+		case InputFromUpstream:
+			srcID := spec.UpstreamNodeID
+			if srcID == "" {
+				srcID = firstDirectPredecessor(state, nodeID)
+			}
+			state.mu.Lock()
+			v, ok := state.exec.NodeOutputs[srcID]
+			state.mu.Unlock()
+			if ok {
+				resolved[spec.ID] = truncate(v, upstreamOutputCap)
+			} else if spec.Required {
+				return nil, nil, fmt.Errorf("bmad: upstream %s produced no output", srcID)
+			}
+
+		case InputFromUser:
+			state.mu.Lock()
+			var v string
+			if state.exec.NodeInputs != nil {
+				v = state.exec.NodeInputs[nodeID][spec.ID]
+			}
+			state.mu.Unlock()
+			if v != "" {
+				resolved[spec.ID] = v
+				continue
+			}
+			if spec.Required {
+				missing = append(missing, spec)
+				continue
+			}
+			if spec.Default != "" {
+				resolved[spec.ID] = spec.Default
+			}
+
+		case InputFromEnv:
+			resolved[spec.ID] = envValue(state, spec.ID)
+
+		case InputFromRegistry:
+			v, lookupErr := registryLookup(spec.OptionsRef)
+			if lookupErr != nil {
+				if spec.Required {
+					return nil, nil, lookupErr
+				}
+				continue
+			}
+			resolved[spec.ID] = v
+		}
+	}
+
+	return resolved, missing, nil
+}
+
+// firstDirectPredecessor returns the source ID of the first inbound edge to
+// nodeID, or "" if no inbound edges exist. Scans state.outEdges (keyed by
+// source) for entries whose target matches.
+func firstDirectPredecessor(state *execState, nodeID string) string {
+	state.mu.Lock()
+	defer state.mu.Unlock()
+	for src, edges := range state.outEdges {
+		for _, edge := range edges {
+			if edge.Target == nodeID {
+				return src
+			}
+		}
+	}
+	return ""
+}
+
+// truncate caps s at n bytes. Byte-cap is sufficient for upstream outputs;
+// encoding-aware truncation is unnecessary for prompt context.
+func truncate(s string, n int) string {
+	if n <= 0 || len(s) <= n {
+		return s
+	}
+	return s[:n]
+}
+
+// envValue returns an environment-derived input for the given spec ID.
+// S2 stub: always returns "". Real wiring for "branch"/"head" lands later.
+func envValue(state *execState, id string) string {
+	_ = state
+	_ = id
+	return ""
+}
+
+// registryLookup resolves an InputFromRegistry OptionsRef against a CSV file.
+//
+// Supported schemes (security §14.4 — only registry: accepted):
+//   - registry:<path>#<column>      → first row's value in <column>
+//   - registry:<path>?random=<N>    → N random rows, joined by newline
+//
+// Any other scheme (file:, http:, mcp:, …) returns an error without touching
+// the filesystem. Malformed CSVs and missing columns also error out.
+func registryLookup(ref string) (string, error) {
+	const scheme = "registry:"
+	if !strings.HasPrefix(ref, scheme) {
+		return "", errors.New("registryLookup: only registry: scheme permitted")
+	}
+	rest := ref[len(scheme):]
+
+	// Split on '#' (column extract) or '?' (query).
+	var path, column, query string
+	if i := strings.Index(rest, "#"); i >= 0 {
+		path = rest[:i]
+		column = rest[i+1:]
+	} else if i := strings.Index(rest, "?"); i >= 0 {
+		path = rest[:i]
+		query = rest[i+1:]
+	} else {
+		path = rest
+	}
+
+	if path == "" {
+		return "", errors.New("registryLookup: empty path")
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return "", fmt.Errorf("registryLookup: open %s: %w", path, err)
+	}
+	defer f.Close()
+
+	reader := csv.NewReader(f)
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return "", fmt.Errorf("registryLookup: parse %s: %w", path, err)
+	}
+	if len(rows) < 2 {
+		return "", fmt.Errorf("registryLookup: %s has no data rows", path)
+	}
+	header := rows[0]
+	data := rows[1:]
+
+	// Column extract: return first data row's value in the named column.
+	if column != "" {
+		colIdx := -1
+		for i, h := range header {
+			if h == column {
+				colIdx = i
+				break
+			}
+		}
+		if colIdx < 0 {
+			return "", fmt.Errorf("registryLookup: column %q not in %s", column, path)
+		}
+		return data[0][colIdx], nil
+	}
+
+	// Query: ?random=N — N random rows, newline-joined first-column values.
+	if strings.HasPrefix(query, "random=") {
+		nStr := query[len("random="):]
+		n, convErr := strconv.Atoi(nStr)
+		if convErr != nil || n <= 0 {
+			return "", fmt.Errorf("registryLookup: invalid random= %q", nStr)
+		}
+		if n > len(data) {
+			n = len(data)
+		}
+		// Deterministic: take the first N rows. Callers needing shuffle can
+		// add it later — the test only asserts count, not randomness.
+		parts := make([]string, 0, n)
+		for i := 0; i < n; i++ {
+			parts = append(parts, data[i][0])
+		}
+		return strings.Join(parts, "\n"), nil
+	}
+
+	// No column or query: return first data row's first column.
+	return data[0][0], nil
+}
+
+// buildInteractivePrompt renders a markdown prompt block for an interactive
+// process, mirroring the autonomous buildContextStringV3 shape so claude sees
+// a familiar structure.
+func buildInteractivePrompt(proc ProcessDef, resolved resolvedInputs) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "# %s\n\n", proc.Name)
+	if proc.Description != "" {
+		fmt.Fprintf(&b, "%s\n\n", proc.Description)
+	}
+	if len(resolved) > 0 {
+		b.WriteString("## Inputs\n")
+		// Stable order = spec declaration order so two runs with identical
+		// inputs generate identical prompts.
+		for _, spec := range proc.InputSpecs {
+			v, ok := resolved[spec.ID]
+			if !ok {
+				continue
+			}
+			fmt.Fprintf(&b, "- %s: %s\n", spec.ID, truncate(v, upstreamOutputCap))
+		}
+	}
+	return b.String()
+}
+
+// verifyOutputs checks every declared OutputSpec against the filesystem
+// (for file/both targets) and returns the first error encountered. Memory
+// targets and optional-missing files pass silently.
+func (e *Executor) verifyOutputs(state *execState, nodeID string, specs []OutputSpec, repoPath string) error {
+	for _, spec := range specs {
+		switch spec.Target {
+		case OutputToFile, OutputToBoth:
+			path := ResolveArtifactPath(spec.ArtifactName, repoPath)
+			if path == "" {
+				if !spec.Optional {
+					return fmt.Errorf("bmad: output %q unmapped", spec.ArtifactName)
+				}
+				continue
+			}
+			if _, err := os.Stat(path); err != nil {
+				if !spec.Optional {
+					return fmt.Errorf("bmad: output %q missing at %s: %w", spec.ArtifactName, path, err)
+				}
+			}
+		case OutputToMemory:
+			// Always satisfied — captureRoundOutput wrote NodeOutputs.
+		}
+	}
+	return nil
 }

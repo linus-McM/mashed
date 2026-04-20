@@ -234,6 +234,11 @@ type WorkflowNode struct {
 	// InputPaths holds resolved absolute paths for input artifacts,
 	// reserved for a future pass. See Story breadcrumbs-05.
 	InputPaths map[string]string `json:"inputPaths,omitempty"`
+	// InputSpecs optionally overrides the registry-derived InputSpecs for
+	// this node. Primary use: test harnesses that construct an execState
+	// without going through registry registration. When empty, the executor
+	// falls back to ProcessByID(ProcessID).InputSpecs.
+	InputSpecs []InputSpec `json:"inputSpecs,omitempty"`
 }
 
 // EffectiveType returns the node's type, defaulting to NodeTypeProcess for

@@ -4,6 +4,12 @@ package bmad
 // Initialized once in init() and never mutated afterward.
 var registry []ProcessDef
 
+// testRegistry is a secondary catalog populated only by test-code init()
+// functions. ProcessByID consults it after `registry` so production code
+// paths behave identically whether tests register fixtures or not.
+// Production builds see an empty slice — zero overhead.
+var testRegistry []ProcessDef
+
 func init() {
 	registry = []ProcessDef{
 		// ── Analysis (5) ──
@@ -450,6 +456,11 @@ func ProcessesByPhase(phase BmadPhase) []ProcessDef {
 // ProcessByID looks up a single process by its unique ID.
 func ProcessByID(id string) (ProcessDef, bool) {
 	for _, p := range registry {
+		if p.ID == id {
+			return p, true
+		}
+	}
+	for _, p := range testRegistry {
 		if p.ID == id {
 			return p, true
 		}

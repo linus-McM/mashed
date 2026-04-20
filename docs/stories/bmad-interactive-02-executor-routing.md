@@ -1,6 +1,6 @@
 # bmad-interactive-02: Executor routing for interactive nodes
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends On:** bmad-interactive-01
@@ -233,12 +233,12 @@ Feature: Executor routing for interactive nodes
 - [ ] Task 5: Add defensive log in `activeOutEdges` (AC-6)
   - [ ] Log when called on non-`NodeComplete` status
   - [ ] Do not alter return value
-- [ ] Task 6: Tests in `internal/bmad/executor_interactive_test.go` (all ACs)
-  - [ ] Table test for routing dispatch
-  - [ ] Happy-path interactive run with mock runner
-  - [ ] `resolveInputs` table: file present/missing, upstream present/missing, user missing, env, registry
-  - [ ] `verifyOutputs` failure case
-  - [ ] `activeOutEdges` log assertion (use `log.SetOutput` to a buffer in the test)
+- [x] Task 6: Tests in `internal/bmad/executor_interactive_test.go` (all ACs)
+  - [x] Table test for routing dispatch
+  - [x] Happy-path interactive run with mock runner
+  - [x] `resolveInputs` table: file present/missing, upstream present/missing, user missing, env, registry
+  - [x] `verifyOutputs` failure case
+  - [x] `activeOutEdges` log assertion (use `log.SetOutput` to a buffer in the test)
 
 ## Definition of Done
 
