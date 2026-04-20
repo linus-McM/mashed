@@ -2803,7 +2803,7 @@ func TestStory2_AC1_RespondToQuestion_Success(t *testing.T) {
 	h.executor.SetCommandRunner(runner)
 	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "abc123")
 
-	err := h.executor.RespondToQuestion("exec-1", "node-A", "src/main.go")
+	err := h.executor.RespondToQuestionLegacy("exec-1", "node-A", "src/main.go")
 	require.NoError(t, err)
 
 	mu.Lock()
@@ -2830,7 +2830,7 @@ func TestStory2_AC1_RespondToQuestion_MenuOption(t *testing.T) {
 	h.executor.SetCommandRunner(runner)
 	seedResponseState(t, h, "exec-1", "node-B", "bmad-node-B-200:0.0", "hashB")
 
-	require.NoError(t, h.executor.RespondToQuestion("exec-1", "node-B", "2"))
+	require.NoError(t, h.executor.RespondToQuestionLegacy("exec-1", "node-B", "2"))
 
 	mu.Lock()
 	defer mu.Unlock()
@@ -2846,7 +2846,7 @@ func TestStory2_AC2_RespondToQuestion_DeadPane(t *testing.T) {
 	h.executor.SetCommandRunner(runner)
 	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "abc123")
 
-	err := h.executor.RespondToQuestion("exec-1", "node-A", "answer")
+	err := h.executor.RespondToQuestionLegacy("exec-1", "node-A", "answer")
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, ErrExecNotRunning),
 		"expected error wrapping ErrExecNotRunning, got %v", err)
@@ -2864,7 +2864,7 @@ func TestStory2_AC2_RespondToQuestion_PaneCheckFails(t *testing.T) {
 	h.executor.SetCommandRunner(runner)
 	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "abc123")
 
-	err := h.executor.RespondToQuestion("exec-1", "node-A", "answer")
+	err := h.executor.RespondToQuestionLegacy("exec-1", "node-A", "answer")
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, ErrExecNotRunning),
 		"expected error wrapping ErrExecNotRunning when tmux list-panes fails, got %v", err)
@@ -2881,7 +2881,7 @@ func TestStory2_AC4_RespondToQuestion_ClearsHash(t *testing.T) {
 	h.executor.SetCommandRunner(runner)
 	state := seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "prev-hash")
 
-	require.NoError(t, h.executor.RespondToQuestion("exec-1", "node-A", "answer"))
+	require.NoError(t, h.executor.RespondToQuestionLegacy("exec-1", "node-A", "answer"))
 
 	state.mu.Lock()
 	defer state.mu.Unlock()
@@ -2896,7 +2896,7 @@ func TestStory2_AC4_RespondToQuestion_HashPreservedOnFailure(t *testing.T) {
 	h.executor.SetCommandRunner(runner)
 	state := seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "prev-hash")
 
-	require.Error(t, h.executor.RespondToQuestion("exec-1", "node-A", "answer"))
+	require.Error(t, h.executor.RespondToQuestionLegacy("exec-1", "node-A", "answer"))
 
 	state.mu.Lock()
 	defer state.mu.Unlock()
@@ -2907,7 +2907,7 @@ func TestStory2_AC4_RespondToQuestion_HashPreservedOnFailure(t *testing.T) {
 // Missing execution returns ErrExecNotFound.
 func TestStory2_RespondToQuestion_UnknownExec(t *testing.T) {
 	h := newHarness(t)
-	err := h.executor.RespondToQuestion("no-such-exec", "node-A", "hi")
+	err := h.executor.RespondToQuestionLegacy("no-such-exec", "node-A", "hi")
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, ErrExecNotFound), "expected ErrExecNotFound, got %v", err)
 }
@@ -2919,7 +2919,7 @@ func TestStory2_RespondToQuestion_UnknownNode(t *testing.T) {
 	h.executor.SetCommandRunner(runner)
 	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "h")
 
-	err := h.executor.RespondToQuestion("exec-1", "node-missing", "hi")
+	err := h.executor.RespondToQuestionLegacy("exec-1", "node-missing", "hi")
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, ErrExecNotFound), "expected ErrExecNotFound, got %v", err)
 }
@@ -2932,7 +2932,7 @@ func TestStory2_RespondToQuestion_LongAnswer(t *testing.T) {
 	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "h")
 
 	long := strings.Repeat("x", maxAnswerBytes+1)
-	err := h.executor.RespondToQuestion("exec-1", "node-A", long)
+	err := h.executor.RespondToQuestionLegacy("exec-1", "node-A", long)
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, ErrAnswerTooLong),
 		"expected ErrAnswerTooLong, got %v", err)
@@ -2952,7 +2952,7 @@ func TestStory2_RespondToQuestion_NoTmuxTarget(t *testing.T) {
 	// Empty tmuxTarget signals the node was never scheduled.
 	seedResponseState(t, h, "exec-1", "node-A", "", "h")
 
-	err := h.executor.RespondToQuestion("exec-1", "node-A", "hi")
+	err := h.executor.RespondToQuestionLegacy("exec-1", "node-A", "hi")
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, ErrExecNotRunning), "expected ErrExecNotRunning, got %v", err)
 
@@ -2975,7 +2975,7 @@ func TestStory2_RespondToQuestion_SendKeysLiteralFails(t *testing.T) {
 	})
 	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "keep-me")
 
-	err := h.executor.RespondToQuestion("exec-1", "node-A", "hi")
+	err := h.executor.RespondToQuestionLegacy("exec-1", "node-A", "hi")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "send-keys")
 }
@@ -3000,7 +3000,7 @@ func TestStory2_RespondToQuestion_SendKeysEnterFails(t *testing.T) {
 	})
 	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "keep-me")
 
-	err := h.executor.RespondToQuestion("exec-1", "node-A", "hi")
+	err := h.executor.RespondToQuestionLegacy("exec-1", "node-A", "hi")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Enter")
 }
@@ -3012,7 +3012,7 @@ func TestStory2_RespondToQuestion_EmptyAnswer(t *testing.T) {
 	h.executor.SetCommandRunner(runner)
 	seedResponseState(t, h, "exec-1", "node-A", "bmad-node-A-100:0.0", "h")
 
-	require.NoError(t, h.executor.RespondToQuestion("exec-1", "node-A", ""))
+	require.NoError(t, h.executor.RespondToQuestionLegacy("exec-1", "node-A", ""))
 
 	mu.Lock()
 	defer mu.Unlock()

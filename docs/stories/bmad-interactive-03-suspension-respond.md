@@ -1,6 +1,6 @@
 # bmad-interactive-03: Suspension primitive + RespondToInput Wails binding
 
-**Status:** ready
+**Status:** done
 **Domain:** fullstack
 **Size:** L
 **Depends On:** bmad-interactive-01, bmad-interactive-02

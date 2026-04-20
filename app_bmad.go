@@ -161,14 +161,25 @@ func (a *App) StopBmadWorkflow(execID string) error {
 	return a.bmadExecutor.StopWorkflow(execID)
 }
 
-// RespondToQuestion injects a user's answer into the Claude CLI tmux pane for
-// the given node and dispatches Enter. Used by the frontend Question modal to
-// unblock a workflow that is waiting on interactive input.
+// RespondToQuestion is the legacy response shim for autonomous nodes whose
+// tmux pane surfaced an unstructured Claude CLI question. Interactive
+// processes (schema §3) should use RespondToInput instead.
 func (a *App) RespondToQuestion(execID, nodeID, answer string) error {
 	if a.bmadExecutor == nil {
-		return fmt.Errorf("bmad executor not initialized")
+		return bmad.ErrExecNotInitialized
 	}
-	return a.bmadExecutor.RespondToQuestion(execID, nodeID, answer)
+	return a.bmadExecutor.RespondToQuestionLegacy(execID, nodeID, answer)
+}
+
+// RespondToInput records a user-supplied answer for a suspended interactive
+// node input (schema §8.2). Validation failures emit EventInputInvalid and
+// return a wrapped sentinel; the node stays in NodeAwaitingInput so the UI
+// can retry without re-suspending.
+func (a *App) RespondToInput(execID, nodeID, inputID, value string) error {
+	if a.bmadExecutor == nil {
+		return bmad.ErrExecNotInitialized
+	}
+	return a.bmadExecutor.RespondToInput(execID, nodeID, inputID, value)
 }
 
 // GetBmadExecution returns the current state of an execution.

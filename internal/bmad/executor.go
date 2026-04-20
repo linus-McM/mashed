@@ -64,6 +64,10 @@ type execState struct {
 	// activity resumes) and when the node completes/fails — both paths
 	// also emit EventIdleDismissed so the frontend snackbar clears.
 	idleEmitted map[string]bool
+	// waiters is the per-(nodeID,inputID) rendezvous table used by
+	// suspendForSpec/RespondToInput. Keyed by "nodeID/inputID".
+	waiters   map[string]chan struct{}
+	waitersMu sync.Mutex
 }
 
 // Executor manages workflow executions.
@@ -323,15 +327,19 @@ const maxAnswerBytes = 4096
 // so a hung tmux server cannot block the caller indefinitely.
 const respondCmdTimeout = 5 * time.Second
 
-// RespondToQuestion injects an answer into the Claude CLI tmux pane backing
-// the given node. It verifies the pane is still alive, writes the literal
-// answer via `tmux send-keys -l`, then dispatches Enter as a second call so
-// tmux interprets the keystroke rather than sending the bytes "Enter".
+// RespondToQuestionLegacy injects an answer into the Claude CLI tmux pane
+// backing the given node. It verifies the pane is still alive, writes the
+// literal answer via `tmux send-keys -l`, then dispatches Enter as a second
+// call so tmux interprets the keystroke rather than sending the bytes "Enter".
 //
 // On success the node's cached question hash is cleared so the polling loop
 // can re-detect any subsequent question. On failure (not found, dead pane,
 // tmux error) the hash is left intact.
-func (e *Executor) RespondToQuestion(execID, nodeID, answer string) error {
+//
+// This is the pre-schema §3 response path — retained as the fallback for
+// autonomous nodes where claude CLI asks an unexpected question. Interactive
+// processes use RespondToInput (§8.1) instead.
+func (e *Executor) RespondToQuestionLegacy(execID, nodeID, answer string) error {
 	if len(answer) > maxAnswerBytes {
 		return fmt.Errorf("bmad: answer is %d bytes (max %d): %w", len(answer), maxAnswerBytes, ErrAnswerTooLong)
 	}
@@ -2066,15 +2074,27 @@ func (e *Executor) executeInteractiveNode(
 	// A. Mark running.
 	e.setStatus(state, idx, nodeID, NodeRunning)
 
-	// B. Resolve declared inputs. S2 treats missing user inputs as failure.
-	resolved, missing, err := e.resolveInputs(ctx, state, nodeID, 1)
-	if err != nil {
-		e.failNode(state, idx, nodeID)
-		return
-	}
-	if len(missing) > 0 {
-		e.failNode(state, idx, nodeID)
-		return
+	// B. Resolve declared inputs, suspending on any required user input
+	// that has not yet been answered. suspendForSpec blocks until either a
+	// RespondToInput arrives or ctx is canceled. On wake we re-resolve so
+	// the newly-stored value flows into `resolved`.
+	var resolved resolvedInputs
+	for {
+		res, missing, err := e.resolveInputs(ctx, state, nodeID, 1)
+		if err != nil {
+			e.failNode(state, idx, nodeID)
+			return
+		}
+		if len(missing) == 0 {
+			resolved = res
+			break
+		}
+		for _, spec := range missing {
+			if sErr := e.suspendForSpec(ctx, state, nodeIndex, nodeID, 1, spec); sErr != nil {
+				e.failNode(state, idx, nodeID)
+				return
+			}
+		}
 	}
 
 	// C. Start tmux session carrying the rendered prompt.
@@ -2281,7 +2301,7 @@ func envValue(state *execState, id string) string {
 func registryLookup(ref string) (string, error) {
 	const scheme = "registry:"
 	if !strings.HasPrefix(ref, scheme) {
-		return "", errors.New("registryLookup: only registry: scheme permitted")
+		return "", fmt.Errorf("registryLookup: %q: %w", ref, ErrInvalidRegistryRef)
 	}
 	rest := ref[len(scheme):]
 

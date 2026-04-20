@@ -32,6 +32,19 @@ var (
 	// ErrMultiFileTooMany is returned when a MultiFileLoader config exceeds
 	// the per-node entry cap (64).
 	ErrMultiFileTooMany = errors.New("bmad: too many multiFileLoader entries")
+
+	// Interactive-process sentinels (schema §5.3 / §8 / §14). Consumers test
+	// wrapped errors with errors.Is for type-safe flow control.
+	ErrInvalidInput       = errors.New("bmad: invalid input")
+	ErrPathOutsideRepo    = errors.New("bmad: path outside repository root")
+	ErrNoPendingPrompt    = errors.New("bmad: no pending prompt")
+	ErrUnknownInput       = errors.New("bmad: unknown input")
+	ErrStalePrompt        = errors.New("bmad: stale prompt")
+	ErrInvalidRegistryRef = errors.New("bmad: invalid registry ref")
+	// ErrExecNotInitialized is returned by *App bindings when bmadExecutor
+	// is nil. The message carries both "bmad" and "not initialized" so
+	// existing tests of the legacy RespondToQuestion shim still pass.
+	ErrExecNotInitialized = errors.New("bmad executor not initialized")
 )
 
 // BmadPhase groups processes into lifecycle stages.
