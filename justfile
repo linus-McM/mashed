@@ -21,7 +21,7 @@ sonnet:
 
 # Start Claude with Opus model in tmux
 opus:
-    claude --dangerously-skip-permissions
+    claude --dangerously-skip-permissions "/caveman"
 
 # Start Claude with Haiku model in tmux
 haiku:
