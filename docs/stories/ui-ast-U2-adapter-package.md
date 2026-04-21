@@ -1,10 +1,11 @@
 # ui-ast-U2: `internal/uiadapter` package — Adapter, schema, validator, semaphore, mock
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** L
 **Depends on:** ui-ast-U1
 **Priority:** P0-critical
+**Landed:** 2026-04-21 (commit bd96df3)
 
 ## Story
 
