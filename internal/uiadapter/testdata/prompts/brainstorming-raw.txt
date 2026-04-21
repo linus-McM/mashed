@@ -1,0 +1,9 @@
+Great — let's kick off a brainstorming round. Which method would you like to use?
+
+1. Brainwriting — silent parallel ideation, written not spoken.
+2. Mindmap — branching hierarchy from a central prompt.
+3. SCAMPER — seven-lens checklist (Substitute, Combine, Adapt, Modify, Put to other use, Eliminate, Reverse).
+4. Six Thinking Hats — rotate perspectives one at a time.
+5. Assumption Reversal — invert every assumption and see what becomes testable.
+
+Reply with the number of the method you want to try.

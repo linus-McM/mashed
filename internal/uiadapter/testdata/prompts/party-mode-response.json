@@ -1,0 +1,20 @@
+{
+  "version": "1",
+  "generated_by": "",
+  "turn_summary": "Confirm before continuing integration",
+  "nodes": [
+    {"type": "markdown", "content": "We can wire the event handler in like this:\n\n```go\nfunc main() {\n    runtime.EventsOn(ctx, \"data\", handler)\n}\n```\n\nShould I continue with the rest of the integration?"},
+    {
+      "type": "decision_group",
+      "prompt": "Continue with the integration?",
+      "required": true,
+      "response_key": "continue_integration",
+      "widget": {
+        "type": "approval",
+        "yes_label": "Continue",
+        "no_label": "Stop"
+      }
+    }
+  ],
+  "fallback_answer_shape": "approval"
+}

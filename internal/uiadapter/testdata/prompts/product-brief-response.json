@@ -1,0 +1,44 @@
+{
+  "version": "1",
+  "generated_by": "",
+  "turn_summary": "Product brief scoping — stage 1",
+  "nodes": [
+    {"type": "markdown", "heading": "Stage 1: Scope", "content": "Lock down the scope before we move on."},
+    {
+      "type": "decision_group",
+      "prompt": "What problem does this solve?",
+      "required": true,
+      "response_key": "problem",
+      "widget": {
+        "type": "free",
+        "placeholder": "One or two sentences",
+        "multiline": true
+      }
+    },
+    {
+      "type": "decision_group",
+      "prompt": "Who is the primary user?",
+      "required": true,
+      "response_key": "primary_user",
+      "widget": {
+        "type": "choice",
+        "options": [
+          {"value": "end-user", "label": "End user"},
+          {"value": "developer", "label": "Developer"},
+          {"value": "operator", "label": "Operator"}
+        ]
+      }
+    },
+    {
+      "type": "decision_group",
+      "prompt": "What is the success metric?",
+      "required": true,
+      "response_key": "success_metric",
+      "widget": {
+        "type": "free",
+        "placeholder": "e.g. time-to-first-insight"
+      }
+    }
+  ],
+  "fallback_answer_shape": "free"
+}

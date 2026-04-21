@@ -1,0 +1,7 @@
+Pick one or more elicitation methods to run through (or type r/a/x to retry/abort/exit):
+
+1. Story circle — each stakeholder shares a short origin story.
+2. Retrospective — look back at the last cycle and pull lessons.
+3. Risk matrix — rate each risk by likelihood and blast radius.
+4. Assumption audit — list and challenge every assumption.
+5. Stakeholder map — draw the force graph of who cares about what.

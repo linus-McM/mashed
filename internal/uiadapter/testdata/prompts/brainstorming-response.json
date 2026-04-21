@@ -1,0 +1,25 @@
+{
+  "version": "1",
+  "generated_by": "",
+  "turn_summary": "Pick a brainstorming method",
+  "nodes": [
+    {"type": "markdown", "content": "Let's kick off a brainstorming round. Pick the method you want to try."},
+    {
+      "type": "decision_group",
+      "prompt": "Which brainstorming method?",
+      "required": true,
+      "response_key": "method",
+      "widget": {
+        "type": "choice",
+        "options": [
+          {"value": "brainwriting", "label": "Brainwriting"},
+          {"value": "mindmap", "label": "Mindmap"},
+          {"value": "scamper", "label": "SCAMPER"},
+          {"value": "six-hats", "label": "Six Thinking Hats"},
+          {"value": "reversal", "label": "Assumption Reversal"}
+        ]
+      }
+    }
+  ],
+  "fallback_answer_shape": "choice"
+}

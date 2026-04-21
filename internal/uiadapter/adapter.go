@@ -11,13 +11,6 @@ import (
 	"time"
 )
 
-// systemPromptPlaceholder reserves the system-prompt slot for U3 — the
-// prompt embed is out of scope for U2. U3 replaces this constant with the
-// //go:embed directive.
-const systemPromptPlaceholder = "// system prompt loaded by U3"
-
-const promptVersion = "u2"
-
 // Adapter translates a raw Claude-turn capture into a Mashed UI AST tree.
 // Translate never returns nil: every failure mode degrades to a
 // fallback AST with GeneratedBy="fallback:<reason>". A mid-call context
@@ -95,7 +88,7 @@ func (a *defaultAdapter) Translate(ctx context.Context, raw, procID string) *UIA
 	ctxT, cancel := context.WithTimeout(ctx, a.timeout)
 	defer cancel()
 
-	body, err := a.client.Chat(ctxT, a.model, systemPromptPlaceholder, raw)
+	body, err := a.client.Chat(ctxT, a.model, SystemPrompt(), raw)
 	if err != nil {
 		return a.emitFallback(raw, classifyChatErr(err), ctx, start, 0)
 	}
