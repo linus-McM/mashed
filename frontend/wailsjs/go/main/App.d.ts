@@ -107,6 +107,8 @@ export function ListLocalFonts():Promise<Array<main.LocalFontFamily>>;
 
 export function ListModels():Promise<Array<domain.ModelInfo>>;
 
+export function ListOllamaModels():Promise<Array<string>>;
+
 export function ListNerdFonts():Promise<Array<main.NerdFontEntry>>;
 
 export function ListRepoChoices():Promise<Array<main.RepoChoice>>;
@@ -124,6 +126,8 @@ export function OpenFontsDir():Promise<void>;
 export function PauseBmadWorkflow(arg1:string):Promise<void>;
 
 export function PickDirectory():Promise<string>;
+
+export function ProbeOllamaReachable():Promise<boolean>;
 
 export function PickFile(arg1:string):Promise<string>;
 
@@ -171,9 +175,19 @@ export function SetImportedTheme(arg1:string):Promise<void>;
 
 export function SetMonoFont(arg1:string):Promise<void>;
 
+export function SetOllamaEnabled(arg1:boolean):Promise<void>;
+
+export function SetOllamaModel(arg1:string):Promise<void>;
+
 export function SetSidebarWidth(arg1:number):Promise<void>;
 
 export function SetTheme(arg1:string):Promise<void>;
+
+export function SetUIAdapterEnabled(arg1:boolean):Promise<void>;
+
+export function SetUIAdapterTimeoutMs(arg1:number):Promise<void>;
+
+export function SetUIAdapterUntrustedExpanded(arg1:boolean):Promise<void>;
 
 export function SetVSCodiumExtPath(arg1:string):Promise<void>;
 

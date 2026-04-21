@@ -100,21 +100,23 @@ type EditorSettings struct {
 
 // mashedConfig persists user settings between launches.
 //
-// OllamaEnabled / UIAdapterEnabled omit omitempty so explicit false
-// round-trips to disk; loadConfig distinguishes missing from false.
+// OllamaEnabled / UIAdapterEnabled / UIAdapterUntrustedExpanded omit
+// omitempty so explicit false round-trips to disk; loadConfig
+// distinguishes missing from false where the default is TRUE.
 type mashedConfig struct {
-	DevDir             string          `json:"devDir"`
-	Theme              string          `json:"theme,omitempty"`
-	VSCodiumExtPath    string          `json:"vscodiumExtPath,omitempty"`
-	ImportedTheme      string          `json:"importedTheme,omitempty"`
-	MonoFont           string          `json:"monoFont,omitempty"`
-	FontSize           int             `json:"fontSize,omitempty"`
-	SidebarWidth       int             `json:"sidebarWidth,omitempty"`
-	EditorSettings     *EditorSettings `json:"editorSettings,omitempty"`
-	OllamaEnabled      bool            `json:"ollamaEnabled"`
-	OllamaModel        string          `json:"ollamaModel,omitempty"`
-	UIAdapterEnabled   bool            `json:"uiAdapterEnabled"`
-	UIAdapterTimeoutMs int             `json:"uiAdapterTimeoutMs,omitempty"`
+	DevDir                     string          `json:"devDir"`
+	Theme                      string          `json:"theme,omitempty"`
+	VSCodiumExtPath            string          `json:"vscodiumExtPath,omitempty"`
+	ImportedTheme              string          `json:"importedTheme,omitempty"`
+	MonoFont                   string          `json:"monoFont,omitempty"`
+	FontSize                   int             `json:"fontSize,omitempty"`
+	SidebarWidth               int             `json:"sidebarWidth,omitempty"`
+	EditorSettings             *EditorSettings `json:"editorSettings,omitempty"`
+	OllamaEnabled              bool            `json:"ollamaEnabled"`
+	OllamaModel                string          `json:"ollamaModel,omitempty"`
+	UIAdapterEnabled           bool            `json:"uiAdapterEnabled"`
+	UIAdapterTimeoutMs         int             `json:"uiAdapterTimeoutMs,omitempty"`
+	UIAdapterUntrustedExpanded bool            `json:"uiAdapterUntrustedExpanded"`
 }
 
 const (
@@ -159,7 +161,10 @@ func loadConfig() mashedConfig {
 	if _, ok := raw["uiAdapterEnabled"]; !ok {
 		cfg.UIAdapterEnabled = true
 	}
-	if cfg.OllamaModel == "" {
+	if !validOllamaModelName(cfg.OllamaModel) {
+		if cfg.OllamaModel != "" {
+			log.Printf("warning: config.json ollamaModel %q fails validation, falling back to default", cfg.OllamaModel)
+		}
 		cfg.OllamaModel = defaultOllamaModel
 	}
 	if cfg.UIAdapterTimeoutMs == 0 {

@@ -81,3 +81,26 @@ func TestU1_AC4_MashedConfig_MissingFile_ReturnsDefaults(t *testing.T) {
 	assert.Equal(t, "gemma3:4b", cfg.OllamaModel)
 	assert.Equal(t, 3000, cfg.UIAdapterTimeoutMs)
 }
+
+// M1 (security): a hand-edited config.json must not bypass the binding-layer
+// OllamaModel regex — loadConfig revalidates and falls back to the default.
+func TestU5_LoadConfig_InvalidModelFallsBackToDefault(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{name: "path traversal", input: `{"devDir":"/x","ollamaModel":"../../etc/passwd"}`},
+		{name: "forward slash", input: `{"devDir":"/x","ollamaModel":"foo/bar"}`},
+		{name: "whitespace", input: `{"devDir":"/x","ollamaModel":"bad name"}`},
+		{name: "shell metachar", input: `{"devDir":"/x","ollamaModel":"foo;rm -rf"}`},
+		{name: "over 64 chars", input: `{"devDir":"/x","ollamaModel":"a23456789012345678901234567890123456789012345678901234567890123456"}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			setupTestConfig(t, tt.input)
+			cfg := loadConfig()
+			assert.Equal(t, "gemma3:4b", cfg.OllamaModel,
+				"invalid on-disk OllamaModel must fall back to default, not surface to bindings")
+		})
+	}
+}

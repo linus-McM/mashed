@@ -206,6 +206,10 @@ export function ListModels() {
   return window['go']['main']['App']['ListModels']();
 }
 
+export function ListOllamaModels() {
+  return window['go']['main']['App']['ListOllamaModels']();
+}
+
 export function ListNerdFonts() {
   return window['go']['main']['App']['ListNerdFonts']();
 }
@@ -244,6 +248,10 @@ export function PickDirectory() {
 
 export function PickFile(arg1) {
   return window['go']['main']['App']['PickFile'](arg1);
+}
+
+export function ProbeOllamaReachable() {
+  return window['go']['main']['App']['ProbeOllamaReachable']();
 }
 
 export function ReadBundledThemeFile(arg1) {
@@ -334,12 +342,32 @@ export function SetMonoFont(arg1) {
   return window['go']['main']['App']['SetMonoFont'](arg1);
 }
 
+export function SetOllamaEnabled(arg1) {
+  return window['go']['main']['App']['SetOllamaEnabled'](arg1);
+}
+
+export function SetOllamaModel(arg1) {
+  return window['go']['main']['App']['SetOllamaModel'](arg1);
+}
+
 export function SetSidebarWidth(arg1) {
   return window['go']['main']['App']['SetSidebarWidth'](arg1);
 }
 
 export function SetTheme(arg1) {
   return window['go']['main']['App']['SetTheme'](arg1);
+}
+
+export function SetUIAdapterEnabled(arg1) {
+  return window['go']['main']['App']['SetUIAdapterEnabled'](arg1);
+}
+
+export function SetUIAdapterTimeoutMs(arg1) {
+  return window['go']['main']['App']['SetUIAdapterTimeoutMs'](arg1);
+}
+
+export function SetUIAdapterUntrustedExpanded(arg1) {
+  return window['go']['main']['App']['SetUIAdapterUntrustedExpanded'](arg1);
 }
 
 export function SetVSCodiumExtPath(arg1) {
