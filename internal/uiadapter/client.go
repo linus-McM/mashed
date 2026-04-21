@@ -23,7 +23,21 @@ var (
 
 var ErrOllamaUnreachable = errors.New("uiadapter: ollama unreachable")
 
-type Config struct {
+// HTTPStatusError surfaces a non-2xx HTTP response from Ollama with its
+// status code intact so the adapter can map it to "fallback:server:<code>".
+type HTTPStatusError struct {
+	StatusCode int
+	Status     string
+}
+
+func (e *HTTPStatusError) Error() string {
+	return fmt.Sprintf("uiadapter: ollama returned %s", e.Status)
+}
+
+// ClientConfig is the Ollama HTTP client's construction knob. Kept distinct
+// from the adapter's Config so the two concerns (HTTP timeout vs. adapter
+// enablement/concurrency) never collide.
+type ClientConfig struct {
 	TimeoutMs int
 }
 
@@ -34,7 +48,7 @@ type Client struct {
 // NewClient adds a 500ms buffer so the caller's context deadline fires
 // before http.Client.Timeout — otherwise timeouts surface as transport
 // errors instead of deadline errors.
-func NewClient(cfg Config) *Client {
+func NewClient(cfg ClientConfig) *Client {
 	return &Client{timeout: time.Duration(cfg.TimeoutMs+500) * time.Millisecond}
 }
 
@@ -91,6 +105,10 @@ func (c *Client) Chat(ctx context.Context, model, system, user string) (string, 
 		return "", classifyTransportErr(ctx, "chat", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", &HTTPStatusError{StatusCode: resp.StatusCode, Status: resp.Status}
+	}
 
 	var decoded chatResponse
 	if err := json.NewDecoder(resp.Body).Decode(&decoded); err != nil {

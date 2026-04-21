@@ -61,7 +61,7 @@ func TestU1_AC1_Client_Chat_RequestBodyShape(t *testing.T) {
 		_, _ = w.Write([]byte(`{"message":{"role":"assistant","content":"{}"}}`))
 	})
 
-	client := NewClient(Config{TimeoutMs: 1000})
+	client := NewClient(ClientConfig{TimeoutMs: 1000})
 	_, err := client.Chat(context.Background(), "gemma3:4b", "system text", "user text")
 	require.NoError(t, err)
 
@@ -105,7 +105,7 @@ func TestU1_AC3_Client_Chat_ContextDeadlineBeatsClientTimeout(t *testing.T) {
 		_, _ = w.Write([]byte(`{"message":{"role":"assistant","content":"{}"}}`))
 	})
 
-	client := NewClient(Config{TimeoutMs: 100})
+	client := NewClient(ClientConfig{TimeoutMs: 100})
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
@@ -120,7 +120,7 @@ func TestU1_AC3_Client_Chat_ContextDeadlineBeatsClientTimeout(t *testing.T) {
 func TestU1_AC5_Client_Chat_UnreachableSurfaceError(t *testing.T) {
 	withOllamaHost(t, closedSocketURL(t))
 
-	client := NewClient(Config{TimeoutMs: 100})
+	client := NewClient(ClientConfig{TimeoutMs: 100})
 	_, err := client.Chat(context.Background(), "gemma3:4b", "sys", "usr")
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, ErrOllamaUnreachable),
@@ -132,7 +132,7 @@ func TestU1_AC6_Client_Chat_ExtractsMessageContent(t *testing.T) {
 		_, _ = w.Write([]byte(`{"message":{"role":"assistant","content":"{\"version\":\"1\"}"}}`))
 	})
 
-	client := NewClient(Config{TimeoutMs: 1000})
+	client := NewClient(ClientConfig{TimeoutMs: 1000})
 	got, err := client.Chat(context.Background(), "gemma3:4b", "sys", "usr")
 	require.NoError(t, err)
 	assert.Equal(t, `{"version":"1"}`, got,
@@ -150,7 +150,7 @@ func TestU1_AC7_Client_ListModels_ParsesAndSorts(t *testing.T) {
 		_, _ = w.Write([]byte(`{"models":[{"name":"qwen2.5:3b"},{"name":"gemma3:4b"},{"name":"llama3.2:3b"}]}`))
 	})
 
-	client := NewClient(Config{TimeoutMs: 1000})
+	client := NewClient(ClientConfig{TimeoutMs: 1000})
 	got, err := client.ListModels(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, []string{"gemma3:4b", "llama3.2:3b", "qwen2.5:3b"}, got,
@@ -165,7 +165,7 @@ func TestU1_AC7_Client_ListModels_ParsesAndSorts(t *testing.T) {
 func TestU1_AC8_Client_ListModels_UnreachableError(t *testing.T) {
 	withOllamaHost(t, closedSocketURL(t))
 
-	client := NewClient(Config{TimeoutMs: 100})
+	client := NewClient(ClientConfig{TimeoutMs: 100})
 	got, err := client.ListModels(context.Background())
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, ErrOllamaUnreachable),
@@ -178,8 +178,16 @@ func TestU1_AC9_Client_ListModels_EmptyOK(t *testing.T) {
 		_, _ = w.Write([]byte(`{"models":[]}`))
 	})
 
-	client := NewClient(Config{TimeoutMs: 1000})
+	client := NewClient(ClientConfig{TimeoutMs: 1000})
 	got, err := client.ListModels(context.Background())
 	require.NoError(t, err)
 	assert.Len(t, got, 0, "no pulled models is not an error — returns empty slice")
+}
+
+func TestU2_ClientHTTPStatusError_ErrorString(t *testing.T) {
+	t.Parallel()
+	err := &HTTPStatusError{StatusCode: 500, Status: "500 Internal Server Error"}
+	msg := err.Error()
+	assert.Contains(t, msg, "500")
+	assert.Contains(t, msg, "uiadapter")
 }
