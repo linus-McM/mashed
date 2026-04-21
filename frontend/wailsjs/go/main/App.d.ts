@@ -107,9 +107,9 @@ export function ListLocalFonts():Promise<Array<main.LocalFontFamily>>;
 
 export function ListModels():Promise<Array<domain.ModelInfo>>;
 
-export function ListOllamaModels():Promise<Array<string>>;
-
 export function ListNerdFonts():Promise<Array<main.NerdFontEntry>>;
+
+export function ListOllamaModels():Promise<Array<string>>;
 
 export function ListRepoChoices():Promise<Array<main.RepoChoice>>;
 
@@ -127,9 +127,9 @@ export function PauseBmadWorkflow(arg1:string):Promise<void>;
 
 export function PickDirectory():Promise<string>;
 
-export function ProbeOllamaReachable():Promise<boolean>;
-
 export function PickFile(arg1:string):Promise<string>;
+
+export function ProbeOllamaReachable():Promise<boolean>;
 
 export function ReadBundledThemeFile(arg1:string):Promise<string>;
 

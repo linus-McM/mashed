@@ -318,9 +318,10 @@ export namespace bmad {
 	}
 	export class NodeInputEntry {
 	    inputId: string;
-	    round: number;
+	    round?: number;
 	    value: string;
 	    timestamp: number;
+	    key?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new NodeInputEntry(source);
@@ -332,6 +333,7 @@ export namespace bmad {
 	        this.round = source["round"];
 	        this.value = source["value"];
 	        this.timestamp = source["timestamp"];
+	        this.key = source["key"];
 	    }
 	}
 	export class OutputSpec {
@@ -364,6 +366,7 @@ export namespace bmad {
 	    createdAt: number;
 	    promptId: string;
 	    lastOutput?: string;
+	    structured?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new PendingPrompt(source);
@@ -380,6 +383,7 @@ export namespace bmad {
 	        this.createdAt = source["createdAt"];
 	        this.promptId = source["promptId"];
 	        this.lastOutput = source["lastOutput"];
+	        this.structured = source["structured"];
 	    }
 	}
 	export class Position {
@@ -408,6 +412,7 @@ export namespace bmad {
 	    moduleId: string;
 	    version: string;
 	    mode?: string;
+	    enableAstAdapter?: boolean;
 	    inputSpecs?: InputSpec[];
 	    outputSpecs?: OutputSpec[];
 	    gate?: IterationGate;
@@ -429,6 +434,7 @@ export namespace bmad {
 	        this.moduleId = source["moduleId"];
 	        this.version = source["version"];
 	        this.mode = source["mode"];
+	        this.enableAstAdapter = source["enableAstAdapter"];
 	        this.inputSpecs = this.convertValues(source["inputSpecs"], InputSpec);
 	        this.outputSpecs = this.convertValues(source["outputSpecs"], OutputSpec);
 	        this.gate = this.convertValues(source["gate"], IterationGate);
@@ -1160,6 +1166,11 @@ export namespace main {
 	    fontSize?: number;
 	    sidebarWidth?: number;
 	    editorSettings?: EditorSettings;
+	    ollamaEnabled: boolean;
+	    ollamaModel?: string;
+	    uiAdapterEnabled: boolean;
+	    uiAdapterTimeoutMs?: number;
+	    uiAdapterUntrustedExpanded: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new mashedConfig(source);
@@ -1175,6 +1186,11 @@ export namespace main {
 	        this.fontSize = source["fontSize"];
 	        this.sidebarWidth = source["sidebarWidth"];
 	        this.editorSettings = this.convertValues(source["editorSettings"], EditorSettings);
+	        this.ollamaEnabled = source["ollamaEnabled"];
+	        this.ollamaModel = source["ollamaModel"];
+	        this.uiAdapterEnabled = source["uiAdapterEnabled"];
+	        this.uiAdapterTimeoutMs = source["uiAdapterTimeoutMs"];
+	        this.uiAdapterUntrustedExpanded = source["uiAdapterUntrustedExpanded"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

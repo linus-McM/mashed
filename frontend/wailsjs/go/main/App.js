@@ -206,12 +206,12 @@ export function ListModels() {
   return window['go']['main']['App']['ListModels']();
 }
 
-export function ListOllamaModels() {
-  return window['go']['main']['App']['ListOllamaModels']();
-}
-
 export function ListNerdFonts() {
   return window['go']['main']['App']['ListNerdFonts']();
+}
+
+export function ListOllamaModels() {
+  return window['go']['main']['App']['ListOllamaModels']();
 }
 
 export function ListRepoChoices() {
