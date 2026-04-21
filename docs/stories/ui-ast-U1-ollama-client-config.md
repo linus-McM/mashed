@@ -1,10 +1,11 @@
 # ui-ast-U1: Inline Ollama HTTP client + mashedConfig Ollama fields
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends on:** none
 **Priority:** P0-critical
+**Landed:** 2026-04-21 (commit 5123856)
 
 ## Story
 
