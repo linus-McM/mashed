@@ -1,6 +1,6 @@
 # ui-ast-U3: Embedded system prompt + 5 golden-path fixture tests
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends on:** ui-ast-U2
@@ -229,34 +229,34 @@ Feature: Embedded adapter system prompt + golden fixtures
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Draft `prompt.md` per §4.6 (AC-1, AC-2)
-  - [ ] Write role + schema + 5 examples + output contract + safety rules
-  - [ ] RED: `TestSystemPrompt_ContainsAllSections`, `TestPromptVersion_IsV1`
-  - [ ] GREEN: wire `//go:embed` in `prompt.go`, declare `promptVersion`
-- [ ] Task 2: Wire `SystemPrompt()` into `Translate` (AC-8)
-  - [ ] RED: `TestAdapter_SendsSystemPromptInRequest` against a recording server
-  - [ ] GREEN: swap the empty-string system in `Translate` for `SystemPrompt()`
-  - [ ] REFACTOR: `/simplify`
-- [ ] Task 3: Draft the five fixture pairs (AC-3…AC-7)
-  - [ ] Write `brainstorming-raw.txt` + `brainstorming-response.json`
-  - [ ] Write the other four pairs
-- [ ] Task 4: End-to-end golden tests (AC-3…AC-7)
-  - [ ] RED: one test per fixture hitting `Translate` via stubbed server
-  - [ ] GREEN: iterate fixture JSON until each test passes
-  - [ ] Include the party-mode content-preservation sub-test
-- [ ] Task 5: Test-only host override helper
-  - [ ] Add `withHost(t, url)` in an `internal/uiadapter/export_test.go` or `_test.go` helper
-  - [ ] Use `t.Cleanup` to restore `ollamaHost`
+- [x] Task 1: Draft `prompt.md` per §4.6 (AC-1, AC-2)
+  - [x] Write role + schema + 5 examples + output contract + safety rules
+  - [x] RED: `TestSystemPrompt_ContainsAllSections`, `TestPromptVersion_IsV1`
+  - [x] GREEN: wire `//go:embed` in `prompt.go`, declare `promptVersion`
+- [x] Task 2: Wire `SystemPrompt()` into `Translate` (AC-8)
+  - [x] RED: `TestAdapter_SendsSystemPromptInRequest` against a recording server
+  - [x] GREEN: swap the empty-string system in `Translate` for `SystemPrompt()`
+  - [x] REFACTOR: `/simplify`
+- [x] Task 3: Draft the five fixture pairs (AC-3…AC-7)
+  - [x] Write `brainstorming-raw.txt` + `brainstorming-response.json`
+  - [x] Write the other four pairs
+- [x] Task 4: End-to-end golden tests (AC-3…AC-7)
+  - [x] RED: one test per fixture hitting `Translate` via stubbed server
+  - [x] GREEN: iterate fixture JSON until each test passes
+  - [x] Include the party-mode content-preservation sub-test
+- [x] Task 5: Test-only host override helper
+  - [x] Add `withHost(t, url)` in an `internal/uiadapter/export_test.go` or `_test.go` helper (consolidated with existing `withOllamaHost` during review-fix)
+  - [x] Use `t.Cleanup` to restore `ollamaHost`
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on `prompt.go` and the adapter code paths the tests reach
-- [ ] `go build ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `go vet ./...` passes
-- [ ] `/simplify` run on all modified Go files; no CRITICAL/HIGH findings
-- [ ] `prompt.md` < 6000 bytes (token-budget guard)
-- [ ] Story status flipped to `done`
-- [ ] Changes committed on branch
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on `prompt.go` and the adapter code paths the tests reach (prompt.go:SystemPrompt 100%, adapter.go:Translate 95.5%, package 90.2%)
+- [x] `go build ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `go vet ./...` passes
+- [x] `/simplify` run on all modified Go files; no CRITICAL/HIGH findings (one HIGH dedup + one MEDIUM assertion tightness from code review both fixed in same sprint)
+- [x] `prompt.md` < 6000 bytes (token-budget guard) — 3155 bytes
+- [x] Story status flipped to `done`
+- [x] Changes committed on branch (commit 05cf753)
