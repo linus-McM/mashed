@@ -18,6 +18,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"mashed/internal/uiadapter"
 )
 
 // Node output key helpers for loop iteration tracking.
@@ -84,17 +86,37 @@ type Executor struct {
 	executions   map[string]*execState
 	pollInterval time.Duration
 	mu           sync.RWMutex
+	// adapter is the UI AST translator wired by WithAdapter (ui-ast-U4 §5.4).
+	// Nil when UIAdapterEnabled is false; §5.2 short-circuits on nil.
+	adapter uiadapter.Adapter
+}
+
+// Option configures an Executor at construction time (ui-ast-U4 §5.4).
+type Option func(*Executor)
+
+// WithAdapter installs a UI AST adapter onto the Executor. When nil is passed
+// or this option is omitted, the executor's adapter stays nil and §5.2's
+// `e.adapter != nil` guard short-circuits without allocating.
+func WithAdapter(a uiadapter.Adapter) Option {
+	return func(e *Executor) { e.adapter = a }
 }
 
 // NewExecutor creates an Executor with the given storage and event emitter.
-func NewExecutor(storage *Storage, emitEvent func(string, interface{})) *Executor {
-	return &Executor{
+// Accepts optional Options (e.g. WithAdapter) per ui-ast-U4 §5.4.
+func NewExecutor(storage *Storage, emitEvent func(string, interface{}), opts ...Option) *Executor {
+	e := &Executor{
 		storage:      storage,
 		runCmd:       DefaultCommandRunner,
 		emitEvent:    emitEvent,
 		executions:   make(map[string]*execState),
 		pollInterval: 3 * time.Second,
 	}
+	for _, opt := range opts {
+		if opt != nil {
+			opt(e)
+		}
+	}
+	return e
 }
 
 // SetCommandRunner replaces the command runner (for testing).
@@ -2422,13 +2444,27 @@ roundLoop:
 		if state.exec.NodeInputs != nil {
 			answer = state.exec.NodeInputs[nodeID][nextSpec.ID]
 		}
+		// ui-ast-U4 §5.3.1 flatten-on-receipt: when the iteration spec is
+		// ShapeJSON and the process opts into the AST adapter, expand
+		// multi-decision JSON submissions into composite `<specID>:<subKey>`
+		// keys so §5.3.2's gate walk can match a single sub-answer. The raw
+		// blob stays under the bare specID for sendToSession + upstream
+		// readers. Unmarshal failure falls through to legacy behaviour.
+		if nextSpec.Shape == ShapeJSON && astStructuredInUse(state, nodeID) {
+			flattenSubAnswers(state, nodeID, nextSpec.ID, round+1, answer)
+		}
+		subAnswers := collectSubAnswersForSpec(state, nodeID, nextSpec.ID)
 		state.mu.Unlock()
 
-		// Reject-token check: user explicitly aborts the iteration.
-		if containsToken(proc.Gate.RejectTokens, answer) {
-			e.emit(EventAborted, abortedPayload(execID, nodeID, "rejected by user"))
-			e.failNode(state, idx, nodeID)
-			return
+		// ui-ast-U4 §5.3.2 AC-7: reject-token walk covers every sub-answer
+		// plus the bare JSON blob so a decision-group widget output like
+		// `{"confirm":"done","stub":"cancel"}` aborts on the sub-answer match.
+		for _, v := range append(subAnswers, answer) {
+			if containsToken(proc.Gate.RejectTokens, v) {
+				e.emit(EventAborted, abortedPayload(execID, nodeID, "rejected by user"))
+				e.failNode(state, idx, nodeID)
+				return
+			}
 		}
 
 		// GateUserConfirm: the user just answered; check accept tokens.

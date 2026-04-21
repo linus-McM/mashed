@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,6 +21,7 @@ import (
 	"mashed/internal/scanner"
 	"mashed/internal/terminal"
 	"mashed/internal/terminal/helper"
+	"mashed/internal/uiadapter"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -253,9 +255,18 @@ func (a *App) startup(ctx context.Context) {
 		log.Printf("bmad storage init failed: %v", err)
 	} else {
 		a.bmadStorage = storage
+		var bmadOpts []bmad.Option
+		if cfg.UIAdapterEnabled {
+			bmadOpts = append(bmadOpts, bmad.WithAdapter(uiadapter.NewDefault(uiadapter.Config{
+				Enabled:     true,
+				Model:       cfg.OllamaModel,
+				TimeoutMs:   cfg.UIAdapterTimeoutMs,
+				MaxInflight: 1,
+			}, slog.Default())))
+		}
 		a.bmadExecutor = bmad.NewExecutor(storage, func(event string, data interface{}) {
 			runtime.EventsEmit(a.ctx, event, data)
-		})
+		}, bmadOpts...)
 
 		// Clean up any BMAD tmux sessions left over from prior runs.
 		// Executions map is empty here (no workflows can have started yet),

@@ -30,9 +30,11 @@ for i in "${!packages[@]}"; do
   threshold="${thresholds[$i]}"
   coverfile="$tmpdir/${pkg//\//_}.out"
 
-  # set +e: go test may exit non-zero for low coverage; we parse the profile regardless
+  # set +e: go test may exit non-zero for low coverage; we parse the profile regardless.
+  # -tags testing compiles files behind //go:build testing (ui-ast-U4 MockAdapter +
+  # adapter/flatten/gate tests). Without the tag, those tests are silently excluded.
   set +e
-  go test -short -coverprofile="$coverfile" -count=1 "./$pkg/..." > /dev/null 2>&1
+  go test -tags testing -short -coverprofile="$coverfile" -count=1 "./$pkg/..." > /dev/null 2>&1
   set -e
 
   # Extract coverage percentage

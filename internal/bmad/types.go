@@ -363,14 +363,23 @@ type PendingPrompt struct {
 	// if the capture contains a <MASHED_PROMPT>…</MASHED_PROMPT> sentinel
 	// (skill-authored), extract it and use that instead of the raw tail.
 	LastOutput string `json:"lastOutput,omitempty"`
+
+	// Structured is the serialized UIAST JSON string emitted by the UI AST
+	// adapter (ui-ast-U4 §5.1). Empty when the adapter is disabled or a
+	// process opts out via Shape; the frontend decodes on receipt.
+	Structured string `json:"structured,omitempty"`
 }
 
 // NodeInputEntry is one historical user answer for a node input (§3.5).
 type NodeInputEntry struct {
 	InputID   string `json:"inputId"`
-	Round     int    `json:"round"`
+	Round     int    `json:"round,omitempty"`
 	Value     string `json:"value"`
 	Timestamp int64  `json:"timestamp"`
+	// Key is the composite sub-answer identifier ("<specID>:<subKey>") written
+	// by the flatten-on-receipt path for ShapeJSON submissions (ui-ast-U4
+	// §5.3.1). Empty for legacy single-string answers.
+	Key string `json:"key,omitempty"`
 }
 
 // BmadAgentConfig defines a custom BMAD user agent.

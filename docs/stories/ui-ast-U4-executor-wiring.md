@@ -1,6 +1,6 @@
 # ui-ast-U4: Wire `adapter.Translate` into `suspendForSpec`; extend `PendingPrompt.Structured`; JSON flatten + gate/reject changes; snapshot-migration regression
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** L
 **Depends on:** ui-ast-U0, ui-ast-U2
@@ -406,45 +406,45 @@ Feature: Executor wiring for UI AST adapter
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Extend types (AC-1, AC-12)
-  - [ ] RED: `TestPendingPrompt_Structured_RoundTrip`, `TestNodeInputEntry_RoundAndKey_RoundTrip`
-  - [ ] GREEN: add `Structured`, `NodeInputEntry.Round`, `NodeInputEntry.Key`
-  - [ ] REFACTOR: `/simplify`
-- [ ] Task 2: `Executor.adapter` + `WithAdapter` (AC-11)
-  - [ ] RED: `TestExecutor_NilAdapter_ShortCircuits`
-  - [ ] GREEN: add field + option
-  - [ ] REFACTOR: `/simplify`
-- [ ] Task 3: §5.2 suspendForSpec wiring (AC-2, AC-3, AC-4, AC-5)
-  - [ ] RED: four failing tests — outside-lock, cancel-during-translate, party-mode round-1, oversize drop
-  - [ ] GREEN: insert the §5.2 sequence (adapter call outside lock, ctx re-check, maxStructuredBytes guard)
-  - [ ] REFACTOR: `/simplify`
-- [ ] Task 4: §5.3.1 flatten-on-receipt (AC-6, AC-9)
-  - [ ] RED: `TestFlatten_CompositeAndBareKeys` + `TestPartyMode_LegacyShapeFreeUnchanged`
-  - [ ] GREEN: wire the pseudocode inside the post-suspend critical section
-  - [ ] REFACTOR: `/simplify`
-- [ ] Task 5: §5.3.2 gate + reject-token updates (AC-7, AC-8, AC-12)
-  - [ ] RED: `TestPartyMode_JSONSubmission_RejectTokenInFreeWidget` + `TestPartyMode_JSONSubmission_AcceptTokenOnApprovalWidget` + `TestGate_AnyUserAnswerMatches_LastRoundWindow`
-  - [ ] GREEN: add `anyUserAnswerMatches`, swap reject-token walk, update `checkGate`
-  - [ ] REFACTOR: `/simplify`
-- [ ] Task 6: Snapshot-migration regression (AC-10)
-  - [ ] Capture fixture from `main` → `internal/bmad/testdata/snapshots/pre-u4/execution.json`
-  - [ ] RED: `TestSnapshot_PreU4LoadRoundTrip`
-  - [ ] GREEN: confirm passes unchanged (additive schema)
-- [ ] Task 7: `app.go` wiring
-  - [ ] Add `uiadapter` import; construct adapter when `UIAdapterEnabled == true`; pass via `WithAdapter`
-  - [ ] No new Wails bindings
-- [ ] Task 8: justfile / CI gate
-  - [ ] Ensure `go test -tags testing ./internal/bmad/... -race` runs in CI
+- [x] Task 1: Extend types (AC-1, AC-12)
+  - [x] RED: `TestPendingPrompt_Structured_RoundTrip`, `TestNodeInputEntry_RoundAndKey_RoundTrip`
+  - [x] GREEN: add `Structured`, `NodeInputEntry.Round`, `NodeInputEntry.Key`
+  - [x] REFACTOR: `/simplify`
+- [x] Task 2: `Executor.adapter` + `WithAdapter` (AC-11)
+  - [x] RED: `TestExecutor_NilAdapter_ShortCircuits`
+  - [x] GREEN: add field + option
+  - [x] REFACTOR: `/simplify`
+- [x] Task 3: §5.2 suspendForSpec wiring (AC-2, AC-3, AC-4, AC-5)
+  - [x] RED: four failing tests — outside-lock, cancel-during-translate, party-mode round-1, oversize drop
+  - [x] GREEN: insert the §5.2 sequence (adapter call outside lock, ctx re-check, maxStructuredBytes guard)
+  - [x] REFACTOR: `/simplify`
+- [x] Task 4: §5.3.1 flatten-on-receipt (AC-6, AC-9)
+  - [x] RED: `TestFlatten_CompositeAndBareKeys` + `TestPartyMode_LegacyShapeFreeUnchanged`
+  - [x] GREEN: wire the pseudocode inside the post-suspend critical section
+  - [x] REFACTOR: `/simplify`
+- [x] Task 5: §5.3.2 gate + reject-token updates (AC-7, AC-8, AC-12)
+  - [x] RED: `TestPartyMode_JSONSubmission_RejectTokenInFreeWidget` + `TestPartyMode_JSONSubmission_AcceptTokenOnApprovalWidget` + `TestGate_AnyUserAnswerMatches_LastRoundWindow`
+  - [x] GREEN: add `anyUserAnswerMatches`, swap reject-token walk, update `checkGate`
+  - [x] REFACTOR: `/simplify`
+- [x] Task 6: Snapshot-migration regression (AC-10)
+  - [x] Capture fixture from `main` → `internal/bmad/testdata/snapshots/pre-u4/execution.json`
+  - [x] RED: `TestSnapshot_PreU4LoadRoundTrip`
+  - [x] GREEN: confirm passes unchanged (additive schema)
+- [x] Task 7: `app.go` wiring
+  - [x] Add `uiadapter` import; construct adapter when `UIAdapterEnabled == true`; pass via `WithAdapter`
+  - [x] No new Wails bindings
+- [x] Task 8: justfile / CI gate
+  - [x] Ensure `go test -tags testing ./internal/bmad/... -race` runs in CI
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on modified code in `executor.go`, `gate.go`, `types.go`, `app.go`
-- [ ] `go build ./...` passes (no `-tags testing`)
-- [ ] `go test -tags testing ./... -race` passes
-- [ ] `go vet ./...` passes
-- [ ] `/simplify` run on every modified Go file; no CRITICAL/HIGH findings
-- [ ] Pre-U4 snapshot fixture committed
-- [ ] Story status flipped to `done`
-- [ ] Changes committed on branch
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on modified code in `executor.go`, `gate.go`, `types.go`, `app.go`
+- [x] `go build ./...` passes (no `-tags testing`)
+- [x] `go test -tags testing ./... -race` passes
+- [x] `go vet ./...` passes
+- [x] `/simplify` run on every modified Go file; no CRITICAL/HIGH findings
+- [x] Pre-U4 snapshot fixture committed
+- [x] Story status flipped to `done`
+- [x] Changes committed on branch

@@ -20,6 +20,13 @@ import (
 // user already saw.
 const modalQuestionCap = 4 * 1024
 
+// maxStructuredBytes caps the serialized UIAST blob attached to
+// PendingPrompt.Structured (ui-ast-U4 §5.2, §3.3). Defence-in-depth against
+// adapter misbehaviour: the uiadapter validator rejects >6 KiB AST, so this
+// guard only fires on bugs. Blobs above this cap are dropped to "" so the
+// frontend falls back to Layer 1.
+const maxStructuredBytes = 6 * 1024
+
 // extractModalQuestion pulls the best-available "question to show the user"
 // from a raw tmux capture. Hybrid strategy:
 //  1. If Claude authored a <MASHED_PROMPT>…</MASHED_PROMPT> sentinel (future
@@ -229,6 +236,35 @@ func randHex8() string {
 	return hex.EncodeToString(b[:])
 }
 
+// translateForPrompt runs the UI AST adapter (ui-ast-U4 §5.2) and returns
+// the serialized AST to attach to PendingPrompt.Structured. Returns "" when:
+//   - the executor has no adapter installed (production with UIAdapterEnabled=false);
+//   - lastOutput is empty (round-1 pre-claude suspension — no turn to translate);
+//   - the adapter reported a cancellation via Diagnostics.CancelReason;
+//   - marshal failed or the blob exceeds maxStructuredBytes (defence-in-depth).
+//
+// Must be called OUTSIDE state.mu and state.snapshotMu — Translate may block
+// for the adapter timeout (~3 s) and holding either mutex would serialise all
+// node progress. The brief lock here snapshots the node's ProcessID only.
+func (e *Executor) translateForPrompt(ctx context.Context, state *execState, idx int, lastOutput string) string {
+	if e.adapter == nil || lastOutput == "" {
+		return ""
+	}
+	state.mu.Lock()
+	procID := state.exec.Nodes[idx].ProcessID
+	state.mu.Unlock()
+
+	ast := e.adapter.Translate(ctx, lastOutput, procID)
+	if ast == nil || ast.Diagnostics.CancelReason != "" {
+		return ""
+	}
+	blob, err := json.Marshal(ast)
+	if err != nil || len(blob) > maxStructuredBytes {
+		return ""
+	}
+	return string(blob)
+}
+
 // suspendForSpec transitions a node into NodeAwaitingInput, emits the
 // awaiting_input event, and blocks until either the matching waiter channel
 // is closed (a response arrived) or ctx is canceled. On wake it restores
@@ -244,6 +280,23 @@ func (e *Executor) suspendForSpec(
 	spec InputSpec,
 	lastOutput string,
 ) error {
+	idx, ok := nodeIndex[nodeID]
+	if !ok {
+		return fmt.Errorf("suspendForSpec: unknown node %q: %w", nodeID, ErrExecNotFound)
+	}
+
+	// ui-ast-U4 §5.2: translate the upstream turn into a UIAST BEFORE
+	// state.mu/state.snapshotMu are acquired. Translate may block up to ~3 s;
+	// holding either mutex here would stall every other node.
+	structured := e.translateForPrompt(ctx, state, idx, lastOutput)
+
+	// §5.2: re-check ctx — Translate may have taken hundreds of ms and the
+	// run could have been canceled in the meantime. Bail before mutating
+	// PendingPrompts so a canceled run doesn't leave a phantom prompt.
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
 	prompt := PendingPrompt{
 		NodeID:     nodeID,
 		InputID:    spec.ID,
@@ -254,11 +307,7 @@ func (e *Executor) suspendForSpec(
 		CreatedAt:  time.Now().Unix(),
 		PromptID:   hashPendingPrompt(nodeID, spec.ID, round),
 		LastOutput: extractModalQuestion(lastOutput),
-	}
-
-	idx, ok := nodeIndex[nodeID]
-	if !ok {
-		return fmt.Errorf("suspendForSpec: unknown node %q: %w", nodeID, ErrExecNotFound)
+		Structured: structured,
 	}
 
 	// Create the waiter BEFORE emitting so a fast responder that fires

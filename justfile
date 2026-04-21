@@ -51,9 +51,11 @@ build: build-helper
     codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app/Contents/MacOS/mashed-pty-helper"
     codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app"
 
-# Run Go tests
+# Run Go tests. -tags testing compiles files behind //go:build testing
+# (MockAdapter + adapter/flatten/gate tests for ui-ast-U4). Without the
+# tag, those _test.go files are silently excluded from the build list.
 test:
-    go test ./internal/... -count=1
+    go test -tags testing ./internal/... -race -count=1
 
 
 # List all tmux sessions related to this repo, grouped by parent/child
