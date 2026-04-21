@@ -97,16 +97,28 @@ type EditorSettings struct {
 }
 
 // mashedConfig persists user settings between launches.
+//
+// OllamaEnabled / UIAdapterEnabled omit omitempty so explicit false
+// round-trips to disk; loadConfig distinguishes missing from false.
 type mashedConfig struct {
-	DevDir          string          `json:"devDir"`
-	Theme           string          `json:"theme,omitempty"`
-	VSCodiumExtPath string          `json:"vscodiumExtPath,omitempty"`
-	ImportedTheme   string          `json:"importedTheme,omitempty"`
-	MonoFont        string          `json:"monoFont,omitempty"`
-	FontSize        int             `json:"fontSize,omitempty"`
-	SidebarWidth    int             `json:"sidebarWidth,omitempty"`
-	EditorSettings  *EditorSettings `json:"editorSettings,omitempty"`
+	DevDir             string          `json:"devDir"`
+	Theme              string          `json:"theme,omitempty"`
+	VSCodiumExtPath    string          `json:"vscodiumExtPath,omitempty"`
+	ImportedTheme      string          `json:"importedTheme,omitempty"`
+	MonoFont           string          `json:"monoFont,omitempty"`
+	FontSize           int             `json:"fontSize,omitempty"`
+	SidebarWidth       int             `json:"sidebarWidth,omitempty"`
+	EditorSettings     *EditorSettings `json:"editorSettings,omitempty"`
+	OllamaEnabled      bool            `json:"ollamaEnabled"`
+	OllamaModel        string          `json:"ollamaModel,omitempty"`
+	UIAdapterEnabled   bool            `json:"uiAdapterEnabled"`
+	UIAdapterTimeoutMs int             `json:"uiAdapterTimeoutMs,omitempty"`
 }
+
+const (
+	defaultOllamaModel        = "gemma3:4b"
+	defaultUIAdapterTimeoutMs = 3000
+)
 
 // configPath returns the path to the mashed config file.
 func configPath() string {
@@ -120,18 +132,47 @@ func themesPath() string {
 	return filepath.Join(home, ".mashed", "themes.json")
 }
 
-// loadConfig reads the persisted config, or returns empty config.
+// loadConfig reads the persisted config, applying defaults for missing keys.
+// Two-pass decode distinguishes missing key (default true) from explicit false.
 func loadConfig() mashedConfig {
+	cfg := defaultConfig()
 	data, err := os.ReadFile(configPath())
 	if err != nil {
-		return mashedConfig{}
+		return cfg
 	}
-	var cfg mashedConfig
+
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		log.Printf("warning: malformed config.json, ignoring: %v", err)
+		return defaultConfig()
+	}
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		log.Printf("warning: malformed config.json, ignoring: %v", err)
-		return mashedConfig{}
+		return defaultConfig()
+	}
+
+	if _, ok := raw["ollamaEnabled"]; !ok {
+		cfg.OllamaEnabled = true
+	}
+	if _, ok := raw["uiAdapterEnabled"]; !ok {
+		cfg.UIAdapterEnabled = true
+	}
+	if cfg.OllamaModel == "" {
+		cfg.OllamaModel = defaultOllamaModel
+	}
+	if cfg.UIAdapterTimeoutMs == 0 {
+		cfg.UIAdapterTimeoutMs = defaultUIAdapterTimeoutMs
 	}
 	return cfg
+}
+
+func defaultConfig() mashedConfig {
+	return mashedConfig{
+		OllamaEnabled:      true,
+		OllamaModel:        defaultOllamaModel,
+		UIAdapterEnabled:   true,
+		UIAdapterTimeoutMs: defaultUIAdapterTimeoutMs,
+	}
 }
 
 // saveConfig persists the config to disk.
