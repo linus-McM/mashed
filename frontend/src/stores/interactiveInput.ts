@@ -11,7 +11,8 @@
 //
 // valueHash is NEVER surfaced to consumers — it's ignored on resolve (AC-4).
 
-import { writable, get } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
+import type { UIAST } from '../types/uiAst';
 
 export interface PendingPrompt {
   execId?: string;
@@ -29,6 +30,8 @@ export interface PendingPrompt {
   repoPath?: string;
   maxLength?: number;
   maxRounds?: number;
+  lastOutput?: string;
+  structured?: string;
 }
 
 export type ToastKind = 'info' | 'success' | 'warn' | 'error';
@@ -138,4 +141,36 @@ export function dismissNode(nodeId: string): void {
 
 export function resetInteractiveInput(): void {
   interactiveInput.set({ ...initial, validationError: {}, rounds: {} });
+}
+
+// ui-ast-U6 — §6.1: singular `pendingPrompt` writable + `pendingAst` derived.
+//
+// The list store (`interactiveInput.pendingPrompts`) is the transport layer;
+// `pendingPrompt` is the UI-facing "currently-in-focus" slot that modal code
+// subscribes to. Kept writable (not derived) because the AST renderer needs
+// explicit control over which prompt is projected — e.g. when the modal swaps
+// between queued prompts without a backing list mutation (§6.3).
+export const pendingPrompt = writable<PendingPrompt | null>(null);
+
+export const pendingAst = derived<typeof pendingPrompt, UIAST | null>(
+  pendingPrompt,
+  ($p): UIAST | null => {
+    if (!$p?.structured) return null;
+    try {
+      const ast = JSON.parse($p.structured) as UIAST;
+      if (ast?.version !== '1' || !Array.isArray(ast.nodes)) return null;
+      return ast;
+    } catch {
+      return null;
+    }
+  },
+);
+
+// Dev-only test seam — Playwright / Claude-in-Chrome seed pendingPrompt to
+// exercise the modal AST path without going through the backend emit cycle.
+// `import.meta.env.DEV` is a Vite static literal so this block is dead code
+// in production bundles.
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  (window as unknown as { __mashed_setPendingPromptForTests?: (p: PendingPrompt | null) => void })
+    .__mashed_setPendingPromptForTests = (p) => pendingPrompt.set(p);
 }

@@ -13,6 +13,12 @@ import { tick } from 'svelte';
 
 vi.mock('../../../wailsjs/go/main/App.js', () => ({
   RespondToInput: vi.fn(async () => undefined),
+  GetInteractiveTranscript: vi.fn(async () => []),
+}));
+
+vi.mock('../../../wailsjs/runtime/runtime.js', () => ({
+  BrowserOpenURL: vi.fn(),
+  EventsOn: vi.fn(() => () => undefined),
 }));
 
 import { RespondToInput } from '../../../wailsjs/go/main/App.js';
@@ -140,5 +146,59 @@ describe('InputResponseModal', () => {
     mounted = mount({ prompt: makePrompt({ round: 3, maxRounds: 30 }) });
     const pill = mounted.target.querySelector('[data-testid="round-pill"]');
     expect(pill?.textContent?.trim()).toBe('3 / 30');
+  });
+
+  describe('AC-9 AST region stacking', () => {
+    const astPayload = JSON.stringify({
+      version: '1',
+      nodes: [
+        { type: 'markdown', content: 'Context paragraph' },
+        { type: 'hint', tone: 'info', content: 'A hint' },
+      ],
+    });
+
+    it('AC9_renders_ast_above_widget — AST region precedes Layer-1 widget in DOM order', async () => {
+      mounted = mount({ prompt: makePrompt({ structured: astPayload }) });
+      await tick();
+      const region = mounted.target.querySelector('[data-testid="ast-region"]');
+      const widget = mounted.target.querySelector('[role="radiogroup"]');
+      expect(region).not.toBeNull();
+      expect(widget).not.toBeNull();
+      // region must come BEFORE widget in the document.
+      const rel = region!.compareDocumentPosition(widget!);
+      expect(rel & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('AC9_layer1_unchanged_when_null — no ast-region rendered when structured missing', async () => {
+      mounted = mount({ prompt: makePrompt() });
+      await tick();
+      expect(mounted.target.querySelector('[data-testid="ast-region"]')).toBeNull();
+      // Layer-1 widget still renders normally.
+      expect(mounted.target.querySelector('[role="radiogroup"]')).not.toBeNull();
+    });
+
+    it('AC9_respects_prefers_reduced_motion — AST renders without fly wrapper transitions', async () => {
+      const originalMatchMedia = window.matchMedia;
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion'),
+        media: query,
+        onchange: null,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => false,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+      })) as unknown as typeof window.matchMedia;
+      try {
+        mounted = mount({ prompt: makePrompt({ structured: astPayload }) });
+        await tick();
+        const region = mounted.target.querySelector('[data-testid="ast-region"]');
+        expect(region).not.toBeNull();
+        // Nodes still render; no transition attributes/inline styles required.
+        expect(region!.querySelectorAll('.ast-node-wrapper').length).toBe(2);
+      } finally {
+        window.matchMedia = originalMatchMedia;
+      }
+    });
   });
 });

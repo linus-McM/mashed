@@ -7,6 +7,8 @@
   import {
     interactiveInput,
     validationKey,
+    pendingPrompt,
+    pendingAst,
   } from '../../stores/interactiveInput';
   import FreeTextWidget from './inputWidgets/FreeTextWidget.svelte';
   import ChoiceWidget from './inputWidgets/ChoiceWidget.svelte';
@@ -15,7 +17,18 @@
   import FileInputWidget from './inputWidgets/FileInputWidget.svelte';
   import JsonInputWidget from './inputWidgets/JsonInputWidget.svelte';
   import TranscriptPane from './TranscriptPane.svelte';
+  import AstNode from './AstNode.svelte';
   import { EventsOn } from '../../../wailsjs/runtime/runtime.js';
+
+  // Keep value in sync with style.css `--duration-medium` — the Svelte
+  // transition API takes a number, not a CSS variable.
+  const AST_FLY_DURATION_MS = 150;
+  const AST_FLY_STAGGER_MS = 40;
+
+  const reduceMotion =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
 
   /** @type {import('../../stores/interactiveInput').PendingPrompt | null} */
   export let prompt = null;
@@ -87,9 +100,23 @@
     loadTranscript();
   }
 
+  // §6.1: mirror the `prompt` prop into the singular `pendingPrompt` store so
+  // `$pendingAst` can derive from the structured payload. Cleared on destroy
+  // so a stale AST never leaks to the next modal open.
+  //
+  // Identity-guarded — unrelated reactivity (transcript reloads, shape
+  // recompute) must not re-trigger the derived JSON.parse.
+  /** @type {import('../../stores/interactiveInput').PendingPrompt | null} */
+  let lastPromptRef = null;
+  $: if (prompt !== lastPromptRef) {
+    lastPromptRef = prompt;
+    pendingPrompt.set(prompt);
+  }
+
   onDestroy(() => {
     shaking = false;
     if (cancelRoundListener) cancelRoundListener();
+    pendingPrompt.set(null);
   });
 
   /** @param {{ detail: { value: string } }} e */
@@ -191,6 +218,25 @@
         <blockquote class="prompt-block" data-testid="input-modal-prompt">
           {prompt.prompt}
         </blockquote>
+
+        <!-- TODO(U7): replace Layer-1 widget when pendingAst has decision_group; wire turn_summary to snackbar (spec §11 Q3) -->
+        {#if $pendingAst}
+          <div class="ast-region" data-testid="ast-region">
+            {#each $pendingAst.nodes as node, i (i)}
+              <div
+                class="ast-node-wrapper"
+                in:fly={{
+                  y: reduceMotion ? 0 : 8,
+                  duration: reduceMotion ? 0 : AST_FLY_DURATION_MS,
+                  delay: reduceMotion ? 0 : i * AST_FLY_STAGGER_MS,
+                  easing: cubicOut,
+                }}
+              >
+                <AstNode {node} />
+              </div>
+            {/each}
+          </div>
+        {/if}
 
         {#if shape === 'free'}
           <FreeTextWidget
@@ -371,6 +417,14 @@
     line-height: 1.6;
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  .ast-region {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+    padding: 0;
+    width: 100%;
   }
 
   .help-text {

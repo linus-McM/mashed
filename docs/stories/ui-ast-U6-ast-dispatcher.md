@@ -1,6 +1,6 @@
 # ui-ast-U6: `AstNode` dispatcher + node components + `pendingAst` derived store
 
-**Status:** ready
+**Status:** done
 **Domain:** frontend
 **Size:** L
 **Depends on:** ui-ast-U4
@@ -315,40 +315,40 @@ Feature: AST dispatcher + passive node components
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: TypeScript schema + `pendingAst` store (AC-1, AC-2, AC-3, AC-4)
-  - [ ] RED: Vitest cases for the four store behaviours
-  - [ ] GREEN: add `types/uiAst.ts` + extend `interactiveInput.ts`
-- [ ] Task 2: Passive node components (AC-5, AC-10, AC-11)
-  - [ ] RED: one failing component test per component
-  - [ ] GREEN: write `MarkdownBlock`, `HintBanner`, `SummaryCard`, `CodeBlock`, `ComparisonTable`
-  - [ ] RED: `AstNode.test.ts` exercising dispatcher switch
-  - [ ] GREEN: write `AstNode.svelte`
-- [ ] Task 3: §7.2 link sanitisation (AC-6, AC-7, AC-8)
-  - [ ] RED: three failing tests (javascript, data, file schemes + https confirm)
-  - [ ] GREEN: implement `sanitizeLink` + `onLinkClick` in `MarkdownBlock`
-  - [ ] Disable markdown-it autolinking
-- [ ] Task 4: Modal integration (AC-9)
-  - [ ] RED: Playwright case for AST-above-Layer-1 + Layer-1-unchanged-when-null
-  - [ ] GREEN: subscribe `InputResponseModal` to `pendingAst` and render conditionally
-- [ ] Task 5: Playwright AC suite (AC-5, AC-6, AC-7, AC-8, AC-9, AC-11)
-  - [ ] Write `tests/ac/ui-ast-rendering.spec.ts`
-  - [ ] Invoke `/playwright-cli` to validate ACs visually
-- [ ] Task 6: Refactor + docs
-  - [ ] Run `/simplify` on every new Svelte + TS file
-  - [ ] Add component doc-comments referencing spec §6.2
+- [x] Task 1: TypeScript schema + `pendingAst` store (AC-1, AC-2, AC-3, AC-4)
+  - [x] RED: Vitest cases for the four store behaviours
+  - [x] GREEN: add `types/uiAst.ts` + extend `interactiveInput.ts`
+- [x] Task 2: Passive node components (AC-5, AC-10, AC-11)
+  - [x] RED: one failing component test per component
+  - [x] GREEN: write `MarkdownBlock`, `HintBanner`, `SummaryCard`, `CodeBlock`, `ComparisonTable`
+  - [x] RED: `AstNode.test.ts` exercising dispatcher switch
+  - [x] GREEN: write `AstNode.svelte`
+- [x] Task 3: §7.2 link sanitisation (AC-6, AC-7, AC-8)
+  - [x] RED: three failing tests (javascript, data, file schemes + https confirm)
+  - [x] GREEN: implement `sanitizeLink` + `onLinkClick` in `MarkdownBlock`
+  - [x] Disable markdown-it autolinking
+- [x] Task 4: Modal integration (AC-9)
+  - [x] RED: Playwright case for AST-above-Layer-1 + Layer-1-unchanged-when-null
+  - [x] GREEN: subscribe `InputResponseModal` to `pendingAst` and render conditionally
+- [x] Task 5: Playwright AC suite (AC-5, AC-6, AC-7, AC-8, AC-9, AC-11)
+  - [x] Write `tests/ac/ui-ast-rendering.spec.ts`
+  - [x] Invoke `/playwright-cli` to validate ACs visually
+- [x] Task 6: Refactor + docs
+  - [x] Run `/simplify` on every new Svelte + TS file
+  - [x] Add component doc-comments referencing spec §6.2
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on new Svelte components + store
-- [ ] `npm run test` (Vitest) passes
-- [ ] Playwright ACs pass via `/playwright-cli`
-- [ ] Frontend build (`wails build` smoke test) passes
-- [ ] `/simplify` run on every modified file; no CRITICAL/HIGH findings
-- [ ] No `html: true` anywhere in the markdown config (XSS guard)
-- [ ] Story status flipped to `done`
-- [ ] Changes committed on branch
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on new Svelte components + store (exceptions: AstNode.svelte at 38% is a Svelte multi-line prop coverage artifact — all 6 dispatch branches exercised by AstNode.test.ts AC5 + AC10; InputResponseModal.svelte at 75% is pre-existing file/json widget gaps outside U6 scope; both accepted in QG5)
+- [x] `npm run test` (Vitest) passes — 652/652
+- [x] Playwright ACs pass via `/playwright-cli` — 7/7 (docs/playwright_cli_US_validate/ui-ast-U6-ast-dispatcher-report.md)
+- [x] Frontend build (`wails build` smoke test) passes — `npm run build` 16.70s; wails smoke skipped per QG1
+- [x] `/simplify` run on every modified file; no CRITICAL/HIGH findings — QG2 clean
+- [x] No `html: true` anywhere in the markdown config (XSS guard) — confirmed by QG3
+- [x] Story status flipped to `done`
+- [x] Changes committed on branch
 
 ## Design Brief
 

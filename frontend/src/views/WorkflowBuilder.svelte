@@ -616,6 +616,7 @@
       maxRounds: payload.maxRounds || process.gate?.maxRounds || 0,
       repoName: repoPath ? repoPath.split('/').pop() : '',
       repoPath,
+      structured: payload.structured,
     };
   }
 
