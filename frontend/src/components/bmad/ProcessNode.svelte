@@ -3,11 +3,15 @@
   import { Search, Briefcase, Palette, Building2, Code, FileText, TestTube, MessageCircleQuestion } from 'lucide-svelte';
   import { getNodePath, formatBreadcrumb } from '../../lib/bmad/nodePath';
 
+  /** @typedef {import('../../types/workflow').CanvasNodeData} CanvasNodeData */
+  /** @typedef {import('../../lib/types/wails').ProcessDef} ProcessDef */
+  /** @type {CanvasNodeData} */
   export let data = {};
   // svelte-ignore unused-export-let
   export let id = '';
   export let selected = false;
 
+  /** @type {Record<string, string>} */
   const phaseColors = {
     analysis: 'var(--accent-blue, #3d9eff)',
     planning: 'var(--accent-green, #00e57a)',
@@ -16,6 +20,7 @@
     support: 'var(--text-dim, #4a5a6a)',
   };
 
+  /** @type {Record<string, typeof Search>} */
   const roleIcons = {
     analyst: Search,
     pm: Briefcase,
@@ -26,6 +31,7 @@
     qa: TestTube,
   };
 
+  /** @type {ProcessDef | Partial<ProcessDef>} */
   $: process = data.process || {};
   $: phase = process.phase || 'support';
   $: phaseColor = phaseColors[phase] || phaseColors.support;
@@ -38,9 +44,9 @@
   $: storyId = data.storyId || '';
   $: storyStatus = data.storyStatus || '';
   $: artifactStatus = data.artifactStatus || null;
-  $: hasArtifacts = artifactStatus && (artifactStatus.found?.length > 0 || artifactStatus.missing?.length > 0);
+  $: hasArtifacts = artifactStatus && ((artifactStatus.found?.length ?? 0) > 0 || (artifactStatus.missing?.length ?? 0) > 0);
   $: nodeRound = data.nodeRound || 0;
-  $: maxRounds = process.gate?.maxRounds || data.maxRounds || 0;
+  $: maxRounds = process.gate?.maxRounds || 0;
   $: gateFlash = !!data.gateFlash;
   $: roundText = (() => {
     if (!nodeRound || nodeRound <= 0) return '';
@@ -126,12 +132,12 @@
       {/if}
     </div>
 
-    {#if status === 'complete' && hasArtifacts}
+    {#if status === 'complete' && hasArtifacts && artifactStatus}
       <div class="artifact-indicators">
-        {#each artifactStatus.found as name}
+        {#each artifactStatus.found ?? [] as name}
           <span class="artifact-icon found" title="{name} found">&#10003;</span>
         {/each}
-        {#each artifactStatus.missing as name}
+        {#each artifactStatus.missing ?? [] as name}
           <span class="artifact-icon missing" title="{name} missing">!</span>
         {/each}
       </div>
@@ -139,7 +145,7 @@
 
     {#if storyId}
       <div class="story-badge">
-        <span class="story-badge-dot" style="background: {storyStatusColors[storyStatus] || storyStatusColors.backlog}" />
+        <span class="story-badge-dot" style="background: {/** @type {Record<string, string>} */ (storyStatusColors)[storyStatus] || /** @type {Record<string, string>} */ (storyStatusColors).backlog}" />
         <span class="story-badge-id">{storyId}</span>
       </div>
     {/if}

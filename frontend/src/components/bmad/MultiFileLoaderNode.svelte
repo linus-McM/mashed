@@ -4,12 +4,14 @@
   import { formatBreadcrumb } from '../../lib/bmad/nodePath';
   import { parseEntries, entryLabelFor } from '../../lib/bmad/multiFileEntries';
 
+  /** @typedef {import('../../types/workflow').CanvasNodeData} CanvasNodeData */
+  /** @type {CanvasNodeData} */
   export let data = {};
   // svelte-ignore unused-export-let
   export let id = '';
   export let selected = false;
 
-  $: entries = parseEntries(data?.config?.entries ?? '');
+  $: entries = parseEntries(typeof data?.config?.entries === 'string' ? data.config.entries : '');
   $: status = data?.status || 'pending';
   $: label = data?.label || 'Multi File Loader';
 </script>

@@ -1,31 +1,50 @@
 <script>
+  /** @typedef {import('../../lib/types/wails').SprintStatus} SprintStatus */
+  /** @typedef {import('../../lib/types/wails').SprintEpic} SprintEpic */
+  /** @typedef {import('../../lib/types/wails').SprintStory} SprintStory */
+
   import { ChevronDown, ChevronRight } from 'lucide-svelte';
   import { storyStatusColors as statusColors, storyStatusLabels as statusLabels } from '../../lib/sprintColors.js';
 
+  /** @type {SprintStatus | null} */
   export let sprintStatus = null;
 
+  /** @type {string | null} */
   let openEpic = null;
+
+  /** @param {string} key */
+  const colorFor = (key) => /** @type {Record<string, string>} */ (statusColors)[key] || /** @type {Record<string, string>} */ (statusColors).backlog;
+  /** @param {string} key */
+  const labelFor = (key) => /** @type {Record<string, string>} */ (statusLabels)[key] || key;
 
   // Auto-open the first epic that has a backlog story
   $: if (sprintStatus?.epics?.length && openEpic === null) {
-    const backlogEpic = sprintStatus.epics.find(e =>
-      e.stories.some(s => s.status === 'backlog')
+    const backlogEpic = sprintStatus.epics.find((/** @type {SprintEpic} */ e) =>
+      e.stories.some((/** @type {SprintStory} */ s) => s.status === 'backlog')
     );
     openEpic = backlogEpic ? backlogEpic.id : sprintStatus.epics[0].id;
   }
 
+  /** @param {string} epicId */
   function toggleEpic(epicId) {
     openEpic = openEpic === epicId ? null : epicId;
   }
 
+  /** @param {SprintEpic} epic */
   function epicDone(epic) {
-    return epic.stories.filter(s => s.status === 'done').length;
+    return epic.stories.filter((/** @type {SprintStory} */ s) => s.status === 'done').length;
   }
 
   // The first epic with a backlog story — gets green highlight
-  $: activeEpicId = sprintStatus?.epics?.find(e => e.stories.some(s => s.status === 'backlog'))?.id || null;
+  /** @type {string | null} */
+  $: activeEpicId = sprintStatus?.epics?.find((/** @type {SprintEpic} */ e) => e.stories.some((/** @type {SprintStory} */ s) => s.status === 'backlog'))?.id || null;
 
+  /**
+   * @param {DragEvent} e
+   * @param {SprintStory} story
+   */
   function onDragStart(e, story) {
+    if (!e.dataTransfer) return;
     e.dataTransfer.setData('application/bmad-story', JSON.stringify({
       storyId: story.id,
       epicId: story.epicId,
@@ -46,7 +65,7 @@
       {@const isComplete = done === total && total > 0}
       <div class="epic-group" class:active-epic={isActive}>
         <button class="epic-header" on:click={() => toggleEpic(epic.id)}>
-          <span class="epic-indicator" style="background: {statusColors[epic.status] || statusColors.backlog}" />
+          <span class="epic-indicator" style="background: {colorFor(epic.status)}" />
           {#if openEpic === epic.id}
             <ChevronDown size={12} />
           {:else}
@@ -68,10 +87,10 @@
                 title="Drag to canvas to create a workflow node"
                 role="listitem"
               >
-                <span class="story-dot" style="background: {statusColors[story.status] || statusColors.backlog}" />
+                <span class="story-dot" style="background: {colorFor(story.status)}" />
                 <span class="story-name">{story.id}</span>
-                <span class="story-status" style="color: {statusColors[story.status] || statusColors.backlog}">
-                  {statusLabels[story.status] || story.status}
+                <span class="story-status" style="color: {colorFor(story.status)}">
+                  {labelFor(story.status)}
                 </span>
               </div>
             {/each}

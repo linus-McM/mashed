@@ -11,9 +11,13 @@
 
   /** @typedef {import('../../types/workflow').CanvasNode} CanvasNode */
   /** @typedef {import('../../lib/types/wails').GroupedAgents} GroupedAgents */
+  /** @typedef {import('../../lib/types/wails').AgentInfo} AgentInfo */
+  /** @typedef {import('../../lib/types/wails').BmadAgentConfig} BmadAgentConfig */
+  /** @typedef {AgentInfo | BmadAgentConfig} AnyAgent */
+  /** @typedef {import('../../lib/bmad/multiFileEntries').MultiFileEntry} MultiFileEntry */
   /** @type {CanvasNode | null} */
   export let node = null;
-  /** @type {GroupedAgents | { bmadAgents: unknown[]; localAgents: unknown[]; globalAgents: unknown[] }} */
+  /** @type {GroupedAgents | { bmadAgents: BmadAgentConfig[]; localAgents: AgentInfo[]; globalAgents: AgentInfo[] }} */
   export let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
 
   /** @type {import('svelte').EventDispatcher<{ update: { nodeId: string; config: Record<string, unknown> }; close: void; 'edit-items': { nodeId: string; items: string[] }; 'open-terminal': string; 'open-output': string }>} */
@@ -66,17 +70,18 @@
 
   // Deduplicate agents: BMAD agents take priority, then local, then global.
   $: dedupedAgents = (() => {
+    /** @type {Set<string>} */
     const seen = new Set();
-    const bmad = (groupedAgents.bmadAgents || []).map(a => {
+    const bmad = (groupedAgents.bmadAgents || []).map((a) => {
       seen.add(a.id);
       return a;
     });
-    const local = (groupedAgents.localAgents || []).filter(a => {
+    const local = (groupedAgents.localAgents || []).filter((a) => {
       if (seen.has(a.id)) return false;
       seen.add(a.id);
       return true;
     });
-    const global = (groupedAgents.globalAgents || []).filter(a => {
+    const global = (groupedAgents.globalAgents || []).filter((a) => {
       if (seen.has(a.id)) return false;
       seen.add(a.id);
       return true;
@@ -91,6 +96,7 @@
   // Reorder is deferred — ArrayEditorModal only handles string arrays and
   // the MultiFileLoader entry editor inlines add/edit/delete only. Upstream
   // story AC-2 mentions "reorder" which we are flagging as a follow-up.
+  /** @type {MultiFileEntry[]} */
   let mflEntries = [];
   $: mflDuplicates = hasDuplicateLabels(mflEntries);
 
@@ -129,24 +135,40 @@
   let conditionPattern = '';
   let sourceNode = '';
   let maxIterations = '10';
+  /** @type {string[]} */
   let items = [];
   let extractType = 'regex';
   let extractPattern = '';
 
+  /**
+   * @param {Record<string, unknown>} obj
+   * @param {string} key
+   * @param {string} fallback
+   */
+  function stringAt(obj, key, fallback = '') {
+    const v = obj[key];
+    return typeof v === 'string' ? v : fallback;
+  }
+
   $: if (node) {
+    /** @type {Record<string, unknown>} */
     const cfg = node.data?.config || {};
-    modelOverride = cfg.model || '';
-    customContext = cfg.context || '';
-    selectedAgent = cfg.agentId || '';
-    conditionType = cfg.conditionType || 'contains';
-    conditionPattern = cfg.conditionPattern || '';
-    sourceNode = cfg.sourceNode || '';
-    maxIterations = cfg.maxIterations || '10';
-    try { items = cfg.items ? JSON.parse(cfg.items) : []; } catch { items = []; }
-    extractType = cfg.extractType || 'regex';
-    extractPattern = cfg.extractPattern || '';
-    filePath = cfg.filePath || '';
-    mflEntries = parseEntries(cfg.entries || '[]');
+    modelOverride = stringAt(cfg, 'model');
+    customContext = stringAt(cfg, 'context');
+    selectedAgent = stringAt(cfg, 'agentId');
+    conditionType = stringAt(cfg, 'conditionType', 'contains');
+    conditionPattern = stringAt(cfg, 'conditionPattern');
+    sourceNode = stringAt(cfg, 'sourceNode');
+    maxIterations = stringAt(cfg, 'maxIterations', '10');
+    try {
+      const rawItems = cfg.items;
+      const parsed = typeof rawItems === 'string' && rawItems.length > 0 ? JSON.parse(rawItems) : [];
+      items = Array.isArray(parsed) ? parsed.filter((/** @type {unknown} */ x) => typeof x === 'string') : [];
+    } catch { items = []; }
+    extractType = stringAt(cfg, 'extractType', 'regex');
+    extractPattern = stringAt(cfg, 'extractPattern');
+    filePath = stringAt(cfg, 'filePath');
+    mflEntries = parseEntries(stringAt(cfg, 'entries', '[]'));
   }
 
   $: label = node?.data?.label || 'Node';
@@ -183,6 +205,7 @@
       : nodeType === 'transform'
       ? { extractType, extractPattern, sourceNode }
       : {};
+    if (!node) return;
     dispatch('update', { nodeId: node.id, config });
   }
 
@@ -191,16 +214,23 @@
     emitUpdate();
   }
 
+  /** @param {number} index */
   function removeMflEntry(index) {
     mflEntries = mflEntries.filter((_, i) => i !== index);
     emitUpdate();
   }
 
+  /**
+   * @param {number} index
+   * @param {'label' | 'path'} field
+   * @param {string} value
+   */
   function updateMflEntry(index, field, value) {
     mflEntries = mflEntries.map((e, i) => (i === index ? { ...e, [field]: value } : e));
     emitUpdate();
   }
 
+  /** @param {number} index */
   async function browseMflEntry(index) {
     try {
       const path = await PickFile('Select a file');
@@ -237,7 +267,7 @@
                   class="field-input mfl-label"
                   type="text"
                   value={entry.label}
-                  on:input={(e) => updateMflEntry(i, 'label', e.target.value)}
+                  on:input={(e) => updateMflEntry(i, 'label', /** @type {HTMLInputElement} */ (e.currentTarget).value)}
                   on:blur={emitUpdate}
                   placeholder={`file[${i}]`}
                 />
@@ -245,7 +275,7 @@
                   class="field-input mfl-path"
                   type="text"
                   value={entry.path}
-                  on:input={(e) => updateMflEntry(i, 'path', e.target.value)}
+                  on:input={(e) => updateMflEntry(i, 'path', /** @type {HTMLInputElement} */ (e.currentTarget).value)}
                   on:blur={emitUpdate}
                   placeholder="/absolute/path"
                 />

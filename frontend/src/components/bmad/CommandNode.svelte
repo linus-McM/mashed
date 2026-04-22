@@ -10,15 +10,17 @@
   import { Terminal } from 'lucide-svelte';
   import { getNodePath, formatBreadcrumb } from '../../lib/bmad/nodePath';
 
+  /** @typedef {import('../../types/workflow').CanvasNodeData} CanvasNodeData */
+  /** @type {CanvasNodeData} */
   export let data = {};
   // svelte-ignore unused-export-let
   export let id = '';
   export let selected = false;
 
-  $: config = data.config || {};
+  $: config = /** @type {Record<string, unknown>} */ (data.config || {});
   $: status = data.status || 'pending';
-  $: commandName = config.commandName || data.label || 'command';
-  $: commandDescription = config.commandDescription || '';
+  $: commandName = (typeof config.commandName === 'string' ? config.commandName : '') || data.label || 'command';
+  $: commandDescription = typeof config.commandDescription === 'string' ? config.commandDescription : '';
 
   $: inputPath = getNodePath({ data }, 'in');
   $: outputPath = getNodePath({ data }, 'out');

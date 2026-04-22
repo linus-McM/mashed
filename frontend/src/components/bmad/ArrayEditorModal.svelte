@@ -90,7 +90,7 @@
               class="item-input"
               type="text"
               value={item}
-              on:input={(e) => updateItem(i, e.target.value)}
+              on:input={(e) => updateItem(i, /** @type {HTMLInputElement} */ (e.currentTarget).value)}
               on:keydown={(e) => handleItemKeydown(e, i)}
               placeholder="Enter item..."
             />

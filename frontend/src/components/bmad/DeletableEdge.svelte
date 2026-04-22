@@ -1,17 +1,30 @@
 <script>
   import { BaseEdge, EdgeLabelRenderer, getBezierPath, useSvelteFlow } from '@xyflow/svelte';
+  import { Position } from '@xyflow/system';
 
-  export let id;
-  export let sourceX;
-  export let sourceY;
-  export let targetX;
-  export let targetY;
-  export let sourcePosition;
-  export let targetPosition;
+  /** @type {string} */
+  export let id = '';
+  /** @type {number} */
+  export let sourceX = 0;
+  /** @type {number} */
+  export let sourceY = 0;
+  /** @type {number} */
+  export let targetX = 0;
+  /** @type {number} */
+  export let targetY = 0;
+  /** @type {Position} */
+  export let sourcePosition = Position.Right;
+  /** @type {Position} */
+  export let targetPosition = Position.Left;
+  /** @type {string} */
   export let style = '';
+  /** @type {string} */
   export let markerEnd = '';
+  /** @type {boolean} */
   export let selected = false;
+  /** @type {string} */
   export let label = '';
+  /** @type {{ label?: string } | undefined} */
   export let data = {};
 
   const { deleteElements } = useSvelteFlow();
@@ -24,6 +37,7 @@
 
   $: displayLabel = label || data?.label || '';
 
+  /** @param {MouseEvent | KeyboardEvent} e */
   function onDelete(e) {
     e.stopPropagation();
     deleteElements({ edges: [{ id }] });

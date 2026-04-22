@@ -10,6 +10,24 @@
   /** @typedef {import('../../types/workflow').CanvasEdge} CanvasEdge */
   /** @typedef {import('../../types/workflow').Position} Position */
   /** @typedef {import('../../lib/types/wails').Workflow} Workflow */
+  /**
+   * @typedef {Object} ContextMenuState
+   * @property {number} x
+   * @property {number} y
+   * @property {string | null} [nodeId]
+   * @property {string | null} [nodeStatus]
+   * @property {Position} flowPosition
+   */
+  /**
+   * @typedef {CustomEvent<{ node?: CanvasNode; event: MouseEvent | TouchEvent }>} XyflowNodeCtxEvent
+   * @typedef {CustomEvent<{ event: MouseEvent | TouchEvent }>} XyflowPaneCtxEvent
+   * @typedef {CustomEvent<{ source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }>} XyflowConnectEvent
+   * @typedef {CustomEvent<{ oldEdge: CanvasEdge; newConnection: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null } }>} XyflowReconnectEvent
+   * @typedef {CustomEvent<{ node?: CanvasNode }>} XyflowNodeClickEvent
+   * @typedef {CustomEvent<CanvasNode[]>} XyflowNodesDeleteEvent
+   * @typedef {CustomEvent<CanvasEdge[]>} XyflowEdgesDeleteEvent
+   * @typedef {CustomEvent<{ nodes: CanvasNode[]; edges: CanvasEdge[] }>} XyflowSelectionChangeEvent
+   */
 
   /** @type {import('svelte/store').Writable<CanvasNode[]>} */
   export let nodes;
@@ -49,19 +67,28 @@
 
   const { screenToFlowPosition, deleteElements, fitView } = useSvelteFlow();
 
-  const edgeTypes = { default: DeletableEdge };
+  /** @type {import('@xyflow/svelte').EdgeTypes} */
+  const edgeTypes = /** @type {import('@xyflow/svelte').EdgeTypes} */ (/** @type {unknown} */ ({ default: DeletableEdge }));
+
+  /** @type {import('svelte/store').Writable<import('@xyflow/svelte').Node[]>} */
+  const nodesAny = /** @type {import('svelte/store').Writable<import('@xyflow/svelte').Node[]>} */ (/** @type {unknown} */ (nodes));
+  /** @type {import('svelte/store').Writable<import('@xyflow/svelte').Edge[]>} */
+  const edgesAny = /** @type {import('svelte/store').Writable<import('@xyflow/svelte').Edge[]>} */ (/** @type {unknown} */ (edges));
 
   $: deleteKeys = executionStatus === 'idle' ? ['Delete', 'Backspace'] : [];
 
   // Context menu state
-  let contextMenu = null; // { x, y, nodeId?, nodeStatus?, flowPosition }
+  /** @type {ContextMenuState | null} */
+  let contextMenu = null;
   let showTemplateSub = false;
 
   // uiqa-08: keyboard nav state for context menu
   // itemRefs holds bound <button> nodes in render order; activeIdx is the
   // currently-focused index; previousFocus restores focus on close.
+  /** @type {HTMLButtonElement[]} */
   let itemRefs = [];
   let activeIdx = 0;
+  /** @type {HTMLElement | null} */
   let previousFocus = null;
 
   // Top-level menu items in render order. Rebuilt reactively so ArrowDown/Up
@@ -73,37 +100,50 @@
     // Capture the previously focused element (may be body/canvas) so we can
     // restore it on close. Reset index, clear stale refs, then focus item 0
     // after the menu has rendered.
-    previousFocus = (typeof document !== 'undefined' && document.activeElement) || null;
+    previousFocus = (typeof document !== 'undefined' ? /** @type {HTMLElement | null} */ (document.activeElement) : null);
     activeIdx = 0;
     itemRefs = [];
     await tick();
     itemRefs[0]?.focus();
   }
 
+  /** @param {MouseEvent | TouchEvent} ev */
+  function pointerOf(ev) {
+    if ('touches' in ev && ev.touches.length > 0) {
+      return { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+    }
+    const me = /** @type {MouseEvent} */ (ev);
+    return { x: me.clientX, y: me.clientY };
+  }
+
+  /** @param {XyflowNodeCtxEvent} e */
   function handleNodeContextMenu(e) {
     const node = e.detail.node;
     if (!node) return;
     e.detail.event.preventDefault();
     showTemplateSub = false;
+    const { x, y } = pointerOf(e.detail.event);
     contextMenu = {
-      x: e.detail.event.clientX,
-      y: e.detail.event.clientY,
+      x,
+      y,
       nodeId: node.id,
       nodeStatus: node.data?.status || 'pending',
-      flowPosition: screenToFlowPosition({ x: e.detail.event.clientX, y: e.detail.event.clientY }),
+      flowPosition: screenToFlowPosition({ x, y }),
     };
     openContextMenuFocus();
   }
 
+  /** @param {XyflowPaneCtxEvent} e */
   function handlePaneContextMenu(e) {
     e.detail.event.preventDefault();
     showTemplateSub = false;
+    const { x, y } = pointerOf(e.detail.event);
     contextMenu = {
-      x: e.detail.event.clientX,
-      y: e.detail.event.clientY,
+      x,
+      y,
       nodeId: null,
       nodeStatus: null,
-      flowPosition: screenToFlowPosition({ x: e.detail.event.clientX, y: e.detail.event.clientY }),
+      flowPosition: screenToFlowPosition({ x, y }),
     };
     openContextMenuFocus();
   }
@@ -122,6 +162,7 @@
     }
   }
 
+  /** @param {KeyboardEvent} e */
   function handleMenuKeydown(e) {
     if (!contextMenu) return;
     const count = menuItemCount;
@@ -169,22 +210,26 @@
       closeContextMenu();
       return;
     }
-    deleteElements({ nodes: [{ id: contextMenu.nodeId }] });
+    const nodeId = contextMenu.nodeId;
+    deleteElements({ nodes: [{ id: nodeId }] });
     if (onNodesDelete) {
-      const deleted = $nodes.filter(n => n.id === contextMenu.nodeId);
+      const deleted = $nodes.filter((n) => n.id === nodeId);
       onNodesDelete(deleted);
     }
     closeContextMenu();
   }
 
+  /** @param {string} templateId */
   function contextAddTemplate(templateId) {
     if (!contextMenu || !onAddTemplate) return;
-    onAddTemplate(templateId, contextMenu.flowPosition, contextMenu.nodeId);
+    onAddTemplate(templateId, contextMenu.flowPosition, contextMenu.nodeId ?? undefined);
     closeContextMenu();
   }
 
+  /** @param {DragEvent} e */
   function onDrop(e) {
     e.preventDefault();
+    if (!e.dataTransfer) return;
     const processId = e.dataTransfer.getData('application/bmad-process');
     if (processId) {
       const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
@@ -194,13 +239,13 @@
     const templateId = e.dataTransfer.getData('application/bmad-template');
     if (templateId && onAddTemplate) {
       const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-      onAddTemplate(templateId, position, null);
+      onAddTemplate(templateId, position, undefined);
       return;
     }
     const controlFlowType = e.dataTransfer.getData('application/bmad-controlflow');
     if (controlFlowType && onDropControlFlow) {
       const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-      onDropControlFlow(controlFlowType, position);
+      onDropControlFlow(/** @type {'condition' | 'loop' | 'loopUntil' | 'transform' | 'merge'} */ (controlFlowType), position);
       return;
     }
     const storyJson = e.dataTransfer.getData('application/bmad-story');
@@ -225,15 +270,18 @@
     }
   }
 
+  /** @param {DragEvent} e */
   function onDragOver(e) {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
   }
 
+  /** @param {XyflowConnectEvent} e */
   function handleConnect(e) {
     onConnect(e.detail);
   }
 
+  /** @param {XyflowNodeClickEvent} e */
   function handleNodeClick(e) {
     if (onNodeClick) onNodeClick(e.detail);
   }
@@ -242,18 +290,22 @@
     if (onPaneClick) onPaneClick();
   }
 
+  /** @param {XyflowNodesDeleteEvent} e */
   function handleNodesDelete(e) {
     if (onNodesDelete) onNodesDelete(e.detail);
   }
 
+  /** @param {XyflowEdgesDeleteEvent} e */
   function handleEdgesDelete(e) {
     if (onEdgesDelete) onEdgesDelete(e.detail);
   }
 
+  /** @param {XyflowSelectionChangeEvent} e */
   function handleSelectionChange(e) {
     if (onSelectionChange) onSelectionChange(e.detail);
   }
 
+  /** @param {XyflowReconnectEvent} e */
   function handleReconnect(e) {
     if (onReconnect) onReconnect(e.detail);
   }
@@ -265,8 +317,8 @@
 <div class="flow-wrap" on:drop={onDrop} on:dragover={onDragOver} role="application">
   <slot name="empty-hint" />
   <SvelteFlow
-    {nodes}
-    {edges}
+    nodes={nodesAny}
+    edges={edgesAny}
     {nodeTypes}
     {edgeTypes}
     {isValidConnection}
@@ -279,10 +331,9 @@
     on:edgesdelete={handleEdgesDelete}
     on:selectionchange={handleSelectionChange}
     on:reconnect={handleReconnect}
-    deleteKeyCode={deleteKeys}
-    selectionKeyCode="Shift"
-    multiSelectionKeyCode="Meta"
-    edgesReconnectable
+    deleteKey={deleteKeys}
+    selectionKey="Shift"
+    multiSelectionKey="Meta"
     fitView
   >
     <Controls position="bottom-right" style={configPanelOpen ? `right: ${configPanelWidth + 10}px;` : ''} />
