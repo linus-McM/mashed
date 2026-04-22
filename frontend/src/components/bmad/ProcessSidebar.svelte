@@ -7,9 +7,19 @@
   import { GetConfig, SetSidebarWidth } from '../../../wailsjs/go/main/App.js';
   import { MASHED_ASSET_MIME } from './dragMimeTypes.js';
 
+  /** @typedef {import('../../lib/types/wails').ProcessDef} ProcessDef */
+  /** @typedef {import('../../lib/types/wails').Workflow} Workflow */
+  /** @typedef {import('../../lib/types/wails').SprintStatus} SprintStatus */
+  /** @typedef {import('../../lib/types/wails').GroupedMashedAssets} GroupedMashedAssets */
+  /** @typedef {import('../../lib/types/wails').MashedAssetInfo} MashedAssetInfo */
+
+  /** @type {ProcessDef[]} */
   export let processes = [];
+  /** @type {Workflow[]} */
   export let templates = [];
+  /** @type {Workflow[]} */
   export let savedWorkflows = [];
+  /** @type {SprintStatus | null} */
   export let sprintStatus = null;
   export let repoPath = '';
   export let repoBranch = '';
@@ -20,14 +30,17 @@
    * assets found — run the mashed-refactor-asset skill against your
    * .claude/skills/ or .claude/commands/ directory to populate this
    * tab".
-   * @type {{ localCommands: any[], globalCommands: any[], localSkills: any[], globalSkills: any[] }}
+   * @type {GroupedMashedAssets | { localCommands: MashedAssetInfo[]; globalCommands: MashedAssetInfo[]; localSkills: MashedAssetInfo[]; globalSkills: MashedAssetInfo[] }}
    */
   export let groupedMashedAssets = { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
   /** True while a refetch triggered by bmad:assets:changed is in flight. */
   export let assetsFetching = false;
   /** True for ~2s after a refetch fails (transient error indicator). */
   export let assetsError = false;
-  /** Map of asset path → 'created' | 'updated' for 400ms row flash. */
+  /**
+   * Map of asset path → 'created' | 'updated' for 400ms row flash.
+   * @type {Record<string, 'created' | 'updated'>}
+   */
   export let flashedPaths = {};
 
   /** @type {import('svelte').EventDispatcher<{ editAsset: unknown; 'create-custom-template': void; 'load-workflow': string; 'delete-workflow': string }>} */

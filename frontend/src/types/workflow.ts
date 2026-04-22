@@ -14,6 +14,7 @@ import type {
   WorkflowNode as WailsWorkflowNode,
   WorkflowEdge as WailsWorkflowEdge,
   Position as WailsPosition,
+  ProcessDef,
 } from '../lib/types/wails';
 
 /** XY coordinate on the workflow canvas (mirrors `bmad.Position`). */
@@ -40,17 +41,28 @@ export type Workflow = WailsWorkflow;
  * `data` payload attached to a svelte-flow canvas node. Mirrors the
  * WorkflowBuilder `data: { … }` block — every field is optional so legacy
  * canvases (pre-command-nodes) and freshly-dropped nodes both validate.
+ *
+ * Additional fields (artifactStatus, iterationCount, nodeRound, gateFlash)
+ * are written by the live execution event listeners — ProcessNode.svelte
+ * and its siblings read them off `data` to animate the running state.
  */
 export interface CanvasNodeData {
   label?: string;
   processId?: string;
   nodeType?: string;
-  process?: unknown;
+  process?: ProcessDef | null;
   status?: string;
   config?: Record<string, unknown>;
   tmuxTarget?: string;
   storyId?: string;
   storyStatus?: string;
+  // Live execution overlay — written by `bmad:node:status`.
+  iterationCount?: number;
+  // Artifact resolution from `bmad:node:artifacts`.
+  artifactStatus?: { found: string[]; missing: string[] };
+  // Interactive gate flash animation & current iteration round.
+  gateFlash?: boolean;
+  nodeRound?: number;
 }
 
 /** A svelte-flow canvas node as produced by WorkflowBuilder. */
@@ -76,9 +88,10 @@ export interface CanvasEdge {
  * Minimal process-registry entry `workflowNodesToCanvasNodes` cross-references
  * to resolve the `process` backref on a restored canvas node. The full
  * `ProcessDef` is richer (see `$lib/types/wails`), but the serialiser only
- * ever reads `id`.
+ * ever reads `id`. No index signature — that would prevent structural
+ * assignment from the Wails-generated `ProcessDef` class (which carries
+ * fixed, non-index-compatible properties).
  */
 export interface ProcessRegistryEntry {
   id: string;
-  [key: string]: unknown;
 }

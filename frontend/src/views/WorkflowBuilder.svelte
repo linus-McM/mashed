@@ -70,7 +70,40 @@
     COMMAND_NODE_SENTINEL_DEFAULT_BODY,
   } from '../lib/workflowSerialisation';
 
+  // ── Type aliases: reusable JSDoc shortcuts to keep the annotations
+  // below terse and to centralise the re-export surface so a future
+  // rename only needs to touch this block.
+  /** @typedef {import('../types/workflow').CanvasNode} CanvasNode */
+  /** @typedef {import('../types/workflow').CanvasEdge} CanvasEdge */
+  /** @typedef {import('../types/workflow').CanvasNodeData} CanvasNodeData */
+  /** @typedef {import('../types/workflow').Position} Position */
+  /** @typedef {import('../lib/types/wails').Workflow} Workflow */
+  /** @typedef {import('../lib/types/wails').WorkflowExecution} WorkflowExecution */
+  /** @typedef {import('../lib/types/wails').ProcessDef} ProcessDef */
+  /** @typedef {import('../lib/types/wails').BmadAgentConfig} BmadAgentConfig */
+  /** @typedef {import('../lib/types/wails').GroupedAgents} GroupedAgents */
+  /** @typedef {import('../lib/types/wails').GroupedMashedAssets} GroupedMashedAssets */
+  /** @typedef {import('../lib/types/wails').MashedAssetInfo} MashedAssetInfo */
+  /** @typedef {import('../lib/types/wails').SprintStatus} SprintStatus */
+  /** @typedef {import('../lib/types/wails').SprintStory} SprintStory */
+  /** @typedef {import('../stores/interactiveInput').PendingPrompt} PendingPrompt */
+  /** @typedef {import('../types/bmadEvents').BmadAwaitingInputEvent} BmadAwaitingInputEvent */
+  /** @typedef {import('../types/bmadEvents').BmadInputResolvedEvent} BmadInputResolvedEvent */
+  /** @typedef {import('../types/bmadEvents').BmadInputInvalidEvent} BmadInputInvalidEvent */
+  /** @typedef {import('../types/bmadEvents').BmadRoundCompleteEvent} BmadRoundCompleteEvent */
+  /** @typedef {import('../types/bmadEvents').BmadGateSatisfiedEvent} BmadGateSatisfiedEvent */
+  /** @typedef {import('../types/bmadEvents').BmadRoundLimitEvent} BmadRoundLimitEvent */
+  /** @typedef {import('../types/bmadEvents').BmadAbortedEvent} BmadAbortedEvent */
+  /** @typedef {import('../types/bmadEvents').BmadNodeStatusEvent} BmadNodeStatusEvent */
+  /** @typedef {import('../types/bmadEvents').BmadNodeArtifactsEvent} BmadNodeArtifactsEvent */
+  /** @typedef {import('../types/bmadEvents').BmadExecutionStatusEvent} BmadExecutionStatusEvent */
+  /** @typedef {import('../types/bmadEvents').BmadSprintUpdatedEvent} BmadSprintUpdatedEvent */
+  /** @typedef {import('../types/bmadEvents').BmadInteractiveEventMap} BmadInteractiveEventMap */
+  /** @typedef {import('../types/bmadEvents').BmadInteractiveHandlers} BmadInteractiveHandlers */
+
+  /** @type {string} */
   export let repoPath = '';
+  /** @type {string} */
   export let repoBranch = '';
   /** @type {import('../components/bmad/questionSnackbarUtils').QuestionEventLike | null} */
   export let pendingQuestion = null;
@@ -79,6 +112,7 @@
   const dispatch = createEventDispatcher();
 
   let showQuestionModal = false;
+  /** @type {import('../components/bmad/questionSnackbarUtils').QuestionEventLike | null} */
   let activeQuestion = null;
 
   // Only open the modal on a truthy transition when not already showing.
@@ -115,22 +149,29 @@
     multiFileLoader: MultiFileLoaderNode,
   };
 
-  const nodes = writable([]);
-  const edges = writable([]);
+  /** @type {import('svelte/store').Writable<CanvasNode[]>} */
+  const nodes = writable(/** @type {CanvasNode[]} */ ([]));
+  /** @type {import('svelte/store').Writable<CanvasEdge[]>} */
+  const edges = writable(/** @type {CanvasEdge[]} */ ([]));
 
+  /** @type {ProcessDef[]} */
   let processes = [];
+  /** @type {Workflow[]} */
   let templates = [];
+  /** @type {Workflow[]} */
   let savedWorkflows = [];
-  /** @type {{ bmadAgents: any[], localAgents: any[], globalAgents: any[] }} */
+  /** @type {GroupedAgents | { bmadAgents: BmadAgentConfig[]; localAgents: import('../lib/types/wails').AgentInfo[]; globalAgents: import('../lib/types/wails').AgentInfo[] }} */
   let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
   /**
    * Mashed-ready skills and commands grouped by scope × kind. Fetched
    * in onMount and re-fetched whenever the repoPath changes so the
    * sidebar always reflects the current repo's local assets.
-   * @type {{ localCommands: any[], globalCommands: any[], localSkills: any[], globalSkills: any[] }}
+   * @type {GroupedMashedAssets | { localCommands: MashedAssetInfo[]; globalCommands: MashedAssetInfo[]; localSkills: MashedAssetInfo[]; globalSkills: MashedAssetInfo[] }}
    */
   let groupedMashedAssets = { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
+  /** @type {SprintStatus | null} */
   let sprintStatus = null;
+  /** @type {Workflow | null} */
   let currentWorkflow = null;
   let workflowName = 'Untitled Workflow';
   let saving = false;
@@ -176,17 +217,20 @@
   let defaultModelId = '';
 
   // Execution state
+  /** @type {string | null} */
   let executionId = null;
   let executionStatus = 'idle';
   let nodeProgress = { completed: 0, total: 0 };
   let execError = '';
 
   // Config panel state
+  /** @type {CanvasNode | null} */
   let selectedNode = null;
   let configPanelWidth = 280;
 
   // Agent modal state
   let showAgentModal = false;
+  /** @type {BmadAgentConfig | null} */
   let editingAgent = null;
 
   // Terminal modal state
@@ -202,6 +246,7 @@
   let outputLoading = false;
 
   // Skill editor modal state
+  /** @type {MashedAssetInfo | null} */
   let editingAsset = null;
   let lastSavedPath = '';
   let showSaveToast = false;
@@ -210,6 +255,7 @@
   // Array editor modal state
   let showArrayModal = false;
   let arrayModalNodeId = '';
+  /** @type {string[]} */
   let arrayModalItems = [];
 
   onMount(async () => {
@@ -347,6 +393,7 @@
    * The restored state is baselined as the clean snapshot so tryLeave()
    * does not mistakenly treat restored RUNNING nodes as unsaved edits.
    */
+  /** @param {string} path */
   async function restoreForRepo(path) {
     if (!path) return;
     try {
@@ -376,13 +423,14 @@
       $nodes = $nodes.map((n) => {
         const live = byId.get(n.id);
         if (!live) return n;
+        const prev = n.data || {};
         return {
           ...n,
           data: {
-            ...n.data,
-            status: live.status || n.data.status,
-            tmuxTarget: live.tmuxTarget || n.data.tmuxTarget,
-            storyId: live.storyId || n.data.storyId,
+            ...prev,
+            status: live.status || prev.status,
+            tmuxTarget: live.tmuxTarget || prev.tmuxTarget,
+            storyId: live.storyId || prev.storyId,
           },
         };
       });
@@ -401,15 +449,16 @@
   }
 
   // Listen for live node status updates (scoped by execID)
-  const cancelStatusListener = EventsOn('bmad:node:status', (event) => {
+  const cancelStatusListener = EventsOn('bmad:node:status', (/** @type {BmadNodeStatusEvent} */ event) => {
     if (!event?.nodeId || (executionId && event.execId !== executionId)) return;
     $nodes = $nodes.map(n => {
       if (n.id === event.nodeId) {
+        const prev = n.data || {};
         return { ...n, data: {
-          ...n.data,
+          ...prev,
           status: event.status,
-          tmuxTarget: event.tmuxTarget || n.data.tmuxTarget,
-          iterationCount: event.iteration || n.data.iterationCount,
+          tmuxTarget: event.tmuxTarget || prev.tmuxTarget,
+          iterationCount: event.iteration || prev.iterationCount,
         } };
       }
       return n;
@@ -436,8 +485,9 @@
     updateProgress();
   });
 
-  let autoFillSaveTimer = null;
-  const cancelArtifactListener = EventsOn('bmad:node:artifacts', (event) => {
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let autoFillSaveTimer;
+  const cancelArtifactListener = EventsOn('bmad:node:artifacts', (/** @type {BmadNodeArtifactsEvent} */ event) => {
     if (!event?.nodeId || (executionId && event.execId !== executionId)) return;
     $nodes = $nodes.map(n => {
       if (n.id === event.nodeId) {
@@ -454,23 +504,37 @@
     // single upstream path is copied to every connected downstream slot that
     // accepts the artifact and is currently empty. Populated slots never clobber.
     if (event.paths && typeof event.paths === 'object' && Object.keys(event.paths).length > 0) {
-      const { updates } = computeAutoFill(event, $nodes, $edges);
+      const { updates } = computeAutoFill(
+        { execId: event.execId, nodeId: event.nodeId, paths: event.paths },
+        $nodes,
+        $edges,
+      );
       if (updates.length > 0) {
+        /** @type {Map<string, Array<{ nodeId: string; artifactName: string; path: string }>>} */
         const byTarget = new Map();
         for (const u of updates) {
-          if (!byTarget.has(u.nodeId)) byTarget.set(u.nodeId, []);
-          byTarget.get(u.nodeId).push(u);
+          const bucket = byTarget.get(u.nodeId);
+          if (bucket) {
+            bucket.push(u);
+          } else {
+            byTarget.set(u.nodeId, [u]);
+          }
         }
         $nodes = $nodes.map(n => {
           const nodeUpdates = byTarget.get(n.id);
           if (!nodeUpdates) return n;
-          const prevConfig = n.data?.config || {};
-          const nextInputPaths = { ...(prevConfig.inputPaths || {}) };
+          const prevData = n.data || {};
+          /** @type {Record<string, unknown>} */
+          const prevConfig = prevData.config || {};
+          const prevInputPaths = /** @type {Record<string, string> | undefined} */ (
+            prevConfig.inputPaths
+          );
+          const nextInputPaths = { ...(prevInputPaths || {}) };
           for (const u of nodeUpdates) nextInputPaths[u.artifactName] = u.path;
           return {
             ...n,
             data: {
-              ...n.data,
+              ...prevData,
               config: { ...prevConfig, inputPaths: nextInputPaths },
             },
           };
@@ -485,13 +549,14 @@
     }
   });
 
-  const cancelExecListener = EventsOn('bmad:execution:status', (event) => {
+  const cancelExecListener = EventsOn('bmad:execution:status', (/** @type {BmadExecutionStatusEvent} */ event) => {
     if (executionId && event.execId !== executionId) return;
     if (event?.status) executionStatus = event.status;
   });
 
-  let sprintRefreshTimer = null;
-  const cancelSprintListener = EventsOn('bmad:sprint:updated', (event) => {
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let sprintRefreshTimer;
+  const cancelSprintListener = EventsOn('bmad:sprint:updated', (/** @type {BmadSprintUpdatedEvent} */ event) => {
     // Update node storyStatus immediately
     if (event?.storyId) {
       $nodes = $nodes.map(n => {
@@ -517,18 +582,26 @@
   // to update the sidebar reactively.
   let assetsFetching = false;
   let assetsError = false;
+  /** @type {Record<string, 'created' | 'updated'>} */
   let flashedPaths = {};
   let assetFetchDirty = false;
-  let flashTimer = null;
-  let errorTimer = null;
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let flashTimer;
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let errorTimer;
 
   /**
    * Flatten all four mashed-asset groups into a Map<path, serialized>
    * for efficient diff detection between fetches.
+   * @param {GroupedMashedAssets | { localCommands: MashedAssetInfo[]; globalCommands: MashedAssetInfo[]; localSkills: MashedAssetInfo[]; globalSkills: MashedAssetInfo[] } | null | undefined} grouped
+   * @returns {Map<string, string>}
    */
   function flattenAssetPaths(grouped) {
+    /** @type {Map<string, string>} */
     const map = new Map();
-    for (const key of ['localCommands', 'globalCommands', 'localSkills', 'globalSkills']) {
+    /** @type {Array<'localCommands' | 'globalCommands' | 'localSkills' | 'globalSkills'>} */
+    const keys = ['localCommands', 'globalCommands', 'localSkills', 'globalSkills'];
+    for (const key of keys) {
       for (const asset of grouped?.[key] || []) {
         map.set(asset.path, JSON.stringify(asset));
       }
@@ -554,6 +627,7 @@
 
       // Compute diff: new paths → 'created', changed paths → 'updated'
       const newPaths = flattenAssetPaths(newGrouped);
+      /** @type {Record<string, 'created' | 'updated'>} */
       const flashed = {};
       for (const [path, serialized] of newPaths) {
         if (!prevPaths.has(path)) {
@@ -596,18 +670,22 @@
 
   // S6: interactive input event wiring (awaiting_input / input_resolved /
   // input_invalid / round_complete / gate_satisfied / round_limit / aborted).
+  /**
+   * @param {BmadAwaitingInputEvent | null | undefined} payload
+   * @returns {PendingPrompt | null}
+   */
   function annotatePrompt(payload) {
     if (!payload || !payload.nodeId) return null;
     const node = $nodes.find((n) => n.id === payload.nodeId);
-    const process = node?.data?.process || {};
+    const process = node?.data?.process || /** @type {Partial<ProcessDef>} */ ({});
     const specs = Array.isArray(process.inputSpecs) ? process.inputSpecs : [];
-    const spec = specs.find((s) => s && s.id === payload.inputId) || {};
+    const spec = specs.find((s) => s && s.id === payload.inputId) || /** @type {Partial<import('../lib/types/wails').InputSpec>} */ ({});
     return {
       execId: payload.execId || executionId || '',
       nodeId: payload.nodeId,
       inputId: payload.inputId,
-      prompt: payload.prompt,
-      shape: payload.shape,
+      prompt: payload.prompt ?? '',
+      shape: payload.shape ?? '',
       options: payload.options || [],
       round: payload.round || 0,
       createdAt: payload.createdAt || Date.now(),
@@ -623,15 +701,21 @@
     };
   }
 
+  /**
+   * @param {string} nodeId
+   * @param {Partial<CanvasNodeData>} patch
+   */
   function applyNodeDataPatch(nodeId, patch) {
     $nodes = $nodes.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, ...patch } } : n));
   }
 
+  /** @param {string} nodeId */
   function flashGate(nodeId) {
     applyNodeDataPatch(nodeId, { gateFlash: true, status: 'complete' });
     setTimeout(() => applyNodeDataPatch(nodeId, { gateFlash: false }), 400);
   }
 
+  /** @type {BmadInteractiveHandlers} */
   const bmadEventHandlers = {
     'bmad:node:awaiting_input': (event) => {
       if (executionId && event?.execId && event.execId !== executionId) return;
@@ -680,7 +764,12 @@
     },
   };
 
-  const bmadListenerCancels = Object.entries(bmadEventHandlers).map(([name, fn]) => EventsOn(name, fn));
+  // Object.entries() erases the key→value narrowing from BmadInteractiveHandlers,
+  // so we iterate the keys explicitly to keep the handler signature aligned
+  // with its event name when the bundle gets wired to EventsOn.
+  const bmadListenerCancels = (
+    /** @type {(keyof BmadInteractiveEventMap)[]} */ (Object.keys(bmadEventHandlers))
+  ).map((name) => EventsOn(name, /** @type {(e: unknown) => void} */ (bmadEventHandlers[name])));
 
   if (import.meta.env.DEV && typeof window !== 'undefined') {
     window.__mashedEmitBmadEvent = (name, payload) => {
@@ -692,6 +781,7 @@
   }
 
   // Skip for non-required prompts: send an empty string; backend treats as skip.
+  /** @param {PendingPrompt | null | undefined} prompt */
   async function handleInputSkip(prompt) {
     if (!prompt) return;
     try {
@@ -734,10 +824,11 @@
 
   function updateProgress() {
     const total = $nodes.length;
-    const completed = $nodes.filter(n => n.data.status === 'complete').length;
+    const completed = $nodes.filter(n => n.data?.status === 'complete').length;
     nodeProgress = { completed, total };
   }
 
+  /** @param {{ source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }} connection */
   function isValidConnection(connection) {
     if (connection.source === connection.target) return false;
     const exists = $edges.some(e =>
@@ -746,6 +837,7 @@
     return !exists;
   }
 
+  /** @param {string | null | undefined} sourceHandle */
   function inferEdgeLabel(sourceHandle) {
     if (sourceHandle === 'true') return 'true';
     if (sourceHandle === 'false') return 'false';
@@ -754,20 +846,26 @@
     return '';
   }
 
+  /** @param {{ source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }} params */
   function onConnect(params) {
     const label = inferEdgeLabel(params.sourceHandle);
+    /** @type {CanvasEdge} */
     const newEdge = {
       id: `edge-${Date.now()}`,
       source: params.source,
       target: params.target,
-      sourceHandle: params.sourceHandle,
-      targetHandle: params.targetHandle,
+      sourceHandle: params.sourceHandle ?? undefined,
+      targetHandle: params.targetHandle ?? undefined,
       label,
       data: { label },
     };
     $edges = [...$edges, newEdge];
   }
 
+  /**
+   * @param {string} processId
+   * @param {Position} position
+   */
   function onDropProcess(processId, position) {
     if (processId === 'util-multi-file-loader') {
       const newNode = {
@@ -798,7 +896,12 @@
     $nodes = [...$nodes, newNode];
   }
 
+  /**
+   * @param {{ storyId: string; status?: string }} storyData
+   * @param {Position} position
+   */
   function onDropStory(storyData, position) {
+    /** @type {CanvasNode} */
     const newNode = {
       id: `story-node-${Date.now()}`,
       type: 'bmadProcess',
@@ -815,9 +918,15 @@
     $nodes = [...$nodes, newNode];
   }
 
+  /** @type {Record<'condition' | 'loop' | 'loopUntil' | 'transform' | 'merge', string>} */
   const controlFlowNames = { condition: 'Condition', loop: 'Loop', loopUntil: 'Loop Until', transform: 'Transform', merge: 'Merge' };
 
+  /**
+   * @param {'condition' | 'loop' | 'loopUntil' | 'transform' | 'merge'} nodeType
+   * @param {Position} position
+   */
   function onDropControlFlow(nodeType, position) {
+    /** @type {CanvasNode} */
     const newNode = {
       id: `cf-${Date.now()}`,
       type: nodeType,
@@ -827,6 +936,7 @@
     $nodes = [...$nodes, newNode];
   }
 
+  /** @param {{ node?: CanvasNode }} detail */
   function onNodeClick(detail) {
     const node = detail.node;
     if (node) {
@@ -837,6 +947,7 @@
     }
   }
 
+  /** @param {CanvasNode[]} deletedNodes */
   function onNodesDelete(deletedNodes) {
     // Filter out running nodes — they cannot be deleted
     const protectedIds = deletedNodes
@@ -850,16 +961,19 @@
     }
 
     // Clear selectedNode if it was deleted
-    if (selectedNode && deletedNodes.some(n => n.id === selectedNode.id) && !protectedIds.includes(selectedNode.id)) {
+    const currentlySelected = selectedNode;
+    if (currentlySelected && deletedNodes.some(n => n.id === currentlySelected.id) && !protectedIds.includes(currentlySelected.id)) {
       selectedNode = null;
     }
     updateProgress();
   }
 
-  function onEdgesDelete(deletedEdges) {
+  /** @param {CanvasEdge[]} _deletedEdges */
+  function onEdgesDelete(_deletedEdges) {
     // xyflow handles store removal; no additional state cleanup needed
   }
 
+  /** @param {{ oldEdge: CanvasEdge; newConnection: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null } }} detail */
   function onReconnect(detail) {
     const { oldEdge, newConnection } = detail;
     $edges = $edges.map(e => {
@@ -869,8 +983,8 @@
           ...e,
           source: newConnection.source,
           target: newConnection.target,
-          sourceHandle: newConnection.sourceHandle,
-          targetHandle: newConnection.targetHandle,
+          sourceHandle: newConnection.sourceHandle ?? undefined,
+          targetHandle: newConnection.targetHandle ?? undefined,
           label,
           data: { label },
         };
@@ -879,6 +993,7 @@
     });
   }
 
+  /** @param {{ nodes: CanvasNode[]; edges: CanvasEdge[] }} selection */
   function onSelectionChange(selection) {
     if (selection.nodes.length === 1) {
       selectedNode = selection.nodes[0];
@@ -887,14 +1002,21 @@
     }
   }
 
+  /**
+   * @param {string} templateId
+   * @param {Position} position
+   * @param {string} [connectToNodeId]
+   */
   function onAddTemplate(templateId, position, connectToNodeId) {
     const tpl = templates.find(t => t.id === templateId);
     if (!tpl || !tpl.nodes?.length) return;
 
     const ts = Date.now();
+    /** @type {Record<string, string>} */
     const idMap = {};
 
     // Create new nodes offset from the click position
+    /** @type {CanvasNode[]} */
     const newNodes = tpl.nodes.map((n, i) => {
       const newId = `tpl-${ts}-${i}`;
       idMap[n.id] = newId;
@@ -913,6 +1035,7 @@
     });
 
     // Recreate template edges with new IDs
+    /** @type {CanvasEdge[]} */
     const newEdges = (tpl.edges || []).map((e, i) => ({
       id: `tpl-edge-${ts}-${i}`,
       source: idMap[e.source] || e.source,
@@ -934,6 +1057,7 @@
     updateProgress();
   }
 
+  /** @param {CustomEvent<{ nodeId: string; config: Record<string, unknown> }>} e */
   function onConfigUpdate(e) {
     const { nodeId, config } = e.detail;
     $nodes = $nodes.map(n => {
@@ -944,6 +1068,7 @@
     });
   }
 
+  /** @param {CustomEvent<BmadAgentConfig>} e */
   async function handleAgentSave(e) {
     try {
       await SaveBmadAgent(e.detail);
@@ -955,6 +1080,7 @@
     }
   }
 
+  /** @param {CustomEvent<string>} e */
   async function handleAgentDelete(e) {
     try {
       await DeleteBmadAgent(e.detail);
@@ -966,6 +1092,7 @@
     }
   }
 
+  /** @param {CustomEvent<{ nodeId: string; items: string[] }>} e */
   function handleEditItems(e) {
     const { nodeId, items } = e.detail;
     arrayModalNodeId = nodeId;
@@ -973,11 +1100,13 @@
     showArrayModal = true;
   }
 
+  /** @param {CustomEvent<string[]>} e */
   function handleArraySave(e) {
     const savedItems = e.detail;
     $nodes = $nodes.map(n => {
       if (n.id === arrayModalNodeId) {
-        const config = { ...n.data.config, items: savedItems.length > 0 ? JSON.stringify(savedItems) : '' };
+        const prevConfig = n.data?.config || {};
+        const config = { ...prevConfig, items: savedItems.length > 0 ? JSON.stringify(savedItems) : '' };
         return { ...n, data: { ...n.data, config } };
       }
       return n;
@@ -988,11 +1117,13 @@
     showArrayModal = false;
   }
 
+  /** @param {CustomEvent<string>} e */
   async function onOpenTerminal(e) {
     terminalTarget = e.detail;
     showTerminalModal = true;
   }
 
+  /** @param {CustomEvent<string>} e */
   async function handleOpenOutput(e) {
     const nodeId = e.detail;
     const node = $nodes.find(n => n.id === nodeId);
@@ -1002,7 +1133,7 @@
     outputModalContent = '';
 
     try {
-      outputModalContent = await GetNodeOutput(executionId, nodeId);
+      outputModalContent = await GetNodeOutput(executionId || '', nodeId);
     } catch (err) {
       outputModalContent = 'Error loading output: ' + err;
     }
@@ -1143,6 +1274,7 @@
     });
   }
 
+  /** @param {CustomEvent<{ name: string }>} e */
   function handleNameModalSave(e) {
     if (nameModalResolver) nameModalResolver('save', e.detail?.name);
   }
@@ -1153,6 +1285,7 @@
     if (nameModalResolver) nameModalResolver('cancel');
   }
 
+  /** @param {CustomEvent<{ path?: string }>} e */
   async function handleAssetSaved(e) {
     const savedPath = e.detail?.path || '';
     editingAsset = null;
@@ -1179,6 +1312,7 @@
     if (ok) dispatch('back');
   }
 
+  /** @param {Workflow} wf */
   function loadNodesEdges(wf) {
     // skills-cmd-03 AC-1: the type-mapping ternary inside
     // workflowNodesToCanvasNodes routes `nodeType === 'command'` to
@@ -1195,6 +1329,7 @@
     lastSavedSnapshot = snapshotCanvas($nodes, $edges, workflowName);
   }
 
+  /** @param {CustomEvent<string>} e */
   async function loadWorkflow(e) {
     const wfId = e.detail;
     try {
@@ -1207,6 +1342,7 @@
     }
   }
 
+  /** @param {CustomEvent<string>} e */
   async function useTemplate(e) {
     const templateId = e.detail;
     // Templates CreateFromTemplate returns a brand-new saved workflow
@@ -1224,6 +1360,7 @@
     }
   }
 
+  /** @param {CustomEvent<string>} e */
   async function deleteWorkflow(e) {
     const wfId = e.detail;
     try {
@@ -1259,6 +1396,7 @@
     lastSavedSnapshot = snapshotCanvas([], [], 'Untitled Workflow');
   }
 
+  /** @param {CustomEvent<{ model?: string }>} e */
   async function handleExecStart(e) {
     const { model } = e.detail;
     execError = '';

@@ -6,21 +6,42 @@
   import { handleMashedAssetDrop } from './canvasPaneDropHandler.js';
   import { MASHED_ASSET_MIME } from './dragMimeTypes.js';
 
+  /** @typedef {import('../../types/workflow').CanvasNode} CanvasNode */
+  /** @typedef {import('../../types/workflow').CanvasEdge} CanvasEdge */
+  /** @typedef {import('../../types/workflow').Position} Position */
+  /** @typedef {import('../../lib/types/wails').Workflow} Workflow */
+
+  /** @type {import('svelte/store').Writable<CanvasNode[]>} */
   export let nodes;
+  /** @type {import('svelte/store').Writable<CanvasEdge[]>} */
   export let edges;
+  /** @type {(connection: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }) => boolean} */
   export let isValidConnection;
+  /** @type {(params: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }) => void} */
   export let onConnect;
+  /** @type {(processId: string, position: Position) => void} */
   export let onDropProcess;
+  /** @type {((storyData: { storyId: string; status?: string }, position: Position) => void) | null} */
   export let onDropStory = null;
+  /** @type {((nodeType: 'condition' | 'loop' | 'loopUntil' | 'transform' | 'merge', position: Position) => void) | null} */
   export let onDropControlFlow = null;
+  /** @type {Record<string, import('svelte').ComponentType>} */
   export let nodeTypes = {};
+  /** @type {((detail: { node?: CanvasNode }) => void) | null} */
   export let onNodeClick = null;
+  /** @type {(() => void) | null} */
   export let onPaneClick = null;
+  /** @type {((deletedNodes: CanvasNode[]) => void) | null} */
   export let onNodesDelete = null;
+  /** @type {((deletedEdges: CanvasEdge[]) => void) | null} */
   export let onEdgesDelete = null;
+  /** @type {((selection: { nodes: CanvasNode[]; edges: CanvasEdge[] }) => void) | null} */
   export let onSelectionChange = null;
+  /** @type {((detail: { oldEdge: CanvasEdge; newConnection: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null } }) => void) | null} */
   export let onReconnect = null;
+  /** @type {((templateId: string, position: Position, connectToNodeId?: string) => void) | null} */
   export let onAddTemplate = null;
+  /** @type {Workflow[]} */
   export let templates = [];
   export let executionStatus = 'idle';
   export let configPanelOpen = false;

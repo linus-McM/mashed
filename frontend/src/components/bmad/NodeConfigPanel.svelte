@@ -9,9 +9,9 @@
     hasDuplicateLabels,
   } from '../../lib/bmad/multiFileEntries';
 
-  /** @typedef {import('../../lib/types/wails').WorkflowNode} WorkflowNode */
+  /** @typedef {import('../../types/workflow').CanvasNode} CanvasNode */
   /** @typedef {import('../../lib/types/wails').GroupedAgents} GroupedAgents */
-  /** @type {WorkflowNode | null} */
+  /** @type {CanvasNode | null} */
   export let node = null;
   /** @type {GroupedAgents | { bmadAgents: unknown[]; localAgents: unknown[]; globalAgents: unknown[] }} */
   export let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
