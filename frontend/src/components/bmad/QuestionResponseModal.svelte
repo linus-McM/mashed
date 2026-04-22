@@ -4,10 +4,12 @@
   import { cubicOut, cubicIn } from 'svelte/easing';
   import { X, MessageCircleQuestion, Send } from 'lucide-svelte';
   import { RespondToQuestion } from '../../../wailsjs/go/main/App.js';
+  import { errorMessage } from '../../lib/errorMessage';
 
   /** @type {import('./questionSnackbarUtils').QuestionEventLike} */
   export let question;
 
+  /** @type {import('svelte').EventDispatcher<{ responded: void; error: { message: string }; close: void }>} */
   const dispatch = createEventDispatcher();
 
   let answer = '';
@@ -48,7 +50,7 @@
       await RespondToQuestion(question.execId ?? '', question.nodeId, value);
       dispatch('responded');
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = errorMessage(e);
       error = msg;
       sending = false;
       dispatch('error', { message: msg });

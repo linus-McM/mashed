@@ -2,7 +2,9 @@
   import { createEventDispatcher } from 'svelte';
   import { AlertTriangle } from 'lucide-svelte';
   import { GitForcePush } from '../../wailsjs/go/main/App.js';
+  import { errorMessage } from '../lib/errorMessage';
 
+  /** @type {import('svelte').EventDispatcher<{ pushed: { force: boolean }; cancel: void }>} */
   const dispatch = createEventDispatcher();
 
   export let repoPath = '';
@@ -18,7 +20,7 @@
       await GitForcePush(repoPath);
       dispatch('pushed', { force: true });
     } catch (e) {
-      error = e?.message || 'Force push failed';
+      error = errorMessage(e) || 'Force push failed';
       pushing = false;
     }
   }
@@ -27,6 +29,7 @@
     dispatch('cancel');
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') cancel();
   }

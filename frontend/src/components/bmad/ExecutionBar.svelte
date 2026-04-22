@@ -7,8 +7,10 @@
   export let nodeProgress = { completed: 0, total: 0 };
   export let repoPath = '';
 
+  /** @type {import('svelte').EventDispatcher<{ start: { model: string }; resume: void; pause: void; stop: void }>} */
   const dispatch = createEventDispatcher();
 
+  /** @type {import('../../lib/types/wails').ModelInfo[]} */
   let models = [];
   let selectedModel = '';
 

@@ -30,6 +30,7 @@
   /** Map of asset path → 'created' | 'updated' for 400ms row flash. */
   export let flashedPaths = {};
 
+  /** @type {import('svelte').EventDispatcher<{ editAsset: unknown; 'create-custom-template': void; 'load-workflow': string; 'delete-workflow': string }>} */
   const dispatch = createEventDispatcher();
 
   let activeTab = 'templates';
@@ -54,13 +55,19 @@
     localSkills: 'var(--accent-purple, #bc8cff)',
     globalSkills: 'var(--accent-amber, #d29922)',
   };
+  /** @type {string | null} */
   let openMashedGroup = 'localCommands';
+  /** @param {string} key */
   function toggleMashedGroup(key) {
     openMashedGroup = openMashedGroup === key ? null : key;
   }
 
   let isDragging = false;
 
+  /**
+   * @param {MouseEvent} e
+   * @param {unknown} asset
+   */
   function onMashedAssetContextMenu(e, asset) {
     if (isDragging) return;
     e.preventDefault();

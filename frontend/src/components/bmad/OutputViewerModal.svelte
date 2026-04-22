@@ -8,12 +8,14 @@
   export let content = '';
   export let loading = false;
 
+  /** @type {import('svelte').EventDispatcher<{ close: void }>} */
   const dispatch = createEventDispatcher();
 
   function close() {
     dispatch('close');
   }
 
+  /** @param {KeyboardEvent} e */
   function onKeydown(e) {
     if (show && e.key === 'Escape') close();
   }

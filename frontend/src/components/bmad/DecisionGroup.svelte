@@ -17,6 +17,7 @@
   // Pre-focus state is the signature indicator per Design Brief §3 + §6.
   export let active = false;
 
+  /** @type {import('svelte').EventDispatcher<{ activate: { key: string } }>} */
   const dispatch = createEventDispatcher();
 
   $: widget = node.widget;

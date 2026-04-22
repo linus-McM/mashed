@@ -17,6 +17,9 @@
   /** @type {import('../../stores/interactiveInput').PendingPrompt[]} */
   export let pendingPrompts = [];
 
+  /** @typedef {import('../../stores/interactiveInput').PendingPrompt} PendingPrompt */
+  /** @typedef {import('./questionSnackbarUtils').SnackbarEntry} SnackbarEntry */
+  /** @type {import('svelte').EventDispatcher<{ respond: { prompt: PendingPrompt }; navigate: { repoPath: string; question?: SnackbarEntry; entry: unknown }; skip: { prompt: PendingPrompt } }>} */
   const dispatch = createEventDispatcher();
 
   let now = Date.now();

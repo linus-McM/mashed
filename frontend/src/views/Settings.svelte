@@ -27,6 +27,7 @@
   import { BrowserOpenURL } from '../../wailsjs/runtime/runtime.js';
   import { RefreshCw, TriangleAlert } from 'lucide-svelte';
 
+  /** @type {import('svelte').EventDispatcher<{ back: void }>} */
   const dispatch = createEventDispatcher();
 
   let vscodiumPath = '';

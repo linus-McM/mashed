@@ -3,9 +3,13 @@
   import { X } from 'lucide-svelte';
   import { ListModels } from '../../../wailsjs/go/main/App.js';
 
+  /** @typedef {import('../../lib/types/wails').BmadAgentConfig} BmadAgentConfig */
+  /** @type {BmadAgentConfig | null} */
   export let agent = null;
+  /** @type {unknown[]} */
   export let processes = [];
 
+  /** @type {import('svelte').EventDispatcher<{ save: BmadAgentConfig; delete: string; close: void }>} */
   const dispatch = createEventDispatcher();
 
   const roles = [
@@ -18,6 +22,7 @@
     { value: 'qa', label: 'QA' },
   ];
 
+  /** @type {import('../../lib/types/wails').ModelInfo[]} */
   let models = [];
   let defaultModelId = '';
 
@@ -37,6 +42,7 @@
   let role = 'developer';
   let model = '';
   let persona = '';
+  /** @type {Record<string, boolean>} */
   let selectedSkills = {};
 
   $: if (agent) {
@@ -80,6 +86,7 @@
     }
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') dispatch('close');
   }

@@ -15,6 +15,7 @@
   import { addSession, makeSession } from '../lib/stores/sessions';
   import SparkLine from '../components/SparkLine.svelte';
 
+  /** @type {import('svelte').EventDispatcher<{ notify: unknown; select: unknown; 'open-workspace': unknown; spawn: void }>} */
   const dispatch = createEventDispatcher();
 
   // uiqa-06: entry animations. Literal ms values mirror --duration-* tokens

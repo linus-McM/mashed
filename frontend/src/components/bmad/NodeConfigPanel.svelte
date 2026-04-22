@@ -9,21 +9,28 @@
     hasDuplicateLabels,
   } from '../../lib/bmad/multiFileEntries';
 
+  /** @typedef {import('../../lib/types/wails').WorkflowNode} WorkflowNode */
+  /** @typedef {import('../../lib/types/wails').GroupedAgents} GroupedAgents */
+  /** @type {WorkflowNode | null} */
   export let node = null;
+  /** @type {GroupedAgents | { bmadAgents: unknown[]; localAgents: unknown[]; globalAgents: unknown[] }} */
   export let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
 
+  /** @type {import('svelte').EventDispatcher<{ update: { nodeId: string; config: Record<string, unknown> }; close: void; 'edit-items': { nodeId: string; items: string[] }; 'open-terminal': string; 'open-output': string }>} */
   const dispatch = createEventDispatcher();
 
   // Resize logic — exported so parent can read current width
   export let panelWidth = 280;
   let resizing = false;
 
+  /** @param {MouseEvent} e */
   function onResizeStart(e) {
     e.preventDefault();
     resizing = true;
     const startX = e.clientX;
     const startWidth = panelWidth;
 
+    /** @param {MouseEvent} e */
     function onMouseMove(e) {
       panelWidth = Math.max(220, Math.min(500, startWidth - (e.clientX - startX)));
     }
@@ -38,6 +45,7 @@
     window.addEventListener('mouseup', onMouseUp);
   }
 
+  /** @type {Array<{ value: string; label: string }>} */
   let models = [{ value: '', label: 'Default (inherit)' }];
 
   onMount(async () => {

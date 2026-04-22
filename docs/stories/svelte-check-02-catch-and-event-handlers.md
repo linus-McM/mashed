@@ -4,7 +4,8 @@
 **Domain:** frontend
 **Estimated Complexity:** S
 **Depends On:** svelte-check-01
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-22
 
 ## Description
 
@@ -168,45 +169,45 @@ Feature: Phase 2 reduction
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Author errorMessage helper (AC: 1)
-  - [ ] Create `frontend/src/lib/errorMessage.ts` with Error / string / JSON fallback
-  - [ ] Create `frontend/src/lib/errorMessage.test.ts` covering Error, string, null, object, circular
+- [x] Task 1: Author errorMessage helper (AC: 1)
+  - [x] Create `frontend/src/lib/errorMessage.ts` with Error / string / JSON fallback
+  - [x] Create `frontend/src/lib/errorMessage.test.ts` covering Error, string, null, object, circular
 
-- [ ] Task 2: Migrate catch blocks (AC: 2)
-  - [ ] List files via `rg "catch \(e\).*\.message" frontend/src --files-with-matches`
-  - [ ] In each, import `errorMessage` and replace `e.message` with `errorMessage(e)`
-  - [ ] Record per-file sveltecheck delta as files are migrated
+- [x] Task 2: Migrate catch blocks (AC: 2)
+  - [x] List files via `rg "catch \(e\).*\.message" frontend/src --files-with-matches`
+  - [x] In each, import `errorMessage` and replace `e.message` with `errorMessage(e)`
+  - [x] Record per-file sveltecheck delta as files are migrated
 
-- [ ] Task 3: Type DOM handlers (AC: 3)
-  - [ ] For every inline arrow in a Svelte template, annotate parameter (`(e: MouseEvent)` / `(e: KeyboardEvent)` etc.)
-  - [ ] Lift non-trivial handlers out to typed named functions in `<script lang="ts">`
-  - [ ] Prefer `SubmitEvent` for form submit, `FocusEvent` for focus/blur, `InputEvent` for input
+- [x] Task 3: Type DOM handlers (AC: 3)
+  - [x] For every inline arrow in a Svelte template, annotate parameter (`(e: MouseEvent)` / `(e: KeyboardEvent)` etc.)
+  - [x] Lift non-trivial handlers out to typed named functions in `<script lang="ts">`
+  - [x] Prefer `SubmitEvent` for form submit, `FocusEvent` for focus/blur, `InputEvent` for input
 
-- [ ] Task 4: Apply dispatcher generics (AC: 4)
-  - [ ] For each `createEventDispatcher()` call, define an event-map generic above the call
-  - [ ] Update all consuming parents to type `CustomEvent` detail to match
-  - [ ] Prefer `void` over `{}` for detail-less events
+- [x] Task 4: Apply dispatcher generics (AC: 4)
+  - [x] For each `createEventDispatcher()` call, define an event-map generic above the call
+  - [x] Update all consuming parents to type `CustomEvent` detail to match
+  - [x] Prefer `void` over `{}` for detail-less events
 
-- [ ] Task 5: Verify reduction (AC: 5)
-  - [ ] Run `just sveltecheck-count` — confirm <= 1210
-  - [ ] Run `vitest run` — 696 tests pass
-  - [ ] Run `vite build` — clean
-  - [ ] Record commit body delta: `sveltecheck-count: <prev> → <cur> (Δ -<n>)`
+- [x] Task 5: Verify reduction (AC: 5)
+  - [x] Run `just sveltecheck-count` — confirm <= 1210
+  - [x] Run `vitest run` — 696 tests pass
+  - [x] Run `vite build` — clean
+  - [x] Record commit body delta: `sveltecheck-count: <prev> → <cur> (Δ -<n>)`
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on `errorMessage.ts` (all four branches — Error, string, object, null)
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `just sveltecheck-count` <= 1210
-- [ ] `just sveltecheck-ratchet` passes
-- [ ] `vitest run` — 696 tests pass
-- [ ] `vite build` clean
-- [ ] `rg "catch \(e\).*e\.message" frontend/src` → zero matches
-- [ ] `/simplify` run on every modified file
-- [ ] Code review: no `any`, no `@ts-ignore`, no `@ts-nocheck`
-- [ ] PR size <= 400 lines (split into up to 3 PRs — R4)
-- [ ] Commit body records: `sveltecheck-count: <prev> → <cur> (Δ -<n>)`
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on `errorMessage.ts` (all four branches — Error, string, object, null)
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `just sveltecheck-count` <= 1210
+- [x] `just sveltecheck-ratchet` passes
+- [x] `vitest run` — 696 tests pass
+- [x] `vite build` clean
+- [x] `rg "catch \(e\).*e\.message" frontend/src` → zero matches
+- [x] `/simplify` run on every modified file
+- [x] Code review: no `any`, no `@ts-ignore`, no `@ts-nocheck`
+- [x] PR size <= 400 lines (split into up to 3 PRs — R4)
+- [x] Commit body records: `sveltecheck-count: <prev> → <cur> (Δ -<n>)`

@@ -5,7 +5,9 @@
   import { FileText, Plus, Minus, X, Sparkles, ChevronDown, FileCode, ExternalLink } from 'lucide-svelte';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
   import { StreamCodeReviewSummary, ListAdviceModes, StreamAdvice, StreamScopedAdvice, SpawnRefactorPlan, ListModels } from '../../wailsjs/go/main/App.js';
+  import { errorMessage } from '../lib/errorMessage';
 
+  /** @type {import('svelte').EventDispatcher<{ close: void; 'open-file': { path: string } }>} */
   const dispatch = createEventDispatcher();
 
   export let repoPath = '';
@@ -203,7 +205,7 @@
       const filePaths = Array.from(selectedFiles);
       planPath = await SpawnRefactorPlan(repoPath, enrichedAdvice, filePaths);
     } catch (e) {
-      planError = e?.message || 'Failed to create plan';
+      planError = errorMessage(e) || 'Failed to create plan';
     }
     planLoading = false;
   }

@@ -5,6 +5,7 @@
   import { currentMonoFont, currentFontSize } from '../lib/stores/font.js';
   import { allThemes, currentThemeId, builtInThemeIds } from '../lib/stores/theme.js';
   import { editorSettings } from '../lib/stores/editorSettings.js';
+  import { errorMessage } from '../lib/errorMessage';
 
   export let filePath = '';
   export let repoPath = '';
@@ -286,7 +287,7 @@
         await createSourceEditor(monaco, lang);
       }
     } catch (e) {
-      error = e?.message || 'Failed to load file';
+      error = errorMessage(e) || 'Failed to load file';
     } finally {
       loading = false;
     }
@@ -297,7 +298,7 @@
     try {
       content = await ReadFile(fullPath);
     } catch (e) {
-      throw new Error(e?.message || 'Failed to read file');
+      throw new Error(errorMessage(e) || 'Failed to read file');
     }
 
     const model = monaco.editor.createModel(content, lang);
@@ -329,7 +330,7 @@
     try {
       modifiedContent = await ReadFile(fullPath);
     } catch (e) {
-      throw new Error(e?.message || 'Failed to read file');
+      throw new Error(errorMessage(e) || 'Failed to read file');
     }
 
     // Get the original (HEAD) content — new files will fail, use empty string
@@ -454,7 +455,7 @@
       // The reactive block ($: if (filePath && repoPath && monacoModule)) will
       // trigger loadFile automatically now that monacoModule is set.
     } catch (e) {
-      error = 'Failed to load editor: ' + (e?.message || String(e));
+      error = 'Failed to load editor: ' + errorMessage(e);
       loading = false;
     }
   });

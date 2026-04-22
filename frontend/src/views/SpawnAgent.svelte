@@ -3,7 +3,9 @@
   import { fade } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { ListRepoChoices, SpawnAgent, ListModels } from '../../wailsjs/go/main/App.js';
+  import { errorMessage } from '../lib/errorMessage';
 
+  /** @type {import('svelte').EventDispatcher<{ spawned: { target: string; repo: unknown; model: string }; cancel: void }>} */
   const dispatch = createEventDispatcher();
 
   // uiqa-06: modal fade entry/exit. prefers-reduced-motion zeroes durations.
@@ -34,7 +36,7 @@
       models = (modelList || []).map(m => ({ value: m.id, label: m.displayName }));
       const defaultModel = modelList?.find(m => m.isDefault);
       model = defaultModel ? defaultModel.id : (models[0]?.value || '');
-    } catch (e) {
+    } catch {
       error = 'Failed to load repos';
     }
   });
@@ -47,7 +49,7 @@
       const target = await SpawnAgent(selectedRepo.path, model);
       dispatch('spawned', { target, repo: selectedRepo, model });
     } catch (e) {
-      error = e?.message || 'Failed to spawn agent';
+      error = errorMessage(e) || 'Failed to spawn agent';
       spawning = false;
     }
   }
@@ -56,6 +58,7 @@
     dispatch('cancel');
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') cancel();
     if (e.key === 'Enter' && selectedRepo) spawn();

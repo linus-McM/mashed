@@ -2,10 +2,13 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { X, Plus, Minus } from 'lucide-svelte';
 
+  /** @type {string[]} */
   export let items = [];
 
+  /** @type {import('svelte').EventDispatcher<{ save: string[]; close: void }>} */
   const dispatch = createEventDispatcher();
 
+  /** @type {string[]} */
   let localItems = [];
 
   onMount(() => {
@@ -16,16 +19,21 @@
     localItems = [...localItems, ''];
     // Focus the new input after render
     setTimeout(() => {
-      const inputs = document.querySelectorAll('.item-input');
+      const inputs = /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll('.item-input'));
       if (inputs.length > 0) inputs[inputs.length - 1].focus();
     }, 0);
   }
 
+  /** @param {number} index */
   function removeItem(index) {
     localItems = localItems.filter((_, i) => i !== index);
     if (localItems.length === 0) localItems = [''];
   }
 
+  /**
+   * @param {number} index
+   * @param {string} value
+   */
   function updateItem(index, value) {
     localItems[index] = value;
     localItems = localItems;
@@ -41,11 +49,16 @@
     dispatch('close');
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') close();
   }
 
-  function handleItemKeydown(e, index) {
+  /**
+   * @param {KeyboardEvent} e
+   * @param {number} _index
+   */
+  function handleItemKeydown(e, _index) {
     if (e.key === 'Enter') {
       e.preventDefault();
       addItem();

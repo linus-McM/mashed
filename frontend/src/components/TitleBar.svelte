@@ -5,6 +5,7 @@
   import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
   import { SetTheme } from '../../wailsjs/go/main/App.js';
 
+  /** @type {import('svelte').EventDispatcher<{ 'open-settings': void; 'open-new-repo': void }>} */
   const dispatch = createEventDispatcher();
 
   let showThemePicker = false;
@@ -13,6 +14,7 @@
     showThemePicker = !showThemePicker;
   }
 
+  /** @param {string} id */
   async function selectTheme(id) {
     applyTheme(id);
     showThemePicker = false;

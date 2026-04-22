@@ -74,6 +74,7 @@
   export let repoBranch = '';
   export let pendingQuestion = null;
 
+  /** @type {import('svelte').EventDispatcher<{ 'question-responded': { nodeId: string | undefined }; back: void }>} */
   const dispatch = createEventDispatcher();
 
   let showQuestionModal = false;

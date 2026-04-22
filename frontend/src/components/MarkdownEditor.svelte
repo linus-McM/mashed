@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { ReadFile, WriteFile } from '../../wailsjs/go/main/App.js';
   import { createDebouncedSave } from './markdownEditorUtils';
+  import { errorMessage } from '../lib/errorMessage';
 
   export let filePath = '';
   export let repoPath = '';
@@ -79,7 +80,7 @@
       crepe.setReadonly(!editable);
     } catch (e) {
       if (gen !== initGeneration) return;
-      error = e?.message || 'Failed to load editor';
+      error = errorMessage(e) || 'Failed to load editor';
     } finally {
       if (gen === initGeneration) loading = false;
     }

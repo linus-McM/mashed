@@ -2,13 +2,16 @@
   import { onMount, createEventDispatcher } from 'svelte';
   import { GitBranch, AlertTriangle, Search } from 'lucide-svelte';
   import { GitListBranches, GitSwitchBranch, RepoStatus } from '../../wailsjs/go/main/App.js';
+  import { errorMessage } from '../lib/errorMessage';
 
+  /** @type {import('svelte').EventDispatcher<{ switched: { branch: string }; cancel: void }>} */
   const dispatch = createEventDispatcher();
 
   export let repoPath = '';
   export let currentBranch = '';
   export let repoColor = '';
 
+  /** @type {Array<{ name: string; current: boolean }>} */
   let branches = [];
   let selectedBranch = '';
   let dirty = false;
@@ -31,7 +34,7 @@
       ]);
       branches = branchList || [];
       dirty = status?.dirty || false;
-    } catch (e) {
+    } catch {
       error = 'Failed to load branches';
     }
   });
@@ -44,7 +47,7 @@
       await GitSwitchBranch(repoPath, selectedBranch, autoCommit);
       dispatch('switched', { branch: selectedBranch });
     } catch (e) {
-      error = e?.message || 'Failed to switch branch';
+      error = errorMessage(e) || 'Failed to switch branch';
       switching = false;
     }
   }
@@ -53,6 +56,7 @@
     dispatch('cancel');
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') cancel();
     if (e.key === 'Enter' && canSwitch && !switching) switchBranch();

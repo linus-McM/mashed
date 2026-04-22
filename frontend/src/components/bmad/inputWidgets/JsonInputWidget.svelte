@@ -1,12 +1,14 @@
 <script>
   import { createEventDispatcher, onMount, tick } from 'svelte';
   import { Send } from 'lucide-svelte';
+  import { errorMessage } from '../../../lib/errorMessage';
 
   /** @type {import('../../../stores/interactiveInput').PendingPrompt} */
   export let prompt;
   export let disabled = false;
   export let validationError = '';
 
+  /** @type {import('svelte').EventDispatcher<{ submit: { value: string } }>} */
   const dispatch = createEventDispatcher();
 
   let value = '';
@@ -28,7 +30,7 @@
       parseError = '';
       return true;
     } catch (e) {
-      parseError = e instanceof Error ? e.message : String(e);
+      parseError = errorMessage(e);
       return false;
     }
   }

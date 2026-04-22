@@ -7,6 +7,7 @@
   /** @type {import('../../../../wailsjs/go/models').bmad.MashedAssetInfo} */
   export let asset;
 
+  /** @type {import('svelte').EventDispatcher<{ close: void; save: { path: string } }>} */
   const dispatch = createEventDispatcher();
 
   // ── Form state (shallow copy of asset fields) ──

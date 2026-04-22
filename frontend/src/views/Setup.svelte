@@ -2,7 +2,9 @@
   import { createEventDispatcher } from 'svelte';
   import { Hexagon } from 'lucide-svelte';
   import { PickDirectory, SetDevDir } from '../../wailsjs/go/main/App.js';
+  import { errorMessage } from '../lib/errorMessage';
 
+  /** @type {import('svelte').EventDispatcher<{ ready: void }>} */
   const dispatch = createEventDispatcher();
 
   let selectedDir = '';
@@ -16,7 +18,7 @@
       if (dir) {
         selectedDir = dir;
       }
-    } catch (e) {
+    } catch {
       error = 'Failed to open directory picker';
     }
   }
@@ -29,11 +31,12 @@
       await SetDevDir(selectedDir);
       dispatch('ready');
     } catch (e) {
-      error = e?.message || 'Failed to set directory';
+      error = errorMessage(e) || 'Failed to set directory';
       loading = false;
     }
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Enter' && selectedDir) confirm();
   }

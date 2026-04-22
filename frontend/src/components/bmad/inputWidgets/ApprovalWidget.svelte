@@ -6,6 +6,7 @@
   export let prompt;
   export let disabled = false;
 
+  /** @type {import('svelte').EventDispatcher<{ submit: { value: 'yes' | 'no' } }>} */
   const dispatch = createEventDispatcher();
 
   /** @type {HTMLButtonElement | null} */

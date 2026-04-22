@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { ReadFile, ReadFileDiff, WriteFile, ExplainDiffHunk, IsExplainAvailable } from '../../wailsjs/go/main/App.js';
+  import { errorMessage } from '../lib/errorMessage';
 
   export let filePath = '';
   export let repoPath = '';
@@ -51,7 +52,7 @@
       }
       editContent = content;
     } catch (e) {
-      error = e?.message || 'Failed to load file';
+      error = errorMessage(e) || 'Failed to load file';
     } finally {
       loading = false;
     }

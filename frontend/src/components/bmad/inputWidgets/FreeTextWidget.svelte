@@ -7,6 +7,7 @@
   export let disabled = false;
   export let validationError = '';
 
+  /** @type {import('svelte').EventDispatcher<{ submit: { value: string } }>} */
   const dispatch = createEventDispatcher();
 
   let value = '';

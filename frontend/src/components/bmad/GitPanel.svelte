@@ -12,6 +12,7 @@
   export let repoPath = '';
   export let repoBranch = '';
 
+  /** @type {import('svelte').EventDispatcher<{ 'branch-changed': { branch: string } }>} */
   const dispatch = createEventDispatcher();
 
   // Repo status
