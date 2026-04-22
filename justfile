@@ -64,6 +64,57 @@ test:
 eval:
     go test -tags=ollama_eval -run TestEval_FullCorpus -v ./internal/uiadapter/...
 
+# Run svelte-check across the frontend. Catches implicit-any, missing props,
+# untyped catch bindings, and Svelte-template type errors that Vite's build
+# does not surface. Errors only — warnings are suppressed.
+sveltecheck:
+    cd frontend && npx svelte-check --threshold error --fail-on-warnings=false
+
+# Count svelte-check errors (headline number for sprint planning).
+sveltecheck-count:
+    cd frontend && npx svelte-check --threshold error --fail-on-warnings=false 2>&1 | grep -cE "^[0-9]+ ERROR" || true
+
+# Group svelte-check errors by file, sorted by volume. Use to pick the next
+# migration target.
+sveltecheck-by-file:
+    cd frontend && npx svelte-check --threshold error --fail-on-warnings=false 2>&1 | grep -oE 'ERROR "[^"]+"' | sort | uniq -c | sort -rn
+
+# Show svelte-check errors for a single file. Usage: just sveltecheck-file src/views/NotificationFeed.svelte
+sveltecheck-file FILE:
+    cd frontend && npx svelte-check --threshold error --fail-on-warnings=false 2>&1 | grep -F {{FILE}} || true
+
+# Ratchet: fail if svelte-check count rose above the committed baseline.
+# Baseline lives in docs/plans/svelte-check-baseline.md (line matching
+# ^baseline: <int>$). Honours TEST_COUNT (skip live count) and BASELINE_FILE
+# (override path) env vars — see frontend/scripts/test-sveltecheck-ratchet.sh
+# for the contract. Exit codes:
+#   0  current <= baseline (OK)
+#   1  current >  baseline (regression; stderr "count rose above baseline")
+#   2  baseline file missing or malformed (stderr "baseline file missing")
+sveltecheck-ratchet:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    baseline_file="${BASELINE_FILE:-docs/plans/svelte-check-baseline.md}"
+    if [[ ! -f "$baseline_file" ]]; then
+      echo "baseline file missing: $baseline_file" >&2
+      exit 2
+    fi
+    baseline=$(grep -E '^baseline:[[:space:]]*[0-9]+[[:space:]]*$' "$baseline_file" | head -n1 | awk '{print $2}' | tr -d '[:space:]')
+    if [[ -z "${baseline:-}" ]]; then
+      echo "baseline file missing valid 'baseline: <int>' line: $baseline_file" >&2
+      exit 2
+    fi
+    if [[ -n "${TEST_COUNT:-}" ]]; then
+      current="$TEST_COUNT"
+    else
+      current=$(just sveltecheck-count)
+    fi
+    if (( current > baseline )); then
+      echo "svelte-check count rose above baseline ($current > $baseline). Fix types — do NOT add @ts-ignore / @ts-nocheck / any. Run 'just sveltecheck-by-file' to locate errors." >&2
+      exit 1
+    fi
+    echo "svelte-check ratchet OK: $current <= $baseline"
+
 
 # List all tmux sessions related to this repo, grouped by parent/child
 sessions:
@@ -138,17 +189,20 @@ repomixer:
     # repomix --remote https://github.com/bmad-code-org/BMAD-METHOD  --compress -o ./docs/repomixer/bmad-method/bmad-method.xml --style xml
     repomix --remote https://github.com/manaflow-ai/cmux  --compress -o ./docs/repomixer/cmux/cmux.xml --style xml   
 
-# Run Go tests then frontend tests
+# Run Go tests then frontend tests. svelte-check (zero-error gate) runs
+# before vitest — template-level type errors fail the suite, period.
 test-all: test
+    cd frontend && npm run check
     cd frontend && npx vitest run
 
 # Run per-package Go coverage threshold enforcement
 test-cover:
     bash scripts/check-coverage.sh
 
-# Run Go static analysis
+# Run Go static analysis + Svelte template typecheck (zero-error gate).
 lint:
     go vet ./...
+    cd frontend && npm run check
 
 # Install lefthook git hooks
 hooks-install:

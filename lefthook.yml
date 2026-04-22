@@ -29,6 +29,16 @@ pre-commit:
       run: npx vite build --mode development 2>&1 | tail -5
       fail_text: "frontend build failed"
 
+    # Ratcheted svelte-check gate. During the 1520→0 migration the absolute
+    # count is allowed to sit at or below the committed baseline
+    # (docs/plans/svelte-check-baseline.md); any commit that raises it is
+    # rejected. Flips to strict zero-error in the svelte-check-07 story.
+    # If this fails, fix types — do NOT add // @ts-ignore / // @ts-nocheck / any.
+    frontend-svelte-check:
+      glob: "frontend/**/*.{svelte,ts,js}"
+      run: just sveltecheck-ratchet
+      fail_text: "svelte-check count rose above baseline. Fix types — do NOT add @ts-ignore / @ts-nocheck / any. Run `just sveltecheck-by-file` to locate errors."
+
     # desloppify:
     #   Temporarily disabled during the breadcrumbs sprint: the queue carries
     #   ~20 pre-existing items unrelated to the sprint scope, which blocks
@@ -57,5 +67,5 @@ pre-push:
 
     frontend-test:
       root: "frontend/"
-      run: npx vitest run
-      fail_text: "frontend tests failed"
+      run: npm test
+      fail_text: "frontend tests failed (includes svelte-check zero-error gate)"

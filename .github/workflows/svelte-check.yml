@@ -1,0 +1,44 @@
+name: svelte-check
+
+# Ratcheted svelte-check gate. During the 1520 -> 0 migration, this workflow
+# is non-blocking: failures are reported but do not fail the PR. The
+# svelte-check-07 story flips `continue-on-error` to `false` once the count
+# reaches zero.
+
+on:
+  pull_request:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  svelte-check-ratchet:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Setup Node
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af  # v4.1.0
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install just
+        uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff  # v3.0.0
+        with:
+          just-version: '1.36.0'
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run svelte-check ratchet
+        run: just sveltecheck-ratchet
