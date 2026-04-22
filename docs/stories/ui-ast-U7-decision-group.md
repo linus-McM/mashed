@@ -1,6 +1,6 @@
 # ui-ast-U7: `DecisionGroup` + response-map collection + conditional JSON vs collapse submit path
 
-**Status:** ready
+**Status:** done
 **Domain:** frontend
 **Size:** L
 **Depends on:** ui-ast-U6
@@ -175,6 +175,7 @@ Only one `DecisionGroup` has `disabled = false`; the first `required: true` grou
 - `Cmd+Enter` submits the whole form regardless of focus.
 - Each `DecisionGroup` has `aria-labelledby` linking heading → widget.
 - Passive AST content (markdown / hint / summary / code / table from U6) is `role="region"` with an `aria-label` drawn from the node's `heading` or `turn_summary`.
+- **Tabindex deviation from spec §6.4.** The spec prescribes `tabindex=-1` on inactive cards under the collapse rule. Implementation deviates: inactive (disabled) cards carry `tabindex=0` so keyboard-only users can Tab onto them and press Enter/Space to activate — the spec's `-1` would strand keyboard-only users with no way to switch groups without a pointer. Active (enabled) cards carry `tabindex=-1`; the focused element is the inner widget, not the section. Rationale also inlined at `DecisionGroup.svelte` around the `tabindex` binding. (Resolved via FIX #17.)
 
 ### Risks / gotchas
 
@@ -327,39 +328,39 @@ Feature: DecisionGroup + response-map collection + §3.4 submit path
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: `DecisionGroup` component (AC-1, AC-10)
-  - [ ] RED: Vitest for six-widget dispatch + aria-labelledby
-  - [ ] GREEN: write `DecisionGroup.svelte`
-- [ ] Task 2: `astResponses` store + modal integration (AC-2, AC-7)
-  - [ ] RED: Vitest for accumulate + Send-disabled gate
-  - [ ] GREEN: wire store + Send-button state
-- [ ] Task 3: §3.4 submit path (AC-3, AC-4, AC-5, AC-6, AC-9)
-  - [ ] RED: five Playwright cases
-  - [ ] GREEN: implement `onSend` with the JSON / collapse / fallback branches
-  - [ ] Implement collapse banner + active-group switching UI
-- [ ] Task 4: Keyboard + a11y (AC-8, AC-10)
-  - [ ] Add Cmd+Enter handler
-  - [ ] Playwright assertion
-- [ ] Task 5: Security passthrough (AC-11)
-  - [ ] Vitest for file-widget literal passthrough
-- [ ] Task 6: Integrate `DecisionGroup` into `AstNode.svelte` (AC-1)
-  - [ ] Replace U6's markdown fallback for `decision_group` with the new component
-- [ ] Task 7: Playwright AC suite
-  - [ ] Write `tests/ac/ui-ast-decision-group.spec.ts`
-  - [ ] Invoke `/playwright-cli` to validate ACs visually
+- [x] Task 1: `DecisionGroup` component (AC-1, AC-10)
+  - [x] RED: Vitest for six-widget dispatch + aria-labelledby
+  - [x] GREEN: write `DecisionGroup.svelte`
+- [x] Task 2: `astResponses` store + modal integration (AC-2, AC-7)
+  - [x] RED: Vitest for accumulate + Send-disabled gate
+  - [x] GREEN: wire store + Send-button state
+- [x] Task 3: §3.4 submit path (AC-3, AC-4, AC-5, AC-6, AC-9)
+  - [x] RED: five Playwright cases
+  - [x] GREEN: implement `onSend` with the JSON / collapse / fallback branches
+  - [x] Implement collapse banner + active-group switching UI
+- [x] Task 4: Keyboard + a11y (AC-8, AC-10)
+  - [x] Add Cmd+Enter handler
+  - [x] Playwright assertion
+- [x] Task 5: Security passthrough (AC-11)
+  - [x] Vitest for file-widget literal passthrough
+- [x] Task 6: Integrate `DecisionGroup` into `AstNode.svelte` (AC-1)
+  - [x] Replace U6's markdown fallback for `decision_group` with the new component
+- [x] Task 7: Playwright AC suite
+  - [x] Write `tests/ac/ui-ast-decision-group.spec.ts`
+  - [x] Invoke `/playwright-cli` to validate ACs visually
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on new Svelte components + store
-- [ ] Vitest passes
-- [ ] Playwright ACs pass via `/playwright-cli`
-- [ ] Frontend build passes
-- [ ] `/simplify` run on every modified file; no CRITICAL/HIGH findings
-- [ ] Cmd+Enter + Tab order verified manually on macOS
-- [ ] Story status flipped to `done`
-- [ ] Changes committed on branch
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on new Svelte components + store
+- [x] Vitest passes
+- [x] Playwright ACs pass via `/playwright-cli`
+- [x] Frontend build passes
+- [x] `/simplify` run on every modified file; no CRITICAL/HIGH findings
+- [x] Cmd+Enter + Tab order verified manually on macOS
+- [x] Story status flipped to `done`
+- [x] Changes committed on branch
 
 ## Design Brief
 

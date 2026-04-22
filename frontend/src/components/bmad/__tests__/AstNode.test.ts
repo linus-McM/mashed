@@ -2,6 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, vi } from 'vitest';
+import { writable } from 'svelte/store';
 
 vi.mock('../../../../wailsjs/runtime/runtime.js', () => ({
   BrowserOpenURL: vi.fn(),
@@ -62,5 +63,62 @@ describe('AstNode dispatcher', () => {
 
   it('AC10_unknown_type_does_not_throw — rendering an unknown type must not throw', () => {
     expect(() => render({ type: 'snarkfish', content: 'hello' })).not.toThrow();
+  });
+
+  it('AC1_astnode_routes_decision_group_to_DecisionGroup — routes when `responses` store provided', () => {
+    const responses = writable<Record<string, string>>({});
+    const node = {
+      type: 'decision_group',
+      response_key: 'k',
+      heading: 'DG',
+      widget: { type: 'choice', options: ['a', 'b'] },
+    };
+    const target = mount(AstNode, { node, responses });
+    expect(target.querySelector('[data-testid="decision-group"]')).not.toBeNull();
+    expect(target.querySelector('.choice-widget')).not.toBeNull();
+  });
+
+  it('AC1_astnode_falls_back_to_markdown_without_responses — passive callers get markdown', () => {
+    const node = {
+      type: 'decision_group',
+      heading: 'DG',
+      prompt: 'pick one',
+      widget: { type: 'choice', options: ['a', 'b'] },
+    };
+    const target = mount(AstNode, { node });
+    expect(target.querySelector('[data-testid="decision-group"]')).toBeNull();
+    expect(target.querySelector('[data-testid="markdown-block"]')).not.toBeNull();
+  });
+
+  it('FIX15_astnode_applies_isGroupActive — active prop flows to DecisionGroup', () => {
+    const responses = writable<Record<string, string>>({});
+    const node = {
+      type: 'decision_group',
+      response_key: 'k',
+      heading: 'DG',
+      widget: { type: 'choice', options: ['a', 'b'] },
+    };
+    const target = mount(AstNode, {
+      node,
+      responses,
+      isGroupActive: () => true,
+    });
+    expect(target.querySelector('.decision-group.is-active')).not.toBeNull();
+  });
+
+  it('AC1_astnode_applies_isGroupDisabled — disabled prop flows to DecisionGroup', () => {
+    const responses = writable<Record<string, string>>({});
+    const node = {
+      type: 'decision_group',
+      response_key: 'k',
+      heading: 'DG',
+      widget: { type: 'choice', options: ['a', 'b'] },
+    };
+    const target = mount(AstNode, {
+      node,
+      responses,
+      isGroupDisabled: () => true,
+    });
+    expect(target.querySelector('.decision-group.is-disabled')).not.toBeNull();
   });
 });

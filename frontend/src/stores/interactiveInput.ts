@@ -152,18 +152,20 @@ export function resetInteractiveInput(): void {
 // between queued prompts without a backing list mutation (§6.3).
 export const pendingPrompt = writable<PendingPrompt | null>(null);
 
+export function parseStructuredAst(structured: string | undefined | null): UIAST | null {
+  if (!structured) return null;
+  try {
+    const ast = JSON.parse(structured) as UIAST;
+    if (ast?.version !== '1' || !Array.isArray(ast.nodes)) return null;
+    return ast;
+  } catch {
+    return null;
+  }
+}
+
 export const pendingAst = derived<typeof pendingPrompt, UIAST | null>(
   pendingPrompt,
-  ($p): UIAST | null => {
-    if (!$p?.structured) return null;
-    try {
-      const ast = JSON.parse($p.structured) as UIAST;
-      if (ast?.version !== '1' || !Array.isArray(ast.nodes)) return null;
-      return ast;
-    } catch {
-      return null;
-    }
-  },
+  ($p): UIAST | null => parseStructuredAst($p?.structured),
 );
 
 // Dev-only test seam — Playwright / Claude-in-Chrome seed pendingPrompt to

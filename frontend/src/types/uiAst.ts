@@ -19,6 +19,25 @@ export type UINodeType = KnownUINodeType | (string & {});
 
 export type HintTone = 'info' | 'warn' | 'error' | 'success';
 
+export type KnownWidgetType = 'choice' | 'multi' | 'approval' | 'free' | 'file' | 'json';
+export type WidgetType = KnownWidgetType | (string & {});
+
+export interface WidgetNode {
+  type: WidgetType;
+  options?: string[];
+  default?: string;
+  min?: number;
+  max?: number;
+  yes_label?: string;
+  no_label?: string;
+  placeholder?: string;
+  maxLength?: number;
+  multiline?: boolean;
+  accept?: string[];
+  repoRootRelative?: boolean;
+  schema?: unknown;
+}
+
 export interface UINode {
   type: UINodeType;
   content?: string;
@@ -30,6 +49,10 @@ export interface UINode {
   columns?: string[];
   rows?: string[][];
   prompt?: string;
+  response_key?: string;
+  widget?: WidgetNode;
+  required?: boolean;
+  help?: string;
 }
 
 export interface UIAST {
