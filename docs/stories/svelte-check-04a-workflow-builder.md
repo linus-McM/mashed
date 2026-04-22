@@ -4,7 +4,8 @@
 **Domain:** frontend
 **Estimated Complexity:** L
 **Depends On:** svelte-check-03
-**Status:** ready
+**Status:** done
+**Landed:** 13276ce (2026-04-22)
 
 ## Description
 
