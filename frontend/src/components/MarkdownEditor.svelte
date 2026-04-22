@@ -4,13 +4,24 @@
   import { createDebouncedSave } from './markdownEditorUtils';
   import { errorMessage } from '../lib/errorMessage';
 
+  /** @typedef {import('@milkdown/crepe').Crepe} Crepe */
+  /** @typedef {typeof import('@milkdown/crepe')} CrepeModuleType */
+  /** @typedef {import('@milkdown/plugin-listener').ListenerManager} ListenerManager */
+
+  /** @type {string} */
   export let filePath = '';
+  /** @type {string} */
   export let repoPath = '';
+  /** @type {boolean} */
   export let editable = false;
 
-  let container;
+  /** @type {HTMLDivElement | null} */
+  let container = null;
+  /** @type {Crepe | null} */
   let crepe = null;
+  /** @type {'idle' | 'modified' | 'saving' | 'saved' | 'error'} */
   let saveStatus = 'idle';
+  /** @type {ReturnType<typeof setTimeout> | null} */
   let statusTimer = null;
   let loading = true;
   let error = '';
@@ -18,8 +29,10 @@
   $: fullPath = filePath.startsWith('/') ? filePath : repoPath + '/' + filePath;
 
   // Module-level cache for lazy import
+  /** @type {CrepeModuleType | null} */
   let CrepeModule = null;
 
+  /** @returns {Promise<CrepeModuleType>} */
   async function loadCrepeModule() {
     if (CrepeModule) return CrepeModule;
     const [mod] = await Promise.all([
@@ -66,7 +79,7 @@
         defaultValue: markdown,
       });
 
-      crepe.on((api) => {
+      crepe.on((/** @type {ListenerManager} */ api) => {
         api.markdownUpdated((_ctx, md, prevMd) => {
           if (md !== prevMd && editable) {
             saveStatus = 'modified';
@@ -94,6 +107,7 @@
     }
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
       e.preventDefault();
@@ -123,6 +137,7 @@
   }
 
   // Toggle readonly when editable changes
+  /** @type {boolean | null} */
   let lastReadonly = null;
   $: if (crepe && !loading) {
     const ro = !editable;

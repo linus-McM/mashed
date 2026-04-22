@@ -7,28 +7,53 @@
   import { editorSettings } from '../lib/stores/editorSettings.js';
   import { errorMessage } from '../lib/errorMessage';
 
+  /** @typedef {typeof import('monaco-editor/esm/vs/editor/editor.api')} MonacoModule */
+  /** @typedef {import('monaco-editor').editor.IStandaloneCodeEditor} IStandaloneCodeEditor */
+  /** @typedef {import('monaco-editor').editor.IStandaloneDiffEditor} IStandaloneDiffEditor */
+  /** @typedef {import('monaco-editor').editor.IEditorMouseEvent} IEditorMouseEvent */
+  /** @typedef {import('monaco-editor').editor.IStandaloneEditorConstructionOptions} IStandaloneEditorConstructionOptions */
+  /** @typedef {import('monaco-editor').editor.IEditorOptions} IEditorOptions */
+  /** @typedef {import('monaco-editor').IDisposable} IDisposable */
+  /** @typedef {'source' | 'diff'} EditorMode */
+  /** @typedef {'' | 'saving' | 'saved' | 'error'} SaveStatus */
+
+  /** @type {string} */
   export let filePath = '';
+  /** @type {string} */
   export let repoPath = '';
+  /** @type {EditorMode} */
   export let mode = 'source'; // 'source' or 'diff'
+  /** @type {boolean} */
   export let editable = false;
 
-  let container;
+  /** @type {HTMLDivElement | null} */
+  let container = null;
+  /** @type {IStandaloneCodeEditor | IStandaloneDiffEditor | null} */
   let editor = null;
+  /** @type {ResizeObserver | null} */
   let resizeObserver = null;
+  /** @type {ReturnType<typeof setTimeout> | null} */
   let saveTimer = null;
+  /** @type {ReturnType<typeof setTimeout> | null} */
   let statusTimer = null;
+  /** @type {IDisposable[]} */
   let hoverDisposables = [];
-  let saveStatus = ''; // '', 'saving', 'saved', 'error'
+  /** @type {SaveStatus} */
+  let saveStatus = '';
   let saving = false;
   let loading = true;
   let error = '';
+  /** @type {MonacoModule | null} */
   let monacoModule = null;
   let themeRegistered = false;
+  /** @type {Set<string>} */
   let registeredThemeIds = new Set();
 
   // Hover-to-explain state
   let explainAvailable = false;
+  /** @type {ReturnType<typeof setTimeout> | null} */
   let hoverTimer = null;
+  /** @type {Map<string, string>} */
   let explainCache = new Map();
   let tooltipVisible = false;
   let tooltipX = 0;
@@ -45,12 +70,14 @@
   }
 
   // Reactive block: update readOnly when editable changes
-  $: if (editor && mode === 'source' && editor.updateOptions) {
-    editor.updateOptions({ readOnly: !editable });
+  $: if (editor && mode === 'source') {
+    /** @type {IStandaloneCodeEditor} */ (editor).updateOptions({ readOnly: !editable });
   }
 
+  /** @param {string} path */
   function getLanguage(path) {
-    const ext = path.split('.').pop()?.toLowerCase();
+    const ext = path.split('.').pop()?.toLowerCase() ?? '';
+    /** @type {Record<string, string>} */
     const map = {
       go: 'go', js: 'javascript', ts: 'typescript', tsx: 'typescript', jsx: 'javascript',
       svelte: 'html', css: 'css', html: 'html', json: 'json', md: 'markdown',
@@ -60,8 +87,16 @@
     return map[ext] || 'plaintext';
   }
 
+  /**
+   * Settings come from the Go backend as loose strings (`lineNumbers: string`
+   * etc), but monaco's option types are narrower string unions. Cast via
+   * IEditorOptions so svelte-check accepts the values — runtime is unchanged
+   * because invalid strings are ignored by monaco.updateOptions.
+   * @param {import('../lib/types/wails').EditorSettings} s
+   * @returns {IEditorOptions}
+   */
   function mapSettingsToMonaco(s) {
-    return {
+    return /** @type {IEditorOptions} */ ({
       minimap: { enabled: s.minimapEnabled },
       scrollBeyondLastLine: s.scrollBeyondLastLine,
       renderLineHighlight: s.renderLineHighlight,
@@ -75,7 +110,7 @@
       bracketPairColorization: { enabled: s.bracketPairColorization },
       fontLigatures: s.fontLigatures,
       smoothScrolling: s.smoothScrolling,
-    };
+    });
   }
 
   function getEditorOptions() {
@@ -106,6 +141,11 @@
     }
   }
 
+  /**
+   * @param {IStandaloneDiffEditor} diffEditor
+   * @param {number} lineNumber
+   * @returns {{ key: string; text: string } | null}
+   */
   function getHunkForLine(diffEditor, lineNumber) {
     const changes = diffEditor.getLineChanges();
     if (!changes) return null;
@@ -122,6 +162,7 @@
       if (modEnd > 0 && lineNumber >= modStart && lineNumber <= modEnd) {
         const origModel = diffEditor.getOriginalEditor().getModel();
         const modModel = diffEditor.getModifiedEditor().getModel();
+        if (!origModel || !modModel) return null;
 
         let hunkText = '';
         // Add removed lines (from original)
@@ -144,6 +185,10 @@
     return null;
   }
 
+  /**
+   * @param {IStandaloneDiffEditor} diffEditor
+   * @param {IEditorMouseEvent} e
+   */
   function handleDiffLineHover(diffEditor, e) {
     if (!explainAvailable) return;
     if (!e.target?.position) return;
@@ -160,7 +205,8 @@
     }
 
     // If already showing tooltip for same hunk, do nothing
-    if (tooltipVisible && explainCache.has(hunk.key) && tooltipText === explainCache.get(hunk.key)) {
+    const cachedHunk = explainCache.get(hunk.key);
+    if (tooltipVisible && cachedHunk !== undefined && tooltipText === cachedHunk) {
       return;
     }
 
@@ -179,8 +225,9 @@
       tooltipY = rect.top + pos.top;
       tooltipVisible = true;
 
-      if (explainCache.has(hunk.key)) {
-        tooltipText = explainCache.get(hunk.key);
+      const cached = explainCache.get(hunk.key);
+      if (cached !== undefined) {
+        tooltipText = cached;
         tooltipLoading = false;
         tooltipError = '';
         return;
@@ -195,13 +242,14 @@
         explainCache.set(hunk.key, explanation);
         tooltipText = explanation;
       } catch (err) {
-        tooltipError = typeof err === 'string' ? err : (err?.message || 'Failed to explain');
+        tooltipError = errorMessage(err) || 'Failed to explain';
       } finally {
         tooltipLoading = false;
       }
     }, 400);
   }
 
+  /** @param {IStandaloneDiffEditor} diffEditor */
   function setupExplainHover(diffEditor) {
     const modEditor = diffEditor.getModifiedEditor();
 
@@ -236,13 +284,13 @@
 
     if (editor) {
       // Dispose models to prevent memory leaks
-      if (mode === 'diff' && editor.getModel) {
-        const diffModel = editor.getModel();
+      if (mode === 'diff') {
+        const diffModel = /** @type {IStandaloneDiffEditor} */ (editor).getModel();
         if (diffModel?.original) diffModel.original.dispose();
         if (diffModel?.modified) diffModel.modified.dispose();
-      } else if (editor.getModel) {
-        const model = editor.getModel();
-        if (model?.dispose) model.dispose();
+      } else {
+        const model = /** @type {IStandaloneCodeEditor} */ (editor).getModel();
+        if (model) model.dispose();
       }
       editor.dispose();
       editor = null;
@@ -263,6 +311,11 @@
     }
   }
 
+  /**
+   * @param {string} _fp
+   * @param {string} _rp
+   * @param {EditorMode} currentMode
+   */
   async function loadFile(_fp, _rp, currentMode) {
     if (!filePath || !repoPath || !monacoModule || !container) return;
 
@@ -293,7 +346,12 @@
     }
   }
 
+  /**
+   * @param {MonacoModule} monaco
+   * @param {string} lang
+   */
   async function createSourceEditor(monaco, lang) {
+    if (!container) return;
     let content;
     try {
       content = await ReadFile(fullPath);
@@ -303,18 +361,19 @@
 
     const model = monaco.editor.createModel(content, lang);
 
-    editor = monaco.editor.create(container, {
+    const srcEditor = monaco.editor.create(container, {
       ...getEditorOptions(),
       model,
     });
+    editor = srcEditor;
 
     // Auto-save on content change (debounced)
-    editor.onDidChangeModelContent(() => {
+    srcEditor.onDidChangeModelContent(() => {
       scheduleSave();
     });
 
     // Cmd/Ctrl+S
-    editor.addCommand(
+    srcEditor.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
       () => doSave()
     );
@@ -322,7 +381,12 @@
     setupResizeObserver();
   }
 
+  /**
+   * @param {MonacoModule} monaco
+   * @param {string} lang
+   */
   async function createDiffEditor(monaco, lang) {
+    if (!container) return;
     let originalContent = '';
     let modifiedContent = '';
 
@@ -343,21 +407,22 @@
     const originalModel = monaco.editor.createModel(originalContent, lang);
     const modifiedModel = monaco.editor.createModel(modifiedContent, lang);
 
-    editor = monaco.editor.createDiffEditor(container, {
+    const diffEditor = monaco.editor.createDiffEditor(container, {
       ...getEditorOptions(),
       readOnly: true, // diff mode is always read-only
       renderSideBySide: true,
       enableSplitViewResizing: true,
     });
+    editor = diffEditor;
 
-    editor.setModel({
+    diffEditor.setModel({
       original: originalModel,
       modified: modifiedModel,
     });
 
     // Wire up hover-to-explain on the diff editor
     if (explainAvailable) {
-      setupExplainHover(editor);
+      setupExplainHover(diffEditor);
     }
 
     setupResizeObserver();
@@ -371,13 +436,13 @@
 
   async function doSave() {
     if (!editable || saving || mode === 'diff') return;
-    if (!editor || !editor.getValue) return;
+    if (!editor) return;
 
     saving = true;
     saveStatus = 'saving';
 
     try {
-      const content = editor.getValue();
+      const content = /** @type {IStandaloneCodeEditor} */ (editor).getValue();
       await WriteFile(fullPath, content);
       saveStatus = 'saved';
       if (statusTimer) clearTimeout(statusTimer);
@@ -390,6 +455,7 @@
     }
   }
 
+  /** @param {EditorMode} newMode */
   function switchMode(newMode) {
     if (newMode === mode) return;
     mode = newMode;
@@ -473,7 +539,8 @@
 
   // Live theme switching — register imported themes on demand, then activate
   $: if (monacoModule && $currentThemeId) {
-    const theme = $allThemes[$currentThemeId];
+    const themes = /** @type {Record<string, { monaco?: import('monaco-editor').editor.IStandaloneThemeData } | undefined>} */ ($allThemes);
+    const theme = themes[$currentThemeId];
     const monacoId = toMonacoId($currentThemeId);
     if (theme && theme.monaco && !registeredThemeIds.has($currentThemeId)) {
       try {

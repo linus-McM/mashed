@@ -3,9 +3,18 @@
   import { ReadFile, ReadFileDiff, WriteFile, ExplainDiffHunk, IsExplainAvailable } from '../../wailsjs/go/main/App.js';
   import { errorMessage } from '../lib/errorMessage';
 
+  /** @typedef {'source' | 'diff'} EditorMode */
+  /** @typedef {'' | 'saving' | 'saved' | 'error'} SaveStatus */
+  /** @typedef {'' | 'added' | 'removed' | 'hunk' | 'meta'} DiffLineKind */
+  /** @typedef {{ startLine: number; endLine: number; text: string }} DiffHunk */
+
+  /** @type {string} */
   export let filePath = '';
+  /** @type {string} */
   export let repoPath = '';
+  /** @type {EditorMode} */
   export let mode = 'source'; // 'source' or 'diff'
+  /** @type {boolean} */
   export let editable = false;
 
   let content = '';
@@ -13,8 +22,11 @@
   let loading = true;
   let error = '';
   let saving = false;
-  let saveStatus = ''; // '', 'saving', 'saved'
+  /** @type {SaveStatus} */
+  let saveStatus = '';
+  /** @type {ReturnType<typeof setTimeout> | null} */
   let saveTimer = null;
+  /** @type {ReturnType<typeof setTimeout> | null} */
   let statusTimer = null;
   let isEditing = false;
   let tooltipVisible = false;
@@ -23,13 +35,20 @@
   let tooltipText = '';
   let tooltipLoading = false;
   let tooltipError = '';
+  /** @type {ReturnType<typeof setTimeout> | null} */
   let hoverTimer = null;
   let explainAvailable = false;
+  /** @type {Map<string, string>} */
   let explainCache = new Map();
 
   $: if (filePath && repoPath) loadFile(filePath, repoPath, mode);
   $: fullPath = filePath.startsWith('/') ? filePath : repoPath + '/' + filePath;
 
+  /**
+   * @param {string} fp
+   * @param {string} rp
+   * @param {EditorMode} m
+   */
   async function loadFile(fp, rp, m) {
     dismissTooltip();
     explainCache = new Map();
@@ -64,8 +83,9 @@
     editContent = content;
   }
 
+  /** @param {Event & { currentTarget: HTMLTextAreaElement }} e */
   function handleInput(e) {
-    editContent = e.target.value;
+    editContent = e.currentTarget.value;
     scheduleSave();
   }
 
@@ -93,11 +113,12 @@
     }
   }
 
+  /** @param {KeyboardEvent & { currentTarget: HTMLTextAreaElement }} e */
   function handleKeydown(e) {
     // Handle Tab key for indentation
     if (e.key === 'Tab') {
       e.preventDefault();
-      const ta = e.target;
+      const ta = e.currentTarget;
       const start = ta.selectionStart;
       const end = ta.selectionEnd;
       editContent = editContent.substring(0, start) + '\t' + editContent.substring(end);
@@ -115,8 +136,10 @@
     }
   }
 
+  /** @param {string} path */
   function getLanguage(path) {
-    const ext = path.split('.').pop()?.toLowerCase();
+    const ext = path.split('.').pop()?.toLowerCase() ?? '';
+    /** @type {Record<string, string>} */
     const map = {
       go: 'go', js: 'javascript', ts: 'typescript', tsx: 'tsx', jsx: 'jsx',
       svelte: 'svelte', css: 'css', html: 'html', json: 'json', md: 'markdown',
@@ -126,6 +149,10 @@
     return map[ext] || 'text';
   }
 
+  /**
+   * @param {string} line
+   * @returns {DiffLineKind}
+   */
   function isDiffLine(line) {
     if (line.startsWith('+') && !line.startsWith('+++')) return 'added';
     if (line.startsWith('-') && !line.startsWith('---')) return 'removed';
@@ -136,9 +163,15 @@
 
   $: hunks = (mode === 'diff' && content.startsWith('diff ')) ? parseHunks(content) : [];
 
+  /**
+   * @param {string} text
+   * @returns {DiffHunk[]}
+   */
   function parseHunks(text) {
     const lines = text.split('\n');
+    /** @type {DiffHunk[]} */
     const result = [];
+    /** @type {DiffHunk | null} */
     let current = null;
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].startsWith('@@')) {
@@ -153,10 +186,18 @@
     return result;
   }
 
+  /**
+   * @param {number} lineIndex
+   * @returns {DiffHunk | undefined}
+   */
   function getHunkForLine(lineIndex) {
     return hunks.find(h => lineIndex >= h.startLine && lineIndex <= h.endLine);
   }
 
+  /**
+   * @param {MouseEvent & { currentTarget: HTMLElement }} e
+   * @param {number} lineIndex
+   */
   function handleDiffLineEnter(e, lineIndex) {
     if (!explainAvailable) return;
     const line = content.split('\n')[lineIndex];
@@ -167,12 +208,13 @@
     if (hoverTimer) clearTimeout(hoverTimer);
     hoverTimer = setTimeout(async () => {
       const hunkKey = hunk.startLine + ':' + hunk.endLine;
-      const rect = e.target.getBoundingClientRect();
+      const rect = e.currentTarget.getBoundingClientRect();
       tooltipX = rect.left + 60;
       tooltipY = rect.top;
       tooltipVisible = true;
-      if (explainCache.has(hunkKey)) {
-        tooltipText = explainCache.get(hunkKey);
+      const cached = explainCache.get(hunkKey);
+      if (cached !== undefined) {
+        tooltipText = cached;
         tooltipLoading = false;
         tooltipError = '';
         return;
@@ -186,7 +228,7 @@
         tooltipText = explanation;
       } catch (err) {
         console.error('ExplainDiffHunk error:', err);
-        tooltipError = typeof err === 'string' ? err : (err?.message || 'Failed to explain');
+        tooltipError = errorMessage(err) || 'Failed to explain';
       } finally {
         tooltipLoading = false;
       }
@@ -205,7 +247,7 @@
   }
 
   onMount(async () => {
-    try { explainAvailable = await IsExplainAvailable(); } catch {}
+    try { explainAvailable = await IsExplainAvailable(); } catch { /* ignore */ }
   });
 
   onDestroy(() => {
