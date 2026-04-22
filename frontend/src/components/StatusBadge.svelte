@@ -1,38 +1,52 @@
-<script>
-  export let status = 'running';
-  export let size = 'md'; // 'sm' or 'md'
+<script lang="ts">
+  import type { StatusToken } from '../types/status';
 
-  const colors = {
-    running: 'var(--accent-green)',
-    open: 'var(--accent-teal)',
-    finished: 'var(--accent-red)',
+  // `status` arrives from parents that still pass `string` (Wails event
+  // payloads, snapshot data). The template narrows at the single lookup site
+  // below so callers do not need to pre-cast.
+  export let status: StatusToken | string = 'running';
+  export let size: 'sm' | 'md' = 'md';
+
+  // Exhaustive `Record<StatusToken, …>` — svelte-check will fail if a new
+  // token lands in `types/status.ts` without a colour/label entry here.
+  const colors: Record<StatusToken, string> = {
+    running:        'var(--accent-green)',
+    open:           'var(--accent-teal)',
+    finished:       'var(--accent-red)',
     needs_response: 'var(--accent-red)',
-    waiting: 'var(--accent-red)',
-    error: 'var(--accent-red)',
-    completed: 'var(--accent-red)',
-    started: 'var(--accent-purple)',
-    blocked: 'var(--accent-red)',
-    done: 'var(--accent-blue)',
-    terminal: 'var(--text-dim)',
+    waiting:        'var(--accent-red)',
+    error:          'var(--accent-red)',
+    completed:      'var(--accent-red)',
+    started:        'var(--accent-purple)',
+    blocked:        'var(--accent-red)',
+    done:           'var(--accent-blue)',
+    queued:         'var(--text-dim)',
+    terminal:       'var(--text-dim)',
   };
 
-  const labels = {
-    running: 'RUNNING',
-    open: 'OPEN',
-    finished: 'FINISHED',
+  const labels: Record<StatusToken, string> = {
+    running:        'RUNNING',
+    open:           'OPEN',
+    finished:       'FINISHED',
     needs_response: 'WAITING',
-    waiting: 'WAITING',
-    error: 'ERROR',
-    completed: 'DONE',
-    started: 'STARTED',
-    blocked: 'WAITING',
-    done: 'DONE',
-    terminal: 'TERMINAL',
+    waiting:        'WAITING',
+    error:          'ERROR',
+    completed:      'DONE',
+    started:        'STARTED',
+    blocked:        'WAITING',
+    done:           'DONE',
+    queued:         'QUEUED',
+    terminal:       'TERMINAL',
   };
+
+  // Narrow once — after this the rest of the template is token-safe.
+  $: token = (status as StatusToken);
+  $: color = colors[token] ?? 'var(--text-dim)';
+  $: label = labels[token] ?? String(status).toUpperCase();
 </script>
 
-<span class="badge {size}" style="--status-color: {colors[status] || 'var(--text-dim)'}">
-  {labels[status] || status.toUpperCase()}
+<span class="badge {size}" style="--status-color: {color}">
+  {label}
 </span>
 
 <style>

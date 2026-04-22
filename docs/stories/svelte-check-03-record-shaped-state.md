@@ -4,7 +4,8 @@
 **Domain:** frontend
 **Estimated Complexity:** M
 **Depends On:** svelte-check-02
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-22
 
 ## Description
 
@@ -160,45 +161,45 @@ Feature: NotificationFeed behaviour unchanged
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Define shared status types (AC: 1)
-  - [ ] Create `frontend/src/types/status.ts` with `StatusToken` literal union
-  - [ ] Cross-check tokens against `internal/domain/agent.go`
-  - [ ] Export `isStatusToken(s: unknown): s is StatusToken` narrowing helper
+- [x] Task 1: Define shared status types (AC: 1)
+  - [x] Create `frontend/src/types/status.ts` with `StatusToken` literal union
+  - [x] Cross-check tokens against `internal/domain/agent.go`
+  - [x] Export `isStatusToken(s: unknown): s is StatusToken` narrowing helper
 
-- [ ] Task 2: Retype NotificationFeed (AC: 2, 3, 4)
-  - [ ] Walk every `let … = {}` and annotate `Record<K, V>`
-  - [ ] Preserve runtime behaviour (check with existing vitest NotificationFeed tests if any, else manual smoke)
-  - [ ] Cap the file at <= 14 remaining errors
+- [x] Task 2: Retype NotificationFeed (AC: 2, 3, 4)
+  - [x] Walk every `let … = {}` and annotate `Record<K, V>`
+  - [x] Preserve runtime behaviour (check with existing vitest NotificationFeed tests if any, else manual smoke)
+  - [x] Cap the file at <= 14 remaining errors
 
-- [ ] Task 3: Retype NewSessionModal, App.svelte, StatusBadge (AC: 2, 3)
-  - [ ] Annotate each `{}`-typed lookup with `Record<K, V>` or `Partial<Record<K, V>>`
-  - [ ] Ensure no hex colour literals are introduced
+- [x] Task 3: Retype NewSessionModal, App.svelte, StatusBadge (AC: 2, 3)
+  - [x] Annotate each `{}`-typed lookup with `Record<K, V>` or `Partial<Record<K, V>>`
+  - [x] Ensure no hex colour literals are introduced
 
-- [ ] Task 4: Sweep neighbour files flagged by `sveltecheck-by-file` (AC: 2)
-  - [ ] Identify any other files above threshold after the primary four land
-  - [ ] Apply the same Record pattern
-  - [ ] Confirm remaining P2/P3 errors match plan target
+- [x] Task 4: Sweep neighbour files flagged by `sveltecheck-by-file` (AC: 2)
+  - [x] Identify any other files above threshold after the primary four land
+  - [x] Apply the same Record pattern
+  - [x] Confirm remaining P2/P3 errors match plan target
 
-- [ ] Task 5: Verify reduction (AC: 5)
-  - [ ] `just sveltecheck-count` <= 930
-  - [ ] `vitest run` — 696 tests pass
-  - [ ] `vite build` clean
-  - [ ] `wails dev` smoke — NotificationFeed renders live notifications end-to-end
+- [x] Task 5: Verify reduction (AC: 5)
+  - [x] `just sveltecheck-count` <= 930
+  - [x] `vitest run` — 696 tests pass
+  - [x] `vite build` clean
+  - [x] `wails dev` smoke — NotificationFeed renders live notifications end-to-end
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on new helpers in `types/status.ts` (narrowing function)
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `just sveltecheck-count` <= 930
-- [ ] `just sveltecheck-ratchet` passes
-- [ ] `vitest run` — 696 tests pass
-- [ ] `vite build` clean
-- [ ] NotificationFeed runtime smoke (manual OR playwright) confirms no regression
-- [ ] `/simplify` run on every modified file
-- [ ] Code review: no `any`, no `@ts-ignore`, no `@ts-nocheck`, no hex colour literals
-- [ ] PR size <= 400 lines (plan for 2 PRs — R4)
-- [ ] Commit body records: `sveltecheck-count: <prev> → <cur> (Δ -<n>)`
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on new helpers in `types/status.ts` (narrowing function)
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `just sveltecheck-count` <= 930
+- [x] `just sveltecheck-ratchet` passes
+- [x] `vitest run` — 696 tests pass
+- [x] `vite build` clean
+- [x] NotificationFeed runtime smoke (manual OR playwright) confirms no regression
+- [x] `/simplify` run on every modified file
+- [x] Code review: no `any`, no `@ts-ignore`, no `@ts-nocheck`, no hex colour literals
+- [x] PR size <= 400 lines (plan for 2 PRs — R4)
+- [x] Commit body records: `sveltecheck-count: <prev> → <cur> (Δ -<n>)`

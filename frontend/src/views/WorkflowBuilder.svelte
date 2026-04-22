@@ -72,6 +72,7 @@
 
   export let repoPath = '';
   export let repoBranch = '';
+  /** @type {import('../components/bmad/questionSnackbarUtils').QuestionEventLike | null} */
   export let pendingQuestion = null;
 
   /** @type {import('svelte').EventDispatcher<{ 'question-responded': { nodeId: string | undefined }; back: void }>} */
