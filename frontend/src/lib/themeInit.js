@@ -194,8 +194,8 @@ export async function loadBundledThemes() {
   const entries = await ListBundledThemes();
   if (!entries || entries.length === 0) return;
 
-  const existing = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (get(allThemes)));
-  /** @type {Record<string, unknown>} */
+  const existing = get(allThemes);
+  /** @type {import('./stores/theme.js').ThemeMap} */
   const batch = {};
 
   for (const entry of entries) {

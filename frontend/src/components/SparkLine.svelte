@@ -1,13 +1,14 @@
-<script>
-  export let data = []; // array of numbers (token counts)
-  export let maxVal = 0; // max value for scaling (0 = auto)
+<script lang="ts">
+  /** SparkLine props — per cerebrum (Phase 4c story): ONLY `data` + `maxVal`. */
+  export let data: number[] = []; // array of numbers (token counts)
+  export let maxVal: number = 0;   // max value for scaling (0 = auto)
 
-  const blocks = '\u2581\u2582\u2583\u2584\u2585\u2586\u2587\u2588';
+  const blocks = '▁▂▃▄▅▆▇█';
 
-  function render(data, maxVal) {
+  function render(data: number[], maxVal: number): string {
     if (!data.length) return '';
     const max = maxVal || Math.max(...data, 1);
-    return data.map(v => {
+    return data.map((v: number) => {
       const idx = Math.min(Math.floor((v / max) * 7), 7);
       return blocks[idx];
     }).join('');

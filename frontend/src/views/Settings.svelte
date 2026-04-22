@@ -1,11 +1,11 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
   import { ArrowLeft } from 'lucide-svelte';
   import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
   import { GetConfig, SetTheme, SetImportedTheme, SetVSCodiumExtPath, PickDirectory, ListVSCodiumThemes, ListLocalFonts, SetMonoFont, SetFontSize, SetSidebarWidth } from '../../wailsjs/go/main/App.js';
-  import { activateImportedTheme, removeImportedTheme, convertedCache, makeThemeId } from '../lib/themeInit.js';
+  import { activateImportedTheme, removeImportedTheme, makeThemeId } from '../lib/themeInit.js';
   import { builtInThemeIds } from '../lib/stores/theme.js';
-  import { currentMonoFont, currentFontSize, applyFont, registerLocalFonts } from '../lib/stores/font.js';
+  import { applyFont, registerLocalFonts } from '../lib/stores/font.js';
   import { editorSettings, updateEditorSetting } from '../lib/stores/editorSettings.js';
   import {
     uiAdapterEnabled,
@@ -26,19 +26,34 @@
   } from '../lib/stores/uiAdapterSettings';
   import { BrowserOpenURL } from '../../wailsjs/runtime/runtime.js';
   import { RefreshCw, TriangleAlert } from 'lucide-svelte';
+  import { errorMessage } from '../lib/errorMessage';
+  import type { LocalFontFamily, VSCodeThemeEntry } from '../lib/types/wails';
 
-  /** @type {import('svelte').EventDispatcher<{ back: void }>} */
-  const dispatch = createEventDispatcher();
+  /** A theme entry as stored in `allThemes`. Mirrors the JSDoc-typed
+   * `ThemeEntry` in `lib/stores/theme.js` — each imported VSCodium theme
+   * has the same structural shape. */
+  type ThemeEntry = {
+    label: string;
+    css: Record<string, string>;
+    monaco?: unknown;
+    xterm?: import('@xterm/xterm').ITheme;
+  };
+  type ThemeMap = Record<string, ThemeEntry>;
+
+  /** Entry used by the local-font option list in the font picker. */
+  type FontOption = { family: string; source: 'bundled' };
+
+  const dispatch = createEventDispatcher<{ back: void }>();
 
   let vscodiumPath = '';
   let saveStatus = '';
-  let vscodiumThemes = [];
+  let vscodiumThemes: VSCodeThemeEntry[] = [];
   let loadingThemes = false;
   let themeLoadError = '';
   let activatingThemePath = '';
 
-  let localFonts = [];
-  let allFonts = [];
+  let localFonts: LocalFontFamily[] = [];
+  let allFonts: FontOption[] = [];
   let loadingFonts = false;
   let selectedFont = '';
   let selectedFontSize = 13;
@@ -64,7 +79,7 @@
     }
   }
 
-  function resolveModelSelectValue(model, availableModels) {
+  function resolveModelSelectValue(model: string, availableModels: string[]): string {
     if (!model) return CUSTOM_MODEL_SENTINEL;
     if (availableModels && availableModels.includes(model)) return model;
     return CUSTOM_MODEL_SENTINEL;
@@ -118,7 +133,7 @@
     else timeoutError = 'save failed';
   }
 
-  async function onModelSelect(value) {
+  async function onModelSelect(value: string): Promise<void> {
     modelSelectValue = value;
     if (value === CUSTOM_MODEL_SENTINEL) {
       customModelInput = $ollamaModel;
@@ -159,7 +174,11 @@
     $ollamaModel && !sortedOllamaModels.includes($ollamaModel);
   $: showOfflineBanner = $uiAdapterEnabled && $ollamaReachable === false;
 
-  async function selectTheme(id) {
+  // Narrow the store value to the friendly ThemeMap shape — `allThemes` is
+  // authored in JS as a loose object, but every entry structurally matches.
+  $: themes = $allThemes as unknown as ThemeMap;
+
+  async function selectTheme(id: string): Promise<void> {
     applyTheme(id);
     try {
       await SetTheme(id);
@@ -167,35 +186,35 @@
     } catch {}
   }
 
-  async function scanThemes() {
+  async function scanThemes(): Promise<void> {
     loadingThemes = true;
     themeLoadError = '';
     try {
       vscodiumThemes = await ListVSCodiumThemes();
     } catch (err) {
-      themeLoadError = err?.message || 'Failed to scan themes';
+      themeLoadError = errorMessage(err) || 'Failed to scan themes';
       vscodiumThemes = [];
     } finally {
       loadingThemes = false;
     }
   }
 
-  async function handleImportedThemeClick(entry) {
+  async function handleImportedThemeClick(entry: VSCodeThemeEntry): Promise<void> {
     activatingThemePath = entry.themePath;
     try {
       await activateImportedTheme(entry.themePath, entry.extensionId);
     } catch (err) {
-      themeLoadError = 'Failed to activate theme: ' + (err?.message || 'unknown error');
+      themeLoadError = 'Failed to activate theme: ' + (errorMessage(err) || 'unknown error');
     } finally {
       activatingThemePath = '';
     }
   }
 
-  async function handleRemoveTheme(id) {
+  async function handleRemoveTheme(id: string): Promise<void> {
     await removeImportedTheme(id);
   }
 
-  function isDarkTheme(uiTheme) {
+  function isDarkTheme(uiTheme: string): boolean {
     return uiTheme !== 'vs' && uiTheme !== 'vs-light';
   }
 
@@ -223,12 +242,12 @@
     setTimeout(() => { saveStatus = ''; }, 2000);
   }
 
-  async function scanFonts() {
+  async function scanFonts(): Promise<void> {
     loadingFonts = true;
     try {
-      localFonts = await ListLocalFonts() || [];
+      localFonts = (await ListLocalFonts()) || [];
       registerLocalFonts(localFonts);
-      allFonts = localFonts.map(f => ({ family: f.family, source: 'bundled' }));
+      allFonts = localFonts.map((f) => ({ family: f.family, source: 'bundled' as const }));
     } catch {
       localFonts = [];
       allFonts = [];
@@ -237,27 +256,38 @@
     }
   }
 
-  async function selectFont(family) {
+  async function selectFont(family: string): Promise<void> {
     selectedFont = family;
     applyFont(family, selectedFontSize);
     try { await SetMonoFont(family); } catch {}
   }
 
-  async function changeFontSize(size) {
+  async function changeFontSize(size: number): Promise<void> {
     selectedFontSize = size;
     applyFont(selectedFont, size);
     try { await SetFontSize(size); } catch {}
   }
 
-  async function changeSidebarWidth(width) {
+  async function changeSidebarWidth(width: number): Promise<void> {
     selectedSidebarWidth = width;
     try { await SetSidebarWidth(width); } catch {}
   }
 
-  function handleKeydown(e) {
+  function handleKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape') {
       dispatch('back');
     }
+  }
+
+  /**
+   * Narrow an `<input>` / `<select>` change-event target to an `HTMLInputElement`.
+   * svelte-check reports `'e.target' is possibly null` + `Property 'value' does
+   * not exist on type 'EventTarget'`; routing every handler through this helper
+   * keeps the setting row templates tidy.
+   */
+  function fieldValue(e: Event): string {
+    const t = e.currentTarget as HTMLInputElement | HTMLSelectElement | null;
+    return t?.value ?? '';
   }
 </script>
 
@@ -275,7 +305,7 @@
       <h2 class="section-title">Themes</h2>
       <div class="theme-list">
         {#each $themeIds as id}
-          {@const theme = $allThemes[id]}
+          {@const theme = themes[id]}
           <button
             class="theme-list-btn"
             class:active={$currentThemeId === id}
@@ -372,7 +402,7 @@
         <div class="setting-row">
           <label class="setting-label" for="cursorStyle">Cursor Style</label>
           <select id="cursorStyle" class="setting-select" value={$editorSettings.cursorStyle}
-            on:change={(e) => updateEditorSetting('cursorStyle', e.target.value)}>
+            on:change={(e) => updateEditorSetting('cursorStyle', fieldValue(e))}>
             <option value="line">line</option>
             <option value="line-thin">line-thin</option>
             <option value="block">block</option>
@@ -384,7 +414,7 @@
         <div class="setting-row">
           <label class="setting-label" for="cursorBlinking">Cursor Blinking</label>
           <select id="cursorBlinking" class="setting-select" value={$editorSettings.cursorBlinking}
-            on:change={(e) => updateEditorSetting('cursorBlinking', e.target.value)}>
+            on:change={(e) => updateEditorSetting('cursorBlinking', fieldValue(e))}>
             <option value="blink">blink</option>
             <option value="smooth">smooth</option>
             <option value="phase">phase</option>
@@ -398,7 +428,7 @@
         <div class="setting-row">
           <label class="setting-label" for="wordWrap">Word Wrap</label>
           <select id="wordWrap" class="setting-select" value={$editorSettings.wordWrap}
-            on:change={(e) => updateEditorSetting('wordWrap', e.target.value)}>
+            on:change={(e) => updateEditorSetting('wordWrap', fieldValue(e))}>
             <option value="off">off</option>
             <option value="on">on</option>
             <option value="wordWrapColumn">wordWrapColumn</option>
@@ -408,7 +438,7 @@
         <div class="setting-row">
           <label class="setting-label" for="lineNumbers">Line Numbers</label>
           <select id="lineNumbers" class="setting-select" value={$editorSettings.lineNumbers}
-            on:change={(e) => updateEditorSetting('lineNumbers', e.target.value)}>
+            on:change={(e) => updateEditorSetting('lineNumbers', fieldValue(e))}>
             <option value="on">on</option>
             <option value="off">off</option>
             <option value="relative">relative</option>
@@ -418,7 +448,7 @@
         <div class="setting-row">
           <label class="setting-label" for="renderLineHighlight">Line Highlight</label>
           <select id="renderLineHighlight" class="setting-select" value={$editorSettings.renderLineHighlight}
-            on:change={(e) => updateEditorSetting('renderLineHighlight', e.target.value)}>
+            on:change={(e) => updateEditorSetting('renderLineHighlight', fieldValue(e))}>
             <option value="none">none</option>
             <option value="gutter">gutter</option>
             <option value="line">line</option>
@@ -428,7 +458,7 @@
         <div class="setting-row">
           <label class="setting-label" for="renderWhitespace">Whitespace</label>
           <select id="renderWhitespace" class="setting-select" value={$editorSettings.renderWhitespace}
-            on:change={(e) => updateEditorSetting('renderWhitespace', e.target.value)}>
+            on:change={(e) => updateEditorSetting('renderWhitespace', fieldValue(e))}>
             <option value="none">none</option>
             <option value="boundary">boundary</option>
             <option value="selection">selection</option>
@@ -450,7 +480,7 @@
           <label class="setting-label" for="tabSize">Tab Size</label>
           <input id="tabSize" class="setting-number" type="number" min="2" max="8"
             value={$editorSettings.tabSize}
-            on:change={(e) => updateEditorSetting('tabSize', Math.min(8, Math.max(2, parseInt(e.target.value) || 2)))} />
+            on:change={(e) => updateEditorSetting('tabSize', Math.min(8, Math.max(2, parseInt(fieldValue(e)) || 2)))} />
         </div>
         <div class="setting-row">
           <label class="setting-label" for="insertSpaces">Insert Spaces</label>
@@ -523,7 +553,7 @@
             <div class="import-list">
               {#each vscodiumThemes as entry}
                 {@const themeId = makeThemeId(entry.themePath, entry.extensionId)}
-                {@const alreadyImported = !!$allThemes[themeId]}
+                {@const alreadyImported = !!themes[themeId]}
                 <button
                   class="import-item"
                   class:imported={alreadyImported}

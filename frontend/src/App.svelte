@@ -97,7 +97,7 @@
   /** Subset of `mashedConfig` this component reads. */
   type ConfigSlice = {
     theme?: string;
-    importedTheme?: unknown;
+    importedTheme?: string;
     monoFont?: string;
     fontSize?: number;
   };

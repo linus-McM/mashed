@@ -47,9 +47,10 @@ describe('uiqa-09 SparkLine render in NotificationFeed', () => {
 
   it('SparkLine component still exposes only the text-based props API', () => {
     // Guard against accidental refactor: props must be exactly `data` and `maxVal`.
+    // Regex accepts optional TypeScript type annotations post-retyping (Phase 4c).
     const spark = read(SPARKLINE);
-    expect(spark).toMatch(/export\s+let\s+data\s*=\s*\[\]/);
-    expect(spark).toMatch(/export\s+let\s+maxVal\s*=\s*0/);
+    expect(spark).toMatch(/export\s+let\s+data(?:\s*:\s*number\[\])?\s*=\s*\[\]/);
+    expect(spark).toMatch(/export\s+let\s+maxVal(?:\s*:\s*number)?\s*=\s*0/);
     // Ensure it is still a span, not an SVG.
     expect(spark).toMatch(/<span\s+class="sparkline"/);
   });

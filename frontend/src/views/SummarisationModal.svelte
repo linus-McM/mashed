@@ -1,19 +1,25 @@
-<script>
+<script lang="ts">
   import { onMount, onDestroy, createEventDispatcher, tick } from 'svelte';
   import { fade, fly } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { FileText, Plus, Minus, X, Sparkles, ChevronDown, FileCode, ExternalLink } from 'lucide-svelte';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
-  import { StreamCodeReviewSummary, ListAdviceModes, StreamAdvice, StreamScopedAdvice, SpawnRefactorPlan, ListModels } from '../../wailsjs/go/main/App.js';
+  import { StreamCodeReviewSummary, ListAdviceModes, StreamScopedAdvice, SpawnRefactorPlan, ListModels } from '../../wailsjs/go/main/App.js';
   import { errorMessage } from '../lib/errorMessage';
+  import type { AdviceMode, ModelInfo } from '../lib/types/wails';
+  import type {
+    ReviewAdviceProgressEvent,
+    ReviewFileSummary,
+    ReviewSummaryDoneEvent,
+    ReviewSummaryProgressEvent,
+  } from '../types/reviewEvents';
 
-  /** @type {import('svelte').EventDispatcher<{ close: void; 'open-file': { path: string } }>} */
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher<{ close: void; 'open-file': { path: string } }>();
 
   export let repoPath = '';
 
   // Summary state
-  let files = [];
+  let files: ReviewFileSummary[] = [];
   let summaryLoading = true;
   let summaryError = '';
   let totalAdded = 0;
@@ -22,7 +28,7 @@
   let totalFiles = 0;
 
   // Advice state
-  let adviceModes = [];
+  let adviceModes: AdviceMode[] = [];
   let selectedMode = '';
   let adviceText = '';
   let adviceLoading = false;
@@ -30,7 +36,7 @@
   let priorAdvice = '';
 
   // Model state
-  let modelList = [];
+  let modelList: ModelInfo[] = [];
   let selectedModel = '';
 
   // Refactor plan state
@@ -39,21 +45,21 @@
   let planError = '';
 
   // Selection state
-  let selectedFiles = new Set();
+  let selectedFiles: Set<string> = new Set();
 
   // DOM refs
-  let advicePanel;
-  let fileListEl;
+  let advicePanel: HTMLDivElement | undefined;
+  let fileListEl: HTMLDivElement | undefined;
 
   // Computed
   $: hasFiles = files.length > 0;
   $: hasSelection = selectedFiles.size > 0;
   $: showAdviceSection = hasFiles || !summaryLoading;
-  $: canGetAdvice = selectedMode && !adviceLoading && hasSelection;
-  $: canCreatePlan = adviceText && !planLoading && hasSelection;
+  $: canGetAdvice = Boolean(selectedMode) && !adviceLoading && hasSelection;
+  $: canCreatePlan = Boolean(adviceText) && !planLoading && hasSelection;
 
   onMount(async () => {
-    EventsOn('review:summary:progress', (data) => {
+    EventsOn('review:summary:progress', (data: ReviewSummaryProgressEvent) => {
       if (data.repoPath !== repoPath) return;
       if (data.error) {
         summaryError = data.error;
@@ -64,7 +70,7 @@
       totalFiles = data.total;
     });
 
-    EventsOn('review:summary:done', (data) => {
+    EventsOn('review:summary:done', (data: ReviewSummaryDoneEvent) => {
       if (data.repoPath !== repoPath) return;
       summaryLoading = false;
       if (data.error) {
@@ -77,7 +83,7 @@
       }
     });
 
-    EventsOn('review:advice:progress', async (data) => {
+    EventsOn('review:advice:progress', async (data: ReviewAdviceProgressEvent) => {
       if (data.repoPath !== repoPath) return;
       if (data.error) {
         adviceError = data.error;
@@ -103,8 +109,9 @@
       ]);
       adviceModes = modeList;
       modelList = models || [];
-      const balanced = modelList.find(m => m.tier === 'balanced');
-      selectedModel = balanced ? balanced.id : (modelList[0]?.id || '');
+      const balanced = modelList.find((m) => m.tier === 'balanced');
+      const defaultModel = modelList.find((m) => m.isDefault);
+      selectedModel = balanced?.id ?? defaultModel?.id ?? (modelList[0]?.id || '');
     } catch (_) { /* non-fatal */ }
 
     // Start streaming summaries
@@ -117,19 +124,19 @@
     EventsOff('review:advice:progress');
   });
 
-  function close() {
+  function close(): void {
     dispatch('close');
   }
 
-  function handleKeydown(e) {
+  function handleKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape') close();
   }
 
-  function openFile(path) {
+  function openFile(path: string): void {
     dispatch('open-file', { path });
   }
 
-  function toggleFile(path) {
+  function toggleFile(path: string): void {
     if (selectedFiles.has(path)) {
       selectedFiles.delete(path);
     } else {
@@ -138,26 +145,26 @@
     selectedFiles = new Set(selectedFiles);
   }
 
-  function selectAll() {
-    selectedFiles = new Set(files.map(f => f.path));
+  function selectAll(): void {
+    selectedFiles = new Set(files.map((f) => f.path));
   }
 
-  function selectNone() {
+  function selectNone(): void {
     selectedFiles = new Set();
   }
 
-  function handleCardKey(e, path) {
+  function handleCardKey(e: KeyboardEvent, path: string): void {
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
       toggleFile(path);
     }
   }
 
-  function buildAdditionalContext() {
-    const parts = [];
+  function buildAdditionalContext(): string {
+    const parts: string[] = [];
     const selectedSummaries = files
-      .filter(f => selectedFiles.has(f.path))
-      .map(f => `- **${f.path}** (+${f.added}/-${f.removed}): ${f.summary}`)
+      .filter((f) => selectedFiles.has(f.path))
+      .map((f) => `- **${f.path}** (+${f.added}/-${f.removed}): ${f.summary}`)
       .join('\n');
     if (selectedSummaries) {
       parts.push('## File Summaries\n' + selectedSummaries);
@@ -168,13 +175,13 @@
     return parts.join('\n\n');
   }
 
-  function buildEnrichedAdvice() {
-    const parts = [];
+  function buildEnrichedAdvice(): string {
+    const parts: string[] = [];
     const fileList = Array.from(selectedFiles).join(', ');
     parts.push('## Scoped Files\n' + fileList);
     const summaries = files
-      .filter(f => selectedFiles.has(f.path))
-      .map(f => `- **${f.path}**: ${f.summary}`)
+      .filter((f) => selectedFiles.has(f.path))
+      .map((f) => `- **${f.path}**: ${f.summary}`)
       .join('\n');
     if (summaries) {
       parts.push('## File Summaries\n' + summaries);
@@ -183,7 +190,7 @@
     return parts.join('\n\n');
   }
 
-  function getAdvice() {
+  function getAdvice(): void {
     if (!canGetAdvice) return;
     if (adviceText) {
       priorAdvice = adviceText;
@@ -196,7 +203,7 @@
     StreamScopedAdvice(repoPath, selectedMode, selectedModel, filePaths, context);
   }
 
-  async function createRefactorPlan() {
+  async function createRefactorPlan(): Promise<void> {
     if (!canCreatePlan) return;
     planLoading = true;
     planError = '';
