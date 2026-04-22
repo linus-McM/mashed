@@ -281,7 +281,7 @@
     {:else if error}
       <div class="error">{error}</div>
     {:else if mode === 'diff' && content.startsWith('diff ')}
-      <pre class="code diff">{#each content.split('\n') as line, i}<span class="line {isDiffLine(line)}" class:hoverable={explainAvailable && (isDiffLine(line) === 'added' || isDiffLine(line) === 'removed')} on:mouseenter={(e) => handleDiffLineEnter(e, i)} on:mouseleave={handleDiffLineLeave}><span class="line-num">{i + 1}</span>{line}
+      <pre class="code diff">{#each content.split('\n') as line, i}<span class="line {isDiffLine(line)}" class:hoverable={explainAvailable && (isDiffLine(line) === 'added' || isDiffLine(line) === 'removed')} role="presentation" on:mouseenter={(e) => handleDiffLineEnter(e, i)} on:mouseleave={handleDiffLineLeave}><span class="line-num">{i + 1}</span>{line}
 </span>{/each}</pre>
     {:else if editable && isEditing}
       <textarea
@@ -291,15 +291,18 @@
         on:keydown={handleKeydown}
         spellcheck="false"
       ></textarea>
-    {:else}
+    {:else if editable}
       <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <pre
-        class="code"
-        class:editable
-        on:click={editable ? startEditing : undefined}
-        role={editable ? 'textbox' : undefined}
-        tabindex={editable ? 0 : undefined}
-      ><code class="lang-{getLanguage(filePath)}">{#each content.split('\n') as line, i}<span class="line"><span class="line-num">{i + 1}</span>{line}
+      <div
+        class="code-click-wrap"
+        on:click={startEditing}
+        role="button"
+        tabindex="0"
+        aria-label="Edit code"
+      ><pre class="code editable"><code class="lang-{getLanguage(filePath)}">{#each content.split('\n') as line, i}<span class="line"><span class="line-num">{i + 1}</span>{line}
+</span>{/each}</code></pre></div>
+    {:else}
+      <pre class="code"><code class="lang-{getLanguage(filePath)}">{#each content.split('\n') as line, i}<span class="line"><span class="line-num">{i + 1}</span>{line}
 </span>{/each}</code></pre>
     {/if}
   </div>

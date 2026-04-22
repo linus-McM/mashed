@@ -333,9 +333,9 @@
 
       <div class="advice-section">
         <div class="advice-controls">
-          <label class="advice-label">Advice</label>
+          <label class="advice-label" for="advice-mode">Advice</label>
           <div class="select-wrap">
-            <select bind:value={selectedMode} class="advice-select">
+            <select id="advice-mode" bind:value={selectedMode} class="advice-select">
               <option value="" disabled>Select methodology</option>
               {#each adviceModes as mode}
                 <option value={mode.name}>{mode.displayName}</option>

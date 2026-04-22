@@ -362,6 +362,7 @@
       on:click|stopPropagation
       on:keydown|stopPropagation={handleMenuKeydown}
       role="menu"
+      tabindex="-1"
     >
       {#if contextMenu.nodeId}
         <button

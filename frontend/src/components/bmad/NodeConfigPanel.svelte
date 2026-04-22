@@ -259,7 +259,7 @@
     <div class="panel-body">
       {#if isMultiFileLoader}
         <div class="field">
-          <label class="field-label">Entries</label>
+          <span class="field-label">Entries</span>
           <div class="mfl-entries">
             {#each mflEntries as entry, i (i)}
               <div class="mfl-row" class:dup-row={entry.label && mflDuplicates.has(entry.label)}>
@@ -295,9 +295,10 @@
         </div>
       {:else if isFileLoader}
         <div class="field">
-          <label class="field-label">File Path</label>
+          <label class="field-label" for="file-loader-path">File Path</label>
           <div class="file-picker-row">
             <input
+              id="file-loader-path"
               class="field-input file-path-input"
               type="text"
               bind:value={filePath}
@@ -313,7 +314,7 @@
         </div>
         {#if filePreview}
           <div class="field">
-            <label class="field-label">Preview</label>
+            <span class="field-label">Preview</span>
             <pre class="file-preview">{filePreview}</pre>
           </div>
         {/if}
@@ -394,7 +395,7 @@
           <input id="loop-max" class="field-input" type="number" bind:value={maxIterations} on:change={emitUpdate} min="1" max="100" />
         </div>
         <div class="field">
-          <label class="field-label">Items Array</label>
+          <span class="field-label">Items Array</span>
           {#if items.length > 0}
             <div class="items-preview">{items.length} item{items.length !== 1 ? 's' : ''}</div>
           {:else}
@@ -427,7 +428,7 @@
           <input id="lu-source" class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
         </div>
         <div class="field">
-          <label class="field-label">Items Array</label>
+          <span class="field-label">Items Array</span>
           {#if items.length > 0}
             <div class="items-preview">{items.length} item{items.length !== 1 ? 's' : ''}</div>
           {:else}
