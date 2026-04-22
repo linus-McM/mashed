@@ -1,0 +1,5 @@
+Stage 1 — Problem framing
+
+Who is the primary user we're building for?
+
+Give the persona in one sentence: role, context, and the friction they hit today.

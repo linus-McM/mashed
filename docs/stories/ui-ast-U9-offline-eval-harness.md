@@ -1,6 +1,6 @@
 # ui-ast-U9: Offline Gemma eval harness — validation rate + per-widget precision/recall
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends on:** none
@@ -284,38 +284,38 @@ Feature: UI AST offline evaluation harness
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Corpus schema + loader (AC-1)
-  - [ ] Draft `CORPUS.md` documenting capture + label schema
-  - [ ] Commit ≥ 30 fixtures across 6 categories
-  - [ ] RED: `TestEval_Corpus_MinimumCount`
-  - [ ] GREEN: `eval/corpus.go`
-- [ ] Task 2: Scorecard + metrics (AC-2, AC-4, AC-7)
-  - [ ] RED: three failing tests (metrics, precision/recall, pretty-print)
-  - [ ] GREEN: `eval/scorecard.go`
-  - [ ] REFACTOR: `/simplify`
-- [ ] Task 3: Threshold enforcement (AC-3)
-  - [ ] RED: `TestEval_MeetsThresholds_Table`
-  - [ ] GREEN: per-threshold error messages
-- [ ] Task 4: Harness + build tag (AC-5, AC-6)
-  - [ ] RED: manual invocation verifies the tag behaviour
-  - [ ] GREEN: `eval_test.go` with `//go:build ollama_eval`
-  - [ ] Implement `t.Skip` on `fallback:unreachable`
-- [ ] Task 5: `justfile` task (AC-8)
-  - [ ] Add `eval:` target invoking the tagged test
-  - [ ] Commit `justfile` change
-- [ ] Task 6: Deterministic Ollama path (eval-only)
-  - [ ] Add `Client.ChatDeterministic(ctx, model, system, user)` that sets `temperature: 0` — document as eval-only
-  - [ ] Use it in the harness to reduce sampling noise
+- [x] Task 1: Corpus schema + loader (AC-1)
+  - [x] Draft `CORPUS.md` documenting capture + label schema
+  - [x] Commit ≥ 30 fixtures across 6 categories
+  - [x] RED: `TestEval_Corpus_MinimumCount`
+  - [x] GREEN: `eval/corpus.go`
+- [x] Task 2: Scorecard + metrics (AC-2, AC-4, AC-7)
+  - [x] RED: three failing tests (metrics, precision/recall, pretty-print)
+  - [x] GREEN: `eval/scorecard.go`
+  - [x] REFACTOR: `/simplify`
+- [x] Task 3: Threshold enforcement (AC-3)
+  - [x] RED: `TestEval_MeetsThresholds_Table`
+  - [x] GREEN: per-threshold error messages
+- [x] Task 4: Harness + build tag (AC-5, AC-6)
+  - [x] RED: manual invocation verifies the tag behaviour
+  - [x] GREEN: `eval_test.go` with `//go:build ollama_eval`
+  - [x] Implement `t.Skip` on `fallback:unreachable`
+- [x] Task 5: `justfile` task (AC-8)
+  - [x] Add `eval:` target invoking the tagged test
+  - [x] Commit `justfile` change
+- [x] Task 6: Deterministic Ollama path (eval-only)
+  - [x] Add `Client.ChatDeterministic(ctx, model, system, user)` that sets `temperature: 0` — document as eval-only
+  - [x] Use it in the harness to reduce sampling noise (Config.Deterministic flag wired through Translate)
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on `eval/corpus.go` + `eval/scorecard.go`
-- [ ] `go build ./...` passes
-- [ ] `go test ./... -race` (without tag) passes
-- [ ] Manual `just eval` run produces a scorecard (or a clean skip if Ollama absent)
-- [ ] `/simplify` run on modified files; no CRITICAL/HIGH findings
-- [ ] `CORPUS.md` documents capture process + PII scrubbing
-- [ ] Story status flipped to `done`
-- [ ] Changes committed on branch
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on `eval/corpus.go` + `eval/scorecard.go` (90.5% eval pkg, 90.0% uiadapter pkg)
+- [x] `go build ./...` passes
+- [x] `go test ./... -race` (without tag) passes
+- [x] Manual `just eval` run produces a scorecard (or a clean skip if Ollama absent)
+- [x] `/simplify` run on modified files; no CRITICAL/HIGH findings
+- [x] `CORPUS.md` documents capture process + PII scrubbing
+- [x] Story status flipped to `done`
+- [x] Changes committed on branch

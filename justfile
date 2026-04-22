@@ -57,6 +57,13 @@ build: build-helper
 test:
     go test -tags testing ./internal/... -race -count=1
 
+# Offline Gemma UI AST eval harness (Story ui-ast-U9). Runs the adapter
+# against the committed ≥ 30-sample corpus; skips cleanly if Ollama is
+# unreachable. Requires `gemma3:4b` pulled locally (~2.5 GB) on first run.
+# Gated behind the `ollama_eval` build tag so `just test` stays fast.
+eval:
+    go test -tags=ollama_eval -run TestEval_FullCorpus -v ./internal/uiadapter/...
+
 
 # List all tmux sessions related to this repo, grouped by parent/child
 sessions:

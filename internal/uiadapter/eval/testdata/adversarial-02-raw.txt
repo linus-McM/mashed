@@ -1,0 +1,12 @@
+Two sources worth comparing:
+
+- https://example.org/v1/api
+- https://example.net/alt
+
+And a sample payload:
+
+```json
+{"id": 42, "ok": true}
+```
+
+Pick the one you want to align with (org or net):

@@ -1,0 +1,11 @@
+Here's a quick JSON snippet you can paste into the app's config:
+
+```json
+{
+  "theme": "neon",
+  "hours": ["21:00", "02:00"],
+  "capacity": 40
+}
+```
+
+Does that match what you had in mind?

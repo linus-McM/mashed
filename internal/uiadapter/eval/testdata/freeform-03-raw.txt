@@ -1,0 +1,3 @@
+Describe the single success metric you'd like this experiment to move.
+
+A sentence is enough — I'll ask for the target number separately.

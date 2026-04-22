@@ -23,19 +23,24 @@ type Adapter interface {
 // Config is the adapter-wide construction knob. Enabled collapses
 // UIAdapterEnabled && OllamaEnabled at the call-site — the adapter only
 // sees a single boolean so callers cannot smuggle in a partial gate.
+// Deterministic pins options.temperature=0 on every Ollama request — set by
+// the offline eval harness only (Story U9 §4.5 / §Risks); production callers
+// leave it false so users see the model's natural sampling.
 type Config struct {
-	Enabled     bool
-	Model       string
-	TimeoutMs   int
-	MaxInflight int
+	Enabled       bool
+	Model         string
+	TimeoutMs     int
+	MaxInflight   int
+	Deterministic bool
 }
 
 type defaultAdapter struct {
-	client  *Client
-	model   string
-	timeout time.Duration
-	sem     semaphore
-	logger  *slog.Logger
+	client        *Client
+	model         string
+	timeout       time.Duration
+	sem           semaphore
+	logger        *slog.Logger
+	deterministic bool
 }
 
 // disabledAdapter short-circuits every Translate call to a fallback:disabled
@@ -58,11 +63,12 @@ func NewDefault(cfg Config, logger *slog.Logger) Adapter {
 		cfg.MaxInflight = 1
 	}
 	return &defaultAdapter{
-		client:  NewClient(ClientConfig{TimeoutMs: cfg.TimeoutMs}),
-		model:   cfg.Model,
-		timeout: time.Duration(cfg.TimeoutMs) * time.Millisecond,
-		sem:     newSemaphore(cfg.MaxInflight),
-		logger:  logger,
+		client:        NewClient(ClientConfig{TimeoutMs: cfg.TimeoutMs}),
+		model:         cfg.Model,
+		timeout:       time.Duration(cfg.TimeoutMs) * time.Millisecond,
+		sem:           newSemaphore(cfg.MaxInflight),
+		logger:        logger,
+		deterministic: cfg.Deterministic,
 	}
 }
 
@@ -88,7 +94,7 @@ func (a *defaultAdapter) Translate(ctx context.Context, raw, procID string) *UIA
 	ctxT, cancel := context.WithTimeout(ctx, a.timeout)
 	defer cancel()
 
-	body, err := a.client.Chat(ctxT, a.model, SystemPrompt(), raw)
+	body, err := a.chat(ctxT, raw)
 	if err != nil {
 		return a.emitFallback(raw, classifyChatErr(err), ctx, start, 0)
 	}
@@ -113,6 +119,15 @@ func (a *defaultAdapter) Translate(ctx context.Context, raw, procID string) *UIA
 
 	a.logTelemetry(slog.LevelInfo, procID, len(raw), len(body), start, reasons, ast.Diagnostics.Untrusted)
 	return ast
+}
+
+// chat dispatches to ChatDeterministic when the harness pinned temperature=0,
+// otherwise to plain Chat so production keeps Ollama's natural sampling.
+func (a *defaultAdapter) chat(ctx context.Context, raw string) (string, error) {
+	if a.deterministic {
+		return a.client.ChatDeterministic(ctx, a.model, SystemPrompt(), raw)
+	}
+	return a.client.Chat(ctx, a.model, SystemPrompt(), raw)
 }
 
 // stampSuccessMetadata fills in envelope + diagnostics fields the model is

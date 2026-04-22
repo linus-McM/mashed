@@ -1,0 +1,10 @@
+Here's the helper I sketched out — paste into your REPL to try it:
+
+```python
+def mood_ring(energy: int) -> str:
+    if energy > 8: return "rager"
+    if energy > 4: return "kickback"
+    return "cozy"
+```
+
+Want me to adjust the thresholds? (yes/no)

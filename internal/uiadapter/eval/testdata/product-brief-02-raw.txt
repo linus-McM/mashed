@@ -1,0 +1,10 @@
+Stage 2 — Scope
+
+Which release window are we aiming at?
+
+1. this quarter (ship aggressive)
+2. next quarter (standard cycle)
+3. six months (research + iterate)
+4. unscoped (investigation only)
+
+Select the closest match:

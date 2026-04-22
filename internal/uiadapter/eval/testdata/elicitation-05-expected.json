@@ -1,0 +1,6 @@
+{
+  "decision_group_count": 1,
+  "widget_types": ["approval"],
+  "fallback_answer_shape": "approval",
+  "category": "elicitation"
+}

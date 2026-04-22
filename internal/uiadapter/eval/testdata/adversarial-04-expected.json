@@ -1,0 +1,8 @@
+{
+  "decision_group_count": 1,
+  "widget_types": ["choice"],
+  "must_contain_urls": ["https://example.com/libA", "https://example.com/libB", "https://example.com/libC"],
+  "must_contain_code_blocks": ["```rust\nfn main() {\n    println!(\"hello, eval\");\n}\n```"],
+  "fallback_answer_shape": "choice",
+  "category": "adversarial"
+}

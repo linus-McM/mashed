@@ -191,3 +191,55 @@ func TestU2_ClientHTTPStatusError_ErrorString(t *testing.T) {
 	assert.Contains(t, msg, "500")
 	assert.Contains(t, msg, "uiadapter")
 }
+
+// ChatDeterministic pins options.temperature=0 to eliminate Gemma sampling
+// noise for the eval harness. Regular Chat must not carry that override so
+// production traffic keeps Ollama's default sampling.
+func TestClient_ChatDeterministic_SetsTemperature(t *testing.T) {
+	t.Run("deterministic_sets_temperature_zero", func(t *testing.T) {
+		var gotBody map[string]any
+		newOllamaStub(t, func(w http.ResponseWriter, r *http.Request) {
+			require.NoError(t, json.NewDecoder(r.Body).Decode(&gotBody))
+			_, _ = w.Write([]byte(`{"message":{"role":"assistant","content":"{}"}}`))
+		})
+
+		client := NewClient(ClientConfig{TimeoutMs: 1000})
+		_, err := client.ChatDeterministic(context.Background(), "gemma3:4b", "sys", "usr")
+		require.NoError(t, err)
+
+		opts, ok := gotBody["options"].(map[string]any)
+		require.True(t, ok, "ChatDeterministic must send an options object")
+		assert.Equal(t, float64(0), opts["temperature"],
+			"ChatDeterministic must pin options.temperature=0 to eliminate sampling noise")
+	})
+
+	t.Run("regular_chat_omits_options_temperature", func(t *testing.T) {
+		var gotBody map[string]any
+		newOllamaStub(t, func(w http.ResponseWriter, r *http.Request) {
+			require.NoError(t, json.NewDecoder(r.Body).Decode(&gotBody))
+			_, _ = w.Write([]byte(`{"message":{"role":"assistant","content":"{}"}}`))
+		})
+
+		client := NewClient(ClientConfig{TimeoutMs: 1000})
+		_, err := client.Chat(context.Background(), "gemma3:4b", "sys", "usr")
+		require.NoError(t, err)
+
+		if opts, has := gotBody["options"].(map[string]any); has {
+			_, hasTemp := opts["temperature"]
+			assert.False(t, hasTemp,
+				"regular Chat must not pin temperature — eval-only path is ChatDeterministic")
+		}
+	})
+}
+
+func TestClient_ChatDeterministic_ReturnsContent(t *testing.T) {
+	newOllamaStub(t, func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`{"message":{"role":"assistant","content":"{\"version\":\"1\"}"}}`))
+	})
+
+	client := NewClient(ClientConfig{TimeoutMs: 1000})
+	got, err := client.ChatDeterministic(context.Background(), "gemma3:4b", "sys", "usr")
+	require.NoError(t, err)
+	assert.Equal(t, `{"version":"1"}`, got,
+		"ChatDeterministic must return message.content verbatim, like Chat")
+}

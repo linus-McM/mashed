@@ -1,0 +1,7 @@
+{
+  "decision_group_count": 1,
+  "widget_types": ["approval"],
+  "must_contain_code_blocks": ["```python\ndef mood_ring(energy: int) -> str:\n    if energy > 8: return \"rager\"\n    if energy > 4: return \"kickback\"\n    return \"cozy\"\n```"],
+  "fallback_answer_shape": "approval",
+  "category": "party"
+}

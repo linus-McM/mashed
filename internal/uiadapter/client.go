@@ -58,10 +58,11 @@ type chatMessage struct {
 }
 
 type chatRequest struct {
-	Model    string        `json:"model"`
-	Format   string        `json:"format"`
-	Stream   bool          `json:"stream"`
-	Messages []chatMessage `json:"messages"`
+	Model    string         `json:"model"`
+	Format   string         `json:"format"`
+	Stream   bool           `json:"stream"`
+	Messages []chatMessage  `json:"messages"`
+	Options  map[string]any `json:"options,omitempty"`
 }
 
 type chatResponse struct {
@@ -78,6 +79,18 @@ type tagsResponse struct {
 
 // Chat returns message.content verbatim — callers parse the JSON themselves.
 func (c *Client) Chat(ctx context.Context, model, system, user string) (string, error) {
+	return c.chat(ctx, model, system, user, nil)
+}
+
+// ChatDeterministic pins options.temperature=0 to eliminate Gemma sampling
+// noise for the offline eval harness (Story U9 §4.5). Eval-only path — never
+// call from production translate code; the default Chat must keep Ollama's
+// sampling so real users see the model's natural behaviour.
+func (c *Client) ChatDeterministic(ctx context.Context, model, system, user string) (string, error) {
+	return c.chat(ctx, model, system, user, map[string]any{"temperature": 0})
+}
+
+func (c *Client) chat(ctx context.Context, model, system, user string, options map[string]any) (string, error) {
 	body, err := json.Marshal(chatRequest{
 		Model:  model,
 		Format: "json",
@@ -86,6 +99,7 @@ func (c *Client) Chat(ctx context.Context, model, system, user string) (string, 
 			{Role: "system", Content: system},
 			{Role: "user", Content: user},
 		},
+		Options: options,
 	})
 	if err != nil {
 		return "", fmt.Errorf("uiadapter: marshal chat body: %w", err)

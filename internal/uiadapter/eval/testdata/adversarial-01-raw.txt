@@ -1,0 +1,11 @@
+Check out this reference: https://example.com/spec/v1
+
+Here's the relevant snippet inline:
+
+```go
+func Validate(ast *UIAST) error {
+    return nil
+}
+```
+
+Should I proceed with the stricter validator rules (yes/no)?

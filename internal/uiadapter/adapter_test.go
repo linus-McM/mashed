@@ -346,6 +346,47 @@ func TestU2_AC9_Adapter_DisabledNoHTTPCall(t *testing.T) {
 		"disabled adapter must NOT reach the HTTP client even once")
 }
 
+// TestAdapter_DeterministicRoutesThroughChatDeterministic — Config.Deterministic
+// must route Translate through ChatDeterministic (options.temperature=0 in the
+// request body); when false, options must be omitted so production keeps
+// Ollama's natural sampling.
+func TestAdapter_DeterministicRoutesThroughChatDeterministic(t *testing.T) {
+	cases := []struct {
+		name          string
+		deterministic bool
+		wantTempZero  bool
+	}{
+		{name: "deterministic on pins temperature 0", deterministic: true, wantTempZero: true},
+		{name: "deterministic off omits options", deterministic: false, wantTempZero: false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var gotBody map[string]any
+			newOllamaStub(t, func(w http.ResponseWriter, r *http.Request) {
+				require.NoError(t, json.NewDecoder(r.Body).Decode(&gotBody))
+				_, _ = w.Write([]byte(ollamaChatPayload(validASTJSON)))
+			})
+
+			cfg := enabledConfig(500)
+			cfg.Deterministic = tc.deterministic
+			a := NewDefault(cfg, discardLogger)
+			ast := a.Translate(context.Background(), "raw", "proc")
+			require.NotNil(t, ast)
+
+			opts, hasOpts := gotBody["options"].(map[string]any)
+			if tc.wantTempZero {
+				require.True(t, hasOpts, "deterministic=true must include options.temperature")
+				assert.Equal(t, float64(0), opts["temperature"],
+					"deterministic=true must pin temperature to 0")
+			} else {
+				_, hasTemp := opts["temperature"]
+				assert.False(t, hasOpts && hasTemp,
+					"deterministic=false must omit options.temperature so Ollama uses natural sampling")
+			}
+		})
+	}
+}
+
 // TestU2_AC9_Adapter_UnreachableNotAutoDisabled — §11 Q6: enabled flags TRUE
 // with a closed socket yields fallback:unreachable, NOT fallback:disabled.
 // Unreachable Ollama never silently auto-flips the config.

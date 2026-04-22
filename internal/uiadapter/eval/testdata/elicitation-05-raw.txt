@@ -1,0 +1,3 @@
+Approve the refined draft and move on?
+
+The elicitation pass has applied your chosen lenses. Confirm to advance, or reject to queue another round.
