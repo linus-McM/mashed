@@ -62,6 +62,10 @@ export interface Diagnostics {
 
 export interface UIAST {
   version: '1';
+  generated_by?: string;
+  generated_at?: number;
+  turn_summary?: string;
+  fallback_answer_shape?: string;
   nodes: UINode[];
   diagnostics?: Diagnostics;
 }

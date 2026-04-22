@@ -12,7 +12,12 @@
     parseStructuredAst,
     pushToast,
   } from '../../stores/interactiveInput';
-  import { uiAdapterUntrustedExpanded } from '../../lib/stores/uiAdapterSettings';
+  import {
+    uiAdapterUntrustedExpanded,
+    ollamaReachable,
+    uiAdapterEnabled,
+    ollamaEnabled,
+  } from '../../lib/stores/uiAdapterSettings';
   import FreeTextWidget from './inputWidgets/FreeTextWidget.svelte';
   import ChoiceWidget from './inputWidgets/ChoiceWidget.svelte';
   import MultiChoiceWidget from './inputWidgets/MultiChoiceWidget.svelte';
@@ -26,6 +31,8 @@
   import RawViewToggle from './RawViewToggle.svelte';
   import { makeAstResponses } from '../../stores/astResponses';
   import { EventsOn } from '../../../wailsjs/runtime/runtime.js';
+  import { errorMessage } from '../../lib/errorMessage';
+  import { normaliseInteractiveTurn } from '../../types/transcript';
 
   // Keep value in sync with style.css `--duration-medium` — the Svelte
   // transition API takes a number, not a CSS variable.
@@ -42,6 +49,7 @@
   export let execId = '';
   export let repoName = '';
 
+  /** @type {import('svelte').EventDispatcher<{ responded: { nodeId: string; inputId: string }; close: void }>} */
   const dispatch = createEventDispatcher();
 
   /** @type {HTMLDivElement | null} */
@@ -84,6 +92,14 @@
   // store adds a tick of lag that hid the Send button in synchronous tests.
   $: parsedAst = parseStructuredAst(prompt?.structured);
   $: diagnostics = parsedAst?.diagnostics ?? null;
+  $: generatedBy = parsedAst?.generated_by ?? '';
+  $: isFallback = typeof generatedBy === 'string' && generatedBy.startsWith('fallback:');
+  $: rawAutoExpand =
+    diagnostics?.untrusted === true ||
+    (diagnostics?.fallback_reasons?.length ?? 0) > 0 ||
+    isFallback;
+  $: showOllamaOffline =
+    $uiAdapterEnabled && $ollamaEnabled && $ollamaReachable === false;
   $: decisionGroups = parsedAst?.nodes.filter((n) => n.type === 'decision_group') ?? [];
   $: requiredGroupKeys = decisionGroups
     .filter((g) => g.required && !!g.response_key)
@@ -160,14 +176,14 @@
       await RespondToInput(eid, prompt.nodeId, prompt.inputId, value);
       dispatch('responded', { nodeId: prompt.nodeId, inputId: prompt.inputId });
     } catch (err) {
-      lastError = err instanceof Error ? err.message : String(err);
+      lastError = errorMessage(err);
       triggerShake();
     } finally {
       sending = false;
     }
   }
 
-  /** @type {import('./TranscriptPane.svelte').Turn[]} */
+  /** @type {import('../../types/transcript').Turn[]} */
   let transcript = [];
   let transcriptLoading = false;
   let transcriptError = '';
@@ -182,9 +198,9 @@
     transcriptError = '';
     try {
       const turns = await GetInteractiveTranscript(eid, prompt.nodeId);
-      transcript = Array.isArray(turns) ? turns : [];
+      transcript = Array.isArray(turns) ? turns.map(normaliseInteractiveTurn) : [];
     } catch (err) {
-      transcriptError = err instanceof Error ? err.message : String(err);
+      transcriptError = errorMessage(err);
     } finally {
       transcriptLoading = false;
     }
@@ -237,7 +253,7 @@
       dispatch('responded', { nodeId: prompt.nodeId, inputId: prompt.inputId });
       // Backend will emit input_resolved which closes via the store.
     } catch (err) {
-      lastError = err instanceof Error ? err.message : String(err);
+      lastError = errorMessage(err);
       triggerShake();
     } finally {
       sending = false;
@@ -364,11 +380,16 @@
               </div>
             {/each}
           </div>
-          <DiagnosticsChip {diagnostics} />
+          <DiagnosticsChip {diagnostics} {generatedBy} />
+          {#if showOllamaOffline}
+            <div class="ollama-offline-notice" role="status" data-testid="ollama-offline-notice">
+              Ollama not reachable at localhost:11434 — structured UI is rendered from fallback path.
+            </div>
+          {/if}
           <RawViewToggle
             raw={prompt.lastOutput ?? ''}
-            triggered={diagnostics?.untrusted === true}
-            expandedByDefault={$uiAdapterUntrustedExpanded}
+            triggered={rawAutoExpand}
+            expandedByDefault={$uiAdapterUntrustedExpanded || isFallback}
           />
         {/if}
 
@@ -688,5 +709,16 @@
     60% { transform: translateX(-4px); }
     80% { transform: translateX(4px); }
     100% { transform: translateX(0); }
+  }
+
+  .ollama-offline-notice {
+    margin-top: var(--sp-xs);
+    padding: var(--sp-xs) var(--sp-sm);
+    border: 1px solid color-mix(in srgb, var(--accent-amber) 30%, transparent);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--accent-amber) 10%, transparent);
+    color: var(--accent-amber);
+    font-family: var(--font-mono);
+    font-size: var(--text-body);
   }
 </style>
