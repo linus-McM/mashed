@@ -1,47 +1,47 @@
 /**
  * @vitest-environment jsdom
  */
-// Story breadcrumbs-08 RED tests for MultiFileLoaderNode.svelte.
-// The component does NOT exist yet — these tests must fail on import
-// until the GREEN phase ships frontend/src/components/bmad/MultiFileLoaderNode.svelte.
+// Story breadcrumbs-08 tests for MultiFileLoaderNode.svelte.
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-vi.mock('@xyflow/svelte', () => ({
-  Handle: class {
-    $$ = {
-      fragment: { c() {}, m() {}, p() {}, d() {}, l() {} },
-      on_mount: [],
-      on_destroy: [],
-      after_update: [],
-    };
-    constructor(_opts) {}
-    $set(_props) {}
-    $destroy() {
-      this.$$.fragment = null;
-      this.$$.on_destroy = [];
-    }
-    $on(_event, _fn) {
-      return () => {};
-    }
-  },
-  Position: { Left: 'left', Right: 'right', Top: 'top', Bottom: 'bottom' },
-}));
+import type { CanvasNodeData } from '../../../types/workflow';
+import { mountComponent, type MountedComponent } from './mountSvelte';
+
+// `vi.mock` factory is hoisted but may await a dynamic import — keeps the
+// xyflow stub centralised in `mountSvelte.ts`.
+vi.mock('@xyflow/svelte', async () => (await import('./mountSvelte')).xyflowHandleStub());
 
 import MultiFileLoaderNode from '../MultiFileLoaderNode.svelte';
 
-const EM_DASH = '\u2014';
+const EM_DASH = '—';
 
-function mountNode(container, props) {
-  return new MultiFileLoaderNode({ target: container, props });
+interface Entry {
+  label: string;
+  path: string;
 }
 
-function makeProps(entries, overrides = {}) {
+interface MultiFileLoaderProps {
+  data: CanvasNodeData;
+  id: string;
+  selected: boolean;
+}
+
+interface MultiFileLoaderOverrides {
+  status?: string;
+}
+
+function makeProps(
+  entries: Entry[] | string | undefined,
+  overrides: MultiFileLoaderOverrides = {},
+): MultiFileLoaderProps {
   return {
     data: {
       label: 'Multi File Loader',
       nodeType: 'multiFileLoader',
-      config: { entries: typeof entries === 'string' ? entries : JSON.stringify(entries ?? []) },
+      config: {
+        entries: typeof entries === 'string' ? entries : JSON.stringify(entries ?? []),
+      },
       status: overrides.status ?? 'pending',
     },
     id: 'mfl-1',
@@ -50,8 +50,8 @@ function makeProps(entries, overrides = {}) {
 }
 
 describe('MultiFileLoaderNode — breadcrumb rendering (breadcrumbs-08)', () => {
-  let container;
-  let node = null;
+  let container: HTMLDivElement;
+  let node: MountedComponent | null = null;
 
   beforeEach(() => {
     container = document.createElement('div');
@@ -67,7 +67,8 @@ describe('MultiFileLoaderNode — breadcrumb rendering (breadcrumbs-08)', () => 
   // AC-3a: two configured entries → exactly two breadcrumb rows with the
   // correct prefix labels (story example: brief + file[1]).
   it('TestStory8_AC3a_TwoEntries_TwoBreadcrumbsWithPrefixLabels', () => {
-    node = mountNode(
+    node = mountComponent(
+      MultiFileLoaderNode,
       container,
       makeProps([
         { label: 'brief', path: '/x/a.md' },
@@ -85,7 +86,8 @@ describe('MultiFileLoaderNode — breadcrumb rendering (breadcrumbs-08)', () => 
 
   // AC-3b: each row text is .../basename and title is the absolute path.
   it('TestStory8_AC3b_BreadcrumbBasename_AndTitleAbsolute', () => {
-    node = mountNode(
+    node = mountComponent(
+      MultiFileLoaderNode,
       container,
       makeProps([
         { label: 'brief', path: '/x/a.md' },
@@ -93,7 +95,7 @@ describe('MultiFileLoaderNode — breadcrumb rendering (breadcrumbs-08)', () => 
       ]),
     );
 
-    const rows = Array.from(container.querySelectorAll('.breadcrumb-row'));
+    const rows = Array.from(container.querySelectorAll<HTMLElement>('.breadcrumb-row'));
     const aRow = rows.find((el) => el.textContent?.includes('.../a.md'));
     const bRow = rows.find((el) => el.textContent?.includes('.../b.md'));
 
@@ -105,7 +107,7 @@ describe('MultiFileLoaderNode — breadcrumb rendering (breadcrumbs-08)', () => 
 
   // AC-3c: empty entries list → ghost row with em-dash + "(no files)" hint.
   it('TestStory8_AC3c_NoEntries_RendersGhostPlaceholder', () => {
-    node = mountNode(container, makeProps([]));
+    node = mountComponent(MultiFileLoaderNode, container, makeProps([]));
 
     const ghost = container.querySelector('.path-list .empty-state');
     expect(ghost, '.path-list .empty-state must render when zero entries').not.toBeNull();
@@ -115,7 +117,8 @@ describe('MultiFileLoaderNode — breadcrumb rendering (breadcrumbs-08)', () => 
 
   // AC-3d: footer shows count badge "N files".
   it('TestStory8_AC3d_FooterCountBadge_NFiles', () => {
-    node = mountNode(
+    node = mountComponent(
+      MultiFileLoaderNode,
       container,
       makeProps([
         { label: 'a', path: '/x/1' },
@@ -133,7 +136,7 @@ describe('MultiFileLoaderNode — breadcrumb rendering (breadcrumbs-08)', () => 
   // state. The constructor itself succeeds because parseEntries guards.
   it('TestStory8_AC3e_MalformedEntriesJSON_FallsBackToEmpty', () => {
     expect(() => {
-      node = mountNode(container, makeProps('not-json'));
+      node = mountComponent(MultiFileLoaderNode, container, makeProps('not-json'));
     }).not.toThrow();
     const ghost = container.querySelector('.path-list .empty-state');
     expect(ghost, 'malformed JSON must fall back to ghost state').not.toBeNull();
@@ -142,7 +145,8 @@ describe('MultiFileLoaderNode — breadcrumb rendering (breadcrumbs-08)', () => 
   // AC-3f: positional fallback applies only when label is empty string.
   // A non-empty label (even whitespace) wins over file[N].
   it('TestStory8_AC3f_NonEmptyLabel_BeatsPositionalFallback', () => {
-    node = mountNode(
+    node = mountComponent(
+      MultiFileLoaderNode,
       container,
       makeProps([
         { label: '', path: '/x/a' }, // file[0]
@@ -161,7 +165,7 @@ describe('MultiFileLoaderNode — breadcrumb rendering (breadcrumbs-08)', () => 
   // Class parity: the breadcrumb class is `.breadcrumb-row` (shared, no
   // divergent .multifile-breadcrumb-row).
   it('TestStory8_BreadcrumbRowClass_NoDivergence', () => {
-    node = mountNode(container, makeProps([{ label: 'a', path: '/x' }]));
+    node = mountComponent(MultiFileLoaderNode, container, makeProps([{ label: 'a', path: '/x' }]));
     expect(container.querySelector('.breadcrumb-row')).not.toBeNull();
     expect(container.querySelector('.multifile-breadcrumb-row')).toBeNull();
   });

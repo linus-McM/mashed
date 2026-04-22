@@ -1,48 +1,53 @@
 /**
  * @vitest-environment jsdom
  */
-// frontend/src/components/bmad/__tests__/ProcessNode.multiInput.test.js
 // Story breadcrumbs-04: Multi-input breadcrumb rendering
-// Task 2 RED phase: one .breadcrumb-row per declared input/output
+// One .breadcrumb-row per declared input/output.
 //
-// RED Phase: These tests MUST FAIL until the ui-engineer replaces the single
-// .breadcrumb-row block in ProcessNode.svelte with an {#each} loop that emits
-// one row per symbolic input (and mirrors for outputs).
-//
-// Mock pattern mirrors frontend/src/components/bmad/__tests__/CommandNode.breadcrumb.test.js.
+// Mock pattern mirrors ProcessNode.status.test.ts.
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-// Stub @xyflow/svelte so mount works without <SvelteFlowProvider />.
-vi.mock('@xyflow/svelte', () => ({
-  Handle: class {
-    $$ = {
-      fragment: { c() {}, m() {}, p() {}, d() {}, l() {} },
-      on_mount: [],
-      on_destroy: [],
-      after_update: [],
-    };
-    constructor(_opts) {}
-    $set(_props) {}
-    $destroy() { this.$$.fragment = null; this.$$.on_destroy = []; }
-    $on(_event, _fn) { return () => {}; }
-  },
-  Position: { Left: 'left', Right: 'right', Top: 'top', Bottom: 'bottom' },
-}));
+import { mountComponent, type MountedComponent } from './mountSvelte';
+
+// `vi.mock` factory is hoisted but may await a dynamic import — keeps the
+// xyflow stub centralised in `mountSvelte.ts`.
+vi.mock('@xyflow/svelte', async () => (await import('./mountSvelte')).xyflowHandleStub());
 
 import ProcessNode from '../ProcessNode.svelte';
 
-const EM_DASH = '\u2014';
+const EM_DASH = '—';
 
-function mountProcessNode(container, props) {
-  return new ProcessNode({ target: container, props });
+// Test-local subset — see ProcessNode.status.test.ts for rationale.
+interface TestProcess {
+  name?: string;
+  phase?: string;
+  agentRole?: string;
+  inputs?: string[];
+  outputs?: string[];
 }
 
-/**
- * Build props for ProcessNode:
- * @param {{inputs?:string[], outputs?:string[], config?:object, status?:string}} o
- */
-function makeProps(o = {}) {
+interface TestNodeData {
+  process?: TestProcess | null;
+  config?: Record<string, unknown>;
+  status?: string;
+  label?: string;
+}
+
+interface ProcessNodeProps {
+  data: TestNodeData;
+  id: string;
+  selected: boolean;
+}
+
+interface MultiInputOverrides {
+  inputs?: string[];
+  outputs?: string[];
+  config?: Record<string, unknown>;
+  status?: string;
+}
+
+function makeProps(o: MultiInputOverrides = {}): ProcessNodeProps {
   return {
     data: {
       process: {
@@ -62,13 +67,13 @@ function makeProps(o = {}) {
 }
 
 /** Collect breadcrumb rows belonging to the IN group (positioned before any OUT row). */
-function collectBreadcrumbRows(container) {
-  return Array.from(container.querySelectorAll('.breadcrumb-row'));
+function collectBreadcrumbRows(container: HTMLElement): HTMLElement[] {
+  return Array.from(container.querySelectorAll<HTMLElement>('.breadcrumb-row'));
 }
 
 describe('ProcessNode — multi-input breadcrumb rendering (breadcrumbs-04)', () => {
-  let container;
-  let node = null;
+  let container: HTMLDivElement;
+  let node: MountedComponent | null = null;
 
   beforeEach(() => {
     container = document.createElement('div');
@@ -83,7 +88,8 @@ describe('ProcessNode — multi-input breadcrumb rendering (breadcrumbs-04)', ()
 
   // AC-1 + AC-2: two symbolic inputs → two IN breadcrumb rows in declared order
   it('TestStory4_AC1_TwoInputs_RendersTwoBreadcrumbRows_InDeclaredOrder', () => {
-    node = mountProcessNode(
+    node = mountComponent(
+      ProcessNode,
       container,
       makeProps({
         inputs: ['prd', 'sprint-status'],
@@ -112,7 +118,8 @@ describe('ProcessNode — multi-input breadcrumb rendering (breadcrumbs-04)', ()
 
   // AC-2 partial mapping: unmapped input renders em-dash
   it('TestStory4_AC2_PartialMapping_ShowsEmDashForUnmapped', () => {
-    node = mountProcessNode(
+    node = mountComponent(
+      ProcessNode,
       container,
       makeProps({
         inputs: ['prd', 'sprint-status'],
@@ -128,7 +135,8 @@ describe('ProcessNode — multi-input breadcrumb rendering (breadcrumbs-04)', ()
 
   // AC-3: legacy fallback — single input + legacy config.inputPath (no map)
   it('TestStory4_AC3_LegacyFallback_SingleInput_UsesInputPath', () => {
-    node = mountProcessNode(
+    node = mountComponent(
+      ProcessNode,
       container,
       makeProps({
         inputs: ['brainstorm-notes'],
@@ -146,7 +154,8 @@ describe('ProcessNode — multi-input breadcrumb rendering (breadcrumbs-04)', ()
   // AC-4: title attribute holds full absolute path (not basename)
   it('TestStory4_AC4_TitleAttribute_HoldsFullPath', () => {
     const fullPath = '/long/nested/dir/file.md';
-    node = mountProcessNode(
+    node = mountComponent(
+      ProcessNode,
       container,
       makeProps({
         inputs: ['doc'],
@@ -156,15 +165,13 @@ describe('ProcessNode — multi-input breadcrumb rendering (breadcrumbs-04)', ()
 
     const rows = collectBreadcrumbRows(container);
     const match = rows.find((r) => r.getAttribute('title') === fullPath);
-    expect(
-      match,
-      'a .breadcrumb-row must carry title={fullPath} for the doc input',
-    ).toBeDefined();
+    expect(match, 'a .breadcrumb-row must carry title={fullPath} for the doc input').toBeDefined();
   });
 
   // AC-1 mirror: outputs render one row per declared output, in order
   it('TestStory4_AC1_OutputsMirrorInputs', () => {
-    node = mountProcessNode(
+    node = mountComponent(
+      ProcessNode,
       container,
       makeProps({
         outputs: ['draft', 'final'],
@@ -189,7 +196,8 @@ describe('ProcessNode — multi-input breadcrumb rendering (breadcrumbs-04)', ()
 
   // AC-1 edge: zero inputs → zero IN breadcrumb rows
   it('TestStory4_AC1_ZeroInputs_RendersNoInBreadcrumbRows', () => {
-    node = mountProcessNode(
+    node = mountComponent(
+      ProcessNode,
       container,
       makeProps({
         inputs: [],
@@ -203,8 +211,6 @@ describe('ProcessNode — multi-input breadcrumb rendering (breadcrumbs-04)', ()
     const rows = collectBreadcrumbRows(container);
     const draftMatches = rows.filter((r) => r.textContent?.trim() === '.../d.md');
     expect(draftMatches.length, 'OUT row must still render').toBeGreaterThanOrEqual(1);
-    expect(rows.length, 'with zero inputs, only OUT breadcrumbs exist').toBe(
-      draftMatches.length,
-    );
+    expect(rows.length, 'with zero inputs, only OUT breadcrumbs exist').toBe(draftMatches.length);
   });
 });

@@ -10,7 +10,10 @@ import type { Diagnostics } from '../../../types/uiAst';
 import { makeMount } from './mountSvelte';
 
 const mount = makeMount();
-const render = (diagnostics: Diagnostics | null) => mount(DiagnosticsChip, { diagnostics });
+const render = (
+  diagnostics: Diagnostics | null,
+  generatedBy: string | undefined = undefined,
+) => mount(DiagnosticsChip, { diagnostics, generatedBy });
 
 const findUntrusted = (el: HTMLElement) =>
   Array.from(el.querySelectorAll<HTMLElement>('.chip')).find(
@@ -95,6 +98,34 @@ describe('DiagnosticsChip', () => {
       // The 9th reason is NOT listed verbatim — it's folded into "+1 more".
       expect(title).not.toContain('reason_9');
       expect(title).toMatch(/\+\s*1\s*more/i);
+    });
+  });
+
+  describe('generated-by chip (always-on signal)', () => {
+    const findSuccess = (el: HTMLElement) =>
+      el.querySelector<HTMLElement>('.chip.success');
+    const findFallback = (el: HTMLElement) =>
+      Array.from(el.querySelectorAll<HTMLElement>('.chip.warn')).find((c) =>
+        /^Fallback/.test(c.textContent?.trim() ?? ''),
+      );
+
+    it('renders a green Ollama chip when generatedBy starts with "ollama:"', () => {
+      const el = render(null, 'ollama:gemma3:4b');
+      const chip = findSuccess(el);
+      expect(chip, 'success chip must render for ollama: prefix').toBeTruthy();
+      expect(chip!.textContent).toContain('gemma3:4b');
+    });
+
+    it('renders an amber Fallback chip with the reason when generatedBy starts with "fallback:"', () => {
+      const el = render(null, 'fallback:unreachable');
+      const chip = findFallback(el);
+      expect(chip, 'fallback chip must render for fallback: prefix').toBeTruthy();
+      expect(chip!.textContent).toContain('unreachable');
+    });
+
+    it('renders nothing when generatedBy is undefined and diagnostics are clean', () => {
+      const el = render({ untrusted: false, fallback_reasons: [] }, undefined);
+      expect(el.querySelector('.chip')).toBeNull();
     });
   });
 });

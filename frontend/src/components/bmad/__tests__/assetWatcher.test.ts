@@ -7,16 +7,25 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+/** Fetcher signature — matches the WorkflowBuilder.refetchMashedAssets shape. */
+type Fetcher<T = unknown> = () => Promise<T>;
+
+interface InflightGuard {
+  trigger(): Promise<void>;
+  readonly fetching: boolean;
+  readonly fetchCount: number;
+}
+
 /**
  * Minimal in-flight guard matching the pattern in WorkflowBuilder.svelte.
  * Accepts a fetcher function and returns a trigger + inspection helpers.
  */
-function createInflightGuard(fetcher) {
+function createInflightGuard<T>(fetcher: Fetcher<T>): InflightGuard {
   let fetching = false;
   let dirty = false;
   let fetchCount = 0;
 
-  async function trigger() {
+  async function trigger(): Promise<void> {
     if (fetching) {
       dirty = true;
       return;
@@ -30,26 +39,35 @@ function createInflightGuard(fetcher) {
       if (dirty) {
         dirty = false;
         // Fire-and-forget — matches WorkflowBuilder's refetchMashedAssets
-        trigger();
+        void trigger();
       }
     }
   }
 
   return {
     trigger,
-    get fetching() { return fetching; },
-    get fetchCount() { return fetchCount; },
+    get fetching() {
+      return fetching;
+    },
+    get fetchCount() {
+      return fetchCount;
+    },
   };
 }
 
 describe('In-flight guard (AC-4: concurrent event coalescing)', () => {
-  let resolvers;
-  let fetcher;
-  let guard;
+  let resolvers: Array<(value?: void) => void>;
+  let fetcher: ReturnType<typeof vi.fn<[], Promise<void>>>;
+  let guard: InflightGuard;
 
   beforeEach(() => {
     resolvers = [];
-    fetcher = vi.fn(() => new Promise((resolve) => { resolvers.push(resolve); }));
+    fetcher = vi.fn<[], Promise<void>>(
+      () =>
+        new Promise<void>((resolve) => {
+          resolvers.push(resolve);
+        }),
+    );
     guard = createInflightGuard(fetcher);
   });
 
@@ -67,7 +85,7 @@ describe('In-flight guard (AC-4: concurrent event coalescing)', () => {
     expect(guard.fetching).toBe(true);
 
     // Trigger again while first is in flight — should NOT start a new fetch
-    const p2 = guard.trigger();
+    void guard.trigger();
     expect(fetcher).toHaveBeenCalledTimes(1);
 
     // Resolve the first fetch — guard should auto-trigger a second
@@ -78,7 +96,7 @@ describe('In-flight guard (AC-4: concurrent event coalescing)', () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
     resolvers[1]();
     // Allow microtask queue to flush
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise<void>((r) => setTimeout(r, 0));
     expect(guard.fetchCount).toBe(2);
   });
 
@@ -86,11 +104,11 @@ describe('In-flight guard (AC-4: concurrent event coalescing)', () => {
     const p1 = guard.trigger();
 
     // Fire 5 more events while fetch is in flight
-    guard.trigger();
-    guard.trigger();
-    guard.trigger();
-    guard.trigger();
-    guard.trigger();
+    void guard.trigger();
+    void guard.trigger();
+    void guard.trigger();
+    void guard.trigger();
+    void guard.trigger();
 
     // Only 1 fetch should be running
     expect(fetcher).toHaveBeenCalledTimes(1);
@@ -102,12 +120,13 @@ describe('In-flight guard (AC-4: concurrent event coalescing)', () => {
 
     // Resolve the coalesced fetch
     resolvers[1]();
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise<void>((r) => setTimeout(r, 0));
     expect(guard.fetchCount).toBe(2);
   });
 
   it('preserves previous value on fetch error (AC-3 pattern)', async () => {
-    const errorFetcher = vi.fn()
+    const errorFetcher = vi
+      .fn<[], Promise<string>>()
       .mockRejectedValueOnce(new Error('network'))
       .mockResolvedValueOnce('ok');
 
@@ -126,11 +145,14 @@ describe('In-flight guard (AC-4: concurrent event coalescing)', () => {
 describe('Event cleanup pattern (AC-5)', () => {
   it('EventsOn returns a cancel function that removes the listener', () => {
     // Simulates the Wails EventsOn/EventsOff contract
-    const listeners = new Map();
+    type Handler = (...args: unknown[]) => void;
+    const listeners = new Map<string, Handler>();
 
-    function EventsOn(name, cb) {
+    function EventsOn(name: string, cb: Handler): () => void {
       listeners.set(name, cb);
-      return () => { listeners.delete(name); };
+      return () => {
+        listeners.delete(name);
+      };
     }
 
     const handler = vi.fn();

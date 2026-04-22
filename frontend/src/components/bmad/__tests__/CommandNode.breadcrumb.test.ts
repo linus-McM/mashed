@@ -1,47 +1,41 @@
 /**
  * @vitest-environment jsdom
  */
-// frontend/src/components/bmad/__tests__/CommandNode.breadcrumb.test.js
 // Story breadcrumbs-03: Breadcrumb row on CommandNode
-// Task RED phase: Failing tests for .breadcrumb-row rendering (AC-1, AC-2)
+// Covers AC-1 (IN) / AC-2 (OUT + em-dash unresolved) + regression class parity.
 //
-// RED Phase: These tests MUST FAIL until the ui-engineer adds .breadcrumb-row
-// markup to CommandNode.svelte — those elements do not exist yet.
-//
-// Note: @testing-library/svelte is not installed. Using the Svelte 4 component
-// constructor API directly. vitest.config.js provides jsdom + @sveltejs/vite-plugin-svelte.
+// @testing-library/svelte is not a project dep — we use the Svelte 4
+// component constructor via the typed `mountComponent` helper.
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-// Mock @xyflow/svelte Handle — requires <SvelteFlowProvider /> context at runtime
-// which is unavailable in unit tests. Only the three fields Svelte 4's
-// mount_component/destroy_component actually read are provided.
-vi.mock('@xyflow/svelte', () => ({
-  Handle: class {
-    $$ = {
-      fragment: { c() {}, m() {}, p() {}, d() {}, l() {} },
-      on_mount: [],
-      on_destroy: [],
-      after_update: [],
-    };
-    constructor(_opts) {}
-    $set(_props) {}
-    $destroy() { this.$$.fragment = null; this.$$.on_destroy = []; }
-    $on(_event, _fn) { return () => {}; }
-  },
-  Position: { Left: 'left', Right: 'right', Top: 'top', Bottom: 'bottom' },
-}));
+import type { CanvasNodeData } from '../../../types/workflow';
+import { mountComponent, type MountedComponent } from './mountSvelte';
+
+// Stub `@xyflow/svelte` — `<Handle>` requires a `<SvelteFlowProvider />` at
+// runtime. `vi.mock` factory is hoisted but may await a dynamic import, so
+// the stub stays centralised in `mountSvelte.ts`.
+vi.mock('@xyflow/svelte', async () => (await import('./mountSvelte')).xyflowHandleStub());
 
 import CommandNode from '../CommandNode.svelte';
 
-const EM_DASH = '\u2014';
+const EM_DASH = '—';
 
-function mountCommandNode(container, props) {
-  return new CommandNode({ target: container, props });
+interface CommandNodeProps {
+  data: CanvasNodeData;
+  id: string;
+  selected: boolean;
 }
 
-/** Minimal valid props shape — preserves data.config structure CommandNode reads */
-function makeNodeProps(overrides = {}) {
+interface BreadcrumbOverrides {
+  inputPath?: string;
+  outputPath?: string;
+  status?: string;
+  config?: Record<string, unknown>;
+}
+
+/** Minimal valid props shape — preserves data.config structure CommandNode reads. */
+function makeNodeProps(overrides: BreadcrumbOverrides = {}): CommandNodeProps {
   return {
     data: {
       config: {
@@ -60,8 +54,8 @@ function makeNodeProps(overrides = {}) {
 }
 
 describe('CommandNode — breadcrumb row (breadcrumbs-03)', () => {
-  let container;
-  let node = null;
+  let container: HTMLDivElement;
+  let node: MountedComponent | null = null;
 
   beforeEach(() => {
     container = document.createElement('div');
@@ -77,23 +71,21 @@ describe('CommandNode — breadcrumb row (breadcrumbs-03)', () => {
   // AC-1 + AC-2: Resolved outputPath renders .../basename with full title
   it('TestStory3_AC2_ResolvedOutputPath_ShowsBasename', () => {
     const outputPath = '/Users/x/notes/brief.md';
-    node = mountCommandNode(container, makeNodeProps({ outputPath }));
+    node = mountComponent(CommandNode, container, makeNodeProps({ outputPath }));
 
-    const rows = container.querySelectorAll('.breadcrumb-row');
+    const rows = container.querySelectorAll<HTMLElement>('.breadcrumb-row');
     expect(rows.length, '.breadcrumb-row must exist when outputPath is set').toBeGreaterThan(0);
 
-    const outRow = Array.from(rows).find(
-      (el) => el.textContent?.trim() === '.../brief.md',
-    );
+    const outRow = Array.from(rows).find((el) => el.textContent?.trim() === '.../brief.md');
     expect(outRow, 'OUT breadcrumb text must be .../brief.md').not.toBeUndefined();
     expect(outRow?.getAttribute('title')).toBe(outputPath);
   });
 
   // AC-2: Empty/missing outputPath renders em-dash with .unresolved class and title="unresolved"
   it('TestStory3_AC2_EmptyOutputPath_RendersEmDash', () => {
-    node = mountCommandNode(container, makeNodeProps({ outputPath: '' }));
+    node = mountComponent(CommandNode, container, makeNodeProps({ outputPath: '' }));
 
-    const unresolvedRow = container.querySelector('.breadcrumb-row.unresolved');
+    const unresolvedRow = container.querySelector<HTMLElement>('.breadcrumb-row.unresolved');
     expect(
       unresolvedRow,
       '.breadcrumb-row.unresolved must exist when outputPath is empty',
@@ -105,14 +97,12 @@ describe('CommandNode — breadcrumb row (breadcrumbs-03)', () => {
   // AC-1: Resolved inputPath renders .../basename breadcrumb row
   it('TestStory3_AC1_ResolvedInputPath_ShowsBasename', () => {
     const inputPath = '/a/b/c.txt';
-    node = mountCommandNode(container, makeNodeProps({ inputPath }));
+    node = mountComponent(CommandNode, container, makeNodeProps({ inputPath }));
 
-    const rows = container.querySelectorAll('.breadcrumb-row');
+    const rows = container.querySelectorAll<HTMLElement>('.breadcrumb-row');
     expect(rows.length, '.breadcrumb-row must exist when inputPath is set').toBeGreaterThan(0);
 
-    const inRow = Array.from(rows).find(
-      (el) => el.textContent?.trim() === '.../c.txt',
-    );
+    const inRow = Array.from(rows).find((el) => el.textContent?.trim() === '.../c.txt');
     expect(inRow, 'IN breadcrumb text must be .../c.txt').not.toBeUndefined();
     expect(inRow?.getAttribute('title')).toBe(inputPath);
   });
@@ -121,12 +111,18 @@ describe('CommandNode — breadcrumb row (breadcrumbs-03)', () => {
   // Parity contract: CommandNode must use the identical class as ProcessNode.
   it('TestStory3_Regression_BreadcrumbRowClass_NoDivergence', () => {
     const outputPath = '/some/path/output.md';
-    node = mountCommandNode(container, makeNodeProps({ outputPath }));
+    node = mountComponent(CommandNode, container, makeNodeProps({ outputPath }));
 
     const withClass = container.querySelector('.breadcrumb-row');
     const withWrongClass = container.querySelector('.command-breadcrumb-row');
 
-    expect(withClass, '.breadcrumb-row must exist (shared class across all node types)').not.toBeNull();
-    expect(withWrongClass, '.command-breadcrumb-row must NOT exist — use shared .breadcrumb-row').toBeNull();
+    expect(
+      withClass,
+      '.breadcrumb-row must exist (shared class across all node types)',
+    ).not.toBeNull();
+    expect(
+      withWrongClass,
+      '.command-breadcrumb-row must NOT exist — use shared .breadcrumb-row',
+    ).toBeNull();
   });
 });

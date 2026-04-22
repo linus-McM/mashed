@@ -11,13 +11,36 @@
 import { describe, it, expect } from 'vitest';
 import { handleMashedAssetDrop } from '../canvasPaneDropHandler.js';
 
+import type { CanvasNode, Position } from '../../../types/workflow';
+
+/**
+ * Local mirror of the shape `handleMashedAssetDrop` emits. The JS source
+ * writes these fields verbatim; asserting against an interface keeps the
+ * contract visible here in TypeScript land.
+ */
+interface DroppedCommandNode extends CanvasNode {
+  id: string;
+  type: 'command';
+  position: Position;
+  data: {
+    label: string;
+    nodeType: 'command';
+    status: 'pending';
+    config: {
+      commandName: string;
+      commandPath: string;
+      commandDescription: string;
+    };
+  };
+}
+
 const COMMAND_NAME = 'simplify';
 const COMMAND_PATH = '/tmp/simplify.md';
 const COMMAND_DESCRIPTION = 'Review recent changes';
 
 describe('skills-cmd-02 AC-2: drop handler ignores skill payloads', () => {
   it('returns nodes unchanged when role === "skill"', () => {
-    const before = [
+    const before: CanvasNode[] = [
       { id: 'p-1', type: 'bmadProcess', position: { x: 0, y: 0 }, data: {} },
     ];
     const skillPayload = JSON.stringify({
@@ -34,19 +57,19 @@ describe('skills-cmd-02 AC-2: drop handler ignores skill payloads', () => {
       position: { x: 200, y: 100 },
       currentNodes: before,
       now: () => 1234567890,
-    });
+    }) as CanvasNode[];
 
     expect(after).toEqual(before);
   });
 
   it('returns nodes unchanged when JSON.parse fails (defensive guard)', () => {
-    const before = [];
+    const before: CanvasNode[] = [];
     const after = handleMashedAssetDrop({
       raw: '{not valid json',
       position: { x: 50, y: 50 },
       currentNodes: before,
       now: () => 1,
-    });
+    }) as CanvasNode[];
     expect(after).toEqual(before);
   });
 
@@ -63,9 +86,9 @@ describe('skills-cmd-02 AC-2: drop handler ignores skill payloads', () => {
     const after = handleMashedAssetDrop({
       raw: commandPayload,
       position: { x: 300, y: 200 },
-      currentNodes: [],
+      currentNodes: [] as CanvasNode[],
       now: () => 9876543210,
-    });
+    }) as DroppedCommandNode[];
 
     expect(after).toHaveLength(1);
     const node = after[0];
