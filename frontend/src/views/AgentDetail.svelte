@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus, RepoMtimes, KillTerminalSession, SpawnTerminal, SetActiveContext } from '../../wailsjs/go/main/App.js';
-  import { repoSessions, refreshSessions } from '../lib/stores/sessions.js';
+  import { repoSessions, refreshSessions } from '../lib/stores/sessions';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
   import { ArrowLeft, GitBranch, GripVertical, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, Download, GitMerge, AlertTriangle } from 'lucide-svelte';
   import StatusBadge from '../components/StatusBadge.svelte';

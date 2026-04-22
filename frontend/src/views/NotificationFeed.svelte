@@ -12,7 +12,7 @@
   import ForcePushModal from './ForcePushModal.svelte';
   import NewSessionModal from './NewSessionModal.svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
-  import { addSession, makeSession } from '../lib/stores/sessions.js';
+  import { addSession, makeSession } from '../lib/stores/sessions';
   import SparkLine from '../components/SparkLine.svelte';
 
   const dispatch = createEventDispatcher();

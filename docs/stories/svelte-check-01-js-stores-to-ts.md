@@ -4,7 +4,8 @@
 **Domain:** frontend
 **Estimated Complexity:** M
 **Depends On:** svelte-check-00
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-22
 
 ## Description
 
@@ -154,53 +155,53 @@ Feature: Unknown narrowing in deserialisation
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create shared type modules (AC: 3)
-  - [ ] Add `frontend/src/types/session.ts` — `Session`, `SessionState` (re-export from `$lib/types/wails` where possible)
-  - [ ] Add `frontend/src/types/workflow.ts` — `Workflow`, `WorkflowNode`, `WorkflowEdge`
-  - [ ] Add `frontend/src/types/theme.ts` — `Theme`, `MonacoThemeDef`
+- [x] Task 1: Create shared type modules (AC: 3)
+  - [x] Add `frontend/src/types/session.ts` — `Session`, `SessionState` (re-export from `$lib/types/wails` where possible)
+  - [x] Add `frontend/src/types/workflow.ts` — `Workflow`, `WorkflowNode`, `WorkflowEdge`
+  - [x] Add `frontend/src/types/theme.ts` — `Theme`, `MonacoThemeDef`
 
-- [ ] Task 2: Convert `themeConverter` (AC: 1, 2, 5)
-  - [ ] Rename `themeConverter.js` → `themeConverter.ts`, annotate signatures
-  - [ ] Rename `themeConverter.test.js` → `themeConverter.test.ts`, update imports
-  - [ ] Confirm `vitest run themeConverter` passes
+- [x] Task 2: Convert `themeConverter` (AC: 1, 2, 5)
+  - [x] Rename `themeConverter.js` → `themeConverter.ts`, annotate signatures
+  - [x] Rename `themeConverter.test.js` → `themeConverter.test.ts`, update imports
+  - [x] Confirm `vitest run themeConverter` passes
 
-- [ ] Task 3: Convert `workflowSerialisation` (AC: 1, 2, 5)
-  - [ ] Rename `workflowSerialisation.js` → `workflowSerialisation.ts`
-  - [ ] Type intermediate payloads as `unknown` + narrowing; reject malformed input explicitly
-  - [ ] Rename `__tests__/workflowSerialisation.test.js` → `.test.ts`, retype fixture helpers
+- [x] Task 3: Convert `workflowSerialisation` (AC: 1, 2, 5)
+  - [x] Rename `workflowSerialisation.js` → `workflowSerialisation.ts`
+  - [x] Type intermediate payloads as `unknown` + narrowing; reject malformed input explicitly
+  - [x] Rename `__tests__/workflowSerialisation.test.js` → `.test.ts`, retype fixture helpers
 
-- [ ] Task 4: Convert `sessions` store (AC: 1, 2)
-  - [ ] Rename `lib/stores/sessions.js` → `.ts` with `writable<Session[]>([])`
-  - [ ] Update all Svelte views that subscribe — most will work without change, but verify `App.svelte`, `NotificationFeed.svelte`, `AgentDetail.svelte`
+- [x] Task 4: Convert `sessions` store (AC: 1, 2)
+  - [x] Rename `lib/stores/sessions.js` → `.ts` with `writable<Session[]>([])`
+  - [x] Update all Svelte views that subscribe — most will work without change, but verify `App.svelte`, `NotificationFeed.svelte`, `AgentDetail.svelte`
 
-- [ ] Task 5: Convert `main.js` (AC: 1, 2)
-  - [ ] Rename `main.js` → `main.ts`
-  - [ ] Type Wails runtime event payloads via `$lib/types/wails`
-  - [ ] Update `index.html` script src if it references `main.js` explicitly (expected: `src/main.ts`)
+- [x] Task 5: Convert `main.js` (AC: 1, 2)
+  - [x] Rename `main.js` → `main.ts`
+  - [x] Type Wails runtime event payloads via `$lib/types/wails`
+  - [x] Update `index.html` script src if it references `main.js` explicitly (expected: `src/main.ts`)
 
-- [ ] Task 6: Verify cascade reduction (AC: 4)
-  - [ ] Run `just sveltecheck-count` — confirm <= 1340
-  - [ ] Run `just sveltecheck-by-file` — confirm the six renamed files each report 0 errors
-  - [ ] Record delta in commit body: `sveltecheck-count: 1520 → <N> (Δ -<M>)`
+- [x] Task 6: Verify cascade reduction (AC: 4)
+  - [x] Run `just sveltecheck-count` — confirm <= 1340
+  - [x] Run `just sveltecheck-by-file` — confirm the six renamed files each report 0 errors
+  - [x] Record delta in commit body: `sveltecheck-count: 1520 → <N> (Δ -<M>)`
 
-- [ ] Task 7: Verify regressions absent (AC: 5)
-  - [ ] `vitest run` — 696 tests pass
-  - [ ] `vite build` — clean
-  - [ ] `wails dev` smoke — app launches, sessions list renders, theme toggles work
+- [x] Task 7: Verify regressions absent (AC: 5)
+  - [x] `vitest run` — 696 tests pass
+  - [x] `vite build` — clean
+  - [x] `wails dev` smoke — app launches, sessions list renders, theme toggles work
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on modified files (existing tests suffice — do not add just-for-coverage tests)
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `just sveltecheck-count` <= 1340 (target 1320)
-- [ ] `just sveltecheck-ratchet` passes
-- [ ] `vitest run` — 696 tests pass
-- [ ] `vite build` clean
-- [ ] `/simplify` run on every modified file
-- [ ] Code review: no `any`, no `@ts-ignore`, no `@ts-nocheck`
-- [ ] PR size <= 400 lines (split into multiple PRs if needed — R4)
-- [ ] Commit body records: `sveltecheck-count: 1520 → <N> (Δ -<M>)`
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on modified files (existing tests suffice — do not add just-for-coverage tests)
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `just sveltecheck-count` <= 1340 (target 1320)
+- [x] `just sveltecheck-ratchet` passes
+- [x] `vitest run` — 696 tests pass
+- [x] `vite build` clean
+- [x] `/simplify` run on every modified file
+- [x] Code review: no `any`, no `@ts-ignore`, no `@ts-nocheck`
+- [x] PR size <= 400 lines (split into multiple PRs if needed — R4)
+- [x] Commit body records: `sveltecheck-count: 1520 → <N> (Δ -<M>)`

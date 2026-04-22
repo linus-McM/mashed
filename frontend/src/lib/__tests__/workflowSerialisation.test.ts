@@ -10,7 +10,7 @@
 //
 // The pure serialisation module was extracted from WorkflowBuilder.svelte
 // explicitly to make these assertions testable without mounting the Svelte
-// component. See workflowSerialisation.js for the extraction rationale.
+// component. See workflowSerialisation.ts for the extraction rationale.
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -18,13 +18,17 @@ import {
   canvasNodesToWorkflowNodes,
   workflowNodesToCanvasNodes,
   workflowEdgesToCanvasEdges,
-} from '../workflowSerialisation.js';
+  serialise,
+  deserialise,
+  type SavedWorkflowNode,
+} from '../workflowSerialisation';
+import type { CanvasEdge, CanvasNode, Workflow } from '../../types/workflow';
 
 /** Build a realistic mixed canvas with one process node, one command node,
  *  and a single edge wiring them together. Matches the shape WorkflowBuilder
  *  produces after a process drop + a command drop + a manual connect. */
-function makeMixedCanvas() {
-  const processNode = {
+function makeMixedCanvas(): { nodes: CanvasNode[]; edges: CanvasEdge[] } {
+  const processNode: CanvasNode = {
     id: 'proc-A',
     type: 'bmadProcess',
     position: { x: 100, y: 150 },
@@ -38,7 +42,7 @@ function makeMixedCanvas() {
       storyId: 'S-1',
     },
   };
-  const commandNode = {
+  const commandNode: CanvasNode = {
     id: 'cmd-B',
     type: 'command',
     position: { x: 400, y: 250 },
@@ -56,7 +60,7 @@ function makeMixedCanvas() {
       storyId: '',
     },
   };
-  const edge = {
+  const edge: CanvasEdge = {
     id: 'edge-1',
     source: 'proc-A',
     target: 'cmd-B',
@@ -66,7 +70,7 @@ function makeMixedCanvas() {
   return { nodes: [processNode, commandNode], edges: [edge] };
 }
 
-const noopInferEdgeLabel = () => '';
+const noopInferEdgeLabel = (): string => '';
 
 describe('skills-cmd-03 AC-1: save + reload preserves command nodes', () => {
   it('round-trips a mixed canvas through canvas->workflow->canvas with types intact', () => {
@@ -84,6 +88,7 @@ describe('skills-cmd-03 AC-1: save + reload preserves command nodes', () => {
 
     // The saved WorkflowNode for the command must carry nodeType === 'command'.
     const savedCmd = wfNodes.find((n) => n.id === 'cmd-B');
+    if (!savedCmd) throw new Error('expected saved command node');
     expect(savedCmd.nodeType).toBe('command');
     expect(savedCmd.config.commandName).toBe('simplify');
     expect(savedCmd.config.commandPath).toBe('/tmp/simplify.md');
@@ -95,13 +100,15 @@ describe('skills-cmd-03 AC-1: save + reload preserves command nodes', () => {
 
     const restoredProc = restored.find((n) => n.id === 'proc-A');
     const restoredCmd = restored.find((n) => n.id === 'cmd-B');
+    if (!restoredProc) throw new Error('expected restored process node');
+    if (!restoredCmd) throw new Error('expected restored command node');
 
     // AC-1: both node types reappear with their original svelte-flow types.
     expect(restoredProc.type).toBe('bmadProcess');
     expect(restoredCmd.type).toBe('command');
 
     // AC-1: all three command config keys survive untouched.
-    expect(restoredCmd.data.config).toEqual({
+    expect(restoredCmd.data?.config).toEqual({
       commandName: 'simplify',
       commandPath: '/tmp/simplify.md',
       commandDescription: 'Review recent changes',
@@ -123,7 +130,7 @@ describe('skills-cmd-03 AC-1: save + reload preserves command nodes', () => {
     // Regression guard: the ternary in workflowNodesToCanvasNodes MUST
     // keep legacy workflows rendering correctly. An empty string (or the
     // legacy literal `'process'`) means "old-style process node".
-    const legacy = [
+    const legacy: SavedWorkflowNode[] = [
       { id: 'x', nodeType: '', position: { x: 0, y: 0 }, label: 'L' },
       { id: 'y', nodeType: 'process', position: { x: 10, y: 20 }, label: 'M' },
     ];
@@ -135,7 +142,7 @@ describe('skills-cmd-03 AC-1: save + reload preserves command nodes', () => {
 
 describe('skills-cmd-03 AC-2: snapshotCanvas detects node-type drift', () => {
   it('distinguishes a command node from a process node at the same ID', () => {
-    const commandAtN1 = [
+    const commandAtN1: CanvasNode[] = [
       {
         id: 'n1',
         type: 'command',
@@ -143,7 +150,7 @@ describe('skills-cmd-03 AC-2: snapshotCanvas detects node-type drift', () => {
         data: { label: 'simplify', nodeType: 'command', config: { commandName: 'simplify' } },
       },
     ];
-    const processAtN1 = [
+    const processAtN1: CanvasNode[] = [
       {
         id: 'n1',
         type: 'bmadProcess',
@@ -172,7 +179,7 @@ describe('skills-cmd-03 AC-2: snapshotCanvas detects node-type drift', () => {
 
 describe('skills-cmd-03 AC-4: workflowNodesToCanvasNodes is type-agnostic', () => {
   it('preserves positions for mixed process + command nodes without filtering', () => {
-    const wfNodes = [
+    const wfNodes: SavedWorkflowNode[] = [
       {
         id: 'proc-A',
         nodeType: '',
@@ -220,8 +227,107 @@ describe('skills-cmd-03 AC-4: workflowNodesToCanvasNodes is type-agnostic', () =
     expect(restored[2].type).toBe('condition');
 
     // Status and config both types pass through the same code path.
-    expect(restored[0].data.status).toBe('complete');
-    expect(restored[1].data.status).toBe('pending');
-    expect(restored[1].data.config.commandName).toBe('simplify');
+    expect(restored[0].data?.status).toBe('complete');
+    expect(restored[1].data?.status).toBe('pending');
+    expect(restored[1].data?.config?.commandName).toBe('simplify');
+  });
+});
+
+/**
+ * Canonical workflow fixture used by the Scenario 1 round-trip assertion.
+ *
+ * Using a single `as Workflow` at the boundary is intentional — the upstream
+ * `bmad.WorkflowDef` is a Wails-generated class, and we want a plain object
+ * literal for JSON round-trip semantics. There is no narrowing to do here
+ * (the shape is constructed in-place), so the cast is safe.
+ */
+function makeWorkflowFixture(): Workflow {
+  const plain = {
+    id: 'wf-1',
+    name: 'Fixture Workflow',
+    description: 'A canonical workflow used for serialise/deserialise tests.',
+    repoPath: '/tmp/repo',
+    nodes: [
+      {
+        id: 'proc-A',
+        processId: 'bmad-dev-story',
+        label: 'Do Thing',
+        position: { x: 100, y: 150 },
+        status: 'pending',
+        config: { storyId: 'S-1' },
+        tmuxTarget: '',
+        storyId: 'S-1',
+        nodeType: '',
+      },
+    ],
+    edges: [],
+    isTemplate: false,
+    templateId: '',
+    createdAt: '2026-04-22T00:00:00Z',
+    updatedAt: '2026-04-22T00:00:00Z',
+  };
+  return plain as unknown as Workflow;
+}
+
+describe('BDD Scenario 1: serialise ↔ deserialise round-trip is idempotent', () => {
+  it('serialise(fixture) → deserialise(...) → serialise(...) is byte-identical', () => {
+    const fixture = makeWorkflowFixture();
+    const first = serialise(fixture);
+    const parsed = deserialise(first);
+    expect(parsed).not.toBeNull();
+    if (parsed === null) throw new Error('expected deserialise to succeed');
+    const second = serialise(parsed);
+    expect(second).toEqual(first);
+  });
+
+  it('intermediate deserialise result satisfies the Workflow type shape', () => {
+    const fixture = makeWorkflowFixture();
+    const parsed = deserialise(serialise(fixture));
+    expect(parsed).not.toBeNull();
+    if (parsed === null) throw new Error('expected deserialise to succeed');
+    // The type narrowing in deserialise guarantees these fields exist.
+    expect(typeof parsed.id).toBe('string');
+    expect(typeof parsed.name).toBe('string');
+    expect(typeof parsed.isTemplate).toBe('boolean');
+    expect(Array.isArray(parsed.nodes)).toBe(true);
+    expect(Array.isArray(parsed.edges)).toBe(true);
+  });
+});
+
+describe('BDD Scenario 4: deserialise rejects malformed input without throwing', () => {
+  it('returns null for "{}" (missing required fields)', () => {
+    expect(() => deserialise('{}')).not.toThrow();
+    expect(deserialise('{}')).toBeNull();
+  });
+
+  it('returns null for invalid JSON without throwing', () => {
+    expect(() => deserialise('not-json')).not.toThrow();
+    expect(deserialise('not-json')).toBeNull();
+  });
+
+  it('returns null for an empty string', () => {
+    expect(deserialise('')).toBeNull();
+  });
+
+  it('returns null when a required field has the wrong type', () => {
+    const bad = JSON.stringify({
+      id: 123, // should be string
+      name: 'x',
+      description: '',
+      isTemplate: false,
+      nodes: [],
+      edges: [],
+      createdAt: '',
+      updatedAt: '',
+    });
+    expect(deserialise(bad)).toBeNull();
+  });
+
+  it('returns null for a JSON array at the top level', () => {
+    expect(deserialise('[]')).toBeNull();
+  });
+
+  it('returns null for a JSON null', () => {
+    expect(deserialise('null')).toBeNull();
   });
 });

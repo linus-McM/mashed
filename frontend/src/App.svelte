@@ -23,7 +23,7 @@
   import { loadSavedThemes, restoreImportedThemeFromConfig, loadBundledThemes } from './lib/themeInit.js';
   import { applyFont, registerLocalFonts } from './lib/stores/font.js';
   import { initEditorSettings } from './lib/stores/editorSettings.js';
-  import { addSession, removeSessionByName } from './lib/stores/sessions.js';
+  import { addSession, removeSessionByName } from './lib/stores/sessions';
 
   let currentView = 'loading'; // 'loading' | 'setup' | 'feed' | 'detail' | 'settings' | 'workflows'
   let selectedAgent = null;

@@ -3,14 +3,15 @@ import {
   convertVSCodeTheme,
   validateConvertedTheme,
   getMonacoBase,
-} from './themeConverter.js';
+} from './themeConverter';
+import type { VSCodeTheme } from '../types/theme';
 
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------
 
 /** A Dracula-like dark theme with full colors + tokenColors */
-const DRACULA_THEME = {
+const DRACULA_THEME: VSCodeTheme = {
   name: 'Dracula',
   type: 'dark',
   colors: {
@@ -68,7 +69,7 @@ const DRACULA_THEME = {
 };
 
 /** A minimal light theme */
-const LIGHT_THEME = {
+const LIGHT_THEME: VSCodeTheme = {
   name: 'Quiet Light',
   type: 'light',
   colors: {
@@ -82,7 +83,7 @@ const LIGHT_THEME = {
 };
 
 /** High-contrast black theme */
-const HC_BLACK_THEME = {
+const HC_BLACK_THEME: VSCodeTheme = {
   name: 'High Contrast',
   uiTheme: 'hc-black',
   colors: {
@@ -93,7 +94,7 @@ const HC_BLACK_THEME = {
 };
 
 /** High-contrast light theme */
-const HC_LIGHT_THEME = {
+const HC_LIGHT_THEME: VSCodeTheme = {
   name: 'High Contrast Light',
   type: 'hc-light',
   colors: {},
@@ -204,7 +205,7 @@ describe('convertVSCodeTheme — Dracula dark theme', () => {
 // ---------------------------------------------------------------------------
 describe('convertVSCodeTheme — token specificity', () => {
   it('more-specific scope wins over general scope', () => {
-    const theme = {
+    const theme: VSCodeTheme = {
       name: 'Specificity Test',
       type: 'dark',
       colors: {},
@@ -220,7 +221,7 @@ describe('convertVSCodeTheme — token specificity', () => {
   });
 
   it('scope as comma-separated string produces rules', () => {
-    const theme = {
+    const theme: VSCodeTheme = {
       name: 'Comma Scope Test',
       type: 'dark',
       colors: {},
@@ -235,7 +236,7 @@ describe('convertVSCodeTheme — token specificity', () => {
   });
 
   it('scope as array produces rules', () => {
-    const theme = {
+    const theme: VSCodeTheme = {
       name: 'Array Scope Test',
       type: 'dark',
       colors: {},
@@ -255,7 +256,7 @@ describe('convertVSCodeTheme — token specificity', () => {
 // ---------------------------------------------------------------------------
 describe('convertVSCodeTheme — hex normalization', () => {
   it('normalizes #RGB to #RRGGBB in CSS vars', () => {
-    const theme = {
+    const theme: VSCodeTheme = {
       name: 'Short Hex',
       type: 'dark',
       colors: {
@@ -268,7 +269,7 @@ describe('convertVSCodeTheme — hex normalization', () => {
   });
 
   it('strips alpha from #RRGGBBAA in background CSS vars', () => {
-    const theme = {
+    const theme: VSCodeTheme = {
       name: 'Alpha Hex',
       type: 'dark',
       colors: {
@@ -282,7 +283,7 @@ describe('convertVSCodeTheme — hex normalization', () => {
 
   it('dimColor handles #RGB input', () => {
     // Testing indirectly via accent-green-dim
-    const theme = {
+    const theme: VSCodeTheme = {
       name: 'DimColor Short',
       type: 'dark',
       colors: {
@@ -296,7 +297,7 @@ describe('convertVSCodeTheme — hex normalization', () => {
   });
 
   it('dimColor handles #RRGGBBAA input', () => {
-    const theme = {
+    const theme: VSCodeTheme = {
       name: 'DimColor Alpha',
       type: 'dark',
       colors: {
@@ -396,7 +397,7 @@ describe('convertVSCodeTheme — hc-light theme', () => {
 // Scenario 6: Missing data graceful handling
 // ---------------------------------------------------------------------------
 describe('convertVSCodeTheme — missing tokenColors', () => {
-  const theme = { name: 'No Tokens', type: 'dark', colors: { 'editor.background': '#1e1e1e' } };
+  const theme: VSCodeTheme = { name: "No Tokens", type: "dark", colors: { "editor.background": "#1e1e1e" } };
   const result = convertVSCodeTheme(theme, 'no-tokens');
 
   it('returns empty rules array', () => {
@@ -409,7 +410,7 @@ describe('convertVSCodeTheme — missing tokenColors', () => {
 });
 
 describe('convertVSCodeTheme — missing colors object', () => {
-  const theme = {
+  const theme: VSCodeTheme = {
     name: 'No Colors',
     type: 'dark',
     tokenColors: [
@@ -433,7 +434,7 @@ describe('convertVSCodeTheme — missing colors object', () => {
 });
 
 describe('convertVSCodeTheme — tokenColor entries with no scope (global)', () => {
-  const theme = {
+  const theme: VSCodeTheme = {
     name: 'Global Token',
     type: 'dark',
     colors: {},
@@ -453,7 +454,7 @@ describe('convertVSCodeTheme — tokenColor entries with no scope (global)', () 
 });
 
 describe('convertVSCodeTheme — tokenColor with empty settings', () => {
-  const theme = {
+  const theme: VSCodeTheme = {
     name: 'Empty Settings',
     type: 'dark',
     colors: {},
@@ -507,7 +508,7 @@ describe('validateConvertedTheme', () => {
 // Scenario 8: Alpha stripping on background vars specifically
 // ---------------------------------------------------------------------------
 describe('convertVSCodeTheme — alpha stripping on background CSS vars', () => {
-  const theme = {
+  const theme: VSCodeTheme = {
     name: 'Alpha BG',
     type: 'dark',
     colors: {

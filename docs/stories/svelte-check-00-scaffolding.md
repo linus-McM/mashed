@@ -4,7 +4,8 @@
 **Domain:** fullstack (tooling + frontend types)
 **Estimated Complexity:** S
 **Depends On:** none
-**Status:** ready
+**Status:** done
+**Landed:** 1a54f7c (2026-04-22)
 
 ## Description
 
@@ -145,44 +146,44 @@ Feature: Wails type re-exports
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Author baseline file (AC: 1)
-  - [ ] Create `docs/plans/svelte-check-baseline.md` with `baseline: 1520`, date, and regeneration instructions
-  - [ ] Verify `just sveltecheck-count` output matches the committed baseline
+- [x] Task 1: Author baseline file (AC: 1)
+  - [x] Create `docs/plans/svelte-check-baseline.md` with `baseline: 1520`, date, and regeneration instructions
+  - [x] Verify `just sveltecheck-count` output matches the committed baseline
 
-- [ ] Task 2: Add `sveltecheck-ratchet` recipe (AC: 2)
-  - [ ] Add `sveltecheck-ratchet` target to `justfile` that reads baseline and compares against live count
-  - [ ] Exit 0 when `current <= baseline`, non-zero otherwise, with clear stderr message
-  - [ ] Add a regression unit test via a bash script under `frontend/scripts/` that simulates both outcomes
+- [x] Task 2: Add `sveltecheck-ratchet` recipe (AC: 2)
+  - [x] Add `sveltecheck-ratchet` target to `justfile` that reads baseline and compares against live count
+  - [x] Exit 0 when `current <= baseline`, non-zero otherwise, with clear stderr message
+  - [x] Add a regression unit test via a bash script under `frontend/scripts/` that simulates both outcomes
 
-- [ ] Task 3: Repoint lefthook to the ratchet (AC: 3)
-  - [ ] Change `lefthook.yml` `frontend-svelte-check.run` from `npm run check` to `just sveltecheck-ratchet`
-  - [ ] Update `fail_text` to instruct: "fix types — do NOT add `@ts-ignore` or `any`"
-  - [ ] Verify with a deliberately failing test commit (revert before landing)
+- [x] Task 3: Repoint lefthook to the ratchet (AC: 3)
+  - [x] Change `lefthook.yml` `frontend-svelte-check.run` from `npm run check` to `just sveltecheck-ratchet`
+  - [x] Update `fail_text` to instruct: "fix types — do NOT add `@ts-ignore` or `any`"
+  - [x] Verify with a deliberately failing test commit (revert before landing)
 
-- [ ] Task 4: Add CI ratchet step (AC: 4)
-  - [ ] Create `.github/workflows/svelte-check.yml` (or add job to existing frontend workflow)
-  - [ ] Run `just sveltecheck-ratchet` on pull_request and push to dev
-  - [ ] Set `continue-on-error: true` (flip to false in Phase 7 story)
+- [x] Task 4: Add CI ratchet step (AC: 4)
+  - [x] Create `.github/workflows/svelte-check.yml` (or add job to existing frontend workflow)
+  - [x] Run `just sveltecheck-ratchet` on pull_request and push to dev
+  - [x] Set `continue-on-error: true` (flip to false in Phase 7 story)
 
-- [ ] Task 5: Create Wails friendly-name re-exports (AC: 5)
-  - [ ] Add `frontend/src/lib/types/wails.d.ts` re-exporting `Agent`, `Workflow`, `Session`, `Notification`, `ProcessDef`, `PendingPrompt`, `WorkflowExecution` (and other top-level types) from `wailsjs/go/models`
-  - [ ] Add file header comment noting "auto-regenerated upstream — this file only re-exports"
-  - [ ] Confirm `just sveltecheck` count is unchanged after adding the file
+- [x] Task 5: Create Wails friendly-name re-exports (AC: 5)
+  - [x] Add `frontend/src/lib/types/wails.d.ts` re-exporting `Agent`, `Workflow`, `Session`, `Notification`, `ProcessDef`, `PendingPrompt`, `WorkflowExecution` (and other top-level types) from `wailsjs/go/models`
+  - [x] Add file header comment noting "auto-regenerated upstream — this file only re-exports"
+  - [x] Confirm `just sveltecheck` count is unchanged after adding the file
 
-- [ ] Task 6: Record scaffolding delta (AC: 1)
-  - [ ] Commit body must include: "sveltecheck-count: 1520 → 1520 (Δ 0 — baseline)"
+- [x] Task 6: Record scaffolding delta (AC: 1)
+  - [x] Commit body must include: "sveltecheck-count: 1520 → 1520 (Δ 0 — baseline)"
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests (bash harness for ratchet; tsc resolution check for Wails re-exports)
-- [ ] 80%+ coverage on new shell helpers (exercise both pass/fail paths)
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes (no Go changes, but must not regress)
-- [ ] `just sveltecheck-count` = 1520 (unchanged — this is a scaffolding-only story)
-- [ ] `vitest run` — all 696 tests pass
-- [ ] `vite build` succeeds
-- [ ] `/simplify` run on modified `justfile`, `lefthook.yml`, workflow YAML, and `wails.d.ts`
-- [ ] Code review: no CRITICAL/HIGH issues; no `@ts-ignore` / `@ts-nocheck` / `any` introduced
-- [ ] Commit body records: `sveltecheck-count: 1520 → 1520 (Δ 0 — baseline)`
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests (bash harness for ratchet; tsc resolution check for Wails re-exports)
+- [x] 80%+ coverage on new shell helpers (exercise both pass/fail paths)
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes (no Go changes, but must not regress)
+- [x] `just sveltecheck-count` = 1520 (unchanged — this is a scaffolding-only story)
+- [x] `vitest run` — all 696 tests pass
+- [x] `vite build` succeeds
+- [x] `/simplify` run on modified `justfile`, `lefthook.yml`, workflow YAML, and `wails.d.ts`
+- [x] Code review: no CRITICAL/HIGH issues; no `@ts-ignore` / `@ts-nocheck` / `any` introduced
+- [x] Commit body records: `sveltecheck-count: 1520 → 1520 (Δ 0 — baseline)`

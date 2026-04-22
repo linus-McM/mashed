@@ -3,7 +3,7 @@
 // Handles reading, converting, registering, applying, and persisting imported VSCodium themes.
 
 import { ReadThemeFile, SetImportedTheme, SetTheme, GetSavedThemes, SaveTheme, RemoveTheme, ListBundledThemes, ReadBundledThemeFile } from '../../wailsjs/go/main/App.js';
-import { convertVSCodeTheme, validateConvertedTheme } from './themeConverter.js';
+import { convertVSCodeTheme, validateConvertedTheme } from './themeConverter';
 import { registerImportedTheme, registerSavedThemes, applyTheme, DEFAULT_THEME, allThemes } from './stores/theme.js';
 import { get } from 'svelte/store';
 

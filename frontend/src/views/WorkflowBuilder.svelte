@@ -68,7 +68,7 @@
     workflowEdgesToCanvasEdges,
     COMMAND_NODE_SENTINEL_PHRASE,
     COMMAND_NODE_SENTINEL_DEFAULT_BODY,
-  } from '../lib/workflowSerialisation.js';
+  } from '../lib/workflowSerialisation';
 
   export let repoPath = '';
   export let repoBranch = '';
@@ -1182,7 +1182,7 @@
     // workflowNodesToCanvasNodes routes `nodeType === 'command'` to
     // svelte-flow `type: 'command'` (rendered by CommandNode.svelte) while
     // preserving the legacy `bmadProcess` fallback for blank / `'process'`
-    // nodeTypes. Unit-tested in workflowSerialisation.test.js.
+    // nodeTypes. Unit-tested in workflowSerialisation.test.ts.
     $nodes = workflowNodesToCanvasNodes(wf.nodes, processes);
     $edges = workflowEdgesToCanvasEdges(wf.edges, inferEdgeLabel);
     selectedNode = null;
