@@ -1,32 +1,22 @@
-<script>
+<script lang="ts">
   import { afterUpdate, tick } from 'svelte';
+  import type { Turn, TurnRole } from '../../types/transcript';
 
-  /**
-   * @typedef {Object} Turn
-   * @property {number} round
-   * @property {'claude'|'user'} role
-   * @property {string} inputId
-   * @property {string} content
-   * @property {number} timestamp
-   */
-
-  /** @type {Turn[]} */
-  export let turns = [];
+  export let turns: Turn[] = [];
   export let loading = false;
   export let error = '';
 
-  /** @type {HTMLDivElement | null} */
-  let scrollEl = null;
+  let scrollEl: HTMLDivElement | null = null;
   let lastTurnCount = 0;
   let userPinnedToBottom = true;
 
-  function isAtBottom() {
+  function isAtBottom(): boolean {
     if (!scrollEl) return true;
     const threshold = 48;
     return scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight < threshold;
   }
 
-  function onScroll() {
+  function onScroll(): void {
     userPinnedToBottom = isAtBottom();
   }
 
@@ -41,7 +31,7 @@
     }
   });
 
-  function roleLabel(role) {
+  function roleLabel(role: TurnRole): string {
     return role === 'claude' ? 'Claude' : 'You';
   }
 </script>

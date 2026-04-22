@@ -4,9 +4,10 @@
   import { ListModels } from '../../../wailsjs/go/main/App.js';
 
   /** @typedef {import('../../lib/types/wails').BmadAgentConfig} BmadAgentConfig */
+  /** @typedef {import('../../lib/types/wails').ProcessDef} ProcessDef */
   /** @type {BmadAgentConfig | null} */
   export let agent = null;
-  /** @type {unknown[]} */
+  /** @type {ProcessDef[]} */
   export let processes = [];
 
   /** @type {import('svelte').EventDispatcher<{ save: BmadAgentConfig; delete: string; close: void }>} */

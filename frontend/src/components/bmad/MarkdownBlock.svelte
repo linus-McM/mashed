@@ -1,4 +1,4 @@
-<script context="module">
+<script context="module" lang="ts">
   // Module-scope so every MarkdownBlock instance shares one parser + rule
   // override. The override closes over stateless helpers — safe to share.
   //
@@ -10,9 +10,11 @@
   import MarkdownIt from 'markdown-it';
   import { sanitizeUrl } from './linkSanitiser';
 
+  type RenderRule = NonNullable<MarkdownIt['renderer']['rules'][string]>;
+
   const md = new MarkdownIt({ html: false, linkify: false, breaks: false });
 
-  const defaultLinkOpen =
+  const defaultLinkOpen: RenderRule =
     md.renderer.rules.link_open ||
     ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
 
@@ -33,7 +35,7 @@
   };
 </script>
 
-<script>
+<script lang="ts">
   import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime.js';
 
   export let content = '';
@@ -42,7 +44,7 @@
   // §7.2: intercept every <a> click inside the rendered prose, show a confirm
   // dialog with the fully-resolved URL, and open via the Wails runtime so the
   // OS browser takes over (never the app's own webview).
-  function onRootClick(event) {
+  function onRootClick(event: MouseEvent): void {
     const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
     if (!anchor) return;
     event.preventDefault();

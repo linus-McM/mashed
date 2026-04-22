@@ -1,7 +1,7 @@
 // skills-cmd-02 AC-2: drop handler MUST ignore skill payloads.
 //
 // Contract — GREEN phase MUST export `handleMashedAssetDrop` from
-// `frontend/src/components/bmad/canvasPaneDropHandler.js`. Signature:
+// `frontend/src/components/bmad/canvasPaneDropHandler.ts`. Signature:
 //   handleMashedAssetDrop({ raw, position, currentNodes, now }) => Node[]
 // Returns `currentNodes` unchanged when JSON.parse fails OR role !== 'command'.
 // Otherwise appends a command node and returns the new array.
@@ -9,7 +9,7 @@
 // the integration cannot drift from the unit contract.
 
 import { describe, it, expect } from 'vitest';
-import { handleMashedAssetDrop } from '../canvasPaneDropHandler.js';
+import { handleMashedAssetDrop } from '../canvasPaneDropHandler';
 
 import type { CanvasNode, Position } from '../../../types/workflow';
 

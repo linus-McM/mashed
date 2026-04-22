@@ -3,7 +3,7 @@
   import { SvelteFlow, Controls, MiniMap, Background, useSvelteFlow } from '@xyflow/svelte';
   import { Trash2, LayoutTemplate, ChevronRight, Maximize2 } from 'lucide-svelte';
   import DeletableEdge from './DeletableEdge.svelte';
-  import { handleMashedAssetDrop } from './canvasPaneDropHandler.js';
+  import { handleMashedAssetDrop } from './canvasPaneDropHandler';
   import { MASHED_ASSET_MIME } from './dragMimeTypes.js';
 
   /** @typedef {import('../../types/workflow').CanvasNode} CanvasNode */

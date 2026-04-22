@@ -83,38 +83,6 @@ sveltecheck-by-file:
 sveltecheck-file FILE:
     cd frontend && npx svelte-check --threshold error --fail-on-warnings=false 2>&1 | grep -F {{FILE}} || true
 
-# Ratchet: fail if svelte-check count rose above the committed baseline.
-# Baseline lives in docs/plans/svelte-check-baseline.md (line matching
-# ^baseline: <int>$). Honours TEST_COUNT (skip live count) and BASELINE_FILE
-# (override path) env vars — see frontend/scripts/test-sveltecheck-ratchet.sh
-# for the contract. Exit codes:
-#   0  current <= baseline (OK)
-#   1  current >  baseline (regression; stderr "count rose above baseline")
-#   2  baseline file missing or malformed (stderr "baseline file missing")
-sveltecheck-ratchet:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    baseline_file="${BASELINE_FILE:-docs/plans/svelte-check-baseline.md}"
-    if [[ ! -f "$baseline_file" ]]; then
-      echo "baseline file missing: $baseline_file" >&2
-      exit 2
-    fi
-    baseline=$(grep -E '^baseline:[[:space:]]*[0-9]+[[:space:]]*$' "$baseline_file" | head -n1 | awk '{print $2}' | tr -d '[:space:]')
-    if [[ -z "${baseline:-}" ]]; then
-      echo "baseline file missing valid 'baseline: <int>' line: $baseline_file" >&2
-      exit 2
-    fi
-    if [[ -n "${TEST_COUNT:-}" ]]; then
-      current="$TEST_COUNT"
-    else
-      current=$(just sveltecheck-count)
-    fi
-    if (( current > baseline )); then
-      echo "svelte-check count rose above baseline ($current > $baseline). Fix types — do NOT add @ts-ignore / @ts-nocheck / any. Run 'just sveltecheck-by-file' to locate errors." >&2
-      exit 1
-    fi
-    echo "svelte-check ratchet OK: $current <= $baseline"
-
 
 # List all tmux sessions related to this repo, grouped by parent/child
 sessions:

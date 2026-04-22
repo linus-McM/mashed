@@ -1,14 +1,13 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher, onMount, tick } from 'svelte';
   import { fly, fade, slide } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { SaveMashedAssetFrontmatter } from '../../../wailsjs/go/main/App.js';
+  import type { MashedAssetInfo } from '../../lib/types/wails';
 
-  /** @type {import('../../../../wailsjs/go/models').bmad.MashedAssetInfo} */
-  export let asset;
+  export let asset: MashedAssetInfo;
 
-  /** @type {import('svelte').EventDispatcher<{ close: void; save: { path: string } }>} */
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher<{ close: void; save: { path: string } }>();
 
   // ── Form state (shallow copy of asset fields) ──
   let name = asset?.name || '';
@@ -30,8 +29,8 @@
   $: canSave = (name || '').trim().length > 0 && !saving;
 
   // ── Focus trap ──
-  let modalEl;
-  let nameInputEl;
+  let modalEl: HTMLDivElement | null = null;
+  let nameInputEl: HTMLInputElement | null = null;
 
   onMount(async () => {
     await tick();
@@ -41,16 +40,18 @@
     }
   });
 
-  function getFocusableElements() {
+  function getFocusableElements(): HTMLElement[] {
     if (!modalEl) return [];
-    return Array.from(
-      modalEl.querySelectorAll(
-        'input, textarea, select, button, [tabindex]:not([tabindex="-1"])'
-      )
-    ).filter(el => !el.disabled && el.offsetParent !== null);
+    const nodes = modalEl.querySelectorAll<HTMLElement>(
+      'input, textarea, select, button, [tabindex]:not([tabindex="-1"])',
+    );
+    return Array.from(nodes).filter((el) => {
+      const maybeDisabled = (el as HTMLInputElement | HTMLButtonElement).disabled;
+      return !maybeDisabled && el.offsetParent !== null;
+    });
   }
 
-  function handleKeydown(e) {
+  function handleKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape') {
       e.preventDefault();
       if (saveError) {
@@ -84,7 +85,8 @@
 
     // Enter submits only from single-line inputs or the Save button
     if (e.key === 'Enter' && canSave) {
-      const tag = e.target?.tagName?.toLowerCase();
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      const tag = target?.tagName.toLowerCase();
       if (tag === 'textarea') return; // allow newlines
       if (tag === 'input' || tag === 'button') {
         e.preventDefault();
@@ -93,11 +95,11 @@
     }
   }
 
-  function handleCancel() {
+  function handleCancel(): void {
     dispatch('close');
   }
 
-  async function handleSave() {
+  async function handleSave(): Promise<void> {
     if (!canSave) return;
     saving = true;
     saveError = '';
@@ -109,8 +111,8 @@
       mashedCompletion,
       mashedChainable,
       mashedSessionPinned,
-      mashedInputs: mashedInputs.split(',').map(s => s.trim()).filter(Boolean),
-      mashedOutputs: mashedOutputs.split(',').map(s => s.trim()).filter(Boolean),
+      mashedInputs: mashedInputs.split(',').map((s: string) => s.trim()).filter(Boolean),
+      mashedOutputs: mashedOutputs.split(',').map((s: string) => s.trim()).filter(Boolean),
     };
 
     try {
@@ -123,7 +125,7 @@
     }
   }
 
-  function handleBackdropClick() {
+  function handleBackdropClick(): void {
     handleCancel();
   }
 </script>

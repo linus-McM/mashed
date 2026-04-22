@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import ChoiceWidget from './inputWidgets/ChoiceWidget.svelte';
   import MultiChoiceWidget from './inputWidgets/MultiChoiceWidget.svelte';
@@ -6,48 +6,57 @@
   import FreeTextWidget from './inputWidgets/FreeTextWidget.svelte';
   import FileInputWidget from './inputWidgets/FileInputWidget.svelte';
   import JsonInputWidget from './inputWidgets/JsonInputWidget.svelte';
+  import type { UINode } from '../../types/uiAst';
+  import type { PendingPrompt } from '../../stores/interactiveInput';
+  import type { Writable } from 'svelte/store';
 
-  /** @type {import('../../types/uiAst').UINode} */
-  export let node;
-  /** @type {import('svelte/store').Writable<Record<string,string>>} */
-  export let responses;
+  export let node: UINode;
+  export let responses: Writable<Record<string, string>>;
   export let disabled = false;
   // Under the collapse rule, the owning modal marks exactly one group `active`
   // so the accent-green border fires before the user focuses into the card.
   // Pre-focus state is the signature indicator per Design Brief §3 + §6.
   export let active = false;
 
-  /** @type {import('svelte').EventDispatcher<{ activate: { key: string } }>} */
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher<{ activate: { key: string } }>();
 
   $: widget = node.widget;
   $: responseKey = node.response_key ?? '';
   $: labelId = `dg-${responseKey}`;
+  // Widgets declare their `prompt` prop as `PendingPrompt`. Inside a decision
+  // group we synthesise a virtual prompt from the AST node — the widget only
+  // reads `prompt`, `options`, `required`, `maxLength`, `helpText`, but the
+  // full type is required for structural assignment. Unused fields get safe
+  // defaults so the widget's fallback logic (`prompt?.options ?? []`) is
+  // never perturbed.
   $: widgetPrompt = {
     prompt: node.prompt ?? node.heading ?? '',
     options: widget?.options ?? [],
     required: !!node.required,
     maxLength: widget?.maxLength,
     helpText: node.help ?? '',
-  };
+    nodeId: '',
+    inputId: responseKey,
+    shape: widget?.type ?? '',
+    round: 0,
+    createdAt: 0,
+    promptId: responseKey,
+  } satisfies PendingPrompt;
 
-  /** @param {string} v */
-  function onValue(v) {
+  function onValue(v: string): void {
     if (!responseKey) return;
     responses.update((r) => ({ ...r, [responseKey]: v }));
   }
 
-  /** @param {CustomEvent<{ value: string }>} e */
-  function onWidgetSubmit(e) {
+  function onWidgetSubmit(e: CustomEvent<{ value: string }>): void {
     onValue(e.detail?.value ?? '');
   }
 
-  function onCardActivate() {
+  function onCardActivate(): void {
     if (disabled) dispatch('activate', { key: responseKey });
   }
 
-  /** @param {KeyboardEvent} e */
-  function onCardKey(e) {
+  function onCardKey(e: KeyboardEvent): void {
     if (!disabled) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();

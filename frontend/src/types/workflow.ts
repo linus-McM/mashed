@@ -50,7 +50,11 @@ export interface CanvasNodeData {
   label?: string;
   processId?: string;
   nodeType?: string;
-  process?: ProcessDef | null;
+  // `Partial<ProcessDef>` (not `ProcessDef`) because the serialiser may seed
+  // this from a stripped-down `ProcessRegistryEntry` (tests pass minimal
+  // fixtures). All consumers already read with fallbacks — see
+  // `ProcessNode.svelte` which treats `data.process || {}` as a partial.
+  process?: Partial<ProcessDef> | null;
   status?: string;
   config?: Record<string, unknown>;
   tmuxTarget?: string;
