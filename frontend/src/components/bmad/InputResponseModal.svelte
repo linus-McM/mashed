@@ -12,6 +12,7 @@
     parseStructuredAst,
     pushToast,
   } from '../../stores/interactiveInput';
+  import { uiAdapterUntrustedExpanded } from '../../lib/stores/uiAdapterSettings';
   import FreeTextWidget from './inputWidgets/FreeTextWidget.svelte';
   import ChoiceWidget from './inputWidgets/ChoiceWidget.svelte';
   import MultiChoiceWidget from './inputWidgets/MultiChoiceWidget.svelte';
@@ -21,6 +22,8 @@
   import TranscriptPane from './TranscriptPane.svelte';
   import AstNode from './AstNode.svelte';
   import HintBanner from './HintBanner.svelte';
+  import DiagnosticsChip from './DiagnosticsChip.svelte';
+  import RawViewToggle from './RawViewToggle.svelte';
   import { makeAstResponses } from '../../stores/astResponses';
   import { EventsOn } from '../../../wailsjs/runtime/runtime.js';
 
@@ -80,6 +83,7 @@
   // the same reactive cycle as the incoming prompt — routing through the
   // store adds a tick of lag that hid the Send button in synchronous tests.
   $: parsedAst = parseStructuredAst(prompt?.structured);
+  $: diagnostics = parsedAst?.diagnostics ?? null;
   $: decisionGroups = parsedAst?.nodes.filter((n) => n.type === 'decision_group') ?? [];
   $: requiredGroupKeys = decisionGroups
     .filter((g) => g.required && !!g.response_key)
@@ -360,6 +364,12 @@
               </div>
             {/each}
           </div>
+          <DiagnosticsChip {diagnostics} />
+          <RawViewToggle
+            raw={prompt.lastOutput ?? ''}
+            triggered={diagnostics?.untrusted === true}
+            expandedByDefault={$uiAdapterUntrustedExpanded}
+          />
         {/if}
 
         {#if !hideLayer1Widget}

@@ -617,6 +617,7 @@
       repoName: repoPath ? repoPath.split('/').pop() : '',
       repoPath,
       structured: payload.structured,
+      lastOutput: payload.lastOutput,
     };
   }
 

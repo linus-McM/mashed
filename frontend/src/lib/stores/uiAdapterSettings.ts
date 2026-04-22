@@ -110,3 +110,15 @@ export async function setUntrustedExpanded(v: boolean): Promise<boolean> {
     return false;
   }
 }
+
+// Dev-only test seam — Playwright seeds the Q7 flag to exercise the modal's
+// "expand on flagged" branch without going through the backend config cycle.
+// `import.meta.env.DEV` is a Vite static literal so this block is dead code
+// in production bundles.
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  (
+    window as unknown as {
+      __mashed_setUntrustedExpandedForTests?: (v: boolean) => void;
+    }
+  ).__mashed_setUntrustedExpandedForTests = (v) => uiAdapterUntrustedExpanded.set(v);
+}

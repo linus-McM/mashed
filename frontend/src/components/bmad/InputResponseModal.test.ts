@@ -25,6 +25,7 @@ import { RespondToInput } from '../../../wailsjs/go/main/App.js';
 import InputResponseModal from './InputResponseModal.svelte';
 import {
   interactiveInput,
+  pendingPrompt,
   resetInteractiveInput,
   setValidationError,
   type PendingPrompt,
@@ -208,7 +209,7 @@ describe('InputResponseModal', () => {
     });
   });
 
-  // Story ui-ast-U7 — AC-7, AC-11. RED until §3.4 submit path + Send gate land.
+  // Story ui-ast-U7 — AC-7 (send-gating + file-path passthrough).
   describe('ui-ast-U7 decision_group submit path', () => {
     const TRAVERSAL_PATH = '../../etc/passwd';
 
@@ -294,7 +295,7 @@ describe('InputResponseModal', () => {
       expect(RespondToInput).toHaveBeenCalledWith('exec-1', 'n1', 'topic', EXPECTED_VALUE);
     });
 
-    it('AC11_file_widget_passthrough — file path sent verbatim to RespondToInput', async () => {
+    it('AC7_file_path_passthrough — file path sent verbatim to RespondToInput', async () => {
       const structured = astJson(dgNode('path', { type: 'file' }));
       mounted = mount({ prompt: makePrompt({ shape: 'file', inputId: 'upload', structured }) });
       await tick();
@@ -310,6 +311,48 @@ describe('InputResponseModal', () => {
       await tick();
 
       expect(RespondToInput).toHaveBeenCalledWith('exec-1', 'n1', 'upload', TRAVERSAL_PATH);
+    });
+  });
+
+  // Story ui-ast-U8 — AC-10. RED until InputResponseModal wires the conditional
+  // DiagnosticsChip + RawViewToggle mount gated on `pendingAst != null`.
+  describe('ui-ast-U8 conditional mount (AC-10)', () => {
+    it('renders helpText slot when prompt.helpText is set', async () => {
+      mounted = mount({ prompt: makePrompt({ helpText: 'HINT LINE' }) });
+      await tick();
+      const help = mounted.target.querySelector('[data-testid="input-modal-help"]');
+      expect(help?.textContent).toContain('HINT LINE');
+    });
+
+    it('u8-components-absent-when-pendingAst-null — no DiagnosticsChip or RawViewToggle when structured is missing', async () => {
+      mounted = mount({ prompt: makePrompt({ shape: 'free', structured: undefined }) });
+      await tick();
+
+      expect(mounted.target.querySelector('[data-testid="diagnostics-chip"]')).toBeNull();
+      expect(mounted.target.querySelector('[data-testid="raw-view-toggle"]')).toBeNull();
+      // Existing modal behaviour unchanged — shell + Cancel render (Layer-1 free
+      // widget has its own submit path, so Send only mounts for decision groups).
+      expect(mounted.target.querySelector('[data-testid="input-response-modal"]')).not.toBeNull();
+      expect(mounted.target.querySelector('[data-testid="input-modal-cancel"]')).not.toBeNull();
+    });
+
+    it('u8-components-render-when-pendingAst-set — RawViewToggle + DiagnosticsChip mount with diagnostics', async () => {
+      const structured = JSON.stringify({
+        version: '1',
+        nodes: [{ type: 'markdown', content: 'ctx' }],
+        diagnostics: { untrusted: true, fallback_reasons: ['empty_options'] },
+      });
+      const prompt = makePrompt({ shape: 'free', structured, lastOutput: 'CAPTURED RAW BODY' });
+      pendingPrompt.set(prompt);
+      mounted = mount({ prompt });
+      await tick();
+      await tick();
+
+      const chip = mounted.target.querySelector('[data-testid="diagnostics-chip"]');
+      const toggle = mounted.target.querySelector('[data-testid="raw-view-toggle"]');
+      expect(chip, 'DiagnosticsChip must render when pendingAst is set').not.toBeNull();
+      expect(toggle, 'RawViewToggle must render when lastOutput is non-empty').not.toBeNull();
+      expect(mounted.target.querySelector('pre')?.textContent).toContain('CAPTURED RAW BODY');
     });
   });
 });

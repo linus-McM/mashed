@@ -1,6 +1,6 @@
 # ui-ast-U8: "View raw" fallback toggle + diagnostics surface
 
-**Status:** ready
+**Status:** done
 **Domain:** frontend
 **Size:** S
 **Depends on:** ui-ast-U6
@@ -264,36 +264,36 @@ Feature: View raw toggle + diagnostics surface
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: `RawViewToggle` component (AC-1…AC-4, AC-11)
-  - [ ] RED: Vitest cases for collapse/open, empty-hide, both-flags, HTML escape
-  - [ ] GREEN: write `RawViewToggle.svelte`
-- [ ] Task 2: `DiagnosticsChip` component (AC-5, AC-6, AC-7)
-  - [ ] RED: Vitest cases for untrusted chip, note-count pluralisation, silent
-  - [ ] GREEN: write `DiagnosticsChip.svelte`
-- [ ] Task 3: Modal integration (AC-10)
-  - [ ] Mount both components conditionally on `pendingAst != null`
-  - [ ] RED: `InputResponseModal.test.ts` → pendingAst-null case
-  - [ ] GREEN: wire conditional mount
-- [ ] Task 4: Q7 config hook (AC-8, AC-9)
-  - [ ] Subscribe to `uiAdapterUntrustedExpanded` from `uiAdapterSettings` store
-  - [ ] Pass as `expandedByDefault` prop
-  - [ ] Playwright cases for both values
-- [ ] Task 5: Playwright AC suite
-  - [ ] Write `tests/ac/ui-ast-view-raw.spec.ts`
-  - [ ] Invoke `/playwright-cli` to validate
+- [x] Task 1: `RawViewToggle` component (AC-1…AC-4, AC-11)
+  - [x] RED: Vitest cases for collapse/open, empty-hide, both-flags, HTML escape
+  - [x] GREEN: write `RawViewToggle.svelte`
+- [x] Task 2: `DiagnosticsChip` component (AC-5, AC-6, AC-7)
+  - [x] RED: Vitest cases for untrusted chip, note-count pluralisation, silent
+  - [x] GREEN: write `DiagnosticsChip.svelte`
+- [x] Task 3: Modal integration (AC-10)
+  - [x] Mount both components conditionally on `pendingAst != null`
+  - [x] RED: `InputResponseModal.test.ts` → pendingAst-null case
+  - [x] GREEN: wire conditional mount
+- [x] Task 4: Q7 config hook (AC-8, AC-9)
+  - [x] Subscribe to `uiAdapterUntrustedExpanded` from `uiAdapterSettings` store
+  - [x] Pass as `expandedByDefault` prop
+  - [x] Playwright cases for both values
+- [x] Task 5: Playwright AC suite
+  - [x] Write `tests/ac/ui-ast-view-raw.spec.ts`
+  - [x] Invoke `/playwright-cli` to validate
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on new Svelte components
-- [ ] Vitest passes
-- [ ] Playwright ACs pass via `/playwright-cli`
-- [ ] Frontend build passes
-- [ ] `/simplify` run on every modified file; no CRITICAL/HIGH findings
-- [ ] No `{@html ...}` in the raw rendering path (XSS guard)
-- [ ] Story status flipped to `done`
-- [ ] Changes committed on branch
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on new Svelte components
+- [x] Vitest passes
+- [x] Playwright ACs pass via `/playwright-cli`
+- [x] Frontend build passes
+- [x] `/simplify` run on every modified file; no CRITICAL/HIGH findings
+- [x] No `{@html ...}` in the raw rendering path (XSS guard)
+- [x] Story status flipped to `done`
+- [x] Changes committed on branch
 
 ## Design Brief
 

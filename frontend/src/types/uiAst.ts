@@ -55,7 +55,13 @@ export interface UINode {
   help?: string;
 }
 
+export interface Diagnostics {
+  untrusted?: boolean;
+  fallback_reasons?: string[];
+}
+
 export interface UIAST {
   version: '1';
   nodes: UINode[];
+  diagnostics?: Diagnostics;
 }
