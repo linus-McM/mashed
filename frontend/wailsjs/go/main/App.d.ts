@@ -11,6 +11,8 @@ export function CreateRepo(arg1:string,arg2:boolean,arg3:boolean):Promise<void>;
 
 export function DefaultEditorSettings():Promise<main.EditorSettings>;
 
+export function DefaultMarkdownMenuSettings():Promise<main.MarkdownMenuSettings>;
+
 export function DeleteBmadAgent(arg1:string):Promise<void>;
 
 export function DeleteBmadWorkflow(arg1:string):Promise<void>;
@@ -44,6 +46,8 @@ export function GetEditorSettings():Promise<main.EditorSettings>;
 export function GetFontsDir():Promise<string>;
 
 export function GetInteractiveTranscript(arg1:string,arg2:string):Promise<Array<bmad.InteractiveTurn>>;
+
+export function GetMarkdownMenuSettings():Promise<main.MarkdownMenuSettings>;
 
 export function GetNodeOutput(arg1:string,arg2:string):Promise<string>;
 
@@ -172,6 +176,8 @@ export function SetEditorSettings(arg1:main.EditorSettings):Promise<void>;
 export function SetFontSize(arg1:number):Promise<void>;
 
 export function SetImportedTheme(arg1:string):Promise<void>;
+
+export function SetMarkdownMenuSettings(arg1:main.MarkdownMenuSettings):Promise<void>;
 
 export function SetMonoFont(arg1:string):Promise<void>;
 

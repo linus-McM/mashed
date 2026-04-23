@@ -1089,6 +1089,28 @@ export namespace main {
 		}
 	}
 	
+	export class MarkdownMenuSettings {
+	    bold: boolean;
+	    italic: boolean;
+	    strikethrough: boolean;
+	    code: boolean;
+	    link: boolean;
+	    latex: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new MarkdownMenuSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.bold = source["bold"];
+	        this.italic = source["italic"];
+	        this.strikethrough = source["strikethrough"];
+	        this.code = source["code"];
+	        this.link = source["link"];
+	        this.latex = source["latex"];
+	    }
+	}
 	export class NerdFontEntry {
 	    family: string;
 	    filePath: string;
@@ -1166,6 +1188,7 @@ export namespace main {
 	    fontSize?: number;
 	    sidebarWidth?: number;
 	    editorSettings?: EditorSettings;
+	    markdownMenu?: MarkdownMenuSettings;
 	    ollamaEnabled: boolean;
 	    ollamaModel?: string;
 	    uiAdapterEnabled: boolean;
@@ -1186,6 +1209,7 @@ export namespace main {
 	        this.fontSize = source["fontSize"];
 	        this.sidebarWidth = source["sidebarWidth"];
 	        this.editorSettings = this.convertValues(source["editorSettings"], EditorSettings);
+	        this.markdownMenu = this.convertValues(source["markdownMenu"], MarkdownMenuSettings);
 	        this.ollamaEnabled = source["ollamaEnabled"];
 	        this.ollamaModel = source["ollamaModel"];
 	        this.uiAdapterEnabled = source["uiAdapterEnabled"];

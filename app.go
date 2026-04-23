@@ -44,15 +44,15 @@ type sessionManager interface {
 
 // App is the main application struct bound to the Wails frontend.
 type App struct {
-	ctx         context.Context
-	cancel      context.CancelFunc
-	provider    *scanner.ClaudeCodeProvider
-	repoScanner *scanner.RepoScanner
-	engine      *agent.NotificationEngine
-	bridge      *terminal.Bridge
-	manager     sessionManager
-	panes       paneDiscoverer
-	explainer   *explain.Explainer
+	ctx              context.Context
+	cancel           context.CancelFunc
+	provider         *scanner.ClaudeCodeProvider
+	repoScanner      *scanner.RepoScanner
+	engine           *agent.NotificationEngine
+	bridge           *terminal.Bridge
+	manager          sessionManager
+	panes            paneDiscoverer
+	explainer        *explain.Explainer
 	mu               sync.Mutex
 	activeRepoPath   string
 	activePaneTarget string
@@ -98,25 +98,37 @@ type EditorSettings struct {
 	SmoothScrolling         bool   `json:"smoothScrolling"`
 }
 
+// MarkdownMenuSettings holds per-action visibility toggles for the markdown
+// formatting toolbar. Every field is a bool so any combination is valid.
+type MarkdownMenuSettings struct {
+	Bold          bool `json:"bold"`
+	Italic        bool `json:"italic"`
+	Strikethrough bool `json:"strikethrough"`
+	Code          bool `json:"code"`
+	Link          bool `json:"link"`
+	Latex         bool `json:"latex"`
+}
+
 // mashedConfig persists user settings between launches.
 //
 // OllamaEnabled / UIAdapterEnabled / UIAdapterUntrustedExpanded omit
 // omitempty so explicit false round-trips to disk; loadConfig
 // distinguishes missing from false where the default is TRUE.
 type mashedConfig struct {
-	DevDir                     string          `json:"devDir"`
-	Theme                      string          `json:"theme,omitempty"`
-	VSCodiumExtPath            string          `json:"vscodiumExtPath,omitempty"`
-	ImportedTheme              string          `json:"importedTheme,omitempty"`
-	MonoFont                   string          `json:"monoFont,omitempty"`
-	FontSize                   int             `json:"fontSize,omitempty"`
-	SidebarWidth               int             `json:"sidebarWidth,omitempty"`
-	EditorSettings             *EditorSettings `json:"editorSettings,omitempty"`
-	OllamaEnabled              bool            `json:"ollamaEnabled"`
-	OllamaModel                string          `json:"ollamaModel,omitempty"`
-	UIAdapterEnabled           bool            `json:"uiAdapterEnabled"`
-	UIAdapterTimeoutMs         int             `json:"uiAdapterTimeoutMs,omitempty"`
-	UIAdapterUntrustedExpanded bool            `json:"uiAdapterUntrustedExpanded"`
+	DevDir                     string                `json:"devDir"`
+	Theme                      string                `json:"theme,omitempty"`
+	VSCodiumExtPath            string                `json:"vscodiumExtPath,omitempty"`
+	ImportedTheme              string                `json:"importedTheme,omitempty"`
+	MonoFont                   string                `json:"monoFont,omitempty"`
+	FontSize                   int                   `json:"fontSize,omitempty"`
+	SidebarWidth               int                   `json:"sidebarWidth,omitempty"`
+	EditorSettings             *EditorSettings       `json:"editorSettings,omitempty"`
+	MarkdownMenu               *MarkdownMenuSettings `json:"markdownMenu,omitempty"`
+	OllamaEnabled              bool                  `json:"ollamaEnabled"`
+	OllamaModel                string                `json:"ollamaModel,omitempty"`
+	UIAdapterEnabled           bool                  `json:"uiAdapterEnabled"`
+	UIAdapterTimeoutMs         int                   `json:"uiAdapterTimeoutMs,omitempty"`
+	UIAdapterUntrustedExpanded bool                  `json:"uiAdapterUntrustedExpanded"`
 }
 
 const (
@@ -566,6 +578,42 @@ func (a *App) SetEditorSettings(settings EditorSettings) error {
 	cfg := loadConfig()
 	cfg.EditorSettings = &settings
 	return saveConfig(cfg)
+}
+
+// DefaultMarkdownMenuSettings returns the default visibility for each markdown
+// toolbar action. LaTeX defaults to off; all other actions default to on.
+func (a *App) DefaultMarkdownMenuSettings() MarkdownMenuSettings {
+	return MarkdownMenuSettings{
+		Bold:          true,
+		Italic:        true,
+		Strikethrough: true,
+		Code:          true,
+		Link:          true,
+		Latex:         false,
+	}
+}
+
+// GetMarkdownMenuSettings returns persisted markdown menu settings, or defaults
+// if none saved. Reads must never mutate the on-disk config.
+func (a *App) GetMarkdownMenuSettings() MarkdownMenuSettings {
+	cfg := loadConfig()
+	if cfg.MarkdownMenu == nil {
+		return a.DefaultMarkdownMenuSettings()
+	}
+	return *cfg.MarkdownMenu
+}
+
+// SetMarkdownMenuSettings persists markdown menu settings to config. All fields
+// are bool, so no validation is required.
+func (a *App) SetMarkdownMenuSettings(settings MarkdownMenuSettings) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	cfg := loadConfig()
+	cfg.MarkdownMenu = &settings
+	if err := saveConfig(cfg); err != nil {
+		return fmt.Errorf("save markdown menu settings: %w", err)
+	}
+	return nil
 }
 
 // GetSavedThemes returns all saved imported themes as a JSON string.

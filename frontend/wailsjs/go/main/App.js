@@ -14,6 +14,10 @@ export function DefaultEditorSettings() {
   return window['go']['main']['App']['DefaultEditorSettings']();
 }
 
+export function DefaultMarkdownMenuSettings() {
+  return window['go']['main']['App']['DefaultMarkdownMenuSettings']();
+}
+
 export function DeleteBmadAgent(arg1) {
   return window['go']['main']['App']['DeleteBmadAgent'](arg1);
 }
@@ -80,6 +84,10 @@ export function GetFontsDir() {
 
 export function GetInteractiveTranscript(arg1, arg2) {
   return window['go']['main']['App']['GetInteractiveTranscript'](arg1, arg2);
+}
+
+export function GetMarkdownMenuSettings() {
+  return window['go']['main']['App']['GetMarkdownMenuSettings']();
 }
 
 export function GetNodeOutput(arg1, arg2) {
@@ -336,6 +344,10 @@ export function SetFontSize(arg1) {
 
 export function SetImportedTheme(arg1) {
   return window['go']['main']['App']['SetImportedTheme'](arg1);
+}
+
+export function SetMarkdownMenuSettings(arg1) {
+  return window['go']['main']['App']['SetMarkdownMenuSettings'](arg1);
 }
 
 export function SetMonoFont(arg1) {
