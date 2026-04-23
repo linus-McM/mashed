@@ -1,6 +1,7 @@
 # uiadapter-v3-02: FastPathClassifier
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** M
 **Depends On:** B, v3-01
