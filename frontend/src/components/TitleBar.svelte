@@ -19,7 +19,7 @@
     setBackend,
     setClaudeModel,
     setRouterPolicy,
-  } from '../lib/stores/uiAdapterSettings.js';
+  } from '../lib/stores/uiAdapterSettings';
 
   /** @type {import('svelte').EventDispatcher<{ 'open-settings': void; 'open-new-repo': void }>} */
   const dispatch = createEventDispatcher();
