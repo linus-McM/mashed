@@ -1,6 +1,7 @@
 # uiadapter-v3-05: Two-stage Classify → Generate
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23 (scaffolding; full eval-corpus validation pending v3-13)
 **Domain:** backend
 **Size:** L
 **Depends On:** A, B, C
