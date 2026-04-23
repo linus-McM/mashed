@@ -1,12 +1,19 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
+  import { get } from 'svelte/store';
   import { ReadFile, WriteFile } from '../../wailsjs/go/main/App.js';
-  import { createDebouncedSave } from './markdownEditorUtils';
+  import {
+    createDebouncedSave,
+    applyToolbarAttributes,
+    computeToolbarApplyTarget,
+  } from './markdownEditorUtils';
   import { errorMessage } from '../lib/errorMessage';
+  import { markdownMenuSettings, markdownMenuDirty } from '../lib/stores/markdownMenuSettings';
 
   /** @typedef {import('@milkdown/crepe').Crepe} Crepe */
   /** @typedef {typeof import('@milkdown/crepe')} CrepeModuleType */
   /** @typedef {import('@milkdown/plugin-listener').ListenerManager} ListenerManager */
+  /** @typedef {import('../lib/stores/markdownMenuSettings').MarkdownMenuSettings} MarkdownMenuSettings */
 
   /** @type {string} */
   export let filePath = '';
@@ -91,6 +98,11 @@
       await crepe.create();
       if (gen !== initGeneration) { crepe.destroy().catch(() => {}); crepe = null; return; }
       crepe.setReadonly(!editable);
+
+      // Story 06: apply data-toolbar-<key> attrs on .milkdown root for CSS-masking
+      // fallback. See crepe-mashed.css for the hide rules. Must run AFTER
+      // crepe.create() so the .milkdown element exists in `container`.
+      applyToolbarAttributes(container, get(markdownMenuSettings));
     } catch (e) {
       if (gen !== initGeneration) return;
       error = errorMessage(e) || 'Failed to load editor';
@@ -134,6 +146,37 @@
     prevFilePath = filePath;
     saver.flush();
     destroyEditor().then(() => initEditor());
+  }
+
+  // Story 06: deferred-apply of toolbar settings. Reactive block re-evaluates
+  // when `$markdownMenuDirty` or `$markdownMenuSettings` change. Guards:
+  //   - !dirty  → user is not mid-toggle inside Settings (apply is deferred
+  //               until they click Back / Esc and clearMarkdownMenuDirty fires)
+  //   - crepe   → editor is mounted
+  //   - !loading → no re-init in flight
+  // JSON stringify comparison makes the apply idempotent per change-set
+  // (AC-3 / AC-4 / AC-6).
+  //
+  // Fallback strategy: CSS-masking (see crepe-mashed.css + markdownToolbarBuilder
+  // header) makes a full destroy/init cycle unnecessary for toolbar-settings
+  // changes — we only swap data attributes, preserving cursor + scroll. The
+  // deferred-apply semantics from the story are preserved via the dirty guard.
+  // The filePath-change branch ABOVE still uses the full saver.flush() →
+  // destroy → init pattern because reading a new file requires a full remount.
+  let lastAppliedSettings = JSON.stringify(get(markdownMenuSettings));
+  $: {
+    const next = computeToolbarApplyTarget({
+      dirty: $markdownMenuDirty,
+      mounted: crepe !== null,
+      loading,
+      settings: $markdownMenuSettings,
+      lastApplied: lastAppliedSettings,
+    });
+    if (next !== null) {
+      lastAppliedSettings = next;
+      applyToolbarAttributes(container, $markdownMenuSettings);
+      // No re-init: CSS masking handles visibility without teardown.
+    }
   }
 
   // Toggle readonly when editable changes

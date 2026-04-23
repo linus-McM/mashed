@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** M
 **Depends On:** Story 02 (store), Story 03 (builder)
-**Status:** ready
+**Status:** done
 **UI-facing:** YES (behaviour-facing — no new visual design, but toolbar appearance changes based on settings)
 
 ## Description
