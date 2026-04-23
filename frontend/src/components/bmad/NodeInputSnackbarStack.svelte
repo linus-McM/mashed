@@ -24,7 +24,7 @@
   import { fly } from 'svelte/transition';
   import { flip } from 'svelte/animate';
   import { cubicOut, cubicIn } from 'svelte/easing';
-  import { MessageCircleQuestion, Keyboard } from 'lucide-svelte';
+  import { MessageCircleQuestion, Keyboard, X } from 'lucide-svelte';
   import {
     truncate,
     getBorderColor,
@@ -38,8 +38,13 @@
   /** @type {PendingPrompt[]} */
   export let pendingPrompts = [];
 
-  /** @type {import('svelte').EventDispatcher<{ respond: { prompt: PendingPrompt }; navigate: { repoPath: string; question?: SnackbarEntry; entry: MergedEntry }; skip: { prompt: PendingPrompt } }>} */
+  /** @type {import('svelte').EventDispatcher<{ respond: { prompt: PendingPrompt }; navigate: { repoPath: string; question?: SnackbarEntry; entry: MergedEntry }; skip: { prompt: PendingPrompt }; dismiss: { entry: MergedEntry } }>} */
   const dispatch = createEventDispatcher();
+
+  /** @param {MergedEntry} entry */
+  function handleDismiss(entry) {
+    dispatch('dismiss', { entry });
+  }
 
   let now = Date.now();
   /** @type {ReturnType<typeof setInterval> | undefined} */
@@ -168,6 +173,15 @@
         style:background-color={getBorderColor(q.repoName || '')}
         aria-hidden="true"
       ></span>
+      <button
+        type="button"
+        class="close-btn"
+        aria-label="Dismiss notification"
+        title="Dismiss"
+        on:click|stopPropagation={() => handleDismiss(q)}
+      >
+        <X size={14} strokeWidth={2.5} />
+      </button>
       <div class="card-content">
         <div class="card-top">
           <span class="question-icon" aria-hidden="true">
@@ -236,6 +250,7 @@
 
   .snackbar-card {
     pointer-events: auto;
+    position: relative;
     display: flex;
     align-items: stretch;
     background: var(--bg-elevated);
@@ -248,6 +263,38 @@
       background var(--duration-short) var(--ease-enter),
       border-color var(--duration-short) var(--ease-enter),
       transform var(--duration-micro) var(--ease-enter);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background: color-mix(in srgb, var(--bg-deepest) 70%, transparent);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+    opacity: 1;
+    transition:
+      background var(--duration-short) var(--ease-enter),
+      border-color var(--duration-short) var(--ease-enter),
+      color var(--duration-short) var(--ease-enter);
+  }
+  .close-btn:hover {
+    background: color-mix(in srgb, var(--accent-red, #f85149) 20%, transparent);
+    border-color: color-mix(in srgb, var(--accent-red, #f85149) 60%, transparent);
+    color: var(--accent-red, #f85149);
+  }
+  .close-btn:focus-visible {
+    outline: 1px solid var(--accent-red, #f85149);
+    outline-offset: 1px;
   }
 
   .snackbar-card:hover {
@@ -284,6 +331,7 @@
     display: flex;
     align-items: baseline;
     gap: var(--sp-xs);
+    padding-right: 20px;
   }
 
   .question-icon {

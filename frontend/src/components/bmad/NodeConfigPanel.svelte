@@ -8,6 +8,7 @@
     stringifyEntries,
     hasDuplicateLabels,
   } from '../../lib/bmad/multiFileEntries';
+  import MarkdownBlock from './MarkdownBlock.svelte';
 
   /** @typedef {import('../../types/workflow').CanvasNode} CanvasNode */
   /** @typedef {import('../../lib/types/wails').GroupedAgents} GroupedAgents */
@@ -24,7 +25,7 @@
   const dispatch = createEventDispatcher();
 
   // Resize logic — exported so parent can read current width
-  export let panelWidth = 280;
+  export let panelWidth = 360;
   let resizing = false;
 
   /** @param {MouseEvent} e */
@@ -36,7 +37,7 @@
 
     /** @param {MouseEvent} e */
     function onMouseMove(e) {
-      panelWidth = Math.max(220, Math.min(500, startWidth - (e.clientX - startX)));
+      panelWidth = Math.max(260, Math.min(720, startWidth - (e.clientX - startX)));
     }
 
     function onMouseUp() {
@@ -103,6 +104,7 @@
   let filePath = '';
   let filePreview = '';
   let fileError = '';
+  $: isMarkdownFile = /\.(md|markdown|mdx)$/i.test(filePath);
 
   // Load preview when filePath changes
   $: if (isFileLoader && filePath) {
@@ -174,7 +176,8 @@
   $: label = node?.data?.label || 'Node';
   $: status = node?.data?.status || 'pending';
   $: tmuxTarget = node?.data?.tmuxTarget || '';
-  $: hasTerminal = status === 'running' && tmuxTarget;
+  $: hasTerminal = !!tmuxTarget && (status === 'running' || status === 'awaiting_input');
+  $: sessionDead = !!node?.data?.sessionDead;
   $: parsedTmuxTarget = parseFriendlyTarget(tmuxTarget);
 
   async function browseFile() {
@@ -295,18 +298,27 @@
         </div>
       {:else if isFileLoader}
         <div class="field">
-          <label class="field-label" for="file-loader-path">File Path</label>
-          <div class="file-picker-row">
-            <input
-              id="file-loader-path"
-              class="field-input file-path-input"
-              type="text"
-              bind:value={filePath}
-              on:blur={emitUpdate}
-              placeholder="No file selected..."
-              readonly
-            />
-          </div>
+          <span class="field-label" id="file-loader-path-label">File Path</span>
+          {#if filePath}
+            {@const lastSep = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'))}
+            {@const fileName = lastSep >= 0 ? filePath.slice(lastSep + 1) : filePath}
+            {@const parentDir = lastSep >= 0 ? filePath.slice(0, lastSep) : ''}
+            <div
+              class="file-path-block"
+              role="group"
+              aria-labelledby="file-loader-path-label"
+              title={filePath}
+            >
+              <span class="file-name">{fileName}</span>
+              {#if parentDir}
+                <span class="file-parent">{parentDir}</span>
+              {/if}
+            </div>
+          {:else}
+            <div class="file-path-block empty" role="group" aria-labelledby="file-loader-path-label">
+              <span class="file-placeholder">No file selected</span>
+            </div>
+          {/if}
           <button class="browse-btn" on:click={browseFile}>
             <FolderOpen size={14} />
             Browse...
@@ -315,7 +327,13 @@
         {#if filePreview}
           <div class="field">
             <span class="field-label">Preview</span>
-            <pre class="file-preview">{filePreview}</pre>
+            <div class="file-preview" class:file-preview-md={isMarkdownFile}>
+              {#if isMarkdownFile}
+                <MarkdownBlock content={filePreview} />
+              {:else}
+                <pre class="file-preview-raw">{filePreview}</pre>
+              {/if}
+            </div>
           </div>
         {/if}
         {#if fileError}
@@ -504,6 +522,11 @@
           <Terminal size={13} />
           View Terminal
         </button>
+      {:else if sessionDead}
+        <div class="session-dead-note" role="status">
+          <Terminal size={13} />
+          Terminal session ended
+        </div>
       {/if}
 
       {#if status === 'complete'}
@@ -690,25 +713,86 @@
   .browse-btn:hover {
     background: var(--bg-active);
   }
-  .file-path-input {
-    font-size: 11px;
+  .file-path-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--sp-sm) var(--sp-sm);
+    background: var(--bg-deepest);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    min-width: 0;
+  }
+  .file-path-block.empty {
+    border-style: dashed;
+  }
+  .file-name {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    word-break: break-all;
+    line-height: 1.35;
+  }
+  .file-parent {
+    font-family: var(--font-mono);
+    font-size: 12px;
     color: var(--text-dim);
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-break: break-all;
+    line-height: 1.4;
+  }
+  .file-placeholder {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
   }
   .file-preview {
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
-    padding: var(--sp-xs) var(--sp-sm);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    line-height: 1.4;
-    color: var(--text-dim);
-    max-height: 200px;
+    padding: var(--sp-sm) var(--sp-sm);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-primary);
+    max-height: 420px;
     overflow-y: auto;
-    white-space: pre;
+    overflow-x: hidden;
     margin: 0;
+    scrollbar-gutter: stable;
+  }
+  .file-preview-raw {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .file-preview :global(.markdown-block) {
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .file-preview :global(.markdown-block pre),
+  .file-preview :global(.markdown-block code) {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .file-preview::-webkit-scrollbar {
+    width: 10px;
+  }
+  .file-preview::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .file-preview::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 5px;
+  }
+  .file-preview::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
   }
   .file-error {
     font-size: var(--text-label);
@@ -728,6 +812,19 @@
     color: var(--text-muted);
   }
 
+  .session-dead-note {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    padding: var(--sp-xs) 10px;
+    background: color-mix(in srgb, var(--accent-red, #f85149) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-red, #f85149) 40%, transparent);
+    border-radius: var(--radius-sm);
+    color: var(--accent-red, #f85149);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    margin-top: 4px;
+  }
   .terminal-btn {
     display: flex;
     align-items: center;

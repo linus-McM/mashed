@@ -72,6 +72,13 @@ export interface BmadAbortedEvent {
   reason?: string;
 }
 
+/** Payload for `bmad:node:session_dead`. */
+export interface BmadSessionDeadEvent {
+  execId?: string;
+  nodeId: string;
+  tmuxTarget?: string;
+}
+
 /** Payload for `bmad:node:status` (autonomous live status tick). */
 export interface BmadNodeStatusEvent {
   execId?: string;
@@ -117,6 +124,7 @@ export interface BmadInteractiveEventMap {
   'bmad:node:gate_satisfied': BmadGateSatisfiedEvent;
   'bmad:node:round_limit': BmadRoundLimitEvent;
   'bmad:node:aborted': BmadAbortedEvent;
+  'bmad:node:session_dead': BmadSessionDeadEvent;
 }
 
 /**

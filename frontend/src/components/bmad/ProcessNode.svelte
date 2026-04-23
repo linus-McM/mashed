@@ -48,6 +48,7 @@
   $: nodeRound = data.nodeRound || 0;
   $: maxRounds = process.gate?.maxRounds || 0;
   $: gateFlash = !!data.gateFlash;
+  $: sessionDead = !!data.sessionDead;
   $: roundText = (() => {
     if (!nodeRound || nodeRound <= 0) return '';
     if (maxRounds > 0) return `${nodeRound} / ${maxRounds}`;
@@ -120,6 +121,11 @@
           <MessageCircleQuestion size={11} />
         </span>
         <span class="status-text awaiting-text">awaiting</span>
+        {#if sessionDead}
+          <span class="session-dead-badge" title="Tmux session ended — respond will fail">
+            session ended
+          </span>
+        {/if}
       {:else if status === 'complete'}
         <span class="status-check">&#10003;</span>
         <span class="status-text complete-text">complete</span>
@@ -399,6 +405,20 @@
   }
 
   .awaiting-text { color: var(--accent-amber); }
+
+  .session-dead-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent-red, #f85149);
+    background: color-mix(in srgb, var(--accent-red, #f85149) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-red, #f85149) 40%, transparent);
+    padding: 1px 5px;
+    border-radius: var(--radius-sm);
+  }
 
   .round-counter {
     font-family: var(--font-mono);

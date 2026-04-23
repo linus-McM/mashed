@@ -67,6 +67,9 @@ export interface CanvasNodeData {
   // Interactive gate flash animation & current iteration round.
   gateFlash?: boolean;
   nodeRound?: number;
+  // Set by `bmad:node:session_dead` when the liveness poller observes that
+  // the node's tmux session has been terminated outside the executor.
+  sessionDead?: boolean;
 }
 
 /** A svelte-flow canvas node as produced by WorkflowBuilder. */

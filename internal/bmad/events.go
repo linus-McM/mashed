@@ -16,6 +16,11 @@ const (
 	EventRoundComplete = "bmad:node:round_complete"
 	EventGateSatisfied = "bmad:node:gate_satisfied"
 	EventRoundLimit    = "bmad:node:round_limit"
+
+	// EventSessionDead fires when the per-exec liveness poller observes that
+	// a node's tmux pane has died while the node is still marked running or
+	// awaiting_input. Frontend clears the tmuxTarget + shows an "ended" badge.
+	EventSessionDead = "bmad:node:session_dead"
 )
 
 // roundCompletePayload returns the payload for EventRoundComplete.
@@ -90,5 +95,14 @@ func abortedPayload(execID, nodeID, reason string) map[string]any {
 		"execId": execID,
 		"nodeId": nodeID,
 		"reason": reason,
+	}
+}
+
+// sessionDeadPayload returns the payload for EventSessionDead.
+func sessionDeadPayload(execID, nodeID, tmuxTarget string) map[string]any {
+	return map[string]any{
+		"execId":     execID,
+		"nodeId":     nodeID,
+		"tmuxTarget": tmuxTarget,
 	}
 }

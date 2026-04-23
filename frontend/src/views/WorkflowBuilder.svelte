@@ -107,8 +107,10 @@
   export let repoBranch = '';
   /** @type {import('../components/bmad/questionSnackbarUtils').QuestionEventLike | null} */
   export let pendingQuestion = null;
+  /** @type {string} */
+  export let pendingTmuxTarget = '';
 
-  /** @type {import('svelte').EventDispatcher<{ 'question-responded': { nodeId: string | undefined }; back: void }>} */
+  /** @type {import('svelte').EventDispatcher<{ 'question-responded': { nodeId: string | undefined }; back: void; 'tmux-opened': void }>} */
   const dispatch = createEventDispatcher();
 
   let showQuestionModal = false;
@@ -122,6 +124,15 @@
   $: if (pendingQuestion && !showQuestionModal) {
     activeQuestion = pendingQuestion;
     showQuestionModal = true;
+  }
+
+  // Idle snackbar click arrives as pendingTmuxTarget — open the terminal
+  // modal for that tmux session and immediately clear the prop so the
+  // reactive block cannot re-fire on unrelated parent re-renders.
+  $: if (pendingTmuxTarget) {
+    terminalTarget = pendingTmuxTarget;
+    showTerminalModal = true;
+    dispatch('tmux-opened');
   }
 
   function handleQuestionResponded() {
@@ -226,7 +237,7 @@
   // Config panel state
   /** @type {CanvasNode | null} */
   let selectedNode = null;
-  let configPanelWidth = 280;
+  let configPanelWidth = 360;
 
   // Agent modal state
   let showAgentModal = false;
@@ -761,6 +772,17 @@
       dismissNode(event.nodeId);
       applyNodeDataPatch(event.nodeId, { status: 'failed' });
       pushToast('error', event.reason || 'Node aborted');
+    },
+    'bmad:node:session_dead': (event) => {
+      if (!event?.nodeId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      applyNodeDataPatch(event.nodeId, { tmuxTarget: '', sessionDead: true });
+      // If terminal modal is open on the just-dead target, close it so the
+      // user isn't left staring at a stale transcript.
+      if (terminalTarget && event.tmuxTarget && terminalTarget === event.tmuxTarget) {
+        showTerminalModal = false;
+      }
+      pushToast('warn', 'Terminal session ended');
     },
   };
 
@@ -1645,6 +1667,10 @@
     pendingPrompts={$interactiveInput.pendingPrompts}
     on:respond={(e) => openInteractiveModal(e.detail.prompt)}
     on:skip={(e) => handleInputSkip(e.detail.prompt)}
+    on:dismiss={(e) => {
+      const nodeId = e.detail?.entry?.nodeId;
+      if (nodeId) dismissNode(nodeId);
+    }}
   />
 
   {#if $interactiveInput.activeModal}

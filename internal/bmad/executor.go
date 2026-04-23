@@ -213,8 +213,73 @@ func (e *Executor) StartWorkflow(parentCtx context.Context, workflowID, repoPath
 	e.emit("bmad:execution:status", ExecStatusEvent{ExecID: execID, Status: ExecRunning})
 
 	go e.runDynamic(ctx, state, repoPath, model)
+	go e.monitorSessionLiveness(ctx, state)
 
 	return execution, nil
+}
+
+// sessionDeadPollInterval is how often monitorSessionLiveness checks every
+// live node's tmux session. 3s balances responsiveness against tmux IPC load.
+const sessionDeadPollInterval = 3 * time.Second
+
+// monitorSessionLiveness polls every tmux target owned by a running or
+// awaiting_input node and emits EventSessionDead + clears TmuxTarget the
+// first time the session is observed gone. A per-exec seen-set prevents
+// re-emission. Exits on ctx.Done.
+func (e *Executor) monitorSessionLiveness(ctx context.Context, state *execState) {
+	ticker := time.NewTicker(sessionDeadPollInterval)
+	defer ticker.Stop()
+	dead := make(map[string]bool) // nodeID -> already reported
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			type probe struct{ nodeID, target string }
+			var probes []probe
+			state.mu.Lock()
+			execID := state.exec.ID
+			for _, n := range state.exec.Nodes {
+				if n.TmuxTarget == "" || dead[n.ID] {
+					continue
+				}
+				if n.Status != NodeRunning && n.Status != NodeAwaitingInput {
+					continue
+				}
+				probes = append(probes, probe{nodeID: n.ID, target: n.TmuxTarget})
+			}
+			state.mu.Unlock()
+
+			for _, p := range probes {
+				// has-session accepts the session name (strip window/pane),
+				// returns non-zero when the session is gone.
+				session := p.target
+				if i := strings.IndexByte(session, ':'); i >= 0 {
+					session = session[:i]
+				}
+				probeCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+				_, err := e.runCmd(probeCtx, "tmux", "has-session", "-t", session)
+				cancel()
+				if err == nil {
+					continue // alive
+				}
+				dead[p.nodeID] = true
+				// Clear TmuxTarget in state so restoreForRepo doesn't rehydrate
+				// a stale target; persist so the change survives restart.
+				state.mu.Lock()
+				for i := range state.exec.Nodes {
+					if state.exec.Nodes[i].ID == p.nodeID {
+						state.exec.Nodes[i].TmuxTarget = ""
+						break
+					}
+				}
+				state.mu.Unlock()
+				_ = e.persistSnapshot(state)
+				e.emit(EventSessionDead, sessionDeadPayload(execID, p.nodeID, p.target))
+			}
+		}
+	}
 }
 
 // PauseWorkflow prevents new nodes from starting; running nodes finish.
@@ -1141,7 +1206,13 @@ func wrapInBashExec(innerCommand string) string {
 //
 // Pane death at any stage returns nil (legacy completion path).
 // Context cancellation returns ctx.Err().
-func (e *Executor) waitForIdleCompletion(ctx context.Context, state *execState, nodeID, target string, timeout time.Duration) error {
+//
+// isInteractive=true disables the hasRecentQuestion gate at stageWatchingForIdle:
+// interactive processes (InteractParty/Guided/Iterative) treat a Claude-asked
+// question as the CUE to return so the round loop can advance to
+// suspendForSpec + UI-AST translation. Autonomous processes keep the gate so
+// the legacy idle/question snackbar stays visible.
+func (e *Executor) waitForIdleCompletion(ctx context.Context, state *execState, nodeID, target string, timeout time.Duration, isInteractive bool) error {
 	type idleStage int
 	const (
 		stagePriming idleStage = iota
@@ -1182,13 +1253,16 @@ func (e *Executor) waitForIdleCompletion(ctx context.Context, state *execState, 
 			currentHash := hashCapturedOutput(captured)
 
 			// Fire signal detection so snackbar events (idle/question)
-			// continue working. Idle detection runs every tick; question
-			// scanning runs every questionScanStride ticks.
+			// continue working. Interactive processes own the snackbar via
+			// PendingPrompt + EventAwaitingInput — skip legacy idle/question
+			// emissions so the UI does not render two stacked cards per node.
 			questionPollCounter++
 			scanQuestion := questionPollCounter%questionScanStride == 0
-			e.pollForIdle(state, nodeID, target, captured)
-			if scanQuestion {
-				e.pollForQuestionFromCapture(state, nodeID, target, captured)
+			if !isInteractive {
+				e.pollForIdle(state, nodeID, target, captured)
+				if scanQuestion {
+					e.pollForQuestionFromCapture(state, nodeID, target, captured)
+				}
 			}
 
 			switch stage {
@@ -1206,15 +1280,14 @@ func (e *Executor) waitForIdleCompletion(ctx context.Context, state *execState, 
 
 			case stageWatchingForIdle:
 				if currentHash == lastStableHash && detectIdlePrompt(captured) {
-					// Question gate: if the recent output contains a question
-					// (structured or natural language), don't auto-complete.
-					// The process is waiting for user input — keep polling so
-					// the idle/question snackbar stays visible and downstream
-					// nodes don't start.
-					if hasRecentQuestion(captured) {
+					// Question gate — autonomous processes only.
+					// Interactive processes treat a question as the cue to
+					// return; the caller will translate the captured output
+					// via the UI-AST adapter and emit a PendingPrompt.
+					if !isInteractive && hasRecentQuestion(captured) {
 						continue
 					}
-					return nil // stable + idle prompt + no question → done
+					return nil // stable + idle prompt → done
 				}
 				if currentHash != lastStableHash {
 					lastStableHash = currentHash
@@ -1428,7 +1501,7 @@ func (e *Executor) executeCommandNode(ctx context.Context, state *execState, nod
 	}
 
 	// Wait for idle-prompt completion (or pane death as fallback).
-	if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout); err != nil {
+	if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout, false); err != nil {
 		e.failNode(state, idx, nodeID)
 		return
 	}
@@ -1497,7 +1570,7 @@ func (e *Executor) executeProcessNode(ctx context.Context, state *execState, nod
 	}
 
 	// Wait for idle-prompt completion (or pane death as fallback).
-	waitErr := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout)
+	waitErr := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout, false)
 
 	// Capture output (best-effort) regardless of completion path.
 	captured, captureErr := e.captureOutput(ctx, target)
@@ -2378,7 +2451,7 @@ func (e *Executor) executeInteractiveNode(
 	var lastRoundKey string
 roundLoop:
 	for {
-		if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout); err != nil {
+		if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout, true); err != nil {
 			e.failNode(state, idx, nodeID)
 			return
 		}
