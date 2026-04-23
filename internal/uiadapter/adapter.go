@@ -149,38 +149,43 @@ func (*disabledAdapter) Translate(_ context.Context, raw, _ string) *UIAST {
 func (a *defaultAdapter) Translate(ctx context.Context, raw, procID string) *UIAST {
 	start := time.Now()
 
+	// Story v3-01 AC-1.1–1.4: strip ANSI/CLI chrome upstream of the
+	// validator so contentPreserved byte-matches don't scoop escape
+	// sequences out of URLs / code. Fenced code blocks round-trip verbatim.
+	sanitized, sanitizeDelta := SanitizeCapture(raw)
+
 	if !a.sem.acquire(ctx) {
-		return a.emitFallback(raw, "saturated", ctx, start, 0)
+		return a.emitFallback(sanitized, "saturated", ctx, start, 0)
 	}
 	defer a.sem.release()
 
 	ctxT, cancel := context.WithTimeout(ctx, a.timeout)
 	defer cancel()
 
-	body, err := a.chat(ctxT, raw)
+	body, err := a.chat(ctxT, sanitized)
 	if err != nil {
-		return a.emitFallback(raw, classifyChatErr(err), ctx, start, 0)
+		return a.emitFallback(sanitized, classifyChatErr(err), ctx, start, 0)
 	}
 
 	ast := &UIAST{}
 	if decErr := json.Unmarshal([]byte(body), ast); decErr != nil {
-		return a.emitFallback(raw, "validation:malformed", ctx, start, len(body))
+		return a.emitFallback(sanitized, "validation:malformed", ctx, start, len(body))
 	}
 
-	reasons := Validate(ast, raw)
+	reasons := Validate(ast, sanitized)
 	for _, r := range reasons {
 		if r == "required_dropped" || r == "oversize" || r == "marshal_error" {
-			return a.emitFallback(raw, "validation:"+r, ctx, start, len(body))
+			return a.emitFallback(sanitized, "validation:"+r, ctx, start, len(body))
 		}
 	}
 
-	if !contentPreserved(raw, ast) {
+	if !contentPreserved(sanitized, ast) {
 		ast.Diagnostics.Untrusted = true
 	}
 	ast.Diagnostics.FallbackReasons = append(ast.Diagnostics.FallbackReasons, reasons...)
-	a.stampSuccessMetadata(ast, raw, body, start)
+	a.stampSuccessMetadata(ast, sanitized, body, start)
 
-	a.logTelemetry(slog.LevelInfo, procID, len(raw), len(body), start, reasons, ast.Diagnostics.Untrusted)
+	a.logTelemetryWithSanitize(slog.LevelInfo, procID, len(raw), len(body), start, reasons, ast.Diagnostics.Untrusted, sanitizeDelta)
 	return ast
 }
 
@@ -232,6 +237,14 @@ func (a *defaultAdapter) emitFallback(raw, reason string, ctx context.Context, s
 // logTelemetry emits exactly one structured line per Translate call (§4.7.7).
 // byte counts only — raw content never reaches the logger.
 func (a *defaultAdapter) logTelemetry(level slog.Level, tag string, inBytes, outBytes int, start time.Time, reasons []string, untrusted bool) {
+	a.logTelemetryWithSanitize(level, tag, inBytes, outBytes, start, reasons, untrusted, 0)
+}
+
+// logTelemetryWithSanitize is the Story v3-01 AC-1.4 enriched variant. The
+// base logTelemetry forwards sanitizeDelta=0 so legacy callers (the
+// emitFallback path) keep their contract; the happy path plumbs the real
+// delta from SanitizeCapture.
+func (a *defaultAdapter) logTelemetryWithSanitize(level slog.Level, tag string, inBytes, outBytes int, start time.Time, reasons []string, untrusted bool, sanitizeDelta int) {
 	a.logger.LogAttrs(context.Background(), level, "uiadapter.translate",
 		slog.String("op", "translate"),
 		slog.String("model", a.model),
@@ -242,6 +255,7 @@ func (a *defaultAdapter) logTelemetry(level slog.Level, tag string, inBytes, out
 		slog.Int("latency_ms", int(time.Since(start).Milliseconds())),
 		slog.String("validation", strings.Join(reasons, ",")),
 		slog.Bool("untrusted", untrusted),
+		slog.Int("sanitize_delta_bytes", sanitizeDelta),
 	)
 }
 

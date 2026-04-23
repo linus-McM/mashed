@@ -1,10 +1,11 @@
 # uiadapter-v3-01: SanitizeCapture
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** S
 **Depends On:** B
 **Priority:** P0-critical
+**Landed:** 2026-04-23
 
 ## Story
 
