@@ -57,6 +57,17 @@ build: build-helper
 test:
     go test -tags testing ./internal/... -race -count=1
 
+# Install the Schema→Go codegen tool (Story A). Run once per workstation.
+# Tracked in tools.go so `go mod tidy` keeps the version pinned in go.mod.
+install-tools:
+    go install github.com/atombender/go-jsonschema@latest
+
+# Regenerate internal/uiadapter/uiast.gen.go from schemas/*.json
+# (Story A / Plan §3 Story A). CI asserts the tree is clean via
+# `TestCodegen_NoDrift` — run this after editing any schema.
+gen:
+    PATH="$(go env GOPATH)/bin:$PATH" go generate ./internal/uiadapter/...
+
 # Offline Gemma UI AST eval harness (Story ui-ast-U9). Runs the adapter
 # against the committed ≥ 30-sample corpus; skips cleanly if Ollama is
 # unreachable. Requires `gemma3:4b` pulled locally (~2.5 GB) on first run.

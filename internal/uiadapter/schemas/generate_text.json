@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mashed.dev/schemas/generate_text.json",
+  "title": "GenerateText",
+  "description": "Strict subset of uiast.json for text-input widget payloads.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type"],
+  "properties": {
+    "type": { "type": "string", "const": "text" },
+    "placeholder": { "type": "string" },
+    "maxLength": { "type": "integer" },
+    "multiline": { "type": "boolean" },
+    "default": { "type": "string" }
+  }
+}
