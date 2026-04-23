@@ -1,6 +1,7 @@
 # uiadapter-v3-04: ResponseCache + Singleflight
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** S
 **Depends On:** B, C

@@ -1,6 +1,7 @@
 # uiadapter-v3-03: ContextGuard
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** M
 **Depends On:** B, C
