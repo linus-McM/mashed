@@ -8,6 +8,8 @@
   import {
     backend,
     claudeModel,
+    cliModel,
+    ollamaModel,
     routerPolicy,
     backendsAvailable,
     claudeModelList,
@@ -18,6 +20,8 @@
     claudeCliReachable,
     setBackend,
     setClaudeModel,
+    setCliModel,
+    setModel,
     setRouterPolicy,
   } from '../lib/stores/uiAdapterSettings';
 
@@ -59,10 +63,15 @@
 
   /** @type {{value:string,label?:string}[]} */
   $: modelOptions = $backend === 'ollama'
-    ? $ollamaModels.map((m) => ({ value: m, label: m }))
+    ? ($ollamaModels.length ? $ollamaModels : [$ollamaModel]).map((m) => ({ value: m, label: m }))
     : $claudeModelList.map((m) => ({ value: m, label: m }));
 
-  $: modelValue = $backend === 'ollama' ? '' : $claudeModel;
+  // Model selector reflects whichever backend-specific model is active so the
+  // visible label is never empty (the pre-fix regression showed "Model: ").
+  $: modelValue =
+    $backend === 'ollama' ? $ollamaModel
+    : $backend === 'claude-cli' ? $cliModel
+    : $claudeModel;
 
   /** @type {Record<string,string>} */
   const policyHints = {
@@ -86,7 +95,13 @@
   }
   /** @param {string} v */
   async function onModelSelect(v) {
-    await setClaudeModel(v);
+    if ($backend === 'ollama') {
+      await setModel(v);
+    } else if ($backend === 'claude-cli') {
+      await setCliModel(v);
+    } else {
+      await setClaudeModel(v);
+    }
   }
   /** @param {string} v */
   async function onPolicySelect(v) {
