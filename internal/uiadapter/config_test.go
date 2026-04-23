@@ -51,8 +51,12 @@ func TestDefaultConfig_Bootable_AllBackends(t *testing.T) {
 // `Given the caller passes Config{} to DefaultConfig() And feeds the resulting
 // struct to NewDefault(cfg) When the adapter is constructed Then no panic
 // fires`.
+//
+// Not t.Parallel() — Translate exercises the HTTP client which reads the
+// package-level ollamaHost variable that the existing U2 tests mutate via
+// withOllamaHost(). Serialising avoids a harmless read/write race across
+// the package-variable seam.
 func TestDefaultConfig_ZeroValueBootsAdapter(t *testing.T) {
-	t.Parallel()
 	cfg := DefaultConfig()
 	cfg.Enabled = true
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))

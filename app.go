@@ -129,6 +129,12 @@ type mashedConfig struct {
 	UIAdapterEnabled           bool                  `json:"uiAdapterEnabled"`
 	UIAdapterTimeoutMs         int                   `json:"uiAdapterTimeoutMs,omitempty"`
 	UIAdapterUntrustedExpanded bool                  `json:"uiAdapterUntrustedExpanded"`
+
+	// Plan v3 Story 18 — dynamic backend/router selection (runtime pick).
+	Backend      string `json:"backend,omitempty"`       // "ollama" | "claude-api" | "claude-cli"
+	ClaudeModel  string `json:"claudeModel,omitempty"`   // for backend=claude-api
+	CLIModel     string `json:"cliModel,omitempty"`      // for backend=claude-cli
+	RouterPolicy string `json:"routerPolicy,omitempty"`  // enum — see Plan §3 Story 16
 }
 
 const (

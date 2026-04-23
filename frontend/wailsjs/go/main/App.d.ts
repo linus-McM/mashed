@@ -224,3 +224,12 @@ export function UpdateStoryStatus(arg1:string,arg2:string,arg3:string):Promise<v
 export function WriteConsoleLog(arg1:string,arg2:string):Promise<void>;
 
 export function WriteFile(arg1:string,arg2:string):Promise<void>;
+
+// Plan v3 Story 18 — backend/router selectors
+export function SetBackend(arg1: string): Promise<void>;
+export function SetClaudeModel(arg1: string): Promise<void>;
+export function SetCLIModel(arg1: string): Promise<void>;
+export function SetRouterPolicy(arg1: string): Promise<void>;
+export function ListBackendsAvailable(): Promise<Array<string>>;
+export function ListClaudeModels(): Promise<Array<string>>;
+export function ListRouterPolicies(): Promise<Array<string>>;

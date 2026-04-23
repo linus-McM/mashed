@@ -4,14 +4,93 @@
   import { Settings, Palette, FolderPlus } from 'lucide-svelte';
   import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
   import { SetTheme } from '../../wailsjs/go/main/App.js';
+  import DynamicUiSelector from './titlebar/DynamicUiSelector.svelte';
+  import {
+    backend,
+    claudeModel,
+    routerPolicy,
+    backendsAvailable,
+    claudeModelList,
+    routerPolicyList,
+    ollamaModels,
+    ollamaReachable,
+    claudeApiReachable,
+    claudeCliReachable,
+    setBackend,
+    setClaudeModel,
+    setRouterPolicy,
+  } from '../lib/stores/uiAdapterSettings.js';
 
   /** @type {import('svelte').EventDispatcher<{ 'open-settings': void; 'open-new-repo': void }>} */
   const dispatch = createEventDispatcher();
 
   let showThemePicker = false;
+  /** @type {import('./titlebar/DynamicUiSelector.svelte').default | null} */
+  let backendSelRef = null;
+  /** @type {import('./titlebar/DynamicUiSelector.svelte').default | null} */
+  let modelSelRef = null;
+  /** @type {import('./titlebar/DynamicUiSelector.svelte').default | null} */
+  let policySelRef = null;
 
   function toggleThemePicker() {
     showThemePicker = !showThemePicker;
+    closeAllSelectors();
+  }
+
+  function closeAllSelectors() {
+    if (backendSelRef && typeof backendSelRef.close === 'function') backendSelRef.close();
+    if (modelSelRef && typeof modelSelRef.close === 'function') modelSelRef.close();
+    if (policySelRef && typeof policySelRef.close === 'function') policySelRef.close();
+  }
+
+  // Backend glyph table — signature element per Design Brief.
+  /** @type {Record<string,string>} */
+  const backendGlyph = { ollama: '⌂', 'claude-api': '◆', 'claude-cli': '▶' };
+
+  /** @type {{value:string,label?:string,disabled?:boolean}[]} */
+  $: backendOptions = ($backendsAvailable.length ? $backendsAvailable : ['ollama', 'claude-api', 'claude-cli']).map((b) => ({
+    value: b,
+    label: b,
+    disabled:
+      (b === 'ollama' && $ollamaReachable === false) ||
+      (b === 'claude-api' && $claudeApiReachable === false) ||
+      (b === 'claude-cli' && $claudeCliReachable === false),
+  }));
+
+  /** @type {{value:string,label?:string}[]} */
+  $: modelOptions = $backend === 'ollama'
+    ? $ollamaModels.map((m) => ({ value: m, label: m }))
+    : $claudeModelList.map((m) => ({ value: m, label: m }));
+
+  $: modelValue = $backend === 'ollama' ? '' : $claudeModel;
+
+  /** @type {Record<string,string>} */
+  const policyHints = {
+    'local-only': 'Route through local Ollama only',
+    'claude-only': 'Always use Claude API',
+    'claude-first': 'Claude primary; fallback to Ollama',
+    'ollama-first': 'Ollama primary; fallback to Claude',
+    'cost-aware': 'Prefer Ollama when healthy',
+    'privacy-strict': 'Block Claude when secrets detected',
+  };
+  /** @type {{value:string,label?:string,hint?:string}[]} */
+  $: policyOptions = ($routerPolicyList.length ? $routerPolicyList : Object.keys(policyHints)).map((p) => ({
+    value: p,
+    label: p,
+    hint: policyHints[p],
+  }));
+
+  /** @param {string} v */
+  async function onBackendSelect(v) {
+    await setBackend(v);
+  }
+  /** @param {string} v */
+  async function onModelSelect(v) {
+    await setClaudeModel(v);
+  }
+  /** @param {string} v */
+  async function onPolicySelect(v) {
+    await setRouterPolicy(v);
   }
 
   /** @param {string} id */
@@ -80,6 +159,29 @@
     <button class="titlebar-btn" on:click={openSettings} title="Settings">
       <Settings size={14} />
     </button>
+    <DynamicUiSelector
+      bind:this={backendSelRef}
+      label="Backend"
+      value={$backend}
+      options={backendOptions}
+      glyph={backendGlyph[$backend] || ''}
+      onSelect={onBackendSelect}
+    />
+    <DynamicUiSelector
+      bind:this={modelSelRef}
+      label="Model"
+      value={modelValue}
+      options={modelOptions}
+      disabled={$backend === 'ollama' && $ollamaReachable === false}
+      onSelect={onModelSelect}
+    />
+    <DynamicUiSelector
+      bind:this={policySelRef}
+      label="Policy"
+      value={$routerPolicy}
+      options={policyOptions}
+      onSelect={onPolicySelect}
+    />
   </div>
 </div>
 
