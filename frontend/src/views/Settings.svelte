@@ -8,6 +8,11 @@
   import { applyFont, registerLocalFonts } from '../lib/stores/font.js';
   import { editorSettings, updateEditorSetting } from '../lib/stores/editorSettings.js';
   import {
+    markdownMenuSettings,
+    updateMarkdownMenuItem,
+    clearMarkdownMenuDirty,
+  } from '../lib/stores/markdownMenuSettings';
+  import {
     uiAdapterEnabled,
     uiAdapterTimeoutMs,
     ollamaModel,
@@ -44,6 +49,23 @@
   type FontOption = { family: string; source: 'bundled' };
 
   const dispatch = createEventDispatcher<{ back: void }>();
+
+  const TOOLBAR_ITEMS = [
+    { key: 'bold',          label: 'Bold' },
+    { key: 'italic',        label: 'Italic' },
+    { key: 'strikethrough', label: 'Strikethrough' },
+    { key: 'code',          label: 'Code' },
+    { key: 'link',          label: 'Link' },
+    { key: 'latex',         label: 'LaTeX' },
+  ] as const;
+
+  /** Dispatch `back` after clearing the markdown-menu dirty flag so
+   * MarkdownEditor's re-init guard (story 06) sees a fresh state.
+   * Call order is load-bearing — unit tests assert it explicitly. */
+  function goBack(): void {
+    clearMarkdownMenuDirty();
+    dispatch('back');
+  }
 
   let vscodiumPath = '';
   let saveStatus = '';
@@ -275,7 +297,7 @@
 
   function handleKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape') {
-      dispatch('back');
+      goBack();
     }
   }
 
@@ -295,7 +317,7 @@
 
 <div class="settings">
   <div class="settings-header">
-    <button class="back-btn" on:click={() => dispatch('back')}><ArrowLeft size={14} /> Back</button>
+    <button class="back-btn" on:click={goBack}><ArrowLeft size={14} /> Back</button>
     <span class="settings-title">Settings</span>
   </div>
 
@@ -724,6 +746,31 @@
             </div>
           </aside>
         {/if}
+      </section>
+      </div>
+
+      <!-- Markdown Editor — selection toolbar toggles (story 05) -->
+      <div class="settings-panel">
+      <section class="settings-section" data-testid="markdown-menu-section">
+        <h2 class="section-title">Markdown Editor</h2>
+        <p class="section-desc">
+          Selection toolbar items. Changes apply when you close Settings.
+        </p>
+
+        {#each TOOLBAR_ITEMS as item}
+          <div class="setting-row">
+            <span class="setting-label">{item.label}</span>
+            <button
+              class="setting-toggle"
+              class:active={$markdownMenuSettings[item.key]}
+              aria-pressed={$markdownMenuSettings[item.key]}
+              data-testid={`toolbar-toggle-${item.key}`}
+              on:click={() => updateMarkdownMenuItem(item.key, !$markdownMenuSettings[item.key])}
+            >
+              {$markdownMenuSettings[item.key] ? 'On' : 'Off'}
+            </button>
+          </div>
+        {/each}
       </section>
       </div>
       </div>

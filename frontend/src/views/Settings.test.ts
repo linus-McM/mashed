@@ -37,6 +37,7 @@ vi.mock('../../wailsjs/go/main/App.js', () => ({
   SetMonoFont: vi.fn(async () => undefined),
   SetFontSize: vi.fn(async () => undefined),
   SetSidebarWidth: vi.fn(async () => undefined),
+  SetMarkdownMenuSettings: vi.fn(async () => undefined),
 }));
 
 vi.mock('../../wailsjs/runtime/runtime.js', () => ({
@@ -105,6 +106,24 @@ vi.mock('../lib/stores/editorSettings.js', () => {
   };
 });
 
+vi.mock('../lib/stores/markdownMenuSettings', () => {
+  const markdownMenuSettings = writable({
+    bold: true,
+    italic: true,
+    strikethrough: true,
+    code: true,
+    link: true,
+    latex: false,
+  });
+  return {
+    markdownMenuSettings,
+    markdownMenuDirty: writable(false),
+    updateMarkdownMenuItem: vi.fn(async () => undefined),
+    clearMarkdownMenuDirty: vi.fn(() => undefined),
+    initMarkdownMenuSettings: vi.fn(() => undefined),
+  };
+});
+
 vi.mock('../lib/stores/uiAdapterSettings', () => ({
   uiAdapterEnabled: writable(false),
   uiAdapterTimeoutMs: writable(3000),
@@ -127,7 +146,10 @@ vi.mock('../lib/stores/uiAdapterSettings', () => ({
 
 import Settings from './Settings.svelte';
 
-type Mounted = { $destroy(): void };
+type Mounted = {
+  $destroy(): void;
+  $on(event: string, handler: (e: CustomEvent) => void): () => void;
+};
 type SvelteInit = new (opts: { target: HTMLElement; props: object }) => Mounted;
 
 function mount(): { target: HTMLElement; instance: Mounted } {
@@ -257,5 +279,151 @@ describe('Settings layout — Story 04 style-block assertions (AC-2, AC-3, AC-6)
     expect(newSpan).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
     // No rgb()/rgba() either.
     expect(newSpan).not.toMatch(/rgba?\s*\(/);
+  });
+});
+
+describe('Story 05 — Markdown Editor panel', () => {
+  let mounted: { target: HTMLElement; instance: Mounted } | null = null;
+
+  beforeEach(async () => {
+    mounted = null;
+    const storeMod = await import('../lib/stores/markdownMenuSettings');
+    (storeMod.updateMarkdownMenuItem as unknown as ReturnType<typeof vi.fn>).mockClear();
+    (storeMod.clearMarkdownMenuDirty as unknown as ReturnType<typeof vi.fn>).mockClear();
+    // Reset store to defaults so each test sees Bold=on, LaTeX=off.
+    (storeMod.markdownMenuSettings as unknown as {
+      set: (v: Record<string, boolean>) => void;
+    }).set({
+      bold: true,
+      italic: true,
+      strikethrough: true,
+      code: true,
+      link: true,
+      latex: false,
+    });
+  });
+
+  afterEach(() => {
+    mounted?.instance.$destroy();
+    mounted?.target.remove();
+  });
+
+  it('AC-1 renders markdown-menu-section in col-2 with six rows in fixed order', () => {
+    mounted = mount();
+    const section = mounted.target.querySelector('[data-testid="markdown-menu-section"]');
+    expect(section).not.toBeNull();
+
+    // The panel must live inside .settings-col-2.
+    const col2 = mounted.target.querySelector('.settings-col-2');
+    expect(col2).not.toBeNull();
+    expect(col2!.contains(section)).toBe(true);
+
+    // Six rows, labels in exact order.
+    const rows = section!.querySelectorAll('.setting-row');
+    expect(rows.length).toBe(6);
+    const labels = Array.from(rows).map(
+      (r) => r.querySelector('.setting-label')?.textContent?.trim(),
+    );
+    expect(labels).toEqual(['Bold', 'Italic', 'Strikethrough', 'Code', 'Link', 'LaTeX']);
+  });
+
+  it('AC-1 markdown panel is the LAST child of .settings-col-2', () => {
+    mounted = mount();
+    const col2 = mounted.target.querySelector('.settings-col-2');
+    expect(col2).not.toBeNull();
+    const lastChild = col2!.lastElementChild;
+    expect(lastChild).not.toBeNull();
+    // The panel wrapper contains the markdown-menu-section.
+    expect(lastChild!.querySelector('[data-testid="markdown-menu-section"]')).not.toBeNull();
+  });
+
+  it('AC-2 toggle reflects store value: bold=On/active, latex=Off/inactive', () => {
+    mounted = mount();
+    const boldBtn = mounted.target.querySelector<HTMLButtonElement>(
+      '[data-testid="toolbar-toggle-bold"]',
+    );
+    const latexBtn = mounted.target.querySelector<HTMLButtonElement>(
+      '[data-testid="toolbar-toggle-latex"]',
+    );
+    expect(boldBtn).not.toBeNull();
+    expect(latexBtn).not.toBeNull();
+
+    expect(boldBtn!.classList.contains('active')).toBe(true);
+    expect(boldBtn!.textContent?.trim()).toBe('On');
+    expect(boldBtn!.getAttribute('aria-pressed')).toBe('true');
+
+    expect(latexBtn!.classList.contains('active')).toBe(false);
+    expect(latexBtn!.textContent?.trim()).toBe('Off');
+    expect(latexBtn!.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('AC-3 click bold calls updateMarkdownMenuItem("bold", false) once', async () => {
+    mounted = mount();
+    const storeMod = await import('../lib/stores/markdownMenuSettings');
+    const spy = storeMod.updateMarkdownMenuItem as unknown as ReturnType<typeof vi.fn>;
+
+    const boldBtn = mounted.target.querySelector<HTMLButtonElement>(
+      '[data-testid="toolbar-toggle-bold"]',
+    );
+    expect(boldBtn).not.toBeNull();
+    boldBtn!.click();
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith('bold', false);
+  });
+
+  it('AC-4 Back button fires clearMarkdownMenuDirty BEFORE dispatching back', async () => {
+    mounted = mount();
+    const storeMod = await import('../lib/stores/markdownMenuSettings');
+    const clearSpy = storeMod.clearMarkdownMenuDirty as unknown as ReturnType<typeof vi.fn>;
+
+    // Capture `back` event order by attaching a listener; record ordered calls.
+    const order: string[] = [];
+    clearSpy.mockImplementation(() => {
+      order.push('clear');
+    });
+    // Component events from createEventDispatcher are not DOM events — they
+    // are routed through the Svelte component's $on API.
+    mounted.instance.$on('back', () => {
+      order.push('back');
+    });
+
+    const backBtn = mounted.target.querySelector<HTMLButtonElement>('.back-btn');
+    expect(backBtn).not.toBeNull();
+    backBtn!.click();
+
+    expect(clearSpy).toHaveBeenCalledTimes(1);
+    expect(order).toEqual(['clear', 'back']);
+  });
+
+  it('AC-5 Escape key fires clearMarkdownMenuDirty BEFORE dispatching back', async () => {
+    mounted = mount();
+    const storeMod = await import('../lib/stores/markdownMenuSettings');
+    const clearSpy = storeMod.clearMarkdownMenuDirty as unknown as ReturnType<typeof vi.fn>;
+
+    const order: string[] = [];
+    clearSpy.mockImplementation(() => {
+      order.push('clear');
+    });
+    // Component events from createEventDispatcher are not DOM events — they
+    // are routed through the Svelte component's $on API.
+    mounted.instance.$on('back', () => {
+      order.push('back');
+    });
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    expect(clearSpy).toHaveBeenCalledTimes(1);
+    expect(order).toEqual(['clear', 'back']);
+  });
+
+  it('AC-6 section heading and description copy match spec exactly', () => {
+    mounted = mount();
+    const section = mounted.target.querySelector('[data-testid="markdown-menu-section"]');
+    expect(section).not.toBeNull();
+    const heading = section!.querySelector('.section-title')?.textContent?.trim();
+    const desc = section!.querySelector('.section-desc')?.textContent?.trim();
+    expect(heading).toBe('Markdown Editor');
+    expect(desc).toBe('Selection toolbar items. Changes apply when you close Settings.');
   });
 });

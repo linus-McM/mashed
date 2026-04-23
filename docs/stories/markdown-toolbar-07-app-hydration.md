@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** S
 **Depends On:** Story 01 (Wails `GetConfig` returns `markdownMenu`), Story 02 (`initMarkdownMenuSettings` exists)
-**Status:** ready
+**Status:** done
 **UI-facing:** no
 
 ## Description

@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** M
 **Depends On:** Story 02 (imports `MarkdownMenuSettings` type from the store or Wails models)
-**Status:** ready
+**Status:** done
 **UI-facing:** no (pure module; UI effect is visible via the editor in stories 06+)
 
 ## Description

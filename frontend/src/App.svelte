@@ -28,8 +28,9 @@
   import { loadSavedThemes, restoreImportedThemeFromConfig, loadBundledThemes } from './lib/themeInit.js';
   import { applyFont, registerLocalFonts } from './lib/stores/font.js';
   import { initEditorSettings } from './lib/stores/editorSettings.js';
+  import { initMarkdownMenuSettings } from './lib/stores/markdownMenuSettings';
   import { addSession, removeSessionByName } from './lib/stores/sessions';
-  import type { domain } from '../wailsjs/go/models';
+  import type { domain, main } from '../wailsjs/go/models';
   type WailsNotificationEvent = domain.NotificationEvent;
 
   /**
@@ -83,6 +84,7 @@
   type QuestionNavigateDetail = {
     repoPath?: string;
     question?: QuestionEventLike | null;
+    entry?: { tmuxTarget?: string; [k: string]: unknown };
   };
 
   /** Payload of `terminal:session:added`. Mirrors `domain.TerminalSession`. */
@@ -100,6 +102,7 @@
     importedTheme?: string;
     monoFont?: string;
     fontSize?: number;
+    markdownMenu?: main.MarkdownMenuSettings;
   };
 
   // Dev-only `window.__mashed_gotoWorkflows` is declared in app.d.ts.
@@ -116,6 +119,7 @@
   let toastTimeout: ReturnType<typeof setTimeout> | undefined;
   let questionQueue: SnackbarEntry[] = [];
   let pendingQuestion: QuestionEventLike | null = null;
+  let pendingTmuxTarget = '';
 
   onMount(async () => {
     // Intercept console.error/warn/log and forward to Go session log file
@@ -130,6 +134,8 @@
     window.addEventListener('unhandledrejection', (e) => WriteConsoleLog('UNHANDLED_REJECTION', String(e.reason)).catch(() => {}));
 
     const cfg = (await GetConfig()) as ConfigSlice;
+
+    try { initMarkdownMenuSettings(cfg.markdownMenu); } catch {}
 
     // Load themes + fonts before rendering
     try {
@@ -251,10 +257,28 @@
     questionQueue = dismissIdle(questionQueue, nodeId);
   });
 
+  // When an interactive node emits a PendingPrompt, the legacy idle snackbar
+  // for that node becomes redundant. Clear it so only the amber Respond card
+  // remains visible.
+  EventsOn('bmad:node:awaiting_input', (event: { nodeId?: string } | string) => {
+    const nodeId = typeof event === 'string' ? event : event?.nodeId;
+    if (!nodeId) return;
+    questionQueue = dismissIdle(questionQueue, nodeId);
+    questionQueue = dismissQuestion(questionQueue, nodeId);
+  });
+
   function handleQuestionNavigate(e: CustomEvent<QuestionNavigateDetail>): void {
-    const { repoPath, question } = e.detail;
+    const { repoPath, question, entry } = e.detail;
     if (repoPath) builderRepoPath = repoPath;
     pendingQuestion = question ?? null;
+    const entryTmux =
+      entry && typeof (entry as { tmuxTarget?: unknown }).tmuxTarget === 'string'
+        ? ((entry as { tmuxTarget?: string }).tmuxTarget ?? '')
+        : '';
+    const questionTmux = question?.tmuxTarget ?? '';
+    // Idle entries have no question text but carry a tmuxTarget — click
+    // should jump to the workflow view and open that node's terminal.
+    pendingTmuxTarget = questionTmux || entryTmux || '';
     showSpawnModal = false;
     showNewRepoModal = false;
     showAboutModal = false;
@@ -353,12 +377,14 @@
       repoPath={builderRepoPath}
       repoBranch={builderRepoBranch}
       {pendingQuestion}
+      {pendingTmuxTarget}
       on:back={goBack}
       on:question-responded={(e) => {
         const nodeId = e.detail?.nodeId;
         pendingQuestion = null;
         if (nodeId) questionQueue = dismissQuestion(questionQueue, nodeId);
       }}
+      on:tmux-opened={() => { pendingTmuxTarget = ''; }}
     />
   {:else if currentView === 'settings'}
     <Settings on:back={goBack} />
@@ -395,7 +421,16 @@
     <div class="toast">{toastMessage}</div>
   {/if}
 
-  <QuestionSnackbarStack questions={questionQueue} on:navigate={handleQuestionNavigate} />
+  <QuestionSnackbarStack
+    questions={questionQueue}
+    on:navigate={handleQuestionNavigate}
+    on:dismiss={(e) => {
+      const nodeId = e.detail?.entry?.nodeId;
+      if (!nodeId) return;
+      questionQueue = dismissIdle(questionQueue, nodeId);
+      questionQueue = dismissQuestion(questionQueue, nodeId);
+    }}
+  />
 </main>
 
 <style>

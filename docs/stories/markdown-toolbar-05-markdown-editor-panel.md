@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** S
 **Depends On:** Story 02 (store), Story 04 (panel grid layout)
-**Status:** ready
+**Status:** done
 **UI-facing:** YES — flag for ui-architect design brief
 
 ## Description

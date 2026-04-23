@@ -1,10 +1,11 @@
 # uiadapter-C: LLMBackend interface + registry
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** M
 **Depends On:** B
 **Priority:** P0-critical
+**Landed:** 2026-04-23
 
 ## Story
 
