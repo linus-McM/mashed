@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // paneAlive reports whether the tmux target still addresses a live pane.
@@ -178,7 +180,11 @@ func (e *Executor) rehydratePending(state *execState) {
 // LoadExecutionFromDisk walks ~/.mashed/workflows/*/execution.json and returns
 // the first non-terminal execution whose RepoPath matches. Terminal (complete
 // or failed) executions are skipped per §7.2 — there is nothing live to
-// restore. Returns (nil, nil) when no match exists; I/O errors propagate.
+// restore. Executions whose tmux sessions have died since persistence are
+// proactively marked failed on disk so the UI doesn't render a ghost prompt
+// from an execution that can never resume.
+//
+// Returns (nil, nil) when no match exists; I/O errors propagate.
 func LoadExecutionFromDisk(repoPath string) (*WorkflowExecution, error) {
 	if repoPath == "" {
 		return nil, nil
@@ -198,11 +204,13 @@ func LoadExecutionFromDisk(repoPath string) (*WorkflowExecution, error) {
 
 	var best *WorkflowExecution
 	var bestStart string
+	var bestPath string
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			continue
 		}
-		raw, rerr := os.ReadFile(filepath.Join(root, entry.Name(), "execution.json"))
+		snapshotPath := filepath.Join(root, entry.Name(), "execution.json")
+		raw, rerr := os.ReadFile(snapshotPath)
 		if rerr != nil {
 			continue
 		}
@@ -216,11 +224,68 @@ func LoadExecutionFromDisk(repoPath string) (*WorkflowExecution, error) {
 		if exec.Status == ExecComplete || exec.Status == ExecFailed {
 			continue
 		}
+		// Ghost filter: if the execution's tmux targets are all dead, the
+		// prompt on disk can never be answered. Mark it failed and skip.
+		if !executionTmuxAlive(&exec) {
+			markExecutionFailedOnDisk(snapshotPath, &exec)
+			continue
+		}
 		if best == nil || exec.StartedAt > bestStart {
 			cp := exec
 			best = &cp
 			bestStart = exec.StartedAt
+			bestPath = snapshotPath
 		}
 	}
+	_ = bestPath // reserved for a future rehydrate-path enrichment
 	return best, nil
+}
+
+// executionTmuxAlive returns true when at least one running or
+// awaiting_input node on exec has a live tmux session. An execution with
+// zero tmux-bearing nodes is considered alive (fresh unstarted) — the
+// ghost case is specifically "had tmux, now dead".
+func executionTmuxAlive(exec *WorkflowExecution) bool {
+	hasTarget := false
+	for _, n := range exec.Nodes {
+		if n.Status != NodeRunning && n.Status != NodeAwaitingInput {
+			continue
+		}
+		if n.TmuxTarget == "" {
+			continue
+		}
+		hasTarget = true
+		if tmuxSessionAlive(n.TmuxTarget) {
+			return true
+		}
+	}
+	// No tmux-bearing active node — nothing to ghost on. Preserve
+	// backward compat: treat as alive so executions without TmuxTarget
+	// (e.g. pure utility nodes) keep their current resume behaviour.
+	return !hasTarget
+}
+
+// tmuxSessionAlive probes `tmux has-session -t <session>` with a 1s
+// timeout. Non-zero exit → dead.
+func tmuxSessionAlive(target string) bool {
+	session := bareSessionName(target)
+	if session == "" {
+		return false
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "tmux", "has-session", "-t", session)
+	return cmd.Run() == nil
+}
+
+// markExecutionFailedOnDisk flips exec.Status = failed and rewrites the
+// snapshot file. Errors are swallowed — the worst outcome is that the
+// ghost persists for another load cycle, and the next call will retry.
+func markExecutionFailedOnDisk(path string, exec *WorkflowExecution) {
+	exec.Status = ExecFailed
+	raw, err := json.MarshalIndent(exec, "", "  ")
+	if err != nil {
+		return
+	}
+	_ = os.WriteFile(path, raw, 0o644)
 }
