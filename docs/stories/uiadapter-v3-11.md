@@ -1,6 +1,7 @@
 # uiadapter-v3-11: CircuitBreaker + Tiered Fallback
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** M
 **Depends On:** C, v3-10

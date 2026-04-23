@@ -1,6 +1,7 @@
 # uiadapter-v3-07: Prompt prefix caching
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** M
 **Depends On:** B, C, v3-05

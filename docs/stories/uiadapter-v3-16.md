@@ -1,6 +1,7 @@
 # uiadapter-v3-16: Backend Router + Policy
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** L
 **Depends On:** C, v3-11, v3-14, v3-15

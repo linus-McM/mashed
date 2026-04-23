@@ -1,6 +1,7 @@
 # uiadapter-v3-15: ClaudeCodeCLIBackend
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** L
 **Depends On:** B, C, v3-06

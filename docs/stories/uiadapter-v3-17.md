@@ -1,6 +1,7 @@
 # uiadapter-v3-17: Per-backend WarmUp and Health
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** M
 **Depends On:** C, v3-14, v3-15

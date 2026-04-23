@@ -1,6 +1,7 @@
 # uiadapter-v3-18: Title-bar Dynamic UI model selector
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** fullstack
 **Size:** L
 **Depends On:** B, C, v3-12, v3-16, v3-17

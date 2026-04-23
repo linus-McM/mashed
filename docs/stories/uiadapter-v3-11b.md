@@ -1,6 +1,7 @@
 # uiadapter-v3-11b: Cost + rate-limit accountant
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** M
 **Depends On:** v3-11, v3-14 (partial — accountant lives in claudeapi pkg)

@@ -1,6 +1,7 @@
 # uiadapter-v3-12: Model allowlist
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** S
 **Depends On:** B, C

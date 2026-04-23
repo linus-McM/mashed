@@ -1,6 +1,7 @@
 # uiadapter-v3-10: Self-repair loop (bounded, gated)
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** M
 **Depends On:** v3-05, v3-06

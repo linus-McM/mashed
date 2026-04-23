@@ -1,6 +1,7 @@
 # uiadapter-v3-13: Eval harness v2 + Shadow mode
 
-**Status:** ready
+**Status:** done
+**Landed:** 2026-04-23
 **Domain:** backend
 **Size:** L
 **Depends On:** v3-01, v3-02, v3-05, v3-14, v3-15, v3-16, v3-17
