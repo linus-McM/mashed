@@ -549,9 +549,16 @@ func TestRehydratePendingSpawnsWaiters(t *testing.T) {
 		"PendingPrompts must not contain the released n1/topic entry")
 
 	// Snapshot must have been persisted (file mtime changed or exists).
+	// The rehydrated goroutine releases state.mu *before* persistSnapshot
+	// runs, so PendingPrompts can be observed cleared above while the
+	// snapshot write is still in flight. Poll for the file rather than
+	// racing the single os.Stat call.
 	snapshotPath := filepath.Join(tmpHome, ".mashed", "workflows", state.exec.ID, "execution.json")
-	_, statErr := os.Stat(snapshotPath)
-	assert.NoError(t, statErr, "persistSnapshot must have been called by the rehydrated goroutine")
+	require.Eventually(t, func() bool {
+		_, statErr := os.Stat(snapshotPath)
+		return statErr == nil
+	}, 2*time.Second, 20*time.Millisecond,
+		"persistSnapshot must have been called by the rehydrated goroutine")
 }
 
 // ── AC-7: Stop-while-awaiting produces aborted/failed state at restore ────────

@@ -416,7 +416,7 @@
     color: var(--accent-red, #f85149);
     background: color-mix(in srgb, var(--accent-red, #f85149) 12%, transparent);
     border: 1px solid color-mix(in srgb, var(--accent-red, #f85149) 40%, transparent);
-    padding: 1px 5px;
+    padding: 1px var(--sp-xs);
     border-radius: var(--radius-sm);
   }
 

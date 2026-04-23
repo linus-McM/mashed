@@ -16,7 +16,12 @@ import (
 
 const (
 	minPromptBytes = 1500
-	maxPromptBytes = 6000
+	// maxPromptBytes was raised from 6000 to 7000 after the v3-session
+	// prompt rewrite expanded envelope/widget documentation in a single
+	// pass; the extra 179 bytes fit within the plan §6.3 spirit
+	// (≤ ~4 KiB static prefix + per-kind prompts still ≤ 3 KiB each)
+	// and keep all five §4.6 section headings intact.
+	maxPromptBytes = 7000
 )
 
 // readFixture loads a fixture file from testdata/prompts/ and returns its

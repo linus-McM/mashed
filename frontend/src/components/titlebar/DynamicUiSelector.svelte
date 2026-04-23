@@ -164,7 +164,7 @@
   .sel-caption {
     padding: var(--sp-xs, 4px) var(--sp-sm, 8px);
     font-family: var(--font-code);
-    font-size: 10px;
+    font-size: var(--text-xs, 10px);
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -209,7 +209,7 @@
   }
 
   .sel-badge {
-    padding: 0 6px;
+    padding: 0 var(--sp-sm, 8px);
     font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -222,7 +222,7 @@
     display: block;
     max-height: var(--sel-tooltip-max, 48px);
     overflow: hidden;
-    font-size: 10px;
+    font-size: var(--text-xs, 10px);
     color: var(--text-dim);
   }
 </style>

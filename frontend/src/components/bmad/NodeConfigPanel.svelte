@@ -736,7 +736,7 @@
   }
   .file-parent {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: var(--text-label);
     color: var(--text-dim);
     word-break: break-all;
     line-height: 1.4;

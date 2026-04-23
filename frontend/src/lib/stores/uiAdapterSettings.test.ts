@@ -10,6 +10,14 @@ vi.mock('../../../wailsjs/go/main/App.js', () => ({
   SetUIAdapterUntrustedExpanded: vi.fn(),
   ListOllamaModels: vi.fn(),
   ProbeOllamaReachable: vi.fn(),
+  // Plan v3 Story 18 — runtime backend / router selectors.
+  SetBackend: vi.fn(),
+  SetClaudeModel: vi.fn(),
+  SetCLIModel: vi.fn(),
+  SetRouterPolicy: vi.fn(),
+  ListBackendsAvailable: vi.fn().mockResolvedValue([]),
+  ListClaudeModels: vi.fn().mockResolvedValue([]),
+  ListRouterPolicies: vi.fn().mockResolvedValue([]),
 }));
 
 import * as bindings from '../../../wailsjs/go/main/App.js';
