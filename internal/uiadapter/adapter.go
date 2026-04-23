@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -20,18 +21,80 @@ type Adapter interface {
 	Translate(ctx context.Context, raw, procID string) *UIAST
 }
 
-// Config is the adapter-wide construction knob. Enabled collapses
-// UIAdapterEnabled && OllamaEnabled at the call-site — the adapter only
-// sees a single boolean so callers cannot smuggle in a partial gate.
-// Deterministic pins options.temperature=0 on every Ollama request — set by
-// the offline eval harness only (Story U9 §4.5 / §Risks); production callers
-// leave it false so users see the model's natural sampling.
+// Config is the adapter-wide construction knob. Plan v3 §3 Story B
+// collapses every per-backend knob the v3 pipeline introduces into one
+// dependency-injected surface — no package-level constants (§6.5 "DI via
+// Config"). Zero-valued fields are backfilled by DefaultConfig / the
+// mergeWithDefaults helper inside NewDefault.
+//
+// Legacy fields (Enabled, MaxInflight, Deterministic) are retained for
+// backward compatibility with callers in app.go and pre-v3 tests; new code
+// should prefer the v3 knobs (Backend, RouterPolicy, CacheCapacity, etc.).
 type Config struct {
+	// Legacy gates (Story ui-ast-U2). Enabled collapses
+	// UIAdapterEnabled && OllamaEnabled at the call-site. Deterministic
+	// pins options.temperature=0 on every Ollama request — set by the
+	// offline eval harness only.
 	Enabled       bool
-	Model         string
-	TimeoutMs     int
 	MaxInflight   int
 	Deterministic bool
+
+	// Backend selection (plan §3 Story B).
+	Backend       string   // "ollama" | "claude-api" | "claude-cli" | "router"
+	RouterPolicy  string   // "claude-first" | "ollama-first" | "claude-for-hard" | "local-only" | "claude-only" | "cost-aware" | "privacy-strict"
+	FallbackOrder []string // cross-backend fallback chain (Story v3-11 / v3-16)
+
+	// Ollama.
+	OllamaEndpoint      string // default localhost:11434 (see DefaultConfig)
+	Model               string // default "gemma3:4b"
+	AllowUnvettedModels bool   // Story v3-12 override
+	NumCtx              int    // default 8192 (Story v3-03)
+	KeepAlive           string // default "30m" (Story v3-07)
+	LooseFormat         bool   // rollback to format:"json" string (Story v3-06)
+
+	// Claude API.
+	AnthropicAPIKeyEnv string // default "ANTHROPIC_API_KEY"
+	ClaudeModelPrimary string // default "claude-haiku-4-5"
+	ClaudeModelHard    string // default "claude-sonnet-4-6"
+	ClaudeMaxTokens    int    // default 2048
+	AnthropicVersion   string // header pin; default "2023-06-01"
+	PromptCacheTTL     string // "5m" | "1h" | "off"; default "5m"
+
+	// Claude CLI.
+	ClaudeCLIBinary     string
+	ClaudeCLIExtraFlags []string
+
+	// Cost / rate accountant (Story v3-11b).
+	UsdBudgetPerSession float64
+	RPMSoftLimit        int
+	TPMSoftLimit        int
+
+	// Sampling (Story v3-09).
+	Temperature float32
+	Seed        int64
+
+	// Timeouts. TimeoutMs default 5000 (plan §3 Story B, was 2900 in legacy).
+	TimeoutMs       int
+	WarmUpTimeoutMs int
+
+	// Runtime behaviour.
+	CacheCapacity        int     // default 1024; 0 disables (Story v3-04)
+	EnableSemanticCache  bool    // default false
+	EnableFastPath       bool    // default true (Story v3-02)
+	EnableSpotlighting   bool    // default true (Story v3-08)
+	RepairMaxRetries     int     // default 1 (Ollama/Haiku), 0 (Sonnet) — Story v3-10
+	BreakerFailThreshold int     // default 3 (Story v3-11)
+	BreakerResetMs       int     // default 30000
+	ShadowSampleRate     float64 // default 0.05 (Story v3-13)
+
+	// Privacy / policy.
+	PrivacyPatterns []*regexp.Regexp
+
+	// Lifecycle (Story v3-17).
+	DisableHealthTicker bool
+
+	// Streaming (Story v3-14, default off in v3.0).
+	Streaming bool
 }
 
 type defaultAdapter struct {

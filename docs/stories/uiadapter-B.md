@@ -1,10 +1,11 @@
 # uiadapter-B: Unified Config surface
 
-**Status:** ready
+**Status:** done
 **Domain:** backend
 **Size:** S
 **Depends On:** —
 **Priority:** P0-critical
+**Landed:** 2026-04-23
 
 ## Story
 
