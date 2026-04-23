@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** M
 **Depends On:** none (pure layout refactor; orthogonal to stories 01-03)
-**Status:** ready
+**Status:** done
 **UI-facing:** YES — flag for ui-architect design brief
 
 ## Description

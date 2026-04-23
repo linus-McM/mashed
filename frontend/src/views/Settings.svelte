@@ -335,7 +335,9 @@
 
     <!-- Right column: font, extensions, import -->
     <div class="col-settings">
+      <div class="settings-col settings-col-1">
       <!-- Mono Font -->
+      <div class="settings-panel">
       <section class="settings-section">
         <h2 class="section-title">Font</h2>
 
@@ -379,8 +381,10 @@
           </div>
         {/if}
       </section>
+      </div>
 
       <!-- Sidebar Width -->
+      <div class="settings-panel">
       <section class="settings-section">
         <h2 class="section-title">Sidebar Width</h2>
         <p class="section-desc">Default width for the workflow process sidebar.</p>
@@ -392,8 +396,10 @@
                  on:input={() => changeSidebarWidth(selectedSidebarWidth)} class="size-slider" />
         </div>
       </section>
+      </div>
 
       <!-- Editor -->
+      <div class="settings-panel">
       <section class="settings-section">
         <h2 class="section-title">Editor</h2>
 
@@ -521,8 +527,12 @@
           </button>
         </div>
       </section>
+      </div>
+      </div>
 
+      <div class="settings-col settings-col-2">
       <!-- VSCodium Extension path -->
+      <div class="settings-panel">
       <section class="settings-section">
         <h2 class="section-title">Theme Extensions</h2>
         <p class="section-desc">Path to .vsix theme files.</p>
@@ -573,8 +583,10 @@
           {/if}
         {/if}
       </section>
+      </div>
 
       <!-- UI AST adapter -->
+      <div class="settings-panel">
       <section class="settings-section" data-testid="ui-adapter-section">
         <h2 class="section-title">UI AST adapter</h2>
         <p class="section-desc">
@@ -713,6 +725,8 @@
           </aside>
         {/if}
       </section>
+      </div>
+      </div>
     </div>
   </div>
 
@@ -886,12 +900,41 @@
     color: var(--accent-red);
   }
 
-  /* Right column: other settings */
+  /* Right column: other settings — 2-column panel grid (story 04) */
   .col-settings {
     flex: 1;
     overflow-y: auto;
     padding: var(--sp-lg) var(--sp-xl);
     min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-lg);
+    align-items: start;
+  }
+
+  .settings-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+    min-width: 0;
+  }
+
+  .settings-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--sp-lg);
+  }
+
+  /* Panel padding owns bottom spacing; neutralise the legacy section margin. */
+  .settings-panel .settings-section {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 1100px) {
+    .col-settings {
+      grid-template-columns: 1fr;
+    }
   }
 
   .section-title {

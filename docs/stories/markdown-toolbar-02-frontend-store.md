@@ -4,7 +4,7 @@
 **Domain:** frontend
 **Estimated Complexity:** S
 **Depends On:** Story 01 (Wails bindings must exist)
-**Status:** ready
+**Status:** done
 **UI-facing:** no
 
 ## Description
