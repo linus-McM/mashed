@@ -15,6 +15,7 @@
 !/.claude/skills/mashed-refactor-asset/
 .desloppify/
 .logs/
+logs/
 scorecard.png
 build/bin
 mashed

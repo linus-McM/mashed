@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -71,6 +70,12 @@ type App struct {
 
 	terminalSessions map[string]domain.TerminalSession
 	logFile          *os.File
+
+	// shutdownHooks are drained in (*App).shutdown. Each hook is invoked
+	// exactly once; errors are log.Printf'd and never block subsequent
+	// hooks. Story uiadapter-logging-1 introduced this slice to register
+	// the production log-file closer.
+	shutdownHooks []func() error
 }
 
 // VSCodeThemeEntry represents a single color theme found in a VSCodium extension.
@@ -280,12 +285,20 @@ func (a *App) startup(ctx context.Context) {
 		a.bmadStorage = storage
 		var bmadOpts []bmad.Option
 		if cfg.UIAdapterEnabled {
+			level := uiadapter.ParseLogLevel(os.Getenv("UIADAPTER_LOG_LEVEL"))
+			adapterLogger, closer, logErr := uiadapter.NewProductionLogger(level, "./logs")
+			if logErr != nil {
+				log.Printf("uiadapter: production logger fallback to stdout-only: %v", logErr)
+			}
+			if closer != nil {
+				a.shutdownHooks = append(a.shutdownHooks, closer.Close)
+			}
 			bmadOpts = append(bmadOpts, bmad.WithAdapter(uiadapter.NewDefault(uiadapter.Config{
 				Enabled:     true,
 				Model:       cfg.OllamaModel,
 				TimeoutMs:   cfg.UIAdapterTimeoutMs,
 				MaxInflight: 1,
-			}, slog.Default())))
+			}, adapterLogger)))
 		}
 		a.bmadExecutor = bmad.NewExecutor(storage, func(event string, data interface{}) {
 			runtime.EventsEmit(a.ctx, event, data)
@@ -327,6 +340,14 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 	if a.bridge != nil {
 		a.bridge.Stop()
+	}
+	// Drain the registered shutdown hooks (e.g. uiadapter log-file
+	// closer). Errors are logged but never block subsequent hooks per
+	// Story uiadapter-logging-1 AC-1.6.
+	for _, h := range a.shutdownHooks {
+		if err := h(); err != nil {
+			log.Printf("uiadapter: shutdown hook error: %v", err)
+		}
 	}
 }
 

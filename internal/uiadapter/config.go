@@ -44,6 +44,10 @@ func DefaultConfig() Config {
 		BreakerFailThreshold: 3,
 		BreakerResetMs:       30000,
 		ShadowSampleRate:     0.05,
+
+		// Logging (Story uiadapter-logging-1).
+		LogLevel: "info",
+		LogDir:   "./logs",
 	}
 }
 

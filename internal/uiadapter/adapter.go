@@ -93,6 +93,13 @@ type Config struct {
 	// Lifecycle (Story v3-17).
 	DisableHealthTicker bool
 
+	// Logging (Story uiadapter-logging-1). LogLevel is one of
+	// "debug" | "info" | "warn" | "error" (default "info"); LogDir is
+	// the directory the daily uiadapter-YYYYMMDD.log file is written to
+	// (default "./logs"). Both are backfilled by mergeWithDefaults.
+	LogLevel string
+	LogDir   string
+
 	// Streaming (Story v3-14, default off in v3.0).
 	Streaming bool
 }
