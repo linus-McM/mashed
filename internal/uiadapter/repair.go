@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"sync/atomic"
 )
@@ -36,7 +37,11 @@ type RepairAttempt struct {
 //	- <err>
 //	...
 //	Emit a corrected UIAST that addresses each error.
-func BuildRepairPrompt(a RepairAttempt) string {
+//
+// logger may be nil; nilSafeLogger normalises it so any future story can
+// emit telemetry without an inline guard.
+func BuildRepairPrompt(a RepairAttempt, logger *slog.Logger) string {
+	_ = nilSafeLogger(logger)
 	var b strings.Builder
 	b.WriteString(a.StaticPrefix)
 	b.WriteString("\n\nRAW CAPTURE: ")
@@ -62,12 +67,17 @@ type Repairer struct {
 	maxRetries int
 	attempts   atomic.Int64
 	succeeded  atomic.Int64
+	logger     *slog.Logger
 }
 
 // NewRepairer constructs a Repairer from the adapter Config. maxRetries
-// ≤ 0 disables repair (Sonnet path per plan §3 Story 10).
-func NewRepairer(cfg Config) *Repairer {
-	return &Repairer{maxRetries: cfg.RepairMaxRetries}
+// ≤ 0 disables repair (Sonnet path per plan §3 Story 10). logger may be
+// nil; nilSafeLogger normalises it so the field is always usable.
+func NewRepairer(cfg Config, logger *slog.Logger) *Repairer {
+	return &Repairer{
+		maxRetries: cfg.RepairMaxRetries,
+		logger:     nilSafeLogger(logger),
+	}
 }
 
 // MaxRetries returns the configured budget. Used by the router to short-
@@ -100,7 +110,7 @@ func (r *Repairer) Run(
 		r.attempts.Add(1)
 		attempt.PreviousOutput = body
 		attempt.Errors = errorsList
-		repairPrompt := BuildRepairPrompt(attempt)
+		repairPrompt := BuildRepairPrompt(attempt, r.logger)
 		next, nextBody, err := generate(ctx, repairPrompt)
 		if err != nil {
 			return nil, fmt.Errorf("uiadapter: repair attempt %d: %w", i+1, err)

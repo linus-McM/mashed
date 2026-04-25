@@ -14,7 +14,7 @@ func TestFallbackAST_LiteralShape(t *testing.T) {
 	t.Parallel()
 	raw := "first line\nsecond line\nthird"
 	before := time.Now().Unix()
-	ast := FallbackAST(raw, "reason")
+	ast := FallbackAST(raw, "reason", nil)
 	after := time.Now().Unix()
 
 	require.NotNil(t, ast, "FallbackAST must never return nil")
@@ -37,7 +37,7 @@ func TestFallbackAST_LiteralShape(t *testing.T) {
 func TestFallbackAST_TurnSummaryTruncates(t *testing.T) {
 	t.Parallel()
 	raw := strings.Repeat("a", 200)
-	ast := FallbackAST(raw, "r")
+	ast := FallbackAST(raw, "r", nil)
 	require.NotNil(t, ast)
 	assert.LessOrEqual(t, len(ast.TurnSummary), 120,
 		"TurnSummary must be bounded at 120 chars per §4.8 firstLine helper")
@@ -49,7 +49,7 @@ func TestFallbackAST_TurnSummaryTruncates(t *testing.T) {
 // fallback AST. No panic, no nil.
 func TestFallbackAST_EmptyRawIsSafe(t *testing.T) {
 	t.Parallel()
-	ast := FallbackAST("", "disabled")
+	ast := FallbackAST("", "disabled", nil)
 	require.NotNil(t, ast)
 	assert.Equal(t, "1", ast.Version)
 	assert.Equal(t, "fallback:disabled", ast.GeneratedBy)

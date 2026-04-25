@@ -18,7 +18,7 @@ func TestValidate_Rule1_UnknownTypeBecomesMarkdown(t *testing.T) {
 		Version: "1",
 		Nodes:   []UINode{{Type: "snarkfish", Content: "preserved content"}},
 	}
-	reasons := Validate(ast, "raw")
+	reasons := Validate(ast, "raw", nil)
 
 	require.Len(t, ast.Nodes, 1, "rule 1 rewrites in place; never drops")
 	assert.Equal(t, "markdown", ast.Nodes[0].Type)
@@ -39,7 +39,7 @@ func TestValidate_Rule2_EmptyOptionsDropsGroup(t *testing.T) {
 					Widget: &WidgetNode{Type: "choice", Options: nil}},
 			},
 		}
-		reasons := Validate(ast, "raw")
+		reasons := Validate(ast, "raw", nil)
 		assert.Len(t, ast.Nodes, 0, "decision_group with empty choice options must be dropped")
 		assert.Contains(t, reasons, "empty_options")
 	})
@@ -51,7 +51,7 @@ func TestValidate_Rule2_EmptyOptionsDropsGroup(t *testing.T) {
 					Widget: &WidgetNode{Type: "multi", Options: nil}},
 			},
 		}
-		reasons := Validate(ast, "raw")
+		reasons := Validate(ast, "raw", nil)
 		assert.Len(t, ast.Nodes, 0, "decision_group with empty multi options must be dropped")
 		assert.Contains(t, reasons, "empty_options")
 	})
@@ -65,7 +65,7 @@ func TestValidate_Rule3_NoWidgetDropsGroup(t *testing.T) {
 		Version: "1",
 		Nodes:   []UINode{{Type: "decision_group", ResponseKey: "a", Widget: nil}},
 	}
-	reasons := Validate(ast, "raw")
+	reasons := Validate(ast, "raw", nil)
 	assert.Len(t, ast.Nodes, 0)
 	assert.Contains(t, reasons, "no_widget")
 }
@@ -83,7 +83,7 @@ func TestValidate_Rule4_DuplicateKeySuffix(t *testing.T) {
 			{Type: "decision_group", ResponseKey: "a", Widget: &WidgetNode{Type: "free"}},
 		},
 	}
-	reasons := Validate(pair, "raw")
+	reasons := Validate(pair, "raw", nil)
 	require.Len(t, pair.Nodes, 2)
 	assert.Equal(t, "a", pair.Nodes[0].ResponseKey, "first occurrence keeps bare key")
 	assert.Equal(t, "a-2", pair.Nodes[1].ResponseKey, "second occurrence suffixed -2")
@@ -98,7 +98,7 @@ func TestValidate_Rule4_DuplicateKeySuffix(t *testing.T) {
 			{Type: "decision_group", ResponseKey: "a", Widget: &WidgetNode{Type: "free"}},
 		},
 	}
-	Validate(triple, "raw")
+	Validate(triple, "raw", nil)
 	require.Len(t, triple.Nodes, 3)
 	assert.Equal(t, "a", triple.Nodes[0].ResponseKey)
 	assert.Equal(t, "a-2", triple.Nodes[1].ResponseKey)
@@ -116,7 +116,7 @@ func TestValidate_Rule5_LongKeyTruncated(t *testing.T) {
 			{Type: "decision_group", ResponseKey: long, Widget: &WidgetNode{Type: "free"}},
 		},
 	}
-	reasons := Validate(ast, "raw")
+	reasons := Validate(ast, "raw", nil)
 	require.Len(t, ast.Nodes, 1)
 	assert.Len(t, ast.Nodes[0].ResponseKey, 64, "response_key must truncate to 64 chars")
 	assert.Equal(t, strings.Repeat("x", 64), ast.Nodes[0].ResponseKey,
@@ -138,7 +138,7 @@ func TestValidate_Rule6_CountCapOptionalDrop(t *testing.T) {
 		})
 	}
 	ast := &UIAST{Version: "1", Nodes: nodes}
-	reasons := Validate(ast, "raw")
+	reasons := Validate(ast, "raw", nil)
 
 	groups := 0
 	for _, n := range ast.Nodes {
@@ -168,7 +168,7 @@ func TestValidate_Rule6_CountCapRequiredDropFallback(t *testing.T) {
 		})
 	}
 	ast := &UIAST{Version: "1", Nodes: nodes}
-	reasons := Validate(ast, "raw")
+	reasons := Validate(ast, "raw", nil)
 	assert.Contains(t, reasons, "required_dropped",
 		"dropping a required decision_group past the cap must emit the terminal sentinel")
 }
@@ -188,7 +188,7 @@ func TestValidate_Rule7_NodeCapRequiredDropFallback(t *testing.T) {
 		Widget:      &WidgetNode{Type: "free"},
 	}
 	ast := &UIAST{Version: "1", Nodes: nodes}
-	reasons := Validate(ast, "raw")
+	reasons := Validate(ast, "raw", nil)
 	assert.Contains(t, reasons, "required_dropped",
 		"> 32 nodes with a required group in the dropped remainder must trigger full fallback")
 }
@@ -202,7 +202,7 @@ func TestValidate_Rule8_OversizeFullFallback(t *testing.T) {
 		Version: "1",
 		Nodes:   []UINode{{Type: "markdown", Content: huge}},
 	}
-	reasons := Validate(ast, "raw")
+	reasons := Validate(ast, "raw", nil)
 	assert.Contains(t, reasons, "oversize",
 		"AST serialising above 6 KiB must emit the terminal oversize sentinel")
 }
@@ -225,7 +225,7 @@ func TestValidate_RuleOrdering_Deterministic(t *testing.T) {
 				Widget: &WidgetNode{Type: "free"}}, // rule 5 fires
 		},
 	}
-	reasons := Validate(ast, "raw")
+	reasons := Validate(ast, "raw", nil)
 
 	want := map[string]bool{"unknown_type": true, "dup_key": true, "key_truncated": true}
 	seen := []string{}
@@ -259,7 +259,7 @@ func TestValidate_Security71_FileWidgetPreserved(t *testing.T) {
 			},
 		},
 	}
-	Validate(ast, "raw")
+	Validate(ast, "raw", nil)
 
 	require.Len(t, ast.Nodes, 1)
 	require.NotNil(t, ast.Nodes[0].Widget)
@@ -339,13 +339,13 @@ func TestValidate_RuleOrdering_PerNodeDeclaration(t *testing.T) {
 
 	t.Run("empty_then_nil", func(t *testing.T) {
 		ast := &UIAST{Version: "1", Nodes: []UINode{empty, nilw}}
-		reasons := Validate(ast, "raw")
+		reasons := Validate(ast, "raw", nil)
 		assert.Equal(t, []string{"empty_options", "no_widget"}, reasons)
 	})
 
 	t.Run("nil_then_empty", func(t *testing.T) {
 		ast := &UIAST{Version: "1", Nodes: []UINode{nilw, empty}}
-		reasons := Validate(ast, "raw")
+		reasons := Validate(ast, "raw", nil)
 		assert.Equal(t, []string{"no_widget", "empty_options"}, reasons)
 	})
 }

@@ -2,6 +2,7 @@ package uiadapter
 
 import (
 	"errors"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -21,14 +22,18 @@ type BreakerSet struct {
 	mu       sync.RWMutex
 	breakers map[string]*gobreaker.CircuitBreaker
 	cfg      Config
+	logger   *slog.Logger
 }
 
 // NewBreakerSet constructs an empty set configured from adapter Config.
 // BreakerFailThreshold and BreakerResetMs source the gobreaker settings.
-func NewBreakerSet(cfg Config) *BreakerSet {
+// logger may be nil; nilSafeLogger normalises it so the field is always
+// usable.
+func NewBreakerSet(cfg Config, logger *slog.Logger) *BreakerSet {
 	return &BreakerSet{
 		breakers: map[string]*gobreaker.CircuitBreaker{},
 		cfg:      cfg,
+		logger:   nilSafeLogger(logger),
 	}
 }
 

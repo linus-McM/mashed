@@ -3,6 +3,7 @@ package uiadapter
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strings"
 )
@@ -36,8 +37,11 @@ var (
 // in place where possible. Returns a slice of reason strings in the order
 // each rule first fires. Terminal reasons — "required_dropped" and "oversize"
 // — short-circuit the pipeline so the caller can substitute a full fallback
-// AST instead of emitting a partially-valid tree.
-func Validate(ast *UIAST, raw string) []string {
+// AST instead of emitting a partially-valid tree. logger may be nil;
+// nilSafeLogger normalises it so any future story can emit telemetry without
+// an inline guard.
+func Validate(ast *UIAST, raw string, logger *slog.Logger) []string {
+	_ = nilSafeLogger(logger)
 	var reasons []string
 
 	reasons = applyRule1(ast, reasons)

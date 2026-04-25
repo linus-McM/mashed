@@ -160,3 +160,15 @@ type noopCloser struct{}
 
 // Close implements io.Closer.
 func (noopCloser) Close() error { return nil }
+
+// nilSafeLogger normalises a possibly-nil *slog.Logger so every constructor
+// and free function in the package can store the result without an inline
+// nil-guard. A non-nil input is returned verbatim (identity preserved); a nil
+// input is replaced with a fresh logger backed by io.Discard so subsequent
+// log calls never panic and never reach stdout.
+func nilSafeLogger(logger *slog.Logger) *slog.Logger {
+	if logger != nil {
+		return logger
+	}
+	return slog.New(slog.NewTextHandler(io.Discard, nil))
+}

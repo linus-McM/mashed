@@ -17,7 +17,7 @@ func TestBreaker_TripsAfterThree(t *testing.T) {
 	cfg := DefaultConfig()
 	cfg.BreakerFailThreshold = 3
 	cfg.BreakerResetMs = 30000
-	set := NewBreakerSet(cfg)
+	set := NewBreakerSet(cfg, nil)
 
 	boom := errors.New("boom")
 	for i := 0; i < 3; i++ {
@@ -43,7 +43,7 @@ func TestBreaker_PerBackendIsolation(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
 	cfg.BreakerFailThreshold = 2
-	set := NewBreakerSet(cfg)
+	set := NewBreakerSet(cfg, nil)
 
 	boom := errors.New("boom")
 	// Trip "claude-api".
@@ -63,7 +63,7 @@ func TestBreaker_PerBackendIsolation(t *testing.T) {
 // TestBreaker_StateOnIdleIsClosed — an untouched breaker starts closed.
 func TestBreaker_StateOnIdleIsClosed(t *testing.T) {
 	t.Parallel()
-	set := NewBreakerSet(DefaultConfig())
+	set := NewBreakerSet(DefaultConfig(), nil)
 	assert.Equal(t, "closed", set.StateOf("new-backend"))
 }
 
@@ -71,7 +71,7 @@ func TestBreaker_StateOnIdleIsClosed(t *testing.T) {
 // goroutine-safe.
 func TestBreaker_ConcurrentConstruction(t *testing.T) {
 	t.Parallel()
-	set := NewBreakerSet(DefaultConfig())
+	set := NewBreakerSet(DefaultConfig(), nil)
 	var wg sync.WaitGroup
 	for i := 0; i < 50; i++ {
 		wg.Add(1)

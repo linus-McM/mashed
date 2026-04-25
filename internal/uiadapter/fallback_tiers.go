@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 )
 
 // Plan §3 Story 11 — Tiered Fallback (richest → simplest).
@@ -38,7 +39,9 @@ func RunWithFallback(
 	fn func(ctx context.Context, backendName string) (*UIAST, error),
 	minimalKind func(ctx context.Context) (*UIAST, error),
 	plaintext func() *UIAST,
+	logger *slog.Logger,
 ) (*UIAST, FallbackTier, string, error) {
+	_ = nilSafeLogger(logger)
 	if len(order) == 0 {
 		return plaintext(), TierPlaintext, "", nil
 	}

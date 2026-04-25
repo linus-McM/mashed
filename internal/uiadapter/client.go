@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sort"
 	"time"
@@ -43,13 +44,18 @@ type ClientConfig struct {
 
 type Client struct {
 	timeout time.Duration
+	logger  *slog.Logger
 }
 
 // NewClient adds a 500ms buffer so the caller's context deadline fires
 // before http.Client.Timeout — otherwise timeouts surface as transport
-// errors instead of deadline errors.
-func NewClient(cfg ClientConfig) *Client {
-	return &Client{timeout: time.Duration(cfg.TimeoutMs+500) * time.Millisecond}
+// errors instead of deadline errors. logger may be nil; nilSafeLogger
+// normalises it so the field is always usable.
+func NewClient(cfg ClientConfig, logger *slog.Logger) *Client {
+	return &Client{
+		timeout: time.Duration(cfg.TimeoutMs+500) * time.Millisecond,
+		logger:  nilSafeLogger(logger),
+	}
 }
 
 type chatMessage struct {

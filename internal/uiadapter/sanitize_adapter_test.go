@@ -22,7 +22,7 @@ func TestAdapter_Translate_ANSIWrappedURL_NotUntrusted(t *testing.T) {
 	t.Parallel()
 
 	rawWithANSI := "click \x1b[34mhttps://example.com/path?q=1\x1b[0m to continue"
-	sanitized, delta := SanitizeCapture(rawWithANSI)
+	sanitized, delta := SanitizeCapture(rawWithANSI, nil)
 	require.Greater(t, delta, 0, "ANSI should have been stripped")
 	assert.NotContains(t, sanitized, "\x1b[", "sanitised text has no ANSI")
 
@@ -88,11 +88,11 @@ func TestAdapter_Translate_SanitizeZeroDeltaStillLogged(t *testing.T) {
 func TestAdapter_Translate_SanitizeRunsBeforeChat(t *testing.T) {
 	t.Parallel()
 	rawWithANSI := "\x1b[31mPrompt:\x1b[0m pick one"
-	sanitized, _ := SanitizeCapture(rawWithANSI)
+	sanitized, _ := SanitizeCapture(rawWithANSI, nil)
 	assert.Equal(t, "Prompt: pick one", sanitized)
 	// Fence preservation cross-check — ensure embedded fences pass through.
 	withFence := "prefix\n```go\nfn(\x1b[0m)\n```\nsuffix"
-	_, _ = SanitizeCapture(withFence)
+	_, _ = SanitizeCapture(withFence, nil)
 	assert.True(t, strings.Contains(withFence, "\x1b"))
 }
 

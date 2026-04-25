@@ -94,7 +94,7 @@ func TestRunTwoStage_OllamaPolicyTwoCalls(t *testing.T) {
 		assert.Contains(t, prompt, "KIND: menu")
 		return &UIAST{Version: "1", GeneratedBy: "stub"}, nil
 	}
-	ast, kind, err := RunTwoStage(context.Background(), "raw", classify, generate)
+	ast, kind, err := RunTwoStage(context.Background(), "raw", classify, generate, nil)
 	require.NoError(t, err)
 	require.NotNil(t, ast)
 	assert.Equal(t, StageKindMenu, kind)
@@ -110,7 +110,8 @@ func TestRunTwoStage_ClassifyErrorAborts(t *testing.T) {
 	var generateCalls int
 	_, _, err := RunTwoStage(context.Background(), "raw",
 		func(context.Context, string) (StageKind, error) { return "", sentinel },
-		func(context.Context, StageKind, string) (*UIAST, error) { generateCalls++; return nil, nil })
+		func(context.Context, StageKind, string) (*UIAST, error) { generateCalls++; return nil, nil },
+		nil)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, sentinel)
 	assert.Zero(t, generateCalls, "stage-2 must not fire when stage-1 errored")
@@ -124,6 +125,7 @@ func TestRunTwoStage_ContextCancelled(t *testing.T) {
 	cancel()
 	_, _, err := RunTwoStage(ctx, "raw",
 		func(context.Context, string) (StageKind, error) { return StageKindText, nil },
-		func(context.Context, StageKind, string) (*UIAST, error) { return &UIAST{}, nil })
+		func(context.Context, StageKind, string) (*UIAST, error) { return &UIAST{}, nil },
+		nil)
 	require.ErrorIs(t, err, context.Canceled)
 }

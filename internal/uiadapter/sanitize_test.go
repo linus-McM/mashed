@@ -38,7 +38,7 @@ func TestSanitize_StripsANSI_Golden(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, delta := SanitizeCapture(tc.raw)
+			got, delta := SanitizeCapture(tc.raw, nil)
 			assert.Equal(t, tc.want, got, "golden sanitized output")
 			assert.Equal(t, len(tc.raw)-len(got), delta, "deltaBytes = len(raw) - len(sanitized)")
 		})
@@ -54,7 +54,7 @@ func TestSanitize_PreservesFencedCodeBlocks(t *testing.T) {
 		"middle with \x1b[32mANSI\x1b[0m\n" +
 		"```bash\necho \"`date`\" && printf '[x]\\n'\n```\n" +
 		"trailing"
-	got, _ := SanitizeCapture(raw)
+	got, _ := SanitizeCapture(raw, nil)
 	// Inner code content must survive byte-for-byte.
 	assert.Contains(t, got, "func foo() { return []int{1, 2, 3} }")
 	assert.Contains(t, got, "echo \"`date`\" && printf '[x]\\n'")
@@ -68,8 +68,8 @@ func TestSanitize_PreservesFencedCodeBlocks(t *testing.T) {
 func TestSanitize_Idempotent(t *testing.T) {
 	t.Parallel()
 	raw := "\x1b[31merror:\x1b[0m failed at \x1b]8;;https://log\x07line 42\x1b]8;;\x07"
-	once, _ := SanitizeCapture(raw)
-	twice, delta := SanitizeCapture(once)
+	once, _ := SanitizeCapture(raw, nil)
+	twice, delta := SanitizeCapture(once, nil)
 	assert.Equal(t, once, twice, "sanitize must be idempotent")
 	assert.Equal(t, 0, delta, "second pass strips nothing")
 }
@@ -77,7 +77,7 @@ func TestSanitize_Idempotent(t *testing.T) {
 // TestSanitize_EmptyInput — guard zero-case; deltaBytes is zero.
 func TestSanitize_EmptyInput(t *testing.T) {
 	t.Parallel()
-	got, delta := SanitizeCapture("")
+	got, delta := SanitizeCapture("", nil)
 	assert.Equal(t, "", got)
 	assert.Equal(t, 0, delta)
 }
@@ -86,7 +86,7 @@ func TestSanitize_EmptyInput(t *testing.T) {
 // plan bullet 5.
 func TestSanitize_WhitespaceTrimmed(t *testing.T) {
 	t.Parallel()
-	got, delta := SanitizeCapture("   \n\tprompt?\n   ")
+	got, delta := SanitizeCapture("   \n\tprompt?\n   ", nil)
 	assert.Equal(t, "prompt?", got)
 	assert.Greater(t, delta, 0)
 }
@@ -96,7 +96,7 @@ func TestSanitize_WhitespaceTrimmed(t *testing.T) {
 func TestSanitize_LargeInput(t *testing.T) {
 	t.Parallel()
 	raw := strings.Repeat("\x1b[32mA\x1b[0m", 8192) // 64 KiB
-	got, delta := SanitizeCapture(raw)
+	got, delta := SanitizeCapture(raw, nil)
 	assert.Equal(t, strings.Repeat("A", 8192), got)
 	assert.Greater(t, delta, 0)
 }

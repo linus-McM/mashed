@@ -87,7 +87,7 @@ func TestFlatten_CompositeAndBareKeys(t *testing.T) {
 		TurnSummary: "round 2 seed",
 		Nodes:       []uiadapter.UINode{{Type: "markdown", Content: "choose"}},
 	}
-	h.executor.adapter = uiadapter.NewMock(fixedAST)
+	h.executor.adapter = uiadapter.NewMock(fixedAST, nil)
 
 	var captured [][]string
 	var mu sync.Mutex

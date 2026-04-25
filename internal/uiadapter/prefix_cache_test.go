@@ -13,7 +13,7 @@ import (
 func TestClaudeSystemBlock_HasCacheControl(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
-	blocks := ClaudeSystemBlock("static-prefix", cfg)
+	blocks := ClaudeSystemBlock("static-prefix", cfg, nil)
 	require.Len(t, blocks, 1)
 	cc, ok := blocks[0]["cache_control"].(map[string]any)
 	require.True(t, ok, "cache_control must be a map")
@@ -26,7 +26,7 @@ func TestClaudeSystemBlock_OffTTLSkipsMarker(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
 	cfg.PromptCacheTTL = "off"
-	blocks := ClaudeSystemBlock("prefix", cfg)
+	blocks := ClaudeSystemBlock("prefix", cfg, nil)
 	require.Len(t, blocks, 1)
 	_, has := blocks[0]["cache_control"]
 	assert.False(t, has, "PromptCacheTTL=off must omit cache_control")
@@ -40,12 +40,12 @@ func TestPrompt_StaticPrefix_ByteStable(t *testing.T) {
 	cfg := DefaultConfig()
 	prefix := "byte-stable static prefix"
 
-	first, err := ClaudeSystemBlockJSON(prefix, cfg)
+	first, err := ClaudeSystemBlockJSON(prefix, cfg, nil)
 	require.NoError(t, err)
 	firstHash := sha256.Sum256(first)
 
 	for i := 0; i < 100; i++ {
-		out, err := ClaudeSystemBlockJSON(prefix, cfg)
+		out, err := ClaudeSystemBlockJSON(prefix, cfg, nil)
 		require.NoError(t, err)
 		h := sha256.Sum256(out)
 		assert.Equal(t, firstHash, h, "system block must hash stable across assemblies")
@@ -71,5 +71,5 @@ func TestOllamaKeepAliveEncoded(t *testing.T) {
 // so the Messages API request ships with no system block at all.
 func TestClaudeSystemBlock_EmptyPrefixNil(t *testing.T) {
 	t.Parallel()
-	assert.Nil(t, ClaudeSystemBlock("", DefaultConfig()))
+	assert.Nil(t, ClaudeSystemBlock("", DefaultConfig(), nil))
 }

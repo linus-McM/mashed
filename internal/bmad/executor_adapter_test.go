@@ -42,9 +42,9 @@ func (d *delayAdapter) Translate(ctx context.Context, raw, _ string) *uiadapter.
 		if d.fixed != nil {
 			return d.fixed
 		}
-		return uiadapter.FallbackAST(raw, "mock:nil")
+		return uiadapter.FallbackAST(raw, "mock:nil", nil)
 	case <-ctx.Done():
-		ast := uiadapter.FallbackAST(raw, "canceled")
+		ast := uiadapter.FallbackAST(raw, "canceled", nil)
 		ast.Diagnostics.CancelReason = ctx.Err().Error()
 		return ast
 	}
@@ -177,7 +177,7 @@ func TestWithAdapter_OptionAppliesAdapter(t *testing.T) {
 			{Type: "markdown", Content: "hello"},
 		},
 	}
-	mock := uiadapter.NewMock(fixed)
+	mock := uiadapter.NewMock(fixed, nil)
 
 	state, nodeIndex := newSuspendState(nodeID, processID, spec)
 	state.exec.RepoPath = t.TempDir()
@@ -391,7 +391,7 @@ func TestSuspendForSpec_PartyModeRound1UserTurn_HasStructured(t *testing.T) {
 			{Type: "markdown", Content: "party mode first user turn"},
 		},
 	}
-	mock := uiadapter.NewMock(fixed)
+	mock := uiadapter.NewMock(fixed, nil)
 
 	state, nodeIndex := newSuspendState(nodeID, processID, spec)
 	state.exec.RepoPath = t.TempDir()
@@ -439,7 +439,7 @@ func TestSuspendForSpec_OversizeBlobDropped(t *testing.T) {
 
 	// 8 KiB of content — JSON marshal will exceed the §5.2 6 KiB cap comfortably.
 	oversize := newOversizeAST(8 * 1024)
-	mock := uiadapter.NewMock(oversize)
+	mock := uiadapter.NewMock(oversize, nil)
 
 	state, nodeIndex := newSuspendState(nodeID, processID, spec)
 	state.exec.RepoPath = t.TempDir()

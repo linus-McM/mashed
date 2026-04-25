@@ -203,7 +203,7 @@ func TestPartyMode_JSONSubmission_RejectTokenInFreeWidget(t *testing.T) {
 		GeneratedBy: "mock:u4-reject",
 		Nodes:       []uiadapter.UINode{{Type: "markdown", Content: "choose"}},
 	}
-	h.executor.adapter = uiadapter.NewMock(fixedAST)
+	h.executor.adapter = uiadapter.NewMock(fixedAST, nil)
 
 	var captured [][]string
 	var mu sync.Mutex
@@ -311,7 +311,7 @@ func TestPartyMode_JSONSubmission_AcceptTokenOnApprovalWidget(t *testing.T) {
 			},
 		},
 	}
-	h.executor.adapter = uiadapter.NewMock(fixedAST)
+	h.executor.adapter = uiadapter.NewMock(fixedAST, nil)
 
 	var captured [][]string
 	var mu sync.Mutex

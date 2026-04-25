@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 )
 
@@ -120,13 +121,17 @@ func AssembleStage2(kind StageKind, rawSpotlighted string) (string, error) {
 // of the StageKind enum values. generateFn receives the kind + stage-2
 // assembled prompt and returns a *UIAST.
 //
-// Returns the final UIAST, the decoded kind, and any error.
+// Returns the final UIAST, the decoded kind, and any error. logger may be
+// nil; nilSafeLogger normalises it so any future story can emit telemetry
+// without an inline guard.
 func RunTwoStage(
 	ctx context.Context,
 	rawSpotlighted string,
 	classifyFn func(ctx context.Context, stage1Prompt string) (StageKind, error),
 	generateFn func(ctx context.Context, kind StageKind, stage2Prompt string) (*UIAST, error),
+	logger *slog.Logger,
 ) (*UIAST, StageKind, error) {
+	_ = nilSafeLogger(logger)
 	if ctx.Err() != nil {
 		return nil, "", ctx.Err()
 	}

@@ -3,6 +3,7 @@ package uiadapter
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"log/slog"
 	"sync/atomic"
 
 	lru "github.com/hashicorp/golang-lru/v2"
@@ -23,18 +24,20 @@ const cacheVersion = "v3"
 // downstream execution (AC-4.2). Capacity is Config.CacheCapacity (Story
 // B); 0 disables the LRU but keeps singleflight — useful for tests.
 type ResponseCache struct {
-	lru  *lru.Cache[string, *UIAST]
-	sf   singleflight.Group
-	hits atomic.Int64
-	miss atomic.Int64
+	lru    *lru.Cache[string, *UIAST]
+	sf     singleflight.Group
+	hits   atomic.Int64
+	miss   atomic.Int64
+	logger *slog.Logger
 }
 
 // NewResponseCache constructs the cache from the adapter Config. Capacity
-// ≤0 returns a cache with no LRU (singleflight still works).
-func NewResponseCache(cfg Config) *ResponseCache {
+// ≤0 returns a cache with no LRU (singleflight still works). logger may be
+// nil; nilSafeLogger normalises it so the field is always usable.
+func NewResponseCache(cfg Config, logger *slog.Logger) *ResponseCache {
 	cap := cfg.CacheCapacity
 	if cap <= 0 {
-		return &ResponseCache{}
+		return &ResponseCache{logger: nilSafeLogger(logger)}
 	}
 	l, err := lru.New[string, *UIAST](cap)
 	if err != nil {
@@ -43,7 +46,7 @@ func NewResponseCache(cfg Config) *ResponseCache {
 		// Panic is for programmer bugs only."
 		panic("uiadapter: ResponseCache lru.New: " + err.Error())
 	}
-	return &ResponseCache{lru: l}
+	return &ResponseCache{lru: l, logger: nilSafeLogger(logger)}
 }
 
 // Key returns the cache key for a (backend, model, sanitizedRaw) triple.

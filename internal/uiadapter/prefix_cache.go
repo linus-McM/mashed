@@ -2,6 +2,7 @@ package uiadapter
 
 import (
 	"encoding/json"
+	"log/slog"
 )
 
 // Plan §3 Story 7 — prompt prefix caching. Both Ollama (implicit via byte-
@@ -12,8 +13,11 @@ import (
 // ClaudeSystemBlock builds the system block on an Anthropic Messages API
 // request. Static prefix is wrapped in a cache_control:ephemeral marker
 // so Claude prompt caching takes effect from the second call onward. TTL
-// is 5m or 1h per Config.PromptCacheTTL (Story B).
-func ClaudeSystemBlock(staticPrefix string, cfg Config) []map[string]any {
+// is 5m or 1h per Config.PromptCacheTTL (Story B). logger may be nil;
+// nilSafeLogger normalises it so any future story can emit telemetry without
+// an inline guard.
+func ClaudeSystemBlock(staticPrefix string, cfg Config, logger *slog.Logger) []map[string]any {
+	_ = nilSafeLogger(logger)
 	if staticPrefix == "" {
 		return nil
 	}
@@ -57,7 +61,9 @@ func OllamaKeepAliveEncoded(cfg Config) string {
 
 // ClaudeSystemBlockJSON returns the marshalled system block. Used by
 // tests that compare the wire payload byte-for-byte across calls for
-// AC-7.4 byte-stability assertion.
-func ClaudeSystemBlockJSON(staticPrefix string, cfg Config) ([]byte, error) {
-	return json.Marshal(ClaudeSystemBlock(staticPrefix, cfg))
+// AC-7.4 byte-stability assertion. logger may be nil; nilSafeLogger
+// normalises it so any future story can emit telemetry without an inline
+// guard.
+func ClaudeSystemBlockJSON(staticPrefix string, cfg Config, logger *slog.Logger) ([]byte, error) {
+	return json.Marshal(ClaudeSystemBlock(staticPrefix, cfg, logger))
 }

@@ -1,6 +1,7 @@
 package uiadapter
 
 import (
+	"log/slog"
 	"strings"
 	"unicode"
 )
@@ -22,8 +23,11 @@ const SpotlightMarker = '•'
 // version to validation, not the spotlighted one.
 //
 // enabled=false bypasses the transform so eval harnesses can prove the
-// defence is doing work (Story v3-08 AC-8.3).
-func Spotlight(raw string, enabled bool) string {
+// defence is doing work (Story v3-08 AC-8.3). logger may be nil;
+// nilSafeLogger normalises it so any future story can emit telemetry without
+// an inline guard.
+func Spotlight(raw string, enabled bool, logger *slog.Logger) string {
+	_ = nilSafeLogger(logger)
 	if !enabled || raw == "" {
 		return raw
 	}

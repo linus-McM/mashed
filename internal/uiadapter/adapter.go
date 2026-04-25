@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"regexp"
 	"strings"
@@ -122,22 +121,26 @@ type disabledAdapter struct{}
 // combined UIAdapterEnabled && OllamaEnabled gate), a disabledAdapter is
 // returned that never touches the HTTP client. Otherwise the full default
 // adapter with a bounded-concurrency semaphore is produced.
+//
+// The logger is normalised through nilSafeLogger and then scoped via
+// WithGroup("uiadapter") so every record emitted by this adapter (and its
+// subcomponents constructed below) lands under the "uiadapter" group key.
+// A nil parent is therefore safe — callers get a discard-backed logger
+// that swallows every record.
 func NewDefault(cfg Config, logger *slog.Logger) Adapter {
-	if logger == nil {
-		logger = slog.New(slog.NewTextHandler(io.Discard, nil))
-	}
 	if !cfg.Enabled {
 		return &disabledAdapter{}
 	}
 	if cfg.MaxInflight <= 0 {
 		cfg.MaxInflight = 1
 	}
+	scoped := nilSafeLogger(logger).WithGroup("uiadapter")
 	return &defaultAdapter{
-		client:        NewClient(ClientConfig{TimeoutMs: cfg.TimeoutMs}),
+		client:        NewClient(ClientConfig{TimeoutMs: cfg.TimeoutMs}, scoped),
 		model:         cfg.Model,
 		timeout:       time.Duration(cfg.TimeoutMs) * time.Millisecond,
-		sem:           newSemaphore(cfg.MaxInflight),
-		logger:        logger,
+		sem:           newSemaphore(cfg.MaxInflight, scoped),
+		logger:        scoped,
 		deterministic: cfg.Deterministic,
 	}
 }
@@ -146,7 +149,7 @@ func NewDefault(cfg Config, logger *slog.Logger) Adapter {
 // AC-9's "no HTTP call on disabled" is a structural guarantee, not a runtime
 // check.
 func (*disabledAdapter) Translate(_ context.Context, raw, _ string) *UIAST {
-	return FallbackAST(raw, "disabled")
+	return FallbackAST(raw, "disabled", nil)
 }
 
 // Translate executes the full §4.7 reliability pipeline. Order of operations:
@@ -159,7 +162,7 @@ func (a *defaultAdapter) Translate(ctx context.Context, raw, procID string) *UIA
 	// Story v3-01 AC-1.1–1.4: strip ANSI/CLI chrome upstream of the
 	// validator so contentPreserved byte-matches don't scoop escape
 	// sequences out of URLs / code. Fenced code blocks round-trip verbatim.
-	sanitized, sanitizeDelta := SanitizeCapture(raw)
+	sanitized, sanitizeDelta := SanitizeCapture(raw, a.logger)
 
 	if !a.sem.acquire(ctx) {
 		return a.emitFallback(sanitized, "saturated", ctx, start, 0)
@@ -179,7 +182,7 @@ func (a *defaultAdapter) Translate(ctx context.Context, raw, procID string) *UIA
 		return a.emitFallback(sanitized, "validation:malformed", ctx, start, len(body))
 	}
 
-	reasons := Validate(ast, sanitized)
+	reasons := Validate(ast, sanitized, a.logger)
 	for _, r := range reasons {
 		if r == "required_dropped" || r == "oversize" || r == "marshal_error" {
 			return a.emitFallback(sanitized, "validation:"+r, ctx, start, len(body))
@@ -228,7 +231,7 @@ func (a *defaultAdapter) stampSuccessMetadata(ast *UIAST, raw, body string, star
 // Sets CancelReason only on "canceled" so the executor can differentiate
 // user-initiated aborts from other failure paths.
 func (a *defaultAdapter) emitFallback(raw, reason string, ctx context.Context, start time.Time, outBytes int) *UIAST {
-	ast := FallbackAST(raw, reason)
+	ast := FallbackAST(raw, reason, a.logger)
 	ast.Diagnostics.InputBytes = len(raw)
 	ast.Diagnostics.OutputBytes = outBytes
 	ast.Diagnostics.LatencyMs = int(time.Since(start).Milliseconds())

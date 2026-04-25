@@ -22,7 +22,7 @@ func TestU2_AC8_MockAdapter_FixedReturn(t *testing.T) {
 		GeneratedBy: "mock",
 		Nodes:       []UINode{{Type: "markdown", Content: "fixture"}},
 	}
-	got := NewMock(fixed).Translate(context.Background(), "", "")
+	got := NewMock(fixed, nil).Translate(context.Background(), "", "")
 	require.Same(t, fixed, got,
 		"MockAdapter.Translate must return the exact pointer passed to NewMock")
 }
@@ -31,7 +31,7 @@ func TestU2_AC8_MockAdapter_FixedReturn(t *testing.T) {
 // mock:nil fallback rather than panic.
 func TestU2_AC8_MockAdapter_NilReturnsFallback(t *testing.T) {
 	t.Parallel()
-	got := NewMock(nil).Translate(context.Background(), "raw body", "")
+	got := NewMock(nil, nil).Translate(context.Background(), "raw body", "")
 	require.NotNil(t, got)
 	assert.Equal(t, "1", got.Version)
 	assert.Equal(t, "fallback:mock:nil", got.GeneratedBy)

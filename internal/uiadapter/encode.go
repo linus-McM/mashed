@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 )
 
 // Plan §3 Story 6 — structured output dispatch. One source of truth for
@@ -16,7 +17,10 @@ var perKindSchemasFS embed.FS
 // OllamaFormatPayload returns the JSON Schema object for format:<kind>
 // on an Ollama chat request (Story v3-06 AC-6.1). When Config.LooseFormat
 // is true the payload is the literal "json" string (AC-6.2 rollback path).
-func OllamaFormatPayload(kind StageKind, loose bool) (json.RawMessage, error) {
+// logger may be nil; nilSafeLogger normalises it so any future story can
+// emit telemetry without an inline guard.
+func OllamaFormatPayload(kind StageKind, loose bool, logger *slog.Logger) (json.RawMessage, error) {
+	_ = nilSafeLogger(logger)
 	if loose {
 		return json.RawMessage(`"json"`), nil
 	}
@@ -29,8 +33,11 @@ func OllamaFormatPayload(kind StageKind, loose bool) (json.RawMessage, error) {
 
 // ClaudeToolInputSchema returns the Anthropic `tools[0].input_schema`
 // bytes for tool_use dispatch (AC-6.3). The per-kind schema file doubles
-// as the tool schema — one source of truth.
-func ClaudeToolInputSchema(kind StageKind) (json.RawMessage, error) {
+// as the tool schema — one source of truth. logger may be nil;
+// nilSafeLogger normalises it so any future story can emit telemetry
+// without an inline guard.
+func ClaudeToolInputSchema(kind StageKind, logger *slog.Logger) (json.RawMessage, error) {
+	_ = nilSafeLogger(logger)
 	return schemaBytes(kind)
 }
 

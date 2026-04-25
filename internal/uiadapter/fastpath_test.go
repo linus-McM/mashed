@@ -12,7 +12,7 @@ import (
 // shape in the v3.0 rule set is caught by a rule.
 func TestFastPath_CoversCommonCases(t *testing.T) {
 	t.Parallel()
-	fp := NewFastPathClassifier(true)
+	fp := NewFastPathClassifier(true, nil)
 
 	cases := []struct {
 		name     string
@@ -43,7 +43,7 @@ func TestFastPath_CoversCommonCases(t *testing.T) {
 // circuits the classifier to miss unconditionally (Story B gating).
 func TestFastPath_DisabledReturnsMiss(t *testing.T) {
 	t.Parallel()
-	fp := NewFastPathClassifier(false)
+	fp := NewFastPathClassifier(false, nil)
 	hit, rule, ast := fp.Classify("Proceed (y/n)?")
 	assert.False(t, hit)
 	assert.Empty(t, rule)
@@ -53,7 +53,7 @@ func TestFastPath_DisabledReturnsMiss(t *testing.T) {
 // TestFastPath_HitRateAndCounters — AC-2.2. Per-rule counters + hit rate.
 func TestFastPath_HitRateAndCounters(t *testing.T) {
 	t.Parallel()
-	fp := NewFastPathClassifier(true)
+	fp := NewFastPathClassifier(true, nil)
 	_, _, _ = fp.Classify("Proceed (y/n)?")
 	_, _, _ = fp.Classify("What is your name?")
 	_, _, _ = fp.Classify("some narrative with no rule match at all")
@@ -71,7 +71,7 @@ func TestFastPath_HitRateAndCounters(t *testing.T) {
 // fall through to the LLM pipeline (conservative default; §8 risk mitigation).
 func TestFastPath_NumberedMenuRequiresTwoItems(t *testing.T) {
 	t.Parallel()
-	fp := NewFastPathClassifier(true)
+	fp := NewFastPathClassifier(true, nil)
 	hit, rule, ast := fp.Classify("1) only option")
 	assert.False(t, hit, "single numbered item must NOT hit")
 	assert.Empty(t, rule)
@@ -82,7 +82,7 @@ func TestFastPath_NumberedMenuRequiresTwoItems(t *testing.T) {
 // WidgetOption per numbered line with numeric values preserved.
 func TestFastPath_NumberedMenuExtractsOptions(t *testing.T) {
 	t.Parallel()
-	fp := NewFastPathClassifier(true)
+	fp := NewFastPathClassifier(true, nil)
 	raw := "Pick one:\n1. apple\n2. banana\n3. cherry"
 	hit, _, ast := fp.Classify(raw)
 	require.True(t, hit)
@@ -100,7 +100,7 @@ func TestFastPath_NumberedMenuExtractsOptions(t *testing.T) {
 // rule table so a raw that matches both rules returns yn-prompt.
 func TestFastPath_FirstMatchWins(t *testing.T) {
 	t.Parallel()
-	fp := NewFastPathClassifier(true)
+	fp := NewFastPathClassifier(true, nil)
 	hit, rule, _ := fp.Classify("Is this correct (y/n)?")
 	require.True(t, hit)
 	assert.Equal(t, "yn-prompt", rule, "yn-prompt must outrank free-text-prompt")
@@ -110,7 +110,7 @@ func TestFastPath_FirstMatchWins(t *testing.T) {
 // benchmark simply exercises 10k iterations so `go test -bench=. -benchtime=10000x`
 // can verify the latency target empirically when needed.
 func BenchmarkFastPath(b *testing.B) {
-	fp := NewFastPathClassifier(true)
+	fp := NewFastPathClassifier(true, nil)
 	inputs := []string{
 		"Proceed (y/n)?",
 		"1) first\n2) second",
@@ -128,7 +128,7 @@ func BenchmarkFastPath(b *testing.B) {
 // through to the LLM pipeline.
 func TestFastPath_NoRuleMatches(t *testing.T) {
 	t.Parallel()
-	fp := NewFastPathClassifier(true)
+	fp := NewFastPathClassifier(true, nil)
 	narrative := strings.Repeat("This is long narrative prose without any structural cue. ", 10)
 	hit, _, _ := fp.Classify(narrative)
 	assert.False(t, hit)

@@ -1,6 +1,7 @@
 package uiadapter
 
 import (
+	"log/slog"
 	"regexp"
 	"strings"
 )
@@ -12,8 +13,11 @@ import (
 // AC-1.1 / AC-1.3).
 //
 // deltaBytes is len(raw) - len(sanitized) and feeds the `sanitize_delta_bytes`
-// slog attribute (AC-1.4, §6.1 telemetry contract).
-func SanitizeCapture(raw string) (sanitized string, deltaBytes int) {
+// slog attribute (AC-1.4, §6.1 telemetry contract). logger may be nil;
+// nilSafeLogger normalises it so any future story can emit telemetry without
+// an inline guard.
+func SanitizeCapture(raw string, logger *slog.Logger) (sanitized string, deltaBytes int) {
+	_ = nilSafeLogger(logger)
 	if raw == "" {
 		return "", 0
 	}

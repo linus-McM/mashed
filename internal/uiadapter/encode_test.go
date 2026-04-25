@@ -14,7 +14,7 @@ import (
 func TestOllamaFormatPayload_SchemaObject(t *testing.T) {
 	t.Parallel()
 	for _, k := range []StageKind{StageKindYN, StageKindMenu, StageKindForm, StageKindText} {
-		raw, err := OllamaFormatPayload(k, false)
+		raw, err := OllamaFormatPayload(k, false, nil)
 		require.NoError(t, err)
 		var decoded map[string]any
 		require.NoError(t, json.Unmarshal(raw, &decoded))
@@ -26,7 +26,7 @@ func TestOllamaFormatPayload_SchemaObject(t *testing.T) {
 // back to the literal "json" string for emergency rollback.
 func TestOllamaFormatPayload_LooseRollback(t *testing.T) {
 	t.Parallel()
-	raw, err := OllamaFormatPayload(StageKindYN, true)
+	raw, err := OllamaFormatPayload(StageKindYN, true, nil)
 	require.NoError(t, err)
 	assert.JSONEq(t, `"json"`, string(raw))
 }
@@ -35,7 +35,7 @@ func TestOllamaFormatPayload_LooseRollback(t *testing.T) {
 // same per-kind schema; byte-equal to the Ollama format payload.
 func TestClaudeToolInputSchema_SchemaObject(t *testing.T) {
 	t.Parallel()
-	raw, err := ClaudeToolInputSchema(StageKindMenu)
+	raw, err := ClaudeToolInputSchema(StageKindMenu, nil)
 	require.NoError(t, err)
 	var decoded map[string]any
 	require.NoError(t, json.Unmarshal(raw, &decoded))
@@ -48,9 +48,9 @@ func TestClaudeToolInputSchema_SchemaObject(t *testing.T) {
 func TestSchemas_IdenticalAcrossBackends(t *testing.T) {
 	t.Parallel()
 	for _, k := range []StageKind{StageKindYN, StageKindMenu, StageKindForm, StageKindText} {
-		ollama, err := OllamaFormatPayload(k, false)
+		ollama, err := OllamaFormatPayload(k, false, nil)
 		require.NoError(t, err)
-		claude, err := ClaudeToolInputSchema(k)
+		claude, err := ClaudeToolInputSchema(k, nil)
 		require.NoError(t, err)
 		assert.True(t, bytes.Equal(ollama, claude),
 			"%s schema must be byte-identical across Ollama format: and Claude input_schema", k)

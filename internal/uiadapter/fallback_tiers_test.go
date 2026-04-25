@@ -23,7 +23,7 @@ func TestFallback_TieredRecovery(t *testing.T) {
 	minimal := func(context.Context) (*UIAST, error) { return nil, errors.New("no kind") }
 	plaintext := func() *UIAST { return &UIAST{GeneratedBy: "fallback:plaintext"} }
 
-	ast, tier, from, err := RunWithFallback(context.Background(), order, fn, minimal, plaintext)
+	ast, tier, from, err := RunWithFallback(context.Background(), order, fn, minimal, plaintext, nil)
 	require.NoError(t, err)
 	require.NotNil(t, ast)
 	assert.Equal(t, TierSecondary, tier)
@@ -42,7 +42,7 @@ func TestFallback_MinimalKindWhenAllBackendsFail(t *testing.T) {
 	}
 	plaintext := func() *UIAST { return &UIAST{GeneratedBy: "fallback:plaintext"} }
 
-	ast, tier, _, err := RunWithFallback(context.Background(), order, fn, minimal, plaintext)
+	ast, tier, _, err := RunWithFallback(context.Background(), order, fn, minimal, plaintext, nil)
 	require.NoError(t, err)
 	require.NotNil(t, ast)
 	assert.Equal(t, TierMinimal, tier)
@@ -57,7 +57,7 @@ func TestFallback_PlaintextLastResort(t *testing.T) {
 	minimal := func(context.Context) (*UIAST, error) { return nil, errors.New("no") }
 	plaintext := func() *UIAST { return &UIAST{GeneratedBy: "fallback:plaintext"} }
 
-	ast, tier, from, err := RunWithFallback(context.Background(), order, fn, minimal, plaintext)
+	ast, tier, from, err := RunWithFallback(context.Background(), order, fn, minimal, plaintext, nil)
 	require.Error(t, err, "joined errors surface all causes")
 	require.NotNil(t, ast)
 	assert.Equal(t, TierPlaintext, tier)
@@ -70,7 +70,7 @@ func TestFallback_PrimarySuccessEscalatedFromEmpty(t *testing.T) {
 	fn := func(_ context.Context, name string) (*UIAST, error) {
 		return &UIAST{GeneratedBy: name}, nil
 	}
-	ast, tier, from, err := RunWithFallback(context.Background(), []string{"ollama"}, fn, nil, nil)
+	ast, tier, from, err := RunWithFallback(context.Background(), []string{"ollama"}, fn, nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, ast)
 	assert.Equal(t, TierPrimary, tier)
@@ -86,6 +86,6 @@ func TestFallback_ContextCancellation(t *testing.T) {
 		t.Fatal("must not be invoked on canceled ctx")
 		return nil, nil
 	}
-	_, _, _, err := RunWithFallback(ctx, []string{"any"}, fn, nil, func() *UIAST { return nil })
+	_, _, _, err := RunWithFallback(ctx, []string{"any"}, fn, nil, func() *UIAST { return nil }, nil)
 	require.ErrorIs(t, err, context.Canceled)
 }

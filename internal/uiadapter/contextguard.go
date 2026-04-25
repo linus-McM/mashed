@@ -3,6 +3,7 @@ package uiadapter
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 )
 
@@ -16,14 +17,16 @@ var ErrContextOverflow = errors.New("uiadapter: context overflow")
 // with a visible sentinel. Claude returns HTTP 400 on overflow, so we
 // refuse explicitly and let the fallback chain handle it.
 type ContextGuard struct {
-	cfg Config
+	cfg    Config
+	logger *slog.Logger
 }
 
 // NewContextGuard returns a guard configured from cfg. Pass the same Config
 // the adapter uses — NumCtx, ClaudeMaxTokens and Backend are all read from
-// it (Plan §3 Story 3 + §6.5 DI via Config).
-func NewContextGuard(cfg Config) *ContextGuard {
-	return &ContextGuard{cfg: cfg}
+// it (Plan §3 Story 3 + §6.5 DI via Config). logger may be nil;
+// nilSafeLogger normalises it so the field is always usable.
+func NewContextGuard(cfg Config, logger *slog.Logger) *ContextGuard {
+	return &ContextGuard{cfg: cfg, logger: nilSafeLogger(logger)}
 }
 
 // ApplyOllama fits raw into the Ollama num_ctx budget. We approximate tokens

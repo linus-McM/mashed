@@ -17,7 +17,7 @@ func TestRepair_RecoveryRate(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
 	cfg.RepairMaxRetries = 1
-	r := NewRepairer(cfg)
+	r := NewRepairer(cfg, nil)
 
 	successes := 0
 	for i := 0; i < 10; i++ {
@@ -50,7 +50,7 @@ func TestRepair_NeverExceedsBudget(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
 	cfg.RepairMaxRetries = 1
-	r := NewRepairer(cfg)
+	r := NewRepairer(cfg, nil)
 
 	bad := &UIAST{Version: ""}
 	invokes := 0
@@ -71,7 +71,7 @@ func TestRepair_FastPathNoWastedCalls(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
 	cfg.RepairMaxRetries = 1
-	r := NewRepairer(cfg)
+	r := NewRepairer(cfg, nil)
 
 	good := &UIAST{Version: "1"}
 	invokes := 0
@@ -92,7 +92,7 @@ func TestRepair_Gated_PerBackend(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
 	cfg.RepairMaxRetries = 0
-	r := NewRepairer(cfg)
+	r := NewRepairer(cfg, nil)
 
 	bad := &UIAST{Version: ""}
 	validate := func(*UIAST) []string { return []string{"still bad"} }
@@ -115,7 +115,7 @@ func TestBuildRepairPrompt_Shape(t *testing.T) {
 		SanitizedRaw:   "RAW",
 		PreviousOutput: "BAD",
 		Errors:         []string{"missing required field: prompt", "unknown field 'xyz'"},
-	})
+	}, nil)
 	assert.True(t, strings.HasPrefix(prompt, "PREFIX"))
 	assert.Contains(t, prompt, "KIND: menu")
 	assert.Contains(t, prompt, "PREVIOUS ATTEMPT (invalid):\nBAD")
@@ -129,7 +129,7 @@ func TestRepair_PropagatesGenerateError(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
 	cfg.RepairMaxRetries = 1
-	r := NewRepairer(cfg)
+	r := NewRepairer(cfg, nil)
 
 	sentinel := errors.New("network down")
 	bad := &UIAST{Version: ""}

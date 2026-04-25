@@ -117,7 +117,7 @@ func (c *Client) Generate(ctx context.Context, raw string, kind backend.Kind) (*
 	if err != nil {
 		return nil, err
 	}
-	schema, err := uiadapter.ClaudeToolInputSchema(stageKind)
+	schema, err := uiadapter.ClaudeToolInputSchema(stageKind, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func generateRequest(cfg uiadapter.Config, user string, schema json.RawMessage, 
 		Model:     cfg.ClaudeModelPrimary,
 		MaxTokens: maxTok,
 		Temp:      cfg.Temperature,
-		System:    uiadapter.ClaudeSystemBlock("You are the Mashed UIAST translator.", cfg),
+		System:    uiadapter.ClaudeSystemBlock("You are the Mashed UIAST translator.", cfg, nil),
 		Messages:  []map[string]any{{"role": "user", "content": user}},
 		Tools: []map[string]any{{
 			"name":         toolName,

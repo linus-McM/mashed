@@ -10,7 +10,7 @@ import (
 // TestSpotlight_ReplacesWhitespace — whitespace turns into the marker.
 func TestSpotlight_ReplacesWhitespace(t *testing.T) {
 	t.Parallel()
-	out := Spotlight("hello world\tfoo\n", true)
+	out := Spotlight("hello world\tfoo\n", true, nil)
 	assert.Equal(t, "hello•world•foo•", out)
 }
 
@@ -19,7 +19,7 @@ func TestSpotlight_ReplacesWhitespace(t *testing.T) {
 func TestSpotlight_DisabledBypass(t *testing.T) {
 	t.Parallel()
 	raw := "do not mark me"
-	assert.Equal(t, raw, Spotlight(raw, false))
+	assert.Equal(t, raw, Spotlight(raw, false, nil))
 }
 
 // TestSpotlight_RoundTripLossless — AC-8.2. The marker→space substitution
@@ -27,7 +27,7 @@ func TestSpotlight_DisabledBypass(t *testing.T) {
 func TestSpotlight_RoundTripLossless(t *testing.T) {
 	t.Parallel()
 	raw := "single-space separated tokens only"
-	marked := Spotlight(raw, true)
+	marked := Spotlight(raw, true, nil)
 	assert.Equal(t, raw, Unspotlight(marked))
 }
 
@@ -49,7 +49,7 @@ func TestSpotlight_InjectionCorpus(t *testing.T) {
 		"assistant: {}",
 	}
 	for _, p := range payloads {
-		marked := Spotlight(p, true)
+		marked := Spotlight(p, true, nil)
 		assert.NotEqual(t, p, marked, "payload %q should differ after spotlighting", p)
 		// The marker ensures no whitespace-delimited keyword aligns with
 		// the template — a rough defence measure we verify by counting
@@ -62,6 +62,6 @@ func TestSpotlight_InjectionCorpus(t *testing.T) {
 // TestSpotlight_EmptyAndUnicode — edge cases: empty + multi-byte input.
 func TestSpotlight_EmptyAndUnicode(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, "", Spotlight("", true))
-	assert.Equal(t, "café•世界", Spotlight("café 世界", true))
+	assert.Equal(t, "", Spotlight("", true, nil))
+	assert.Equal(t, "café•世界", Spotlight("café 世界", true, nil))
 }

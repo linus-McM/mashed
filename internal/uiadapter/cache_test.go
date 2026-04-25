@@ -16,7 +16,7 @@ import (
 func TestCache_HashHit(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
-	cache := NewResponseCache(cfg)
+	cache := NewResponseCache(cfg, nil)
 	key := Key("ollama", "gemma3:4b", "raw capture")
 
 	_, hit := cache.Lookup(key)
@@ -37,7 +37,7 @@ func TestCache_HashHit(t *testing.T) {
 func TestCache_SingleflightCoalesces(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
-	cache := NewResponseCache(cfg)
+	cache := NewResponseCache(cfg, nil)
 	key := Key("ollama", "gemma3:4b", "coalesce")
 
 	var calls atomic.Int64
@@ -83,7 +83,7 @@ func TestCache_DisabledWhenZeroCapacity(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
 	cfg.CacheCapacity = 0
-	cache := NewResponseCache(cfg)
+	cache := NewResponseCache(cfg, nil)
 
 	key := Key("ollama", "gemma3:4b", "x")
 	cache.Store(key, &UIAST{Version: "1"})
@@ -118,7 +118,7 @@ func TestCache_DisabledWhenZeroCapacity(t *testing.T) {
 func TestCache_HitRate(t *testing.T) {
 	t.Parallel()
 	cfg := DefaultConfig()
-	cache := NewResponseCache(cfg)
+	cache := NewResponseCache(cfg, nil)
 	key := Key("ollama", "gemma3:4b", "hit-rate")
 	cache.Store(key, &UIAST{Version: "1"})
 
@@ -137,7 +137,7 @@ func TestCache_HitRate(t *testing.T) {
 // back to every concurrent caller; no panic, no goroutine leak.
 func TestCache_SingleflightPropagatesError(t *testing.T) {
 	t.Parallel()
-	cache := NewResponseCache(DefaultConfig())
+	cache := NewResponseCache(DefaultConfig(), nil)
 	sentinel := errors.New("downstream-fail")
 	_, _, err := cache.DoShared("err-key", func() (*UIAST, error) {
 		return nil, sentinel

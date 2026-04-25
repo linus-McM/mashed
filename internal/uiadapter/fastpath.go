@@ -1,6 +1,7 @@
 package uiadapter
 
 import (
+	"log/slog"
 	"regexp"
 	"strings"
 	"sync/atomic"
@@ -22,6 +23,7 @@ type FastPathClassifier struct {
 	hitsPerRule []atomic.Int64
 	totalCalls  atomic.Int64
 	totalHits   atomic.Int64
+	logger      *slog.Logger
 }
 
 type fastRule struct {
@@ -32,12 +34,15 @@ type fastRule struct {
 
 // NewFastPathClassifier builds the classifier with the v3.0 rule set. The
 // Config.EnableFastPath flag determines whether Classify short-circuits.
-func NewFastPathClassifier(enabled bool) *FastPathClassifier {
+// logger may be nil; nilSafeLogger normalises it so the field is always
+// usable.
+func NewFastPathClassifier(enabled bool, logger *slog.Logger) *FastPathClassifier {
 	rules := defaultFastRules()
 	return &FastPathClassifier{
 		enabled:     enabled,
 		rules:       rules,
 		hitsPerRule: make([]atomic.Int64, len(rules)),
+		logger:      nilSafeLogger(logger),
 	}
 }
 
