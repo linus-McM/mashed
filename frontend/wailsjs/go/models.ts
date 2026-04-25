@@ -1194,6 +1194,10 @@ export namespace main {
 	    uiAdapterEnabled: boolean;
 	    uiAdapterTimeoutMs?: number;
 	    uiAdapterUntrustedExpanded: boolean;
+	    backend?: string;
+	    claudeModel?: string;
+	    cliModel?: string;
+	    routerPolicy?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new mashedConfig(source);
@@ -1215,6 +1219,10 @@ export namespace main {
 	        this.uiAdapterEnabled = source["uiAdapterEnabled"];
 	        this.uiAdapterTimeoutMs = source["uiAdapterTimeoutMs"];
 	        this.uiAdapterUntrustedExpanded = source["uiAdapterUntrustedExpanded"];
+	        this.backend = source["backend"];
+	        this.claudeModel = source["claudeModel"];
+	        this.cliModel = source["cliModel"];
+	        this.routerPolicy = source["routerPolicy"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

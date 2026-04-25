@@ -186,6 +186,10 @@ export function ListAllMashedAssets(arg1) {
   return window['go']['main']['App']['ListAllMashedAssets'](arg1);
 }
 
+export function ListBackendsAvailable() {
+  return window['go']['main']['App']['ListBackendsAvailable']();
+}
+
 export function ListBmadAgents() {
   return window['go']['main']['App']['ListBmadAgents']();
 }
@@ -204,6 +208,10 @@ export function ListBmadWorkflowsByRepo(arg1) {
 
 export function ListBundledThemes() {
   return window['go']['main']['App']['ListBundledThemes']();
+}
+
+export function ListClaudeModels() {
+  return window['go']['main']['App']['ListClaudeModels']();
 }
 
 export function ListLocalFonts() {
@@ -232,6 +240,10 @@ export function ListRepoFiles(arg1) {
 
 export function ListRepoSessions(arg1) {
   return window['go']['main']['App']['ListRepoSessions'](arg1);
+}
+
+export function ListRouterPolicies() {
+  return window['go']['main']['App']['ListRouterPolicies']();
 }
 
 export function ListVSCodiumThemes() {
@@ -330,6 +342,18 @@ export function SetActiveContext(arg1, arg2) {
   return window['go']['main']['App']['SetActiveContext'](arg1, arg2);
 }
 
+export function SetBackend(arg1) {
+  return window['go']['main']['App']['SetBackend'](arg1);
+}
+
+export function SetCLIModel(arg1) {
+  return window['go']['main']['App']['SetCLIModel'](arg1);
+}
+
+export function SetClaudeModel(arg1) {
+  return window['go']['main']['App']['SetClaudeModel'](arg1);
+}
+
 export function SetDevDir(arg1) {
   return window['go']['main']['App']['SetDevDir'](arg1);
 }
@@ -360,6 +384,10 @@ export function SetOllamaEnabled(arg1) {
 
 export function SetOllamaModel(arg1) {
   return window['go']['main']['App']['SetOllamaModel'](arg1);
+}
+
+export function SetRouterPolicy(arg1) {
+  return window['go']['main']['App']['SetRouterPolicy'](arg1);
 }
 
 export function SetSidebarWidth(arg1) {
@@ -440,34 +468,4 @@ export function WriteConsoleLog(arg1, arg2) {
 
 export function WriteFile(arg1, arg2) {
   return window['go']['main']['App']['WriteFile'](arg1, arg2);
-}
-
-// Plan v3 Story 18 — backend/router selectors
-
-export function SetBackend(arg1) {
-  return window['go']['main']['App']['SetBackend'](arg1);
-}
-
-export function SetClaudeModel(arg1) {
-  return window['go']['main']['App']['SetClaudeModel'](arg1);
-}
-
-export function SetCLIModel(arg1) {
-  return window['go']['main']['App']['SetCLIModel'](arg1);
-}
-
-export function SetRouterPolicy(arg1) {
-  return window['go']['main']['App']['SetRouterPolicy'](arg1);
-}
-
-export function ListBackendsAvailable() {
-  return window['go']['main']['App']['ListBackendsAvailable']();
-}
-
-export function ListClaudeModels() {
-  return window['go']['main']['App']['ListClaudeModels']();
-}
-
-export function ListRouterPolicies() {
-  return window['go']['main']['App']['ListRouterPolicies']();
 }

@@ -97,6 +97,8 @@ export function ListAllAgents(arg1:string):Promise<bmad.GroupedAgents>;
 
 export function ListAllMashedAssets(arg1:string):Promise<bmad.GroupedMashedAssets>;
 
+export function ListBackendsAvailable():Promise<Array<string>>;
+
 export function ListBmadAgents():Promise<Array<bmad.BmadAgentConfig>>;
 
 export function ListBmadTemplates():Promise<Array<bmad.WorkflowDef>>;
@@ -106,6 +108,8 @@ export function ListBmadWorkflows():Promise<Array<bmad.WorkflowDef>>;
 export function ListBmadWorkflowsByRepo(arg1:string):Promise<Array<bmad.WorkflowDef>>;
 
 export function ListBundledThemes():Promise<Array<main.VSCodeThemeEntry>>;
+
+export function ListClaudeModels():Promise<Array<string>>;
 
 export function ListLocalFonts():Promise<Array<main.LocalFontFamily>>;
 
@@ -120,6 +124,8 @@ export function ListRepoChoices():Promise<Array<main.RepoChoice>>;
 export function ListRepoFiles(arg1:string):Promise<Array<string>>;
 
 export function ListRepoSessions(arg1:string):Promise<Array<domain.TerminalSession>>;
+
+export function ListRouterPolicies():Promise<Array<string>>;
 
 export function ListVSCodiumThemes():Promise<Array<main.VSCodeThemeEntry>>;
 
@@ -169,6 +175,12 @@ export function SaveTheme(arg1:string,arg2:string):Promise<void>;
 
 export function SetActiveContext(arg1:string,arg2:string):Promise<void>;
 
+export function SetBackend(arg1:string):Promise<void>;
+
+export function SetCLIModel(arg1:string):Promise<void>;
+
+export function SetClaudeModel(arg1:string):Promise<void>;
+
 export function SetDevDir(arg1:string):Promise<void>;
 
 export function SetEditorSettings(arg1:main.EditorSettings):Promise<void>;
@@ -184,6 +196,8 @@ export function SetMonoFont(arg1:string):Promise<void>;
 export function SetOllamaEnabled(arg1:boolean):Promise<void>;
 
 export function SetOllamaModel(arg1:string):Promise<void>;
+
+export function SetRouterPolicy(arg1:string):Promise<void>;
 
 export function SetSidebarWidth(arg1:number):Promise<void>;
 
@@ -224,12 +238,3 @@ export function UpdateStoryStatus(arg1:string,arg2:string,arg3:string):Promise<v
 export function WriteConsoleLog(arg1:string,arg2:string):Promise<void>;
 
 export function WriteFile(arg1:string,arg2:string):Promise<void>;
-
-// Plan v3 Story 18 — backend/router selectors
-export function SetBackend(arg1: string): Promise<void>;
-export function SetClaudeModel(arg1: string): Promise<void>;
-export function SetCLIModel(arg1: string): Promise<void>;
-export function SetRouterPolicy(arg1: string): Promise<void>;
-export function ListBackendsAvailable(): Promise<Array<string>>;
-export function ListClaudeModels(): Promise<Array<string>>;
-export function ListRouterPolicies(): Promise<Array<string>>;
