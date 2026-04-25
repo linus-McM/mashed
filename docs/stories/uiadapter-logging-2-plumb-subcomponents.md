@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** L
 **Depends On:** uiadapter-logging-1-infrastructure-and-boot
-**Status:** ready
+**Status:** done
 
 ## Description
 
