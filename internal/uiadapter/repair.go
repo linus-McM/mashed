@@ -7,7 +7,25 @@ import (
 	"log/slog"
 	"strings"
 	"sync/atomic"
+	"time"
 )
+
+// repairOp / repairPromptOp are the canonical `op` values for every repair
+// log emission (Story 4 §14 sanitize discipline — closed enum).
+const (
+	repairOp       = "repair.run"
+	repairPromptOp = "repair.prompt"
+)
+
+// firstReason returns the first validator reason or "" when the slice is
+// empty. Validator reasons are short closed-enum tokens (Story 4 §14) so
+// they may be logged verbatim.
+func firstReason(errs []string) string {
+	if len(errs) == 0 {
+		return ""
+	}
+	return errs[0]
+}
 
 // Plan §3 Story 10 — bounded self-repair loop. Schema-constrained decoding
 // prevents structural failure; semantic failures (wrong enum, slug drift)
@@ -38,10 +56,25 @@ type RepairAttempt struct {
 //	...
 //	Emit a corrected UIAST that addresses each error.
 //
-// logger may be nil; nilSafeLogger normalises it so any future story can
-// emit telemetry without an inline guard.
+// logger may be nil; nilSafeLogger normalises it so the Story 4 telemetry
+// emission below stays safe at every call site.
 func BuildRepairPrompt(a RepairAttempt, logger *slog.Logger) string {
-	_ = nilSafeLogger(logger)
+	log := nilSafeLogger(logger)
+	prompt := buildRepairPromptString(a)
+	ctx := context.Background()
+	if log.Enabled(ctx, slog.LevelDebug) {
+		log.LogAttrs(ctx, slog.LevelDebug, "repair.prompt.build",
+			slog.String("op", repairPromptOp),
+			slog.Int("bytes_out", len(prompt)))
+	}
+	return prompt
+}
+
+// buildRepairPromptString assembles the prompt body without any logging
+// side-effect. Used by Repairer.Run so each retry does not double-emit a
+// `repair.prompt.build` record alongside the loop's `repair.attempt` /
+// `repair.failure` script (Story 4 AC-4.2 ordering invariant).
+func buildRepairPromptString(a RepairAttempt) string {
 	var b strings.Builder
 	b.WriteString(a.StaticPrefix)
 	b.WriteString("\n\nRAW CAPTURE: ")
@@ -96,6 +129,13 @@ func (r *Repairer) Run(
 	validate func(*UIAST) []string,
 	generate func(ctx context.Context, repairPrompt string) (*UIAST, string, error),
 ) (*UIAST, error) {
+	debug := r.logger.Enabled(ctx, slog.LevelDebug)
+	if debug {
+		r.logger.LogAttrs(ctx, slog.LevelDebug, "repair.start",
+			slog.String("op", repairOp),
+			slog.Int("max_retries", r.maxRetries),
+			slog.Int("bytes_in", len(initialBody)))
+	}
 	ast := initial
 	body := initialBody
 	errorsList := validate(ast)
@@ -107,21 +147,50 @@ func (r *Repairer) Run(
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
 		}
+		attemptNum := i + 1
+		if debug {
+			r.logger.LogAttrs(ctx, slog.LevelDebug, "repair.attempt",
+				slog.String("op", repairOp),
+				slog.Int("attempt", attemptNum),
+				slog.String("reason", firstReason(errorsList)))
+		}
 		r.attempts.Add(1)
 		attempt.PreviousOutput = body
 		attempt.Errors = errorsList
-		repairPrompt := BuildRepairPrompt(attempt, r.logger)
+		repairPrompt := buildRepairPromptString(attempt)
+		var attemptStart time.Time
+		if debug {
+			attemptStart = time.Now()
+		}
 		next, nextBody, err := generate(ctx, repairPrompt)
 		if err != nil {
-			return nil, fmt.Errorf("uiadapter: repair attempt %d: %w", i+1, err)
+			return nil, fmt.Errorf("uiadapter: repair attempt %d: %w", attemptNum, err)
 		}
 		ast = next
 		body = nextBody
 		errorsList = validate(ast)
 		if len(errorsList) == 0 {
 			r.succeeded.Add(1)
+			if debug {
+				r.logger.LogAttrs(ctx, slog.LevelDebug, "repair.success",
+					slog.String("op", repairOp),
+					slog.Int("attempt", attemptNum),
+					slog.Int64("latency_ms", time.Since(attemptStart).Milliseconds()))
+			}
 			return ast, nil
 		}
+		if debug {
+			r.logger.LogAttrs(ctx, slog.LevelDebug, "repair.failure",
+				slog.String("op", repairOp),
+				slog.Int("attempt", attemptNum),
+				slog.String("reason", firstReason(errorsList)))
+		}
+	}
+	if debug {
+		r.logger.LogAttrs(ctx, slog.LevelDebug, "repair.exhausted",
+			slog.String("op", repairOp),
+			slog.Int("attempts_total", r.maxRetries),
+			slog.String("final_reason", firstReason(errorsList)))
 	}
 	return nil, fmt.Errorf("%w: %d attempts exhausted", ErrRepairExhausted, r.maxRetries)
 }

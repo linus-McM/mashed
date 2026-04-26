@@ -5,7 +5,28 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 )
+
+// fallbackTierOp is the canonical `op` attribute value for fallback-tier
+// log emissions (Story 4 §14 sanitize discipline — closed enum).
+const fallbackTierOp = "fallback.tier"
+
+// tierFailureReason classifies a backend failure into the closed-enum
+// `reason` token Story 4 §14 permits on `fallback.tier.failure` records.
+// Unknown errors collapse to "transport" so err.Error() text never reaches
+// the log, regardless of the upstream error wrapping.
+func tierFailureReason(err error) string {
+	if err == nil {
+		return ""
+	}
+	switch {
+	case errors.Is(err, context.DeadlineExceeded), errors.Is(err, context.Canceled):
+		return "context_overflow"
+	default:
+		return "transport"
+	}
+}
 
 // Plan §3 Story 11 — Tiered Fallback (richest → simplest).
 //
@@ -41,7 +62,13 @@ func RunWithFallback(
 	plaintext func() *UIAST,
 	logger *slog.Logger,
 ) (*UIAST, FallbackTier, string, error) {
-	_ = nilSafeLogger(logger)
+	log := nilSafeLogger(logger)
+	debug := log.Enabled(ctx, slog.LevelDebug)
+	if debug {
+		log.LogAttrs(ctx, slog.LevelDebug, "fallback.tier.start",
+			slog.String("op", fallbackTierOp),
+			slog.Int("tiers_count", len(order)))
+	}
 	if len(order) == 0 {
 		return plaintext(), TierPlaintext, "", nil
 	}
@@ -51,16 +78,36 @@ func RunWithFallback(
 		if ctx.Err() != nil {
 			return nil, "", escalatedFrom, ctx.Err()
 		}
+		var attemptStart time.Time
+		if debug {
+			attemptStart = time.Now()
+			log.LogAttrs(ctx, slog.LevelDebug, "fallback.tier.enter",
+				slog.String("op", fallbackTierOp),
+				slog.String("tier", name),
+				slog.Int("attempt_index", i))
+		}
 		ast, err := fn(ctx, name)
 		if err == nil && ast != nil {
 			tier := TierPrimary
 			if i > 0 {
 				tier = TierSecondary
 			}
+			if debug {
+				log.LogAttrs(ctx, slog.LevelDebug, "fallback.tier.success",
+					slog.String("op", fallbackTierOp),
+					slog.String("tier", name),
+					slog.Int64("latency_ms", time.Since(attemptStart).Milliseconds()))
+			}
 			return ast, tier, escalatedFrom, nil
 		}
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", name, err))
+			if debug {
+				log.LogAttrs(ctx, slog.LevelDebug, "fallback.tier.failure",
+					slog.String("op", fallbackTierOp),
+					slog.String("tier", name),
+					slog.String("reason", tierFailureReason(err)))
+			}
 		}
 		escalatedFrom = name
 	}
@@ -74,6 +121,11 @@ func RunWithFallback(
 			return ast, TierMinimal, escalatedFrom, nil
 		}
 		errs = append(errs, fmt.Errorf("minimal-kind: %w", err))
+	}
+	if debug {
+		log.LogAttrs(ctx, slog.LevelDebug, "fallback.tier.exhausted",
+			slog.String("op", fallbackTierOp),
+			slog.Int("tiers_tried", len(order)))
 	}
 	// Last resort — plaintext. errors.Join preserves all upstream
 	// diagnoses for the §6.1 log line.

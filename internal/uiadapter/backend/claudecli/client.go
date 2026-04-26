@@ -70,7 +70,7 @@ func (c *Client) Health(ctx context.Context) error { return c.WarmUp(ctx) }
 // Classify sends the stage-1 prompt through `claude -p`; parses the
 // fenced JSON at end-of-turn.
 func (c *Client) Classify(ctx context.Context, raw string) (backend.Kind, error) {
-	user := uiadapter.AssembleStage1(raw)
+	user := uiadapter.AssembleStage1(raw, nil)
 	out, err := c.runOneShot(ctx, "Return a single JSON object matching {\"kind\": <one of yn|menu|form|text>}.", user)
 	if err != nil {
 		return "", err
@@ -81,7 +81,7 @@ func (c *Client) Classify(ctx context.Context, raw string) (backend.Kind, error)
 	if err := json.Unmarshal([]byte(out), &k); err != nil {
 		return "", fmt.Errorf("claude-cli: classify decode: %w", err)
 	}
-	parsed, perr := uiadapter.ParseStageKind(k.Kind)
+	parsed, perr := uiadapter.ParseStageKind(k.Kind, nil)
 	if perr != nil {
 		return "", perr
 	}
@@ -92,7 +92,7 @@ func (c *Client) Classify(ctx context.Context, raw string) (backend.Kind, error)
 // than Anthropic API tool_use — hence the lower parse-rate target).
 func (c *Client) Generate(ctx context.Context, raw string, kind backend.Kind) (*uiadapter.UIAST, error) {
 	stageKind := uiadapter.StageKind(kind)
-	stage2, err := uiadapter.AssembleStage2(stageKind, raw)
+	stage2, err := uiadapter.AssembleStage2(stageKind, raw, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -385,15 +385,13 @@ func TestStory2_AC6_NoNewLogCallsInProduction(t *testing.T) {
 	t.Parallel()
 
 	// Story 3 (uiadapter-logging-3) instrumented client.go, cache.go,
-	// prefix_cache.go, breaker.go, and semaphore.go; they are no longer
-	// in the diff-guard allowlist. The remaining files are still subject
-	// to the guard until subsequent stories instrument them.
+	// prefix_cache.go, breaker.go, and semaphore.go.
+	// Story 4 (uiadapter-logging-4) instrumented repair.go, fastpath.go,
+	// stages.go, fallback.go, and fallback_tiers.go.
+	// All instrumented files are no longer in the diff-guard allowlist.
+	// The remaining files are still subject to the guard until subsequent
+	// stories instrument them.
 	files := []string{
-		"repair.go",
-		"fastpath.go",
-		"stages.go",
-		"fallback.go",
-		"fallback_tiers.go",
 		"sanitize.go",
 		"spotlight.go",
 		"contextguard.go",

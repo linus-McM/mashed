@@ -306,11 +306,11 @@ Feature: §14 sanitize discipline
   - [ ] Subtask 5b: Emit `fallback.tier.enter` at each iteration with `tier`, `attempt_index`.
   - [ ] Subtask 5c: Emit `fallback.tier.success` or `fallback.tier.failure` per attempt; `fallback.tier.exhausted` after the loop if no success.
 
-- [ ] Task 6: Tests (AC: 4.1–4.8)
-  - [ ] Subtask 6a: Reuse `testLogBuffer(t)` helper from Story 3.
-  - [ ] Subtask 6b: Augment `fastpath_test.go`, `repair_test.go`, `stages_test.go`, `fallback_tiers_test.go` with assertion blocks for each AC.
-  - [ ] Subtask 6c: Add a sanitize-discipline fuzz-style test (50 random payloads) in a new `pipeline_sanitize_test.go`.
-  - [ ] Subtask 6d: Add an alloc-budget test parallel to Story 3's, covering this story's surfaces.
+- [x] Task 6: Tests (AC: 4.1–4.8) — RED phase
+  - [x] Subtask 6a: Reuse `testLogBuffer(t)` helper from Story 3.
+  - [x] Subtask 6b: Augment `fastpath_test.go`, `repair_test.go`, `stages_test.go`, `fallback_test.go`, `fallback_tiers_test.go` with assertion blocks for each AC.
+  - [x] Subtask 6c: Add a sanitize-discipline fuzz-style test (50 random payloads) in a new `logging_story4_sanitize_test.go`.
+  - [x] Subtask 6d: Add an alloc-budget test parallel to Story 3's, covering this story's surfaces.
 
 ## Definition of Done
 

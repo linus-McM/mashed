@@ -1,6 +1,7 @@
 package uiadapter
 
 import (
+	"log/slog"
 	"strings"
 	"testing"
 
@@ -132,4 +133,102 @@ func TestFastPath_NoRuleMatches(t *testing.T) {
 	narrative := strings.Repeat("This is long narrative prose without any structural cue. ", 10)
 	hit, _, _ := fp.Classify(narrative)
 	assert.False(t, hit)
+}
+
+// --- Story 4: uiadapter-logging-4-instrument-pipeline -----------------------
+//
+// AC-4.1: fastpath.go emits classify outcomes:
+//   - fastpath.classify.start  (op=fastpath.classify, bytes_in, enabled)
+//   - fastpath.classify.hit    (op, rule=<rule.Name>, latency_ms)
+//   - fastpath.classify.skip   (op, latency_ms)
+//   - fastpath.classify.disabled (op)  — sole emission when enabled=false.
+//
+// These RED-phase tests assert the JSON record contract. They will fail until
+// fastpath.go is instrumented in Task 1.
+
+// TestStory4_AC1_FastpathHit — Story 4, AC-4.1 (hit branch).
+//
+// A YN-style raw matches `yn-prompt`; the buffer must contain exactly one
+// `fastpath.classify.start` and one `fastpath.classify.hit` and no skip /
+// disabled record. The hit record must carry the matched rule name as `rule`.
+func TestStory4_AC1_FastpathHit(t *testing.T) {
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+	fp := NewFastPathClassifier(true, logger)
+
+	const raw = "Continue? [y/N]"
+	hit, rule, ast := fp.Classify(raw)
+	require.True(t, hit, "yn-prompt rule must match %q", raw)
+	require.Equal(t, "yn-prompt", rule)
+	require.NotNil(t, ast)
+
+	records := decodeRecords(t, buf)
+	starts := recordsByMsg(records, "fastpath.classify.start")
+	hits := recordsByMsg(records, "fastpath.classify.hit")
+	skips := recordsByMsg(records, "fastpath.classify.skip")
+	disabled := recordsByMsg(records, "fastpath.classify.disabled")
+
+	require.Len(t, starts, 1, "exactly one start record; got %v", records)
+	require.Len(t, hits, 1, "exactly one hit record; got %v", records)
+	assert.Empty(t, skips, "skip must not emit on a successful match")
+	assert.Empty(t, disabled, "disabled must not emit when enabled=true")
+
+	start := starts[0]
+	assert.Equal(t, "fastpath.classify", start["op"])
+	assert.Equal(t, true, start["enabled"], "enabled attr must mirror classifier flag")
+	bytesIn, ok := start["bytes_in"].(float64)
+	require.True(t, ok, "bytes_in must be numeric; got %T %v", start["bytes_in"], start["bytes_in"])
+	assert.EqualValues(t, len(raw), bytesIn, "bytes_in must equal len(raw)")
+
+	hitRec := hits[0]
+	assert.Equal(t, "fastpath.classify", hitRec["op"])
+	assert.Equal(t, "yn-prompt", hitRec["rule"], "hit record must carry the matched rule name")
+	latencyMs, ok := hitRec["latency_ms"].(float64)
+	require.True(t, ok, "hit record must carry numeric latency_ms; got %T", hitRec["latency_ms"])
+	assert.GreaterOrEqual(t, latencyMs, 0.0)
+}
+
+// TestStory4_AC1_FastpathSkip — Story 4, AC-4.1 (skip branch).
+//
+// Prose with no rule match emits `fastpath.classify.start` then
+// `fastpath.classify.skip` — never `hit` or `disabled`.
+func TestStory4_AC1_FastpathSkip(t *testing.T) {
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+	fp := NewFastPathClassifier(true, logger)
+
+	hit, _, _ := fp.Classify("just some prose")
+	require.False(t, hit, "prose must not match any rule")
+
+	records := decodeRecords(t, buf)
+	require.Len(t, recordsByMsg(records, "fastpath.classify.start"), 1)
+	require.Len(t, recordsByMsg(records, "fastpath.classify.skip"), 1)
+	assert.Empty(t, recordsByMsg(records, "fastpath.classify.hit"))
+	assert.Empty(t, recordsByMsg(records, "fastpath.classify.disabled"))
+
+	skip := recordsByMsg(records, "fastpath.classify.skip")[0]
+	assert.Equal(t, "fastpath.classify", skip["op"])
+	latencyMs, ok := skip["latency_ms"].(float64)
+	require.True(t, ok, "skip record must carry numeric latency_ms")
+	assert.GreaterOrEqual(t, latencyMs, 0.0)
+}
+
+// TestStory4_AC1_FastpathDisabled — Story 4, AC-4.1 (disabled branch).
+//
+// enabled=false short-circuits with exactly one `fastpath.classify.disabled`
+// record. No start / hit / skip records emit because the function exits before
+// any rule check.
+func TestStory4_AC1_FastpathDisabled(t *testing.T) {
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+	fp := NewFastPathClassifier(false, logger)
+
+	hit, _, _ := fp.Classify("anything")
+	require.False(t, hit, "disabled classifier never hits")
+
+	records := decodeRecords(t, buf)
+	disabled := recordsByMsg(records, "fastpath.classify.disabled")
+	require.Len(t, disabled, 1, "exactly one disabled record; got %v", records)
+	assert.Empty(t, recordsByMsg(records, "fastpath.classify.start"))
+	assert.Empty(t, recordsByMsg(records, "fastpath.classify.hit"))
+	assert.Empty(t, recordsByMsg(records, "fastpath.classify.skip"))
+
+	assert.Equal(t, "fastpath.classify", disabled[0]["op"])
 }

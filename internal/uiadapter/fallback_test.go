@@ -1,6 +1,7 @@
 package uiadapter
 
 import (
+	"log/slog"
 	"strings"
 	"testing"
 	"time"
@@ -56,4 +57,74 @@ func TestFallbackAST_EmptyRawIsSafe(t *testing.T) {
 	require.Len(t, ast.Nodes, 1)
 	assert.Equal(t, "markdown", ast.Nodes[0].Type)
 	assert.Equal(t, "", ast.Nodes[0].Content)
+}
+
+// --- Story 4: uiadapter-logging-4-instrument-pipeline -----------------------
+//
+// AC-4.6: fallback.go emits build + truncate records.
+//
+// Required emissions per Story 4 dev notes:
+//   - fallback.ast.build    (op=fallback.ast, reason, bytes_in)
+//   - fallback.ast.truncate (op, truncated, bytes_kept)   — when firstLine
+//                                                           clipped the input.
+
+// TestStory4_AC6_FallbackASTBuild — Story 4, AC-4.6 (build site).
+//
+// FallbackAST emits exactly one `fallback.ast.build` record per call carrying
+// the input reason verbatim (validator-reason enum) and the raw payload's byte
+// length. The raw bytes themselves are NEVER logged (sanitize discipline §14).
+func TestStory4_AC6_FallbackASTBuild(t *testing.T) {
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+
+	const raw = "some raw"
+	const reason = "validation:oversize"
+	ast := FallbackAST(raw, reason, logger)
+	require.NotNil(t, ast)
+
+	records := decodeRecords(t, buf)
+	build := recordsByMsg(records, "fallback.ast.build")
+	require.Len(t, build, 1, "exactly one build record; got %v", records)
+
+	rec := build[0]
+	assert.Equal(t, "fallback.ast", rec["op"])
+	assert.Equal(t, reason, rec["reason"], "reason attr must equal the input reason verbatim")
+	assert.EqualValues(t, len(raw), rec["bytes_in"])
+
+	// §14: no record may carry the raw payload as an attr value.
+	for _, r := range records {
+		for k, v := range r {
+			if s, ok := v.(string); ok && s == raw {
+				t.Errorf("record attr %q leaked the raw payload verbatim", k)
+			}
+		}
+	}
+}
+
+// TestStory4_AC6_FallbackASTTruncate — Story 4, AC-4.6 (truncate site).
+//
+// A multi-line raw whose first line exceeds the §4.8 fallbackSummaryMaxLen
+// (120 bytes) must trigger the `firstLine` truncate emission with
+// truncated=true and bytes_kept=120.
+func TestStory4_AC6_FallbackASTTruncate(t *testing.T) {
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+
+	// First line is 200 chars (> 120); FallbackAST → firstLine truncates to 120.
+	raw := strings.Repeat("a", 200) + "\nsecond line"
+	ast := FallbackAST(raw, "oversize", logger)
+	require.NotNil(t, ast)
+	assert.LessOrEqual(t, len(ast.TurnSummary), 120)
+
+	records := decodeRecords(t, buf)
+	trunc := recordsByMsg(records, "fallback.ast.truncate")
+	require.Len(t, trunc, 1, "exactly one truncate record; got %v", records)
+
+	rec := trunc[0]
+	assert.Equal(t, "fallback.ast", rec["op"])
+	truncated, ok := rec["truncated"].(bool)
+	require.True(t, ok, "truncated attr must be bool; got %T", rec["truncated"])
+	assert.True(t, truncated, "truncated must be true when firstLine clipped")
+	bytesKept, ok := rec["bytes_kept"].(float64)
+	require.True(t, ok, "bytes_kept must be numeric; got %T", rec["bytes_kept"])
+	assert.EqualValues(t, 120, bytesKept,
+		"bytes_kept must equal fallbackSummaryMaxLen=120 when truncated")
 }

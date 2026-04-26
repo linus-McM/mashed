@@ -7,7 +7,12 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 )
+
+// stagesOp is the canonical `op` attribute value for every two-stage log
+// emission (Story 4 §14 sanitize discipline — closed enum).
+const stagesOp = "stages.two"
 
 //go:embed prompts/classify.md
 var stageClassifyPrompt string
@@ -42,13 +47,22 @@ var ErrUnknownKind = errors.New("uiadapter: unknown stage kind")
 
 // ParseStageKind validates a classifier output against the enum. Whitespace
 // is trimmed; case-insensitive. Unknown values surface ErrUnknownKind
-// wrapped so the router can fall back.
-func ParseStageKind(s string) (StageKind, error) {
+// wrapped so the router can fall back. logger may be nil; rejected inputs
+// emit a `stages.kind.invalid` debug record carrying only the input length
+// — never the rejected string verbatim (Story 4 §14 sanitize discipline).
+func ParseStageKind(s string, logger *slog.Logger) (StageKind, error) {
 	norm := strings.ToLower(strings.TrimSpace(s))
 	switch StageKind(norm) {
 	case StageKindYN, StageKindMenu, StageKindForm, StageKindText:
 		return StageKind(norm), nil
 	default:
+		log := nilSafeLogger(logger)
+		ctx := context.Background()
+		if log.Enabled(ctx, slog.LevelDebug) {
+			log.LogAttrs(ctx, slog.LevelDebug, "stages.kind.invalid",
+				slog.String("op", stagesOp),
+				slog.Int("input_len", len(s)))
+		}
 		return "", fmt.Errorf("%w: %q", ErrUnknownKind, s)
 	}
 }
@@ -80,8 +94,26 @@ func GeneratePromptFor(kind StageKind) (string, error) {
 //	[static_prefix]\n\n---\nRAW CAPTURE:\n[spotlighted_raw]
 //
 // Stage-1 does not carry a KIND directive — that's the variable Stage 2
-// receives after classification.
-func AssembleStage1(rawSpotlighted string) string {
+// receives after classification. logger may be nil; an emitted
+// `stages.assemble` record carries only the produced prompt's length —
+// never the raw capture (Story 4 §14 sanitize discipline).
+func AssembleStage1(rawSpotlighted string, logger *slog.Logger) string {
+	prompt := assembleStage1String(rawSpotlighted)
+	log := nilSafeLogger(logger)
+	ctx := context.Background()
+	if log.Enabled(ctx, slog.LevelDebug) {
+		log.LogAttrs(ctx, slog.LevelDebug, "stages.assemble",
+			slog.String("op", stagesOp),
+			slog.Int("stage", 1),
+			slog.Int("bytes_out", len(prompt)))
+	}
+	return prompt
+}
+
+// assembleStage1String builds the prompt body without any logging side-
+// effect. Used by RunTwoStage so the two-stage emission script does not
+// double-emit `stages.assemble` records (Story 4 AC-4.4 ordering invariant).
+func assembleStage1String(rawSpotlighted string) string {
 	var b strings.Builder
 	b.Grow(len(stageClassifyPrompt) + len(rawSpotlighted) + 32)
 	b.WriteString(stageClassifyPrompt)
@@ -95,8 +127,29 @@ func AssembleStage1(rawSpotlighted string) string {
 //	[kind_prompt]\n\n---\nRAW CAPTURE:\n[spotlighted_raw]\n\n---\nKIND: [kind]\n
 //
 // The kind_prompt carries the narrow per-kind schema + few-shots, so the
-// stage-1 classifier directly gates downstream structure.
-func AssembleStage2(kind StageKind, rawSpotlighted string) (string, error) {
+// stage-1 classifier directly gates downstream structure. logger may be
+// nil; the emitted `stages.assemble` record carries only the produced
+// prompt's length (Story 4 §14 sanitize discipline).
+func AssembleStage2(kind StageKind, rawSpotlighted string, logger *slog.Logger) (string, error) {
+	prompt, err := assembleStage2String(kind, rawSpotlighted)
+	if err != nil {
+		return "", err
+	}
+	log := nilSafeLogger(logger)
+	ctx := context.Background()
+	if log.Enabled(ctx, slog.LevelDebug) {
+		log.LogAttrs(ctx, slog.LevelDebug, "stages.assemble",
+			slog.String("op", stagesOp),
+			slog.Int("stage", 2),
+			slog.Int("bytes_out", len(prompt)))
+	}
+	return prompt, nil
+}
+
+// assembleStage2String builds the stage-2 prompt body without any logging
+// side-effect. Used by RunTwoStage so the two-stage emission script stays
+// linear (Story 4 AC-4.4 ordering invariant).
+func assembleStage2String(kind StageKind, rawSpotlighted string) (string, error) {
 	kindPrompt, err := GeneratePromptFor(kind)
 	if err != nil {
 		return "", err
@@ -131,22 +184,53 @@ func RunTwoStage(
 	generateFn func(ctx context.Context, kind StageKind, stage2Prompt string) (*UIAST, error),
 	logger *slog.Logger,
 ) (*UIAST, StageKind, error) {
-	_ = nilSafeLogger(logger)
+	log := nilSafeLogger(logger)
 	if ctx.Err() != nil {
 		return nil, "", ctx.Err()
 	}
-	stage1 := AssembleStage1(rawSpotlighted)
+	debug := log.Enabled(ctx, slog.LevelDebug)
+	var start time.Time
+	if debug {
+		start = time.Now()
+		log.LogAttrs(ctx, slog.LevelDebug, "stages.start",
+			slog.String("op", stagesOp),
+			slog.Int("bytes_in", len(rawSpotlighted)))
+	}
+	stage1 := assembleStage1String(rawSpotlighted)
 	kind, err := classifyFn(ctx, stage1)
 	if err != nil {
+		if debug && errors.Is(err, ErrUnknownKind) {
+			log.LogAttrs(ctx, slog.LevelDebug, "stages.classify.parse_error",
+				slog.String("op", stagesOp),
+				slog.String("reason", "parse"))
+		}
 		return nil, "", fmt.Errorf("uiadapter: stage-1 classify: %w", err)
 	}
-	stage2, err := AssembleStage2(kind, rawSpotlighted)
+	if debug {
+		log.LogAttrs(ctx, slog.LevelDebug, "stages.classify.done",
+			slog.String("op", stagesOp),
+			slog.String("kind", string(kind)),
+			slog.Int64("latency_ms", time.Since(start).Milliseconds()))
+	}
+	stage2, err := assembleStage2String(kind, rawSpotlighted)
 	if err != nil {
 		return nil, kind, err
+	}
+	if debug {
+		log.LogAttrs(ctx, slog.LevelDebug, "stages.generate.start",
+			slog.String("op", stagesOp),
+			slog.String("kind", string(kind)))
 	}
 	ast, err := generateFn(ctx, kind, stage2)
 	if err != nil {
 		return nil, kind, fmt.Errorf("uiadapter: stage-2 generate: %w", err)
+	}
+	if debug {
+		log.LogAttrs(ctx, slog.LevelDebug, "stages.final",
+			slog.String("op", stagesOp),
+			slog.String("kind", string(kind)),
+			slog.Int64("latency_ms_total", time.Since(start).Milliseconds()),
+			slog.Int("bytes_out", len(stage2)))
 	}
 	return ast, kind, nil
 }

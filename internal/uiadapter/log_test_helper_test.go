@@ -70,3 +70,18 @@ func recordsByMsg(records []map[string]any, msg string) []map[string]any {
 	}
 	return out
 }
+
+// recordMsgsWithPrefix returns the ordered slice of `msg` field values for
+// records whose msg begins with prefix. Empty prefix returns every msg.
+// Used by Story 4 ordering assertions where the production code emits a
+// scripted sequence of records and the test must compare it byte-for-byte.
+func recordMsgsWithPrefix(records []map[string]any, prefix string) []string {
+	out := make([]string, 0, len(records))
+	for _, r := range records {
+		s, _ := r["msg"].(string)
+		if strings.HasPrefix(s, prefix) {
+			out = append(out, s)
+		}
+	}
+	return out
+}

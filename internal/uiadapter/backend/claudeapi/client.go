@@ -91,7 +91,7 @@ func (c *Client) Health(_ context.Context) error { return c.WarmUp(context.Backg
 // Classify sends the stage-1 prompt with a tool_use tool_choice pinned to
 // "classify_uiast" and a narrow kind-enum schema.
 func (c *Client) Classify(ctx context.Context, raw string) (backend.Kind, error) {
-	prompt := uiadapter.AssembleStage1(raw)
+	prompt := uiadapter.AssembleStage1(raw, nil)
 	schema := json.RawMessage(`{"type":"object","properties":{"kind":{"enum":["yn","menu","form","text"]}},"required":["kind"],"additionalProperties":false}`)
 	resp, _, err := c.call(ctx, classifyRequest(c.cfg, prompt, schema))
 	if err != nil {
@@ -103,7 +103,7 @@ func (c *Client) Classify(ctx context.Context, raw string) (backend.Kind, error)
 	if err := json.Unmarshal(resp, &k); err != nil {
 		return "", fmt.Errorf("claude-api: classify decode: %w", err)
 	}
-	parsed, perr := uiadapter.ParseStageKind(k.Kind)
+	parsed, perr := uiadapter.ParseStageKind(k.Kind, nil)
 	if perr != nil {
 		return "", perr
 	}
@@ -113,7 +113,7 @@ func (c *Client) Classify(ctx context.Context, raw string) (backend.Kind, error)
 // Generate runs the stage-2 prompt with a per-kind tool + input_schema.
 func (c *Client) Generate(ctx context.Context, raw string, kind backend.Kind) (*uiadapter.UIAST, error) {
 	stageKind := uiadapter.StageKind(kind)
-	stage2, err := uiadapter.AssembleStage2(stageKind, raw)
+	stage2, err := uiadapter.AssembleStage2(stageKind, raw, nil)
 	if err != nil {
 		return nil, err
 	}

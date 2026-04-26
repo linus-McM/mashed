@@ -1,11 +1,17 @@
 package uiadapter
 
 import (
+	"context"
 	"log/slog"
 	"regexp"
 	"strings"
 	"sync/atomic"
+	"time"
 )
+
+// fastpathOp is the canonical `op` attribute value for every fastpath log
+// emission (Story 4 §14 sanitize discipline — closed enum).
+const fastpathOp = "fastpath.classify"
 
 // FastPathClassifier is the pre-LLM short-circuit for highly-repetitive
 // Claude-Code turns (Plan §3 Story 2). A first-match-wins rule table maps
@@ -49,8 +55,25 @@ func NewFastPathClassifier(enabled bool, logger *slog.Logger) *FastPathClassifie
 // Classify tries each rule in order. First match wins.
 func (f *FastPathClassifier) Classify(raw string) (hit bool, rule string, ast *UIAST) {
 	f.totalCalls.Add(1)
-	if !f.enabled || raw == "" {
+	ctx := context.Background()
+	if !f.enabled {
+		if f.logger.Enabled(ctx, slog.LevelDebug) {
+			f.logger.LogAttrs(ctx, slog.LevelDebug, "fastpath.classify.disabled",
+				slog.String("op", fastpathOp))
+		}
 		return false, "", nil
+	}
+	if raw == "" {
+		return false, "", nil
+	}
+	debug := f.logger.Enabled(ctx, slog.LevelDebug)
+	var start time.Time
+	if debug {
+		start = time.Now()
+		f.logger.LogAttrs(ctx, slog.LevelDebug, "fastpath.classify.start",
+			slog.String("op", fastpathOp),
+			slog.Int("bytes_in", len(raw)),
+			slog.Bool("enabled", f.enabled))
 	}
 	for i, r := range f.rules {
 		if m := r.Match.FindStringSubmatch(raw); m != nil {
@@ -63,8 +86,19 @@ func (f *FastPathClassifier) Classify(raw string) (hit bool, rule string, ast *U
 			f.hitsPerRule[i].Add(1)
 			f.totalHits.Add(1)
 			built.GeneratedBy = "fastpath:" + r.Name
+			if debug {
+				f.logger.LogAttrs(ctx, slog.LevelDebug, "fastpath.classify.hit",
+					slog.String("op", fastpathOp),
+					slog.String("rule", r.Name),
+					slog.Int64("latency_ms", time.Since(start).Milliseconds()))
+			}
 			return true, r.Name, built
 		}
+	}
+	if debug {
+		f.logger.LogAttrs(ctx, slog.LevelDebug, "fastpath.classify.skip",
+			slog.String("op", fastpathOp),
+			slog.Int64("latency_ms", time.Since(start).Milliseconds()))
 	}
 	return false, "", nil
 }
