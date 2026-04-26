@@ -293,6 +293,12 @@ func (a *App) startup(ctx context.Context) {
 			if closer != nil {
 				a.shutdownHooks = append(a.shutdownHooks, closer.Close)
 			}
+			adapterLogger.Info("uiadapter.boot",
+				"op", "uiadapter.boot",
+				"boot_level", level.String(),
+				"model", cfg.OllamaModel,
+				"timeout_ms", cfg.UIAdapterTimeoutMs,
+			)
 			bmadOpts = append(bmadOpts, bmad.WithAdapter(uiadapter.NewDefault(uiadapter.Config{
 				Enabled:     true,
 				Model:       cfg.OllamaModel,
