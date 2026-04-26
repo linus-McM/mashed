@@ -128,6 +128,18 @@ Dark-only, industrial/utilitarian. Full spec in `DESIGN.md`:
 - Bugs and recurring fixes live in `.wolf/buglog.json`.
 - Sprint/story artifacts live in `_bmad-output/`.
 
+## Debug logging
+
+The UI adapter ships structured `slog` debug logging. Set `UIADAPTER_LOG_LEVEL=debug`
+to see per-request traces; default `info` keeps production quiet. Records fan out to
+stdout (human-readable) and `./logs/uiadapter-YYYYMMDD.log` (JSON, machine-grep).
+Sanitize discipline is strict: lengths, hashes, durations, IDs only — never raw
+payloads. Tail with:
+
+    tail -f logs/uiadapter-*.log | jq 'select(.op=="client.chat")'
+
+Shortcut: `just trace` runs `wails dev` with debug enabled and tees both streams.
+
 ## License
 
 See `LICENSE` (when present). Repo URL in-app: set by `repoURL` in `main.go`.

@@ -30,6 +30,11 @@ haiku:
 dev: build-helper
     PATH="$HOME/go/bin:$PATH" wails dev
 
+# Run wails dev with UI adapter debug logging on. Both stdout and the
+# daily JSON file are tee'd to logs/uiadapter-trace.log for offline grep.
+trace:
+    UIADAPTER_LOG_LEVEL=debug wails dev 2>&1 | tee logs/uiadapter-trace.log
+
 r_mix:
     @repomix --parsable-style --compress --remove-empty-lines --skill-generate use-repo-code
 
