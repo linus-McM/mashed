@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -242,4 +244,149 @@ func TestClient_ChatDeterministic_ReturnsContent(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, `{"version":"1"}`, got,
 		"ChatDeterministic must return message.content verbatim, like Chat")
+}
+
+// -----------------------------------------------------------------------------
+// Story 3 — `client.go` debug instrumentation (uiadapter-logging-3).
+//
+// RED-phase tests: every assertion below targets log records that do not yet
+// exist in production. They will fail until the go-engineer wires the
+// `client.chat.start` / `client.chat.response` / `client.chat.transport_error`
+// / `client.chat.http_error` Debug emissions described in the story file.
+// -----------------------------------------------------------------------------
+
+// TestStory3_AC1_ClientChatStartAndResponse_DebugRecords — Story 3, AC-3.1.
+//
+// A successful Chat round-trip must emit exactly one `client.chat.start`
+// record (with op/model/bytes_in) and exactly one `client.chat.response`
+// record (with bytes_out and a non-negative latency_ms). Neither record
+// may contain the system or user payload bytes — only lengths.
+func TestStory3_AC1_ClientChatStartAndResponse_DebugRecords(t *testing.T) {
+	newOllamaStub(t, func(w http.ResponseWriter, r *http.Request) {
+		// message.content "{}" — bytes_out must equal 2.
+		_, _ = w.Write([]byte(`{"message":{"role":"assistant","content":"{}"}}`))
+	})
+
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+	client := NewClient(ClientConfig{TimeoutMs: 1000}, logger)
+
+	const userPayload = "raw input" // len = 9 → bytes_in
+	const systemPayload = "system"  // appears verbatim if leaked
+
+	_, err := client.Chat(context.Background(), "gemma3:4b", systemPayload, userPayload)
+	require.NoError(t, err)
+
+	records := decodeRecords(t, buf)
+
+	starts := recordsByMsg(records, "client.chat.start")
+	require.Len(t, starts, 1, "expected exactly one client.chat.start record; got %d in %v", len(starts), records)
+	start := starts[0]
+	assert.Equal(t, "client.chat", start["op"], "client.chat.start must carry op=\"client.chat\"")
+	assert.Equal(t, "gemma3:4b", start["model"], "client.chat.start must carry model")
+	assert.EqualValues(t, len(userPayload), start["bytes_in"],
+		"client.chat.start must carry bytes_in=len(user)=%d", len(userPayload))
+
+	resps := recordsByMsg(records, "client.chat.response")
+	require.Len(t, resps, 1, "expected exactly one client.chat.response record; got %d in %v", len(resps), records)
+	resp := resps[0]
+	assert.Equal(t, "client.chat", resp["op"], "client.chat.response must carry op=\"client.chat\"")
+	assert.Equal(t, "gemma3:4b", resp["model"], "client.chat.response must carry model")
+	assert.EqualValues(t, 2, resp["bytes_out"],
+		"client.chat.response must carry bytes_out=len(message.content)=2 for body \"{}\"")
+	latency, ok := resp["latency_ms"].(float64)
+	require.True(t, ok, "client.chat.response must carry numeric latency_ms")
+	assert.GreaterOrEqual(t, latency, 0.0, "latency_ms must be non-negative")
+
+	// Sanitize discipline (AC-3.7 precondition for client.go): no record may
+	// carry the raw system or user payload bytes.
+	for i, rec := range records {
+		raw, _ := json.Marshal(rec)
+		assert.NotContains(t, string(raw), userPayload,
+			"record %d (%v) must not contain the raw user payload %q", i, rec["msg"], userPayload)
+		// The literal "system" can appear as a key name in some tracing
+		// libraries; here we assert no top-level attr has the string
+		// value "system" — i.e., the system prompt content was logged.
+		for k, v := range rec {
+			if s, ok := v.(string); ok && s == systemPayload {
+				t.Fatalf("record %d attr %q leaked system prompt content %q", i, k, s)
+			}
+		}
+	}
+}
+
+// TestStory3_AC2_ClientTransportError — Story 3, AC-3.2 (transport branch).
+//
+// A Chat call against a closed listener must emit `client.chat.transport_error`
+// with a `reason` enum (one of the classifyChatErr enum strings) and must
+// never carry an `error` attribute holding the raw err.Error() text.
+func TestStory3_AC2_ClientTransportError(t *testing.T) {
+	withOllamaHost(t, closedSocketURL(t))
+
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+	client := NewClient(ClientConfig{TimeoutMs: 200}, logger)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 250*time.Millisecond)
+	defer cancel()
+
+	_, err := client.Chat(ctx, "gemma3:4b", "sys", "usr")
+	require.Error(t, err, "closed-listener Chat must return an error")
+
+	records := decodeRecords(t, buf)
+	rejs := recordsByMsg(records, "client.chat.transport_error")
+	require.Len(t, rejs, 1,
+		"expected exactly one client.chat.transport_error record; got %d in %v", len(rejs), records)
+	rec := rejs[0]
+	assert.Equal(t, "client.chat", rec["op"], "transport_error must carry op=\"client.chat\"")
+	assert.Equal(t, "gemma3:4b", rec["model"], "transport_error must carry model")
+
+	reason, ok := rec["reason"].(string)
+	require.True(t, ok, "transport_error must carry a string reason attr; got %v", rec["reason"])
+	assert.NotEmpty(t, reason, "reason must be a non-empty enum string (classifyChatErr)")
+	// classifyChatErr enum domain: "canceled" | "timeout" | "unreachable" | "server:NNN"
+	allowed := map[string]struct{}{
+		"canceled": {}, "timeout": {}, "unreachable": {}, "transport": {}, "saturated": {},
+	}
+	if _, isServer := allowed[reason]; !isServer && !strings.HasPrefix(reason, "server:") {
+		t.Fatalf("reason %q is not a recognised classifyChatErr enum string", reason)
+	}
+
+	// Sanitize: no `error` attr carrying the raw err.Error() may be present.
+	if errAttr, has := rec["error"]; has {
+		t.Fatalf("transport_error must not carry an `error` attr; got %v", errAttr)
+	}
+	rawErr := err.Error()
+	if rawErr != "" {
+		raw, _ := json.Marshal(rec)
+		assert.NotContains(t, string(raw), rawErr,
+			"transport_error record must not contain the raw err.Error() text %q", rawErr)
+	}
+}
+
+// TestStory3_AC2_ClientHttpError — Story 3, AC-3.2 (HTTP branch).
+//
+// A Chat call hitting a 500 must emit `client.chat.http_error` with the
+// status_code attr; no payload bytes leak.
+func TestStory3_AC2_ClientHttpError(t *testing.T) {
+	newOllamaStub(t, func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "internal", http.StatusInternalServerError)
+	})
+
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+	client := NewClient(ClientConfig{TimeoutMs: 1000}, logger)
+
+	_, err := client.Chat(context.Background(), "gemma3:4b", "sys", "usr")
+	require.Error(t, err, "500 response must surface as an error")
+
+	records := decodeRecords(t, buf)
+	httpErrs := recordsByMsg(records, "client.chat.http_error")
+	require.Len(t, httpErrs, 1,
+		"expected exactly one client.chat.http_error record; got %d in %v", len(httpErrs), records)
+	rec := httpErrs[0]
+	assert.Equal(t, "client.chat", rec["op"], "http_error must carry op=\"client.chat\"")
+	assert.Equal(t, "gemma3:4b", rec["model"], "http_error must carry model")
+	assert.EqualValues(t, 500, rec["status_code"], "http_error must carry status_code=500")
+
+	latency, ok := rec["latency_ms"].(float64)
+	require.True(t, ok, "http_error must carry numeric latency_ms")
+	assert.GreaterOrEqual(t, latency, 0.0, "latency_ms must be non-negative")
 }

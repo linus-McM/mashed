@@ -1,6 +1,7 @@
 package uiadapter
 
 import (
+	"context"
 	"encoding/json"
 	"log/slog"
 )
@@ -17,7 +18,6 @@ import (
 // nilSafeLogger normalises it so any future story can emit telemetry without
 // an inline guard.
 func ClaudeSystemBlock(staticPrefix string, cfg Config, logger *slog.Logger) []map[string]any {
-	_ = nilSafeLogger(logger)
 	if staticPrefix == "" {
 		return nil
 	}
@@ -25,14 +25,23 @@ func ClaudeSystemBlock(staticPrefix string, cfg Config, logger *slog.Logger) []m
 	if ttl == "" {
 		ttl = "5m"
 	}
+	ccType := cacheControlType(ttl)
+
+	lg := nilSafeLogger(logger)
+	ctx := context.Background()
+	if lg.Enabled(ctx, slog.LevelDebug) {
+		lg.LogAttrs(ctx, slog.LevelDebug, "prefix_cache.build",
+			slog.String("op", "prefix_cache.claude"),
+			slog.Int("prefix_len", len(staticPrefix)),
+			slog.String("ttl", ccType),
+		)
+	}
 	block := map[string]any{
 		"type": "text",
 		"text": staticPrefix,
 	}
 	if ttl != "off" {
-		block["cache_control"] = map[string]any{
-			"type": cacheControlType(ttl),
-		}
+		block["cache_control"] = map[string]any{"type": ccType}
 	}
 	return []map[string]any{block}
 }
@@ -50,13 +59,23 @@ func cacheControlType(ttl string) string {
 
 // OllamaKeepAliveEncoded marshals Config.KeepAlive for the Ollama options
 // block. The option value is a duration string ("30m", "-1") and rides
-// alongside num_ctx in ContextGuard.OllamaOptions (Story v3-03).
-// Exposed separately so tests can assert the duration string shape.
-func OllamaKeepAliveEncoded(cfg Config) string {
-	if cfg.KeepAlive == "" {
-		return "30m"
+// alongside num_ctx in ContextGuard.OllamaOptions (Story v3-03). logger
+// may be nil; nilSafeLogger normalises it so the Debug emission never
+// panics.
+func OllamaKeepAliveEncoded(cfg Config, logger *slog.Logger) string {
+	keepAlive := cfg.KeepAlive
+	if keepAlive == "" {
+		keepAlive = "30m"
 	}
-	return cfg.KeepAlive
+	lg := nilSafeLogger(logger)
+	ctx := context.Background()
+	if lg.Enabled(ctx, slog.LevelDebug) {
+		lg.LogAttrs(ctx, slog.LevelDebug, "prefix_cache.ollama_keep_alive",
+			slog.String("op", "prefix_cache.ollama"),
+			slog.String("keep_alive", keepAlive),
+		)
+	}
+	return keepAlive
 }
 
 // ClaudeSystemBlockJSON returns the marshalled system block. Used by
@@ -65,5 +84,17 @@ func OllamaKeepAliveEncoded(cfg Config) string {
 // normalises it so any future story can emit telemetry without an inline
 // guard.
 func ClaudeSystemBlockJSON(staticPrefix string, cfg Config, logger *slog.Logger) ([]byte, error) {
-	return json.Marshal(ClaudeSystemBlock(staticPrefix, cfg, logger))
+	out, err := json.Marshal(ClaudeSystemBlock(staticPrefix, cfg, logger))
+	if err != nil {
+		return nil, err
+	}
+	lg := nilSafeLogger(logger)
+	ctx := context.Background()
+	if lg.Enabled(ctx, slog.LevelDebug) {
+		lg.LogAttrs(ctx, slog.LevelDebug, "prefix_cache.build.success",
+			slog.String("op", "prefix_cache.claude"),
+			slog.Int("bytes_out", len(out)),
+		)
+	}
+	return out, nil
 }

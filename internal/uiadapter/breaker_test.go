@@ -2,6 +2,7 @@ package uiadapter
 
 import (
 	"errors"
+	"log/slog"
 	"sync"
 	"testing"
 	"time"
@@ -82,4 +83,68 @@ func TestBreaker_ConcurrentConstruction(t *testing.T) {
 	}
 	wg.Wait()
 	assert.Equal(t, "closed", set.StateOf("ollama"))
+}
+
+// -----------------------------------------------------------------------------
+// Story 3 — `breaker.go` debug instrumentation (uiadapter-logging-3).
+//
+// RED-phase: these target log records that do not yet exist in production.
+// -----------------------------------------------------------------------------
+
+// TestStory3_AC4_BreakerTransitionAndReject — Story 3, AC-3.4.
+//
+// Two consecutive failures on backend "ollama" must emit a `breaker.transition`
+// record (from="closed", to="open", backend="ollama"). A subsequent request
+// while the breaker is open must emit `breaker.reject` with state="open".
+func TestStory3_AC4_BreakerTransitionAndReject(t *testing.T) {
+	cfg := DefaultConfig()
+	cfg.BreakerFailThreshold = 2
+	cfg.BreakerResetMs = 30000
+
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+	set := NewBreakerSet(cfg, logger)
+
+	const backend = "ollama"
+	boom := errors.New("upstream-failure")
+
+	// Two failures: trip the breaker.
+	for i := 0; i < 2; i++ {
+		_, err := set.Do(backend, func() (*UIAST, error) { return nil, boom })
+		require.Error(t, err)
+	}
+	require.Equal(t, "open", set.StateOf(backend),
+		"breaker must be open after %d consecutive failures", 2)
+
+	// Third request: must be rejected (ErrBreakerOpen) and emit breaker.reject.
+	_, rejErr := set.Do(backend, func() (*UIAST, error) {
+		t.Fatal("breaker.reject must short-circuit; fn must not run while open")
+		return nil, nil
+	})
+	require.ErrorIs(t, rejErr, ErrBreakerOpen)
+
+	records := decodeRecords(t, buf)
+
+	// breaker.transition (closed → open) — exactly one such record for this run.
+	transitions := recordsByMsg(records, "breaker.transition")
+	require.NotEmpty(t, transitions, "expected at least one breaker.transition record; got %v", records)
+
+	var sawClosedToOpen bool
+	for _, rec := range transitions {
+		if rec["from"] == "closed" && rec["to"] == "open" && rec["backend"] == backend {
+			sawClosedToOpen = true
+			assert.Equal(t, "breaker.transition", rec["op"],
+				"breaker.transition must carry op=\"breaker.transition\"")
+		}
+	}
+	assert.True(t, sawClosedToOpen,
+		"expected a breaker.transition record with from=\"closed\",to=\"open\",backend=%q; got %v",
+		backend, transitions)
+
+	// breaker.reject — at least one record carrying state="open" + backend.
+	rejects := recordsByMsg(records, "breaker.reject")
+	require.NotEmpty(t, rejects, "expected a breaker.reject record after open; got %v", records)
+	rec := rejects[0]
+	assert.Equal(t, "breaker.reject", rec["op"], "breaker.reject must carry op=\"breaker.reject\"")
+	assert.Equal(t, backend, rec["backend"], "breaker.reject must carry backend=%q", backend)
+	assert.Equal(t, "open", rec["state"], "breaker.reject must carry state=\"open\"")
 }

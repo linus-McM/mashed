@@ -384,12 +384,11 @@ func TestStory2_AC3_NewDefaultNilParentSafe(t *testing.T) {
 func TestStory2_AC6_NoNewLogCallsInProduction(t *testing.T) {
 	t.Parallel()
 
+	// Story 3 (uiadapter-logging-3) instrumented client.go, cache.go,
+	// prefix_cache.go, breaker.go, and semaphore.go; they are no longer
+	// in the diff-guard allowlist. The remaining files are still subject
+	// to the guard until subsequent stories instrument them.
 	files := []string{
-		"client.go",
-		"cache.go",
-		"prefix_cache.go",
-		"breaker.go",
-		"semaphore.go",
 		"repair.go",
 		"fastpath.go",
 		"stages.go",

@@ -2,6 +2,7 @@ package uiadapter
 
 import (
 	"errors"
+	"log/slog"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -153,4 +154,85 @@ func TestCache_KeyDeterministic(t *testing.T) {
 	b := Key("ollama", "gemma3:4b", "hello world")
 	assert.Equal(t, a, b)
 	assert.Len(t, a, 64, "sha256 hex length")
+}
+
+// -----------------------------------------------------------------------------
+// Story 3 — `cache.go` debug instrumentation (uiadapter-logging-3).
+//
+// RED-phase tests: these reference the `hashKey` helper that the go-engineer
+// must add (8-char SHA-256 hex prefix), so the file fails to compile until
+// the implementation lands. They also target log records that do not yet
+// exist in production.
+// -----------------------------------------------------------------------------
+
+// TestStory3_AC3_CacheLifecycle — Story 3, AC-3.3.
+//
+// A capacity-2 cache exercised with put/put/hit/put-with-eviction/miss must
+// emit exactly: cache.put x3, cache.hit x1, cache.miss x1, cache.evict x1
+// (with reason="lru" and cache_key_hash matching hashKey(<evicted-key>)).
+// Every emitted record carries an 8-character cache_key_hash (never the raw key).
+func TestStory3_AC3_CacheLifecycle(t *testing.T) {
+	cfg := DefaultConfig()
+	cfg.CacheCapacity = 2
+
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+	cache := NewResponseCache(cfg, logger)
+
+	// Use raw string keys; the production hash flows through `hashKey`.
+	const k1, k2, k3 = "k1", "k2", "k3"
+	v1 := &UIAST{Version: "1", GeneratedBy: "v1"}
+	v2 := &UIAST{Version: "1", GeneratedBy: "v2"}
+	v3 := &UIAST{Version: "1", GeneratedBy: "v3"}
+
+	cache.Store(k1, v1) // cache.put #1
+	cache.Store(k2, v2) // cache.put #2
+
+	got, hit := cache.Lookup(k1) // cache.hit
+	require.True(t, hit, "k1 should hit before eviction")
+	assert.Same(t, v1, got)
+
+	cache.Store(k3, v3)       // cache.put #3 + cache.evict (k2 is LRU)
+	_, hit = cache.Lookup(k2) // cache.miss
+	require.False(t, hit, "k2 should be evicted by LRU when k3 is stored")
+
+	records := decodeRecords(t, buf)
+
+	puts := recordsByMsg(records, "cache.put")
+	hits := recordsByMsg(records, "cache.hit")
+	misses := recordsByMsg(records, "cache.miss")
+	evicts := recordsByMsg(records, "cache.evict")
+
+	assert.Len(t, puts, 3, "expected 3 cache.put records; got %d in %v", len(puts), records)
+	assert.Len(t, hits, 1, "expected 1 cache.hit record; got %d in %v", len(hits), records)
+	assert.Len(t, misses, 1, "expected 1 cache.miss record; got %d in %v", len(misses), records)
+	require.Len(t, evicts, 1, "expected 1 cache.evict record; got %d in %v", len(evicts), records)
+
+	// Eviction reason and key-hash assertions.
+	ev := evicts[0]
+	assert.Equal(t, "cache.evict", ev["op"], "cache.evict must carry op=\"cache.evict\"")
+	assert.Equal(t, "lru", ev["reason"], "evict reason must be \"lru\"")
+	assert.Equal(t, hashKey(k2), ev["cache_key_hash"],
+		"evict cache_key_hash must match hashKey(\"k2\")")
+
+	// Every cache record (put/hit/miss/evict) must carry an 8-char hash.
+	for _, msg := range []string{"cache.put", "cache.hit", "cache.miss", "cache.evict"} {
+		for i, r := range recordsByMsg(records, msg) {
+			h, ok := r["cache_key_hash"].(string)
+			require.True(t, ok, "%s record %d must carry string cache_key_hash; got %v", msg, i, r["cache_key_hash"])
+			assert.Len(t, h, 8, "%s record %d cache_key_hash must be 8 hex chars; got %q", msg, i, h)
+		}
+	}
+
+	// Sanitize: no record may carry the raw key strings.
+	for _, msg := range []string{"cache.put", "cache.hit", "cache.miss", "cache.evict"} {
+		for _, r := range recordsByMsg(records, msg) {
+			for _, raw := range []string{k1, k2, k3} {
+				for k, v := range r {
+					if s, ok := v.(string); ok && s == raw {
+						t.Fatalf("record msg=%q attr %q leaked raw key %q", msg, k, raw)
+					}
+				}
+			}
+		}
+	}
 }

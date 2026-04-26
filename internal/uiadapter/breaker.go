@@ -1,6 +1,7 @@
 package uiadapter
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"sync"
@@ -8,6 +9,22 @@ import (
 
 	"github.com/sony/gobreaker"
 )
+
+// breakerStateName maps a gobreaker.State to the canonical literal log
+// strings ("closed" | "open" | "half_open"). Mirrors StateOf but emits the
+// underscore variant the §6.1 telemetry contract demands for `from`/`to`.
+func breakerStateName(s gobreaker.State) string {
+	switch s {
+	case gobreaker.StateClosed:
+		return "closed"
+	case gobreaker.StateHalfOpen:
+		return "half_open"
+	case gobreaker.StateOpen:
+		return "open"
+	default:
+		return "closed"
+	}
+}
 
 // Plan §3 Story 11 — CircuitBreaker + Tiered Fallback. One breaker
 // instance per registered backend; independent state so an Anthropic
@@ -65,6 +82,7 @@ func (s *BreakerSet) For(backendName string) *gobreaker.CircuitBreaker {
 		timeout = 30 * time.Second
 	}
 
+	logger := s.logger
 	b := gobreaker.NewCircuitBreaker(gobreaker.Settings{
 		Name:    backendName,
 		Timeout: timeout,
@@ -77,6 +95,18 @@ func (s *BreakerSet) For(backendName string) *gobreaker.CircuitBreaker {
 				return rate >= 0.5
 			}
 			return false
+		},
+		OnStateChange: func(name string, from, to gobreaker.State) {
+			ctx := context.Background()
+			if !logger.Enabled(ctx, slog.LevelDebug) {
+				return
+			}
+			logger.LogAttrs(ctx, slog.LevelDebug, "breaker.transition",
+				slog.String("op", "breaker.transition"),
+				slog.String("from", breakerStateName(from)),
+				slog.String("to", breakerStateName(to)),
+				slog.String("backend", name),
+			)
 		},
 	})
 	s.breakers[backendName] = b
@@ -107,6 +137,14 @@ func (s *BreakerSet) Do(backendName string, fn func() (*UIAST, error)) (*UIAST, 
 		return fn()
 	})
 	if errors.Is(err, gobreaker.ErrOpenState) || errors.Is(err, gobreaker.ErrTooManyRequests) {
+		ctx := context.Background()
+		if s.logger.Enabled(ctx, slog.LevelDebug) {
+			s.logger.LogAttrs(ctx, slog.LevelDebug, "breaker.reject",
+				slog.String("op", "breaker.reject"),
+				slog.String("backend", backendName),
+				slog.String("state", "open"),
+			)
+		}
 		return nil, ErrBreakerOpen
 	}
 	if err != nil {

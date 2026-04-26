@@ -1,6 +1,7 @@
 package uiadapter
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"log/slog"
@@ -9,6 +10,14 @@ import (
 	lru "github.com/hashicorp/golang-lru/v2"
 	"golang.org/x/sync/singleflight"
 )
+
+// hashKey returns the first 8 hex chars of sha256(s). Used as the
+// `cache_key_hash` log attribute so observability never sees the raw key.
+// Standard attrs cross-reference: see logging.go.
+func hashKey(s string) string {
+	sum := sha256.Sum256([]byte(s))
+	return hex.EncodeToString(sum[:4])
+}
 
 // cacheVersion bumps whenever prompts / schemas change in a way that
 // invalidates cached UIASTs. Plan §3 Story 4 "simplest correct
@@ -36,17 +45,33 @@ type ResponseCache struct {
 // nil; nilSafeLogger normalises it so the field is always usable.
 func NewResponseCache(cfg Config, logger *slog.Logger) *ResponseCache {
 	cap := cfg.CacheCapacity
+	safeLogger := nilSafeLogger(logger)
 	if cap <= 0 {
-		return &ResponseCache{logger: nilSafeLogger(logger)}
+		return &ResponseCache{logger: safeLogger}
 	}
-	l, err := lru.New[string, *UIAST](cap)
+	c := &ResponseCache{logger: safeLogger}
+	l, err := lru.NewWithEvict[string, *UIAST](cap, c.onEvicted)
 	if err != nil {
 		// lru.New only errors on size ≤ 0; we guarded above, so this is
 		// a programmer error per §6.5 "Never panic in library code.
 		// Panic is for programmer bugs only."
 		panic("uiadapter: ResponseCache lru.New: " + err.Error())
 	}
-	return &ResponseCache{lru: l, logger: nilSafeLogger(logger)}
+	c.lru = l
+	return c
+}
+
+// onEvicted is the lru eviction callback. Hot-path-guarded so a non-Debug
+// logger pays only the Enabled() check.
+func (c *ResponseCache) onEvicted(key string, _ *UIAST) {
+	ctx := context.Background()
+	if c.logger.Enabled(ctx, slog.LevelDebug) {
+		c.logger.LogAttrs(ctx, slog.LevelDebug, "cache.evict",
+			slog.String("op", "cache.evict"),
+			slog.String("cache_key_hash", hashKey(key)),
+			slog.String("reason", "lru"),
+		)
+	}
 }
 
 // Key returns the cache key for a (backend, model, sanitizedRaw) triple.
@@ -67,15 +92,18 @@ func Key(backendName, model, sanitizedRaw string) string {
 // Lookup returns the cached UIAST and hit=true on a hit, or (nil, false)
 // on a miss. Disabled caches always miss. Counters are atomic.
 func (c *ResponseCache) Lookup(key string) (*UIAST, bool) {
-	if c == nil || c.lru == nil {
-		c.miss.Add(1)
+	if c == nil {
 		return nil, false
 	}
-	if v, ok := c.lru.Get(key); ok {
-		c.hits.Add(1)
-		return v, true
+	if c.lru != nil {
+		if v, ok := c.lru.Get(key); ok {
+			c.hits.Add(1)
+			c.logCacheGet(key, true)
+			return v, true
+		}
 	}
 	c.miss.Add(1)
+	c.logCacheGet(key, false)
 	return nil, false
 }
 
@@ -85,6 +113,30 @@ func (c *ResponseCache) Store(key string, ast *UIAST) {
 		return
 	}
 	c.lru.Add(key, ast)
+	ctx := context.Background()
+	if c.logger.Enabled(ctx, slog.LevelDebug) {
+		c.logger.LogAttrs(ctx, slog.LevelDebug, "cache.put",
+			slog.String("op", "cache.put"),
+			slog.String("cache_key_hash", hashKey(key)),
+		)
+	}
+}
+
+// logCacheGet emits cache.hit or cache.miss with the standard attrs. The
+// hot-path Enabled guard keeps Info-level callers allocation-free.
+func (c *ResponseCache) logCacheGet(key string, hit bool) {
+	ctx := context.Background()
+	if !c.logger.Enabled(ctx, slog.LevelDebug) {
+		return
+	}
+	msg := "cache.miss"
+	if hit {
+		msg = "cache.hit"
+	}
+	c.logger.LogAttrs(ctx, slog.LevelDebug, msg,
+		slog.String("op", "cache.get"),
+		slog.String("cache_key_hash", hashKey(key)),
+	)
 }
 
 // HitRate is hits / (hits + misses). Feeds the slog `cache_hit_rate`

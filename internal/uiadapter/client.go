@@ -97,6 +97,15 @@ func (c *Client) ChatDeterministic(ctx context.Context, model, system, user stri
 }
 
 func (c *Client) chat(ctx context.Context, model, system, user string, options map[string]any) (string, error) {
+	start := time.Now()
+	if c.logger.Enabled(ctx, slog.LevelDebug) {
+		c.logger.LogAttrs(ctx, slog.LevelDebug, "client.chat.start",
+			slog.String("op", "client.chat"),
+			slog.String("model", model),
+			slog.Int("bytes_in", len(user)),
+		)
+	}
+
 	body, err := json.Marshal(chatRequest{
 		Model:  model,
 		Format: "json",
@@ -122,17 +131,42 @@ func (c *Client) chat(ctx context.Context, model, system, user string, options m
 
 	resp, err := sharedClient.Do(req)
 	if err != nil {
-		return "", classifyTransportErr(ctx, "chat", err)
+		wrapped := classifyTransportErr(ctx, "chat", err)
+		if c.logger.Enabled(ctx, slog.LevelDebug) {
+			c.logger.LogAttrs(ctx, slog.LevelDebug, "client.chat.transport_error",
+				slog.String("op", "client.chat"),
+				slog.String("model", model),
+				slog.Int64("latency_ms", time.Since(start).Milliseconds()),
+				slog.String("reason", classifyChatErr(wrapped)),
+			)
+		}
+		return "", wrapped
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		if c.logger.Enabled(ctx, slog.LevelDebug) {
+			c.logger.LogAttrs(ctx, slog.LevelDebug, "client.chat.http_error",
+				slog.String("op", "client.chat"),
+				slog.String("model", model),
+				slog.Int("status_code", resp.StatusCode),
+				slog.Int64("latency_ms", time.Since(start).Milliseconds()),
+			)
+		}
 		return "", &HTTPStatusError{StatusCode: resp.StatusCode, Status: resp.Status}
 	}
 
 	var decoded chatResponse
 	if err := json.NewDecoder(resp.Body).Decode(&decoded); err != nil {
 		return "", fmt.Errorf("uiadapter: decode chat response: %w", err)
+	}
+	if c.logger.Enabled(ctx, slog.LevelDebug) {
+		c.logger.LogAttrs(ctx, slog.LevelDebug, "client.chat.response",
+			slog.String("op", "client.chat"),
+			slog.String("model", model),
+			slog.Int64("latency_ms", time.Since(start).Milliseconds()),
+			slog.Int("bytes_out", len(decoded.Message.Content)),
+		)
 	}
 	return decoded.Message.Content, nil
 }
