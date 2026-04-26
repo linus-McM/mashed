@@ -3,6 +3,7 @@ package uiadapter
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"strings"
 	"testing"
 
@@ -361,4 +362,84 @@ func TestValidate_WidgetUnknownField_Rejected(t *testing.T) {
 	require.Error(t, err, "widget with unknown field must fail to decode")
 	assert.Contains(t, err.Error(), "sneaky",
 		"error must identify the offending field")
+}
+
+// TestStory5_AC4_ValidatorAggregateAndPerRule — Story 5 AC-5.4.
+// An AST that fires rules 1, 4, and 5 emits a validator.start record at
+// entry, three validator.rule.fail records (one per offending rule with
+// rule_id and reason attrs), and a validator.done record carrying
+// fail_count=3 and a reasons slice with the three enum strings.
+//
+// §14 sanitize discipline: no record contains any substring of raw or any
+// node content / response_key string from the AST.
+func TestStory5_AC4_ValidatorAggregateAndPerRule(t *testing.T) {
+	t.Parallel()
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+
+	const (
+		rawSentinel     = "RAWSENTINEL_VALIDATOR_INPUT"
+		contentSentinel = "CONTENTSENTINEL_NODE_BODY"
+		dupKeySentinel  = "DUPKEYSENTINEL"
+	)
+	longKey := dupKeySentinel + strings.Repeat("y", 100) // > 64 chars triggers rule 5
+	ast := &UIAST{
+		Version: "1",
+		Nodes: []UINode{
+			{Type: "snarkfish", Content: contentSentinel}, // rule 1 fires
+			{Type: "decision_group", ResponseKey: dupKeySentinel,
+				Widget: &WidgetNode{Type: "free"}},
+			{Type: "decision_group", ResponseKey: dupKeySentinel,
+				Widget: &WidgetNode{Type: "free"}}, // rule 4 fires
+			{Type: "decision_group", ResponseKey: longKey,
+				Widget: &WidgetNode{Type: "free"}}, // rule 5 fires
+		},
+	}
+	reasons := Validate(ast, rawSentinel, logger)
+
+	require.Contains(t, reasons, "unknown_type")
+	require.Contains(t, reasons, "dup_key")
+	require.Contains(t, reasons, "key_truncated")
+
+	records := decodeRecords(t, buf)
+
+	starts := recordsByMsg(records, "validator.start")
+	require.Len(t, starts, 1, "exactly one validator.start expected")
+	assert.Equal(t, "validator", starts[0]["op"])
+	assert.EqualValues(t, len(ast.Nodes)+0, starts[0]["node_count"],
+		"node_count attr must equal len(ast.Nodes) at entry; if implementation captures the post-mutation length, this assertion will surface that bug")
+	assert.EqualValues(t, len(rawSentinel), starts[0]["bytes_in"])
+
+	failures := recordsByMsg(records, "validator.rule.fail")
+	require.GreaterOrEqual(t, len(failures), 3, "expect one validator.rule.fail per failed rule (rules 1, 4, 5)")
+	gotRuleIDs := map[float64]string{}
+	for _, rec := range failures {
+		assert.Equal(t, "validator", rec["op"])
+		id, idOK := rec["rule_id"].(float64)
+		reason, reasonOK := rec["reason"].(string)
+		require.True(t, idOK, "rule_id must be a number")
+		require.True(t, reasonOK, "reason must be a string enum")
+		gotRuleIDs[id] = reason
+	}
+	assert.Equal(t, "unknown_type", gotRuleIDs[1])
+	assert.Equal(t, "dup_key", gotRuleIDs[4])
+	assert.Equal(t, "key_truncated", gotRuleIDs[5])
+
+	dones := recordsByMsg(records, "validator.done")
+	require.Len(t, dones, 1, "exactly one validator.done expected")
+	assert.Equal(t, "validator", dones[0]["op"])
+	assert.EqualValues(t, 3, dones[0]["fail_count"])
+	reasonsAny, ok := dones[0]["reasons"].([]any)
+	require.True(t, ok, "reasons attr must be a JSON array")
+	got := make([]string, 0, len(reasonsAny))
+	for _, v := range reasonsAny {
+		s, _ := v.(string)
+		got = append(got, s)
+	}
+	assert.ElementsMatch(t, []string{"unknown_type", "dup_key", "key_truncated"}, got)
+
+	// §14 — neither raw nor any node content / response_key may leak.
+	body := buf.String()
+	assert.NotContains(t, body, rawSentinel, "raw substring must not leak")
+	assert.NotContains(t, body, contentSentinel, "node Content must not leak")
+	assert.NotContains(t, body, dupKeySentinel, "ResponseKey value must not leak")
 }

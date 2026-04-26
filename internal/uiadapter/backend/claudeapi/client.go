@@ -121,7 +121,7 @@ func (c *Client) Generate(ctx context.Context, raw string, kind backend.Kind) (*
 	if err != nil {
 		return nil, err
 	}
-	toolName := uiadapter.ClaudeToolName(stageKind)
+	toolName := uiadapter.ClaudeToolName(stageKind, nil)
 	resp, usage, err := c.call(ctx, generateRequest(c.cfg, stage2, schema, toolName))
 	if err != nil {
 		return nil, err

@@ -1,6 +1,7 @@
 package uiadapter
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -21,6 +22,18 @@ type ContextGuard struct {
 	logger *slog.Logger
 }
 
+// op-attr constants for contextguard.* records — single source of truth so
+// reviewers can grep by operation.
+const (
+	contextguardOllamaOp = "contextguard.ollama"
+	contextguardClaudeOp = "contextguard.claude"
+)
+
+// approxBytesPerToken is the coarse byte→token ratio (4 bytes ≈ 1 token).
+// Mirrored across both Apply* helpers so the truncation telemetry stays
+// consistent with the byte-budget arithmetic.
+const approxBytesPerToken = 4
+
 // NewContextGuard returns a guard configured from cfg. Pass the same Config
 // the adapter uses — NumCtx, ClaudeMaxTokens and Backend are all read from
 // it (Plan §3 Story 3 + §6.5 DI via Config). logger may be nil;
@@ -37,10 +50,16 @@ func NewContextGuard(cfg Config, logger *slog.Logger) *ContextGuard {
 // always preserved because the active prompt lives there.
 //
 // Returns the fitted text and a boolean indicating whether truncation
-// occurred. `sanitize_delta_bytes`-style telemetry lives in the adapter's
-// log line; callers should surface the `truncated` flag through their own
-// attribute.
+// occurred. Story 5: emits contextguard.ollama.start + contextguard.ollama.truncated;
+// neither record carries any substring of raw.
 func (g *ContextGuard) ApplyOllama(raw string) (string, bool) {
+	ctx := context.Background()
+	if g.logger.Enabled(ctx, slog.LevelDebug) {
+		g.logger.LogAttrs(ctx, slog.LevelDebug, "contextguard.ollama.start",
+			slog.String("op", contextguardOllamaOp),
+			slog.Int("bytes_in", len(raw)),
+		)
+	}
 	numCtx := g.cfg.NumCtx
 	if numCtx <= 0 {
 		numCtx = 8192
@@ -50,31 +69,57 @@ func (g *ContextGuard) ApplyOllama(raw string) (string, bool) {
 	if budgetTokens < 128 {
 		budgetTokens = 128
 	}
-	budgetBytes := budgetTokens * 4 // coarse token→byte estimate
+	budgetBytes := budgetTokens * approxBytesPerToken
+	originalTokens := len(raw) / approxBytesPerToken
+
+	emitTruncated := func(out string, truncated bool) {
+		if !g.logger.Enabled(ctx, slog.LevelDebug) {
+			return
+		}
+		fittedTokens := originalTokens
+		if truncated {
+			fittedTokens = len(out) / approxBytesPerToken
+		}
+		g.logger.LogAttrs(ctx, slog.LevelDebug, "contextguard.ollama.truncated",
+			slog.String("op", contextguardOllamaOp),
+			slog.Bool("truncated", truncated),
+			slog.Int("original_tokens", originalTokens),
+			slog.Int("fitted_tokens", fittedTokens),
+			slog.Int("reserve_tokens", reserve),
+		)
+	}
+
 	if len(raw) <= budgetBytes {
+		emitTruncated(raw, false)
 		return raw, false
 	}
-	// Keep head and tail; drop middle with sentinel.
+	out := truncateToBudget(raw, budgetBytes)
+	emitTruncated(out, true)
+	return out, true
+}
+
+// truncateToBudget keeps the head and tail of raw with a visible sentinel
+// replacing the dropped middle. Prefers a line-aware variant when raw has
+// at least four lines; falls back to byte-aware truncation otherwise or when
+// the line-aware output overshoots the budget.
+func truncateToBudget(raw string, budgetBytes int) string {
 	half := budgetBytes / 2
+	byteVariant := func() string {
+		return raw[:half] + "\n[... content elided ...]\n" + raw[len(raw)-half:]
+	}
 	lines := strings.Split(raw, "\n")
 	if len(lines) < 4 {
-		head := raw[:half]
-		tail := raw[len(raw)-half:]
-		return head + "\n[... content elided ...]\n" + tail, true
+		return byteVariant()
 	}
-	// Line-aware variant — preserve readable boundaries.
 	headLines := lines[:len(lines)/4]
 	tailLines := lines[3*len(lines)/4:]
 	dropped := len(lines) - len(headLines) - len(tailLines)
 	sentinel := fmt.Sprintf("[... %d lines elided ...]", dropped)
 	out := strings.Join(headLines, "\n") + "\n" + sentinel + "\n" + strings.Join(tailLines, "\n")
-	// If we over-shot the budget, fall back to byte-aware truncation.
 	if len(out) > budgetBytes {
-		head := raw[:half]
-		tail := raw[len(raw)-half:]
-		return head + "\n[... content elided ...]\n" + tail, true
+		return byteVariant()
 	}
-	return out, true
+	return out
 }
 
 // ApplyClaude enforces the hard-limit contract. Claude returns HTTP 400 if
@@ -84,13 +129,37 @@ func (g *ContextGuard) ApplyOllama(raw string) (string, bool) {
 //
 // maxModelContext should be the backend's Capabilities().MaxContextTokens
 // (Story C). Claude Haiku / Sonnet both quote 200_000 tokens.
+//
+// Story 5: emits contextguard.claude.start + contextguard.claude.truncated;
+// neither record carries any substring of raw.
 func (g *ContextGuard) ApplyClaude(raw string, maxModelContext int) (string, error) {
-	approxTokens := len(raw) / 4
+	ctx := context.Background()
+	if g.logger.Enabled(ctx, slog.LevelDebug) {
+		g.logger.LogAttrs(ctx, slog.LevelDebug, "contextguard.claude.start",
+			slog.String("op", contextguardClaudeOp),
+			slog.Int("bytes_in", len(raw)),
+			slog.Int("max_model_context", maxModelContext),
+		)
+	}
+	approxTokens := len(raw) / approxBytesPerToken
 	headroom := maxModelContext - g.cfg.ClaudeMaxTokens
 	if headroom <= 0 {
 		headroom = maxModelContext
 	}
-	if approxTokens > headroom {
+	overflow := approxTokens > headroom
+	if g.logger.Enabled(ctx, slog.LevelDebug) {
+		fittedTokens := approxTokens
+		if overflow {
+			fittedTokens = headroom
+		}
+		g.logger.LogAttrs(ctx, slog.LevelDebug, "contextguard.claude.truncated",
+			slog.String("op", contextguardClaudeOp),
+			slog.Bool("truncated", overflow),
+			slog.Int("original_tokens", approxTokens),
+			slog.Int("fitted_tokens", fittedTokens),
+		)
+	}
+	if overflow {
 		return "", fmt.Errorf("%w: %d tokens exceeds Claude headroom %d",
 			ErrContextOverflow, approxTokens, headroom)
 	}
@@ -101,6 +170,9 @@ func (g *ContextGuard) ApplyClaude(raw string, maxModelContext int) (string, err
 // `num_ctx` + `keep_alive` from the Config so the model loader sizes the
 // KV cache correctly and the model stays resident (Plan §3 Story 3 +
 // Story 7).
+//
+// Story 5: emits a single contextguard.ollama.options Debug record per call
+// for accessor visibility (called per-request via Translate).
 func (g *ContextGuard) OllamaOptions() map[string]any {
 	opts := map[string]any{}
 	if g.cfg.NumCtx > 0 {
@@ -108,6 +180,12 @@ func (g *ContextGuard) OllamaOptions() map[string]any {
 	}
 	if g.cfg.KeepAlive != "" {
 		opts["keep_alive"] = g.cfg.KeepAlive
+	}
+	ctx := context.Background()
+	if g.logger.Enabled(ctx, slog.LevelDebug) {
+		g.logger.LogAttrs(ctx, slog.LevelDebug, "contextguard.ollama.options",
+			slog.String("op", contextguardOllamaOp),
+		)
 	}
 	return opts
 }

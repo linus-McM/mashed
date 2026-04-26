@@ -2,6 +2,7 @@ package uiadapter
 
 import (
 	"encoding/json"
+	"log/slog"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -186,6 +187,82 @@ func TestU2_Schema_UINode_OptionalFieldsOmitted(t *testing.T) {
 	for _, absent := range []string{`"widget"`, `"bullets"`, `"response_key"`, `"rows"`, `"columns"`, `"tone"`, `"lang"`} {
 		assert.NotContains(t, out, absent, "markdown node must not serialise %s", absent)
 	}
+}
+
+// TestStory5_AC7_WidgetNodeUnmarshalEmits — Story 5 AC-5.7.
+// When the package-level schemaLogger has been registered (e.g. by NewDefault),
+// WidgetNode.UnmarshalJSON emits a schema.unmarshal.widget record per call
+// carrying bytes_in. Parse failures emit schema.unmarshal.error with
+// reason="parse" — never the raw err.Error() text.
+func TestStory5_AC7_WidgetNodeUnmarshalEmits(t *testing.T) {
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+
+	// Save and restore the package-level schemaLogger pointer so this test
+	// composes cleanly with TestStory5_AC7_NoLoggerFallback (which expects
+	// the pointer to be unset). Sequential — t.Parallel() omitted because
+	// schemaLogger is a process-wide singleton.
+	prev := schemaLogger.Swap(logger)
+	t.Cleanup(func() { schemaLogger.Store(prev) })
+
+	// Happy path — well-formed widget JSON.
+	payload := []byte(`{"type":"choice","options":[{"value":"a"}]}`)
+	var w WidgetNode
+	require.NoError(t, json.Unmarshal(payload, &w))
+
+	records := decodeRecords(t, buf)
+	widgetRecs := recordsByMsg(records, "schema.unmarshal.widget")
+	require.GreaterOrEqual(t, len(widgetRecs), 1,
+		"at least one schema.unmarshal.widget record per UnmarshalJSON call")
+	assert.Equal(t, "schema.unmarshal", widgetRecs[0]["op"])
+	assert.EqualValues(t, len(payload), widgetRecs[0]["bytes_in"])
+
+	// Reset the buffer for the error-path assertion so the prior record set
+	// doesn't pollute the failure check.
+	buf.Reset()
+
+	// Error path — malformed JSON. The error attr must be reason="parse"; the
+	// underlying err.Error() string must NOT appear in the buffer.
+	//
+	// NB: must be syntactically valid JSON so json.Unmarshal dispatches to
+	// WidgetNode.UnmarshalJSON. encoding/json's checkValid short-circuits on
+	// truncated input (e.g. missing close brace) and never invokes the user
+	// UnmarshalJSON, so the unknown-field rejection inside the method is the
+	// only reachable parse-error site.
+	bad := []byte(`{"type":"choice","sneaky":1}`) // valid syntax + unknown field
+	var bad2 WidgetNode
+	err := json.Unmarshal(bad, &bad2)
+	require.Error(t, err)
+
+	records = decodeRecords(t, buf)
+	errRecs := recordsByMsg(records, "schema.unmarshal.error")
+	require.GreaterOrEqual(t, len(errRecs), 1, "schema.unmarshal.error must emit on parse failure")
+	assert.Equal(t, "schema.unmarshal", errRecs[0]["op"])
+	assert.Equal(t, "parse", errRecs[0]["reason"])
+	// err.Error() text must not leak.
+	body := buf.String()
+	assert.NotContains(t, body, err.Error(),
+		"schema.unmarshal.error must never carry err.Error() text")
+}
+
+// TestStory5_AC7_NoLoggerFallback — Story 5 AC-5.7.
+// When the package-level schemaLogger has not been registered (e.g. a raw
+// json.Unmarshal in a test that did not call NewDefault), UnmarshalJSON
+// must not panic and must not emit any records.
+func TestStory5_AC7_NoLoggerFallback(t *testing.T) {
+	prev := schemaLogger.Swap(nil)
+	t.Cleanup(func() { schemaLogger.Store(prev) })
+
+	// Sanity: nothing currently registered.
+	require.True(t, schemaLogger.Load() == nil, "schemaLogger must be nil for this case")
+
+	payload := []byte(`{"type":"choice","options":[{"value":"a"}]}`)
+	var w WidgetNode
+	require.NotPanics(t, func() {
+		_ = json.Unmarshal(payload, &w)
+	}, "Unmarshal with no registered logger must not panic")
+	// No way to capture records without a logger; the contract is that the
+	// implementation no-ops silently. The non-panic assertion above is the
+	// observable signal.
 }
 
 // TestU2_Schema_WidgetOption_RoundTrip covers the tiny shape explicitly.

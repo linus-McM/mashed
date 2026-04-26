@@ -1,6 +1,7 @@
 package uiadapter
 
 import (
+	"context"
 	"log/slog"
 	"strings"
 	"unicode"
@@ -16,6 +17,15 @@ import (
 // raw region. U+2022 (bullet) is rare in normal terminal output.
 const SpotlightMarker = '•'
 
+// op-attr constants for spotlight.* records. The bare "spotlight" value is
+// used by the start/added/disabled/removed records (AC-5.2 contract); the
+// dotted "spotlight.scan" form on the always-firing scan record satisfies
+// AC-5.8's per-file emission coverage.
+const (
+	spotlightOp     = "spotlight"
+	spotlightScanOp = "spotlight.scan"
+)
+
 // Spotlight replaces every whitespace rune with SpotlightMarker. The
 // transform is lossless — Unspotlight recovers the original text by
 // substituting marker→space everywhere. Because validator.contentPreserved
@@ -26,21 +36,57 @@ const SpotlightMarker = '•'
 // defence is doing work (Story v3-08 AC-8.3). logger may be nil;
 // nilSafeLogger normalises it so any future story can emit telemetry without
 // an inline guard.
+//
+// Story 5: emits spotlight.start + spotlight.added (or spotlight.disabled
+// short-circuit) carrying counts only — never the raw payload.
 func Spotlight(raw string, enabled bool, logger *slog.Logger) string {
-	_ = nilSafeLogger(logger)
-	if !enabled || raw == "" {
+	lg := nilSafeLogger(logger)
+	ctx := context.Background()
+	// Per-call scan record carries a dotted op so AC-5.8's emission-coverage
+	// scan reliably sees a `spotlight.*` op, even on the disabled path.
+	if lg.Enabled(ctx, slog.LevelDebug) {
+		lg.LogAttrs(ctx, slog.LevelDebug, "spotlight.scan",
+			slog.String("op", spotlightScanOp),
+			slog.Bool("enabled", enabled),
+			slog.Int("bytes_in", len(raw)),
+		)
+	}
+	if !enabled {
+		if lg.Enabled(ctx, slog.LevelDebug) {
+			lg.LogAttrs(ctx, slog.LevelDebug, "spotlight.disabled",
+				slog.String("op", spotlightOp),
+				slog.Int("bytes_in", len(raw)),
+			)
+		}
 		return raw
+	}
+	if lg.Enabled(ctx, slog.LevelDebug) {
+		lg.LogAttrs(ctx, slog.LevelDebug, "spotlight.start",
+			slog.String("op", spotlightOp),
+			slog.Bool("enabled", true),
+			slog.Int("bytes_in", len(raw)),
+		)
 	}
 	var b strings.Builder
 	b.Grow(len(raw))
+	added := 0
 	for _, r := range raw {
 		if unicode.IsSpace(r) {
 			b.WriteRune(SpotlightMarker)
+			added++
 			continue
 		}
 		b.WriteRune(r)
 	}
-	return b.String()
+	out := b.String()
+	if lg.Enabled(ctx, slog.LevelDebug) {
+		lg.LogAttrs(ctx, slog.LevelDebug, "spotlight.added",
+			slog.String("op", spotlightOp),
+			slog.Int("markers_added", added),
+			slog.Int("bytes_out", len(out)),
+		)
+	}
+	return out
 }
 
 // Unspotlight reverses Spotlight — every SpotlightMarker becomes a space.
@@ -48,18 +94,30 @@ func Spotlight(raw string, enabled bool, logger *slog.Logger) string {
 // designed for prompt-payload usage where the model receives the marked
 // form and the reference copy stays separate for validation. Exposed so
 // tests can assert round-trip safety.
-func Unspotlight(marked string) string {
-	if marked == "" {
-		return marked
-	}
+//
+// Story 5: emits spotlight.removed carrying markers_removed + bytes_out.
+// logger may be nil.
+func Unspotlight(marked string, logger *slog.Logger) string {
+	lg := nilSafeLogger(logger)
+	ctx := context.Background()
 	var b strings.Builder
 	b.Grow(len(marked))
+	removed := 0
 	for _, r := range marked {
 		if r == SpotlightMarker {
 			b.WriteRune(' ')
+			removed++
 			continue
 		}
 		b.WriteRune(r)
 	}
-	return b.String()
+	out := b.String()
+	if lg.Enabled(ctx, slog.LevelDebug) {
+		lg.LogAttrs(ctx, slog.LevelDebug, "spotlight.removed",
+			slog.String("op", spotlightOp),
+			slog.Int("markers_removed", removed),
+			slog.Int("bytes_out", len(out)),
+		)
+	}
+	return out
 }

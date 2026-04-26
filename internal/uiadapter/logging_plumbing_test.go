@@ -298,7 +298,12 @@ func TestStory2_AC2_FreeFunctionsAcceptNilLogger(t *testing.T) {
 // record through the adapter's own logger field directly (test-only
 // emission) rather than relying on a production-emitted record.
 func TestStory2_AC3_NewDefaultScopesWithGroup(t *testing.T) {
-	t.Parallel()
+	// Cannot run in parallel with other tests in the package: NewDefault
+	// stores the scoped logger into the package-level schemaLogger
+	// (Story 5 AC-5.7). If a parallel test triggers WidgetNode.UnmarshalJSON
+	// during this test's read of buf, both fight over the same buffer and
+	// the race detector trips on bytes.Buffer Read vs Write.
+	snapshotSchemaLogger(t)
 
 	buf := &bytes.Buffer{}
 	parent := slog.New(slog.NewJSONHandler(buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
@@ -388,19 +393,13 @@ func TestStory2_AC6_NoNewLogCallsInProduction(t *testing.T) {
 	// prefix_cache.go, breaker.go, and semaphore.go.
 	// Story 4 (uiadapter-logging-4) instrumented repair.go, fastpath.go,
 	// stages.go, fallback.go, and fallback_tiers.go.
+	// Story 5 (uiadapter-logging-5) instrumented sanitize.go, spotlight.go,
+	// contextguard.go, validator.go, schema.go, encode.go, sampling.go,
+	// mock.go, and allowlist.go.
 	// All instrumented files are no longer in the diff-guard allowlist.
 	// The remaining files are still subject to the guard until subsequent
 	// stories instrument them.
-	files := []string{
-		"sanitize.go",
-		"spotlight.go",
-		"contextguard.go",
-		"validator.go",
-		"schema.go",
-		"encode.go",
-		"sampling.go",
-		"mock.go",
-	}
+	files := []string{}
 	forbidden := []string{
 		"logger.Debug(",
 		"logger.Info(",

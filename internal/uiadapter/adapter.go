@@ -135,6 +135,11 @@ func NewDefault(cfg Config, logger *slog.Logger) Adapter {
 		cfg.MaxInflight = 1
 	}
 	scoped := nilSafeLogger(logger).WithGroup("uiadapter")
+	// Story 5 AC-5.7: schemaLogger is the ONE deliberate package-level logger
+	// in uiadapter; UnmarshalJSON is invoked transitively through json.Unmarshal
+	// where no explicit logger arg is plumbable. See schema.go for the exception
+	// rationale.
+	schemaLogger.Store(scoped)
 	return &defaultAdapter{
 		client:        NewClient(ClientConfig{TimeoutMs: cfg.TimeoutMs}, scoped),
 		model:         cfg.Model,

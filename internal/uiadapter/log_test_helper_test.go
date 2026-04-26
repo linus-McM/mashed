@@ -85,3 +85,19 @@ func recordMsgsWithPrefix(records []map[string]any, prefix string) []string {
 	}
 	return out
 }
+
+// snapshotSchemaLogger captures the current schemaLogger pointer and registers
+// a t.Cleanup that restores it. Tests that call NewDefault (which mutates the
+// package-level schemaLogger) MUST call this first or risk leaking their
+// per-test buffer to concurrent tests that drive WidgetNode.UnmarshalJSON.
+//
+// Without this, two parallel tests can race on the captured buffer:
+// test A sets schemaLogger to a logger over buf-A, test B's
+// json.Unmarshal triggers UnmarshalJSON which loads schemaLogger
+// and writes into buf-A while test A is still reading it. The race
+// detector catches this on bytes.Buffer (Read vs Write).
+func snapshotSchemaLogger(t *testing.T) {
+	t.Helper()
+	prev := schemaLogger.Load()
+	t.Cleanup(func() { schemaLogger.Store(prev) })
+}

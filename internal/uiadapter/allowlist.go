@@ -1,12 +1,16 @@
 package uiadapter
 
 import (
+	"context"
 	"log/slog"
 	"slices"
 )
 
 // Plan §3 Story 12 — per-backend model allowlist. Config-layer decisions
 // warn, they don't panic (§6.5 "Never panic in library code").
+
+// allowlistOp is the canonical op-attr value for allowlist.* records.
+const allowlistOp = "allowlist.check"
 
 // OllamaAllowlist — models with golden fixtures behind them.
 var OllamaAllowlist = []string{
@@ -28,10 +32,13 @@ var ClaudeAllowlist = []string{
 // Ollama or Claude model is outside its allowlist and AllowUnvettedModels
 // is false. Returns true if a warning fired (callers may use the return
 // for test assertions).
+//
+// Story 5: nil-logger fallback now routes through nilSafeLogger; the
+// process-default fallback was removed so all package logging stays scoped
+// to the caller-provided logger. On the vetted-OK path emits a single
+// allowlist.ok Debug record carrying op + model.
 func CheckModelAllowlist(cfg Config, logger *slog.Logger) (warned bool) {
-	if logger == nil {
-		logger = slog.Default()
-	}
+	logger = nilSafeLogger(logger)
 	if cfg.AllowUnvettedModels {
 		return false
 	}
@@ -58,6 +65,12 @@ func CheckModelAllowlist(cfg Config, logger *slog.Logger) (warned bool) {
 			)
 			warned = true
 		}
+	}
+	if !warned && logger.Enabled(context.Background(), slog.LevelDebug) {
+		logger.LogAttrs(context.Background(), slog.LevelDebug, "allowlist.ok",
+			slog.String("op", allowlistOp),
+			slog.String("model", cfg.Model),
+		)
 	}
 	return warned
 }

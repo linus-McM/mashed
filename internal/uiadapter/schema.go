@@ -2,7 +2,10 @@ package uiadapter
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"log/slog"
+	"sync/atomic"
 )
 
 // UIAST is the root envelope the translator produces (spec §3.1).
@@ -75,17 +78,57 @@ type WidgetOption struct {
 	Label string `json:"label,omitempty"`
 }
 
+// schemaUnmarshalOp is the canonical op-attr value for schema.unmarshal.* records.
+const schemaUnmarshalOp = "schema.unmarshal"
+
+// schemaLogger is a deliberate process-wide logger for WidgetNode.UnmarshalJSON.
+//
+// Exception: the rest of this package follows the "explicit logger param"
+// rule (Story 1/2) — every constructor and free function takes a *slog.Logger
+// and never falls back to slog.Default(). schema.go is the single documented
+// exception because UnmarshalJSON is invoked transitively through json.Unmarshal,
+// where neither the caller nor the receiver can plumb a logger argument.
+//
+// NewDefault (adapter.go) calls schemaLogger.Store(scoped) once per construction
+// to register the per-app logger; tests that drive json.Unmarshal directly without
+// touching NewDefault leave the pointer nil and emissions silently no-op.
+//
+// This is the ONLY package-level logger handle in uiadapter. New emission sites
+// MUST use an explicit logger param.
+var schemaLogger atomic.Pointer[slog.Logger]
+
 // UnmarshalJSON enforces strict decoding for widget fields (spec §4.7.1):
 // envelope/node are permissive (forward-compat), but a widget with an unknown
 // field is a validation error — widget semantics are tightly coupled to the
 // enumerated type set, so silently ignoring unknown keys would mask model
 // drift.
+//
+// Story 5: when the package-level schemaLogger has been registered (via
+// NewDefault) and Debug is enabled, emits schema.unmarshal.widget at entry
+// and schema.unmarshal.error on parse failure. The error record carries
+// reason="parse" only — never the err.Error() text (§14 sanitize discipline).
+// When schemaLogger is unregistered (raw json.Unmarshal in a test), emissions
+// silently no-op.
 func (w *WidgetNode) UnmarshalJSON(b []byte) error {
+	logger := schemaLogger.Load()
+	ctx := context.Background()
+	if logger != nil && logger.Enabled(ctx, slog.LevelDebug) {
+		logger.LogAttrs(ctx, slog.LevelDebug, "schema.unmarshal.widget",
+			slog.String("op", schemaUnmarshalOp),
+			slog.Int("bytes_in", len(b)),
+		)
+	}
 	type widgetAlias WidgetNode
 	dec := json.NewDecoder(bytes.NewReader(b))
 	dec.DisallowUnknownFields()
 	var alias widgetAlias
 	if err := dec.Decode(&alias); err != nil {
+		if logger != nil && logger.Enabled(ctx, slog.LevelDebug) {
+			logger.LogAttrs(ctx, slog.LevelDebug, "schema.unmarshal.error",
+				slog.String("op", schemaUnmarshalOp),
+				slog.String("reason", "parse"),
+			)
+		}
 		return err
 	}
 	*w = WidgetNode(alias)

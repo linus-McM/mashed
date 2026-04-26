@@ -5,6 +5,7 @@ package uiadapter
 import (
 	"bytes"
 	"context"
+	"log/slog"
 	"os/exec"
 	"strings"
 	"testing"
@@ -54,6 +55,67 @@ func TestU2_AC8_MockAdapter_NotInProductionBuild(t *testing.T) {
 	tagged := runGoList(t, "testing")
 	assert.Contains(t, tagged, "mock.go",
 		"mock.go MUST compile when -tags testing is active")
+}
+
+// TestStory5_AC5_MockInit — Story 5 AC-5.5.
+// NewMock emits a mock.init record carrying op, enabled=true, fixture_name
+// derived from fixed.GeneratedBy. An empty GeneratedBy falls back to
+// "unnamed".
+func TestStory5_AC5_MockInit(t *testing.T) {
+	t.Parallel()
+
+	t.Run("named fixture", func(t *testing.T) {
+		t.Parallel()
+		logger, buf := testLogBuffer(t, slog.LevelDebug)
+		fixed := &UIAST{GeneratedBy: "fixture:happy"}
+
+		_ = NewMock(fixed, logger)
+
+		records := decodeRecords(t, buf)
+		recs := recordsByMsg(records, "mock.init")
+		require.GreaterOrEqual(t, len(recs), 1)
+		assert.Equal(t, "mock.init", recs[0]["op"])
+		assert.EqualValues(t, true, recs[0]["enabled"])
+		assert.Equal(t, "fixture:happy", recs[0]["fixture_name"])
+	})
+
+	t.Run("unnamed fallback", func(t *testing.T) {
+		t.Parallel()
+		logger, buf := testLogBuffer(t, slog.LevelDebug)
+		fixed := &UIAST{GeneratedBy: ""}
+
+		_ = NewMock(fixed, logger)
+
+		records := decodeRecords(t, buf)
+		recs := recordsByMsg(records, "mock.init")
+		require.GreaterOrEqual(t, len(recs), 1)
+		assert.Equal(t, "unnamed", recs[0]["fixture_name"],
+			"empty GeneratedBy must fall back to \"unnamed\"")
+	})
+}
+
+// TestStory5_AC5_MockTranslate — Story 5 AC-5.5.
+// MockAdapter.Translate emits mock.translate with op, proc_id, bytes_in.
+func TestStory5_AC5_MockTranslate(t *testing.T) {
+	t.Parallel()
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+	fixed := &UIAST{Version: "1", GeneratedBy: "fixture:happy"}
+	adapter := NewMock(fixed, logger)
+
+	// Reset the buffer so init records don't leak into the translate assertion.
+	buf.Reset()
+
+	_ = adapter.Translate(context.Background(), "raw input", "proc-99")
+
+	records := decodeRecords(t, buf)
+	recs := recordsByMsg(records, "mock.translate")
+	require.GreaterOrEqual(t, len(recs), 1)
+	assert.Equal(t, "mock.translate", recs[0]["op"])
+	assert.Equal(t, "proc-99", recs[0]["proc_id"])
+	assert.EqualValues(t, len("raw input"), recs[0]["bytes_in"])
+
+	// §14: payload string must not leak.
+	assert.NotContains(t, buf.String(), "raw input")
 }
 
 func runGoList(t *testing.T, tag string) string {

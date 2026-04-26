@@ -1,10 +1,12 @@
 package uiadapter
 
 import (
+	"log/slog"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestSanitize_StripsANSI_Golden — Story v3-01 AC-1.1. Four scenarios.
@@ -99,4 +101,38 @@ func TestSanitize_LargeInput(t *testing.T) {
 	got, delta := SanitizeCapture(raw, nil)
 	assert.Equal(t, strings.Repeat("A", 8192), got)
 	assert.Greater(t, delta, 0)
+}
+
+// TestStory5_AC1_SanitizeStartAndDone — Story 5 AC-5.1.
+// SanitizeCapture emits a sanitize.start record at entry and a sanitize.done
+// record at return. The done record carries bytes_in / bytes_out / delta_bytes
+// metadata only — never a substring of raw.
+func TestStory5_AC1_SanitizeStartAndDone(t *testing.T) {
+	t.Parallel()
+	logger, buf := testLogBuffer(t, slog.LevelDebug)
+	raw := "\x1b[31mhello\x1b[0m world"
+
+	out, delta := SanitizeCapture(raw, logger)
+	require.Equal(t, "hello world", out)
+	require.Equal(t, len(raw)-len(out), delta)
+
+	records := decodeRecords(t, buf)
+
+	starts := recordsByMsg(records, "sanitize.start")
+	require.Len(t, starts, 1, "exactly one sanitize.start emission expected")
+	assert.Equal(t, "sanitize", starts[0]["op"])
+	assert.EqualValues(t, len(raw), starts[0]["bytes_in"])
+
+	dones := recordsByMsg(records, "sanitize.done")
+	require.Len(t, dones, 1, "exactly one sanitize.done emission expected")
+	assert.Equal(t, "sanitize", dones[0]["op"])
+	assert.EqualValues(t, len(raw), dones[0]["bytes_in"])
+	assert.EqualValues(t, len(out), dones[0]["bytes_out"])
+	// delta_bytes = bytes_in - bytes_out — verify the arithmetic stays in shape.
+	assert.EqualValues(t, len(raw)-len(out), dones[0]["delta_bytes"])
+
+	// §14 sanitize discipline: no record may contain any substring of raw.
+	body := buf.String()
+	assert.NotContains(t, body, "hello", "raw payload prose must not leak")
+	assert.NotContains(t, body, "\x1b", "ANSI escapes must not leak")
 }
