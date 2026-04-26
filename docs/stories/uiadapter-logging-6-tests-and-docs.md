@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** S
 **Depends On:** uiadapter-logging-3-instrument-cache-and-network, uiadapter-logging-4-instrument-pipeline, uiadapter-logging-5-instrument-payload-shaping
-**Status:** ready
+**Status:** done
 
 ## Description
 
