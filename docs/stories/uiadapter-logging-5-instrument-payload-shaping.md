@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** L
 **Depends On:** uiadapter-logging-2-plumb-subcomponents
-**Status:** ready
+**Status:** done
 
 ## Description
 
