@@ -202,6 +202,13 @@ const (
 	InteractParty      InteractionMode = "party"
 )
 
+// Wire-level slot IDs referenced by the executor, registry, and frontend.
+// Promoted to exported constants so call sites cannot drift.
+const (
+	RoundResponseInputID = "round-response"
+	PartyMessageInputID  = "message"
+)
+
 // GateKind discriminates the rule used to exit an iterative loop.
 type GateKind string
 
