@@ -24,6 +24,12 @@ var (
 	// injection — the "stuck at idle baseline" failure mode, distinct
 	// from a completion timeout that fires during normal processing.
 	ErrIdleTimeoutNoStart = errors.New("bmad: idle wait timed out before claude produced output")
+	// ErrAwaitingPaneActive is returned by suspendForSpec when the tmux pane
+	// resumes activity (claude began producing output again, e.g. user typed
+	// directly into the pane) while the node was blocked in NodeAwaitingInput.
+	// The caller demotes the node to NodeRunning and re-runs the idle-wait +
+	// suspend cycle so the modal reflects the FRESH capture, not a stale one.
+	ErrAwaitingPaneActive = errors.New("bmad: pane resumed activity while awaiting input")
 	// ErrDuplicateMultiFileLabel is returned when a MultiFileLoader node's
 	// entries contain two labels with the same non-empty value. Positional
 	// fallback labels (empty user-provided label) never collide because the
@@ -349,6 +355,11 @@ type WorkflowExecution struct {
 
 // PendingPrompt is an outstanding user-input request for a suspended node (§3.5).
 type PendingPrompt struct {
+	// ExecID is the workflow execution that owns this prompt. Populated at
+	// suspend time so the frontend can call RespondToInput without relying
+	// on view-local state (which is unset when the user re-enters the
+	// builder for an in-flight run).
+	ExecID    string     `json:"execId,omitempty"`
 	NodeID    string     `json:"nodeId"`
 	InputID   string     `json:"inputId"`
 	Prompt    string     `json:"prompt"`

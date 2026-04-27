@@ -34,6 +34,16 @@ export interface BmadInputResolvedEvent {
   round?: number;
 }
 
+/** Payload for `bmad:node:awaiting_dismissed`. Fires when the pane resumed
+ * activity mid-suspension and the backend demoted the node back to RUNNING. */
+export interface BmadAwaitingDismissedEvent {
+  execId?: string;
+  nodeId: string;
+  inputId: string;
+  round?: number;
+  reason?: string;
+}
+
 /** Payload for `bmad:node:input_invalid`. */
 export interface BmadInputInvalidEvent {
   execId?: string;
@@ -118,6 +128,7 @@ export interface BmadSprintUpdatedEvent {
  */
 export interface BmadInteractiveEventMap {
   'bmad:node:awaiting_input': BmadAwaitingInputEvent;
+  'bmad:node:awaiting_dismissed': BmadAwaitingDismissedEvent;
   'bmad:node:input_resolved': BmadInputResolvedEvent;
   'bmad:node:input_invalid': BmadInputInvalidEvent;
   'bmad:node:round_complete': BmadRoundCompleteEvent;

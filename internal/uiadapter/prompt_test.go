@@ -16,12 +16,13 @@ import (
 
 const (
 	minPromptBytes = 1500
-	// maxPromptBytes was raised from 6000 to 7000 after the v3-session
-	// prompt rewrite expanded envelope/widget documentation in a single
-	// pass; the extra 179 bytes fit within the plan §6.3 spirit
-	// (≤ ~4 KiB static prefix + per-kind prompts still ≤ 3 KiB each)
-	// and keep all five §4.6 section headings intact.
-	maxPromptBytes = 7000
+	// maxPromptBytes was raised from 7000 to 8500 in the v2 (classification-
+	// first) rewrite — the new "Step 1 — Classify the turn" preamble and
+	// matching examples added ~1.5 KiB of decision-rule prose so Haiku reads
+	// the full turn and picks INFORMING / ASKING-* / AMBIGUOUS before
+	// generating UI. Still well under the ≤ ~4 KiB static prefix +
+	// per-kind prompts ceiling implied by plan §6.3.
+	maxPromptBytes = 8500
 )
 
 // readFixture loads a fixture file from testdata/prompts/ and returns its
@@ -98,12 +99,14 @@ func TestSystemPrompt_ContainsAllSections(t *testing.T) {
 		"AC-1: prompt exceeds %d-byte budget (%d bytes)", maxPromptBytes, len(prompt))
 }
 
-// TestPromptVersion_IsV1 covers AC-2: any edit to prompt.md must be
-// accompanied by a deliberate version bump — pin the constant at "v1" so the
+// TestPromptVersion_IsV2 covers AC-2: any edit to prompt.md must be
+// accompanied by a deliberate version bump — pin the constant at "v2" so the
 // telemetry `prompt_version` field stays stable across non-behavioural edits.
-func TestPromptVersion_IsV1(t *testing.T) {
-	assert.Equal(t, "v1", promptVersion,
-		"AC-2: promptVersion must equal \"v1\"; bump only on behaviour-changing prompt edits")
+// v2 introduced the classification-first preamble (INFORMING / ASKING-* /
+// AMBIGUOUS) so Haiku decides shape before generating UI.
+func TestPromptVersion_IsV2(t *testing.T) {
+	assert.Equal(t, "v2", promptVersion,
+		"AC-2: promptVersion must equal \"v2\"; bump only on behaviour-changing prompt edits")
 }
 
 // TestAdapter_SendsSystemPromptInRequest covers AC-8: the embedded system

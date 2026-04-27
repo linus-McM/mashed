@@ -7,7 +7,7 @@ var embeddedSystemPrompt string
 
 // promptVersion pins the telemetry "prompt_version" field (§4.7.7).
 // Bump on any prompt.md edit that changes behaviour.
-const promptVersion = "v1"
+const promptVersion = "v2"
 
 // SystemPrompt returns the embedded adapter system prompt.
 func SystemPrompt() string { return embeddedSystemPrompt }

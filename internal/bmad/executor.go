@@ -2500,14 +2500,27 @@ roundLoop:
 		}
 
 		// Suspend for the user's answer to feed round+1. Pass the last
-		// round's capture so the modal can show what Claude just said.
+		// round's capture so the modal can show what Claude just said. Pass
+		// the tmux target so suspendForSpecWithPane runs the pane-activity
+		// watchdog: if claude resumes producing output mid-suspension (e.g.
+		// the user typed directly into the pane) the suspension aborts with
+		// ErrAwaitingPaneActive and we re-run the idle-wait + suspend cycle
+		// against the fresh capture instead of leaving the modal stuck on a
+		// stale prompt.
 		state.mu.Lock()
 		lastOutput := ""
 		if state.exec.NodeOutputs != nil {
 			lastOutput = state.exec.NodeOutputs[lastRoundKey]
 		}
 		state.mu.Unlock()
-		if sErr := e.suspendForSpec(ctx, state, nodeIndex, nodeID, round+1, nextSpec, lastOutput); sErr != nil {
+		sErr := e.suspendForSpecWithPane(ctx, state, nodeIndex, nodeID, round+1, nextSpec, lastOutput, target)
+		if errors.Is(sErr, ErrAwaitingPaneActive) {
+			// Pane resumed activity. Skip the answer-injection block and
+			// re-enter waitForIdleCompletion at the top of the round loop;
+			// the next idle stop will re-suspend with the new capture.
+			continue
+		}
+		if sErr != nil {
 			e.failNode(state, idx, nodeID)
 			return
 		}

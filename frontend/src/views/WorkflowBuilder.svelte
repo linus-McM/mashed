@@ -741,6 +741,15 @@
       if (executionId && event.execId && event.execId !== executionId) return;
       resolveInput(event.nodeId, event.inputId);
     },
+    'bmad:node:awaiting_dismissed': (event) => {
+      if (!event?.nodeId || !event?.inputId) return;
+      if (executionId && event.execId && event.execId !== executionId) return;
+      // Pane resumed activity mid-suspension — clear the stale prompt and
+      // flip the node back to RUNNING. Backend will re-emit awaiting_input
+      // with the fresh capture once claude returns to the idle prompt.
+      resolveInput(event.nodeId, event.inputId);
+      applyNodeDataPatch(event.nodeId, { status: 'running' });
+    },
     'bmad:node:input_invalid': (event) => {
       if (!event?.nodeId || !event?.inputId) return;
       if (executionId && event.execId && event.execId !== executionId) return;
@@ -1579,6 +1588,7 @@
         on:open-terminal={onOpenTerminal}
         on:open-output={handleOpenOutput}
         on:edit-items={handleEditItems}
+        on:open-prompt={(e) => openModalForNode(e.detail)}
       />
 
       {#if failureToastMessage}
