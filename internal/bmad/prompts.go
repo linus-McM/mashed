@@ -27,6 +27,42 @@ const modalQuestionCap = 4 * 1024
 // frontend falls back to Layer 1.
 const maxStructuredBytes = 6 * 1024
 
+// translatorInputCap bounds the bytes shipped to the UI adapter. The full
+// pane capture can grow to maxCaptureBytes (100 KiB), but only the latest
+// claude turn carries usable signal — earlier rounds are already represented
+// by their own NodeOutputs entries. Capping the translator input avoids
+// 30 s timeouts on long-running rounds where the cumulative scrollback
+// dwarfs the actual question.
+const translatorInputCap = 8 * 1024
+
+// claudeTurnGlyph is the U+23FA "Black Circle for Record" character the
+// Claude CLI prefixes to each assistant turn. The LAST occurrence in a
+// pane capture marks the start of the most recent turn — anything before
+// is prior-round chrome the translator does not need.
+const claudeTurnGlyph = "⏺"
+
+// extractLastClaudeTurn returns the tail of a tmux capture-pane buffer,
+// preferring the start of the most recent Claude assistant turn (marked by
+// the `⏺` glyph) as the slice boundary. When the glyph is absent the buffer
+// is cropped at translatorInputCap from the end and any partial first line
+// is trimmed so the adapter never sees a half-prefix. Empty input returns
+// "" so callers can short-circuit cleanly.
+func extractLastClaudeTurn(raw string) string {
+	if raw == "" {
+		return ""
+	}
+	if idx := strings.LastIndex(raw, claudeTurnGlyph); idx >= 0 {
+		raw = raw[idx:]
+	}
+	if len(raw) > translatorInputCap {
+		raw = raw[len(raw)-translatorInputCap:]
+		if nl := strings.IndexByte(raw, '\n'); nl >= 0 && nl < 256 {
+			raw = raw[nl+1:]
+		}
+	}
+	return raw
+}
+
 // extractModalQuestion pulls the best-available "question to show the user"
 // from a raw tmux capture. Hybrid strategy:
 //  1. If Claude authored a <MASHED_PROMPT>…</MASHED_PROMPT> sentinel (future
@@ -262,7 +298,15 @@ func (e *Executor) translateForPrompt(ctx context.Context, state *execState, idx
 	procID := state.exec.Nodes[idx].ProcessID
 	state.mu.Unlock()
 
-	ast := e.adapter.Translate(ctx, lastOutput, procID)
+	// Crop to the most recent claude turn before shipping. Pane captures
+	// can hit maxCaptureBytes (100 KiB) on long-running rounds; passing the
+	// full scrollback to a 30 s Haiku translation reliably times out (see
+	// `claude-cli.translate.error reason="exit status 143"` traces). The
+	// adapter sanitises ANSI/chrome internally; the additional pre-crop
+	// here is purely a size guard and is idempotent against later passes.
+	cropped := extractLastClaudeTurn(lastOutput)
+
+	ast := e.adapter.Translate(ctx, cropped, procID)
 	if ast == nil || ast.Diagnostics.CancelReason != "" {
 		return "", ""
 	}

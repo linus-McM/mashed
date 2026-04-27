@@ -85,3 +85,35 @@ func TestSnapshot_PreU4LoadRoundTrip(t *testing.T) {
 			"WorkflowExecution must round-trip byte-for-byte via JSON marshal/unmarshal")
 	})
 }
+
+// TestExtractLastClaudeTurn_GlyphBoundary covers the prefer-glyph branch: when
+// the capture contains the U+23FA `⏺` Claude turn marker, the extractor slices
+// from the LAST occurrence so prior rounds never reach the translator.
+func TestExtractLastClaudeTurn_GlyphBoundary(t *testing.T) {
+	raw := "noise prefix\n⏺ first turn body\nmore filler\n⏺ second turn body\n❯ "
+	got := extractLastClaudeTurn(raw)
+	assert.True(t, len(got) <= len(raw), "result must be no longer than input")
+	assert.Contains(t, got, "second turn body",
+		"latest claude turn must be preserved")
+	assert.NotContains(t, got, "first turn body",
+		"prior rounds must be dropped — only the LAST glyph anchors the slice")
+}
+
+// TestExtractLastClaudeTurn_FallbackTailCrop covers the no-glyph branch: a
+// 75 KiB capture without any `⏺` markers must still be cropped to fit within
+// translatorInputCap so the adapter does not time out parsing prior rounds.
+func TestExtractLastClaudeTurn_FallbackTailCrop(t *testing.T) {
+	bigRaw := make([]byte, 75*1024)
+	for i := range bigRaw {
+		bigRaw[i] = 'a' + byte(i%26)
+	}
+	bigRaw[len(bigRaw)-200] = '\n' // ensure a line boundary inside the tail
+	got := extractLastClaudeTurn(string(bigRaw))
+	require.LessOrEqual(t, len(got), translatorInputCap,
+		"tail crop must fit within translatorInputCap")
+}
+
+// TestExtractLastClaudeTurn_Empty covers the empty-input short-circuit.
+func TestExtractLastClaudeTurn_Empty(t *testing.T) {
+	assert.Equal(t, "", extractLastClaudeTurn(""))
+}
