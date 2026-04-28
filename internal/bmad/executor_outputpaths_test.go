@@ -69,20 +69,21 @@ func TestAC1_OutputPathsPopulated_OnNodeComplete(t *testing.T) {
 }
 
 // AC-2: Unmapped outputs (e.g. "code") excluded from OutputPaths.
+//
+// Uses bmad-game-dev-studio which carries the single unmapped output "code"
+// and remains autonomous through stories 03-07 (story 08 flips it to Party).
+// The mapped-output round-trip is exercised by TestAC1 above with
+// bmad-create-prd, so this test only needs to prove the skip behaviour.
 func TestAC2_UnmappedArtifacts_SkippedFromOutputPaths(t *testing.T) {
 	h := newHarness(t)
 	h.executor.SetCommandRunner(successRunner())
 
-	// bmad-quick-flow outputs ["code", "PRD.md"]; "code" is unmapped.
 	repoDir := t.TempDir()
-	planDir := filepath.Join(repoDir, "_bmad-output", "planning-artifacts")
-	require.NoError(t, os.MkdirAll(planDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(planDir, "PRD.md"), []byte("x"), 0o644))
 
 	wf := WorkflowDef{
 		ID: "wf-ac2-unmapped", Name: "AC2",
 		Nodes: []WorkflowNode{{
-			ID: "N1", ProcessID: "bmad-quick-flow", Label: "QF",
+			ID: "N1", ProcessID: "bmad-game-dev-studio", Label: "GD",
 			Position: Position{X: 0, Y: 0}, Status: NodePending,
 			Config: map[string]string{},
 		}},
@@ -106,8 +107,6 @@ func TestAC2_UnmappedArtifacts_SkippedFromOutputPaths(t *testing.T) {
 	require.NotNil(t, ex.Nodes[0].OutputPaths, "OutputPaths must be initialised")
 	_, hasCode := ex.Nodes[0].OutputPaths["code"]
 	assert.False(t, hasCode, "unmapped 'code' must NOT appear; got %v", ex.Nodes[0].OutputPaths)
-	_, hasPRD := ex.Nodes[0].OutputPaths["PRD.md"]
-	assert.True(t, hasPRD, "mapped 'PRD.md' MUST appear")
 
 	events := h.eventsByName("bmad:node:artifacts")
 	require.Len(t, events, 1)
