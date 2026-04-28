@@ -19,6 +19,13 @@ import (
 
 // ── Helpers ──
 
+// autonomousGraphFixtureID is the stable autonomous process used for graph
+// topology tests where the test only cares about wiring (not behaviour). When
+// a future rollout flips this ID to interactive, swap to another non-rolled-up
+// autonomous process — candidates outside stories 03-08 scope:
+// bmad-sprint-planning, bmad-sprint-status, util-file-loader.
+const autonomousGraphFixtureID = "bmad-create-architecture"
+
 type eventRecord struct {
 	name string
 	data interface{}
@@ -112,11 +119,10 @@ func saveThreeNodeWorkflow(t *testing.T, s *Storage) string {
 		Name: "Three Sequential",
 		Nodes: []WorkflowNode{
 			// Use autonomous processes (Mode == "") so the test exercises the
-			// legacy executeProcessNode dispatch. bmad-domain-research was moved
-			// to InteractIterative in S7 and no longer fits this fixture.
+			// legacy executeProcessNode dispatch.
 			{ID: "A", ProcessID: "bmad-domain-research", Label: "A", Position: Position{X: 0, Y: 0}, Status: NodePending, Config: map[string]string{}},
 			{ID: "B", ProcessID: "bmad-create-prd", Label: "B", Position: Position{X: 250, Y: 0}, Status: NodePending, Config: map[string]string{}},
-			{ID: "C", ProcessID: "bmad-validate-prd", Label: "C", Position: Position{X: 500, Y: 0}, Status: NodePending, Config: map[string]string{}},
+			{ID: "C", ProcessID: autonomousGraphFixtureID, Label: "C", Position: Position{X: 500, Y: 0}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
 			{ID: "e1", Source: "A", Target: "B"},
@@ -301,7 +307,7 @@ func TestStartWorkflow_ParallelBranches(t *testing.T) {
 			{ID: "A", ProcessID: "bmad-market-research", Label: "A", Config: map[string]string{}},
 			{ID: "B", ProcessID: "bmad-domain-research", Label: "B", Config: map[string]string{}},
 			{ID: "C", ProcessID: "bmad-create-prd", Label: "C", Config: map[string]string{}},
-			{ID: "D", ProcessID: "bmad-create-architecture", Label: "D", Config: map[string]string{}},
+			{ID: "D", ProcessID: autonomousGraphFixtureID, Label: "D", Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
 			{ID: "e1", Source: "A", Target: "C"},
@@ -1204,7 +1210,7 @@ func TestDynamicExecutor_ConditionBranching_TrueBranch(t *testing.T) {
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
 			{ID: "C", ProcessID: "bmad-create-prd", Label: "True Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: -100}, Status: NodePending, Config: map[string]string{}},
-			{ID: "D", ProcessID: "bmad-validate-prd", Label: "False Path", NodeType: NodeTypeProcess,
+			{ID: "D", ProcessID: autonomousGraphFixtureID, Label: "False Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: 100}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
@@ -1260,7 +1266,7 @@ func TestDynamicExecutor_ConditionBranching_FalseBranch(t *testing.T) {
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
 			{ID: "C", ProcessID: "bmad-create-prd", Label: "True Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: -100}, Status: NodePending, Config: map[string]string{}},
-			{ID: "D", ProcessID: "bmad-validate-prd", Label: "False Path", NodeType: NodeTypeProcess,
+			{ID: "D", ProcessID: autonomousGraphFixtureID, Label: "False Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: 100}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
@@ -1316,7 +1322,7 @@ func TestDynamicExecutor_MergeAfterCondition(t *testing.T) {
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
 			{ID: "B", ProcessID: "bmad-create-prd", Label: "True Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: -100}, Status: NodePending, Config: map[string]string{}},
-			{ID: "C", ProcessID: "bmad-validate-prd", Label: "False Path", NodeType: NodeTypeProcess,
+			{ID: "C", ProcessID: autonomousGraphFixtureID, Label: "False Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: 100}, Status: NodePending, Config: map[string]string{}},
 			{ID: "D", NodeType: NodeTypeMerge, Label: "Merge", Config: map[string]string{},
 				Position: Position{X: 750, Y: 0}, Status: NodePending},
@@ -1423,7 +1429,7 @@ func TestDynamicExecutor_SkippedStatus(t *testing.T) {
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
 			{ID: "C", ProcessID: "bmad-create-prd", Label: "True", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: -100}, Status: NodePending, Config: map[string]string{}},
-			{ID: "D", ProcessID: "bmad-validate-prd", Label: "False", NodeType: NodeTypeProcess,
+			{ID: "D", ProcessID: autonomousGraphFixtureID, Label: "False", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: 100}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
@@ -1840,7 +1846,7 @@ func TestBuildContextStringV3_FilePathResolution(t *testing.T) {
 		{
 			name:       "file_exists",
 			setupFiles: true,
-			procID:     "bmad-create-architecture", // Inputs: ["PRD.md"]
+			procID:     autonomousGraphFixtureID, // Inputs: ["PRD.md"]
 			upstreamID: "bmad-create-prd",          // Outputs: ["PRD.md"]
 			wantContain: []string{
 				"Read the artifact 'PRD.md' from file",
@@ -1853,7 +1859,7 @@ func TestBuildContextStringV3_FilePathResolution(t *testing.T) {
 		{
 			name:       "file_missing",
 			setupFiles: false,
-			procID:     "bmad-create-architecture", // Inputs: ["PRD.md"]
+			procID:     autonomousGraphFixtureID, // Inputs: ["PRD.md"]
 			upstreamID: "bmad-create-prd",          // Outputs: ["PRD.md"]
 			wantContain: []string{
 				"should have produced 'PRD.md'",

@@ -245,3 +245,29 @@ func defaultMaxRounds(specVal, fallback int) int {
 	}
 	return specVal
 }
+
+// processIndex returns the slot of id in the package-level registry slice.
+// Panics when id is unknown — fail loud at startup, not at runtime. The
+// panic message names the missing id so a typo in a rollout helper is caught
+// the moment the package is imported.
+func processIndex(id string) int {
+	for i := range registry {
+		if registry[i].ID == id {
+			return i
+		}
+	}
+	panic("bmad: unknown process id in interactive rollout: " + id)
+}
+
+// memoryOutput constructs an OutputSpec that does NOT persist to disk.
+// ArtifactName is empty per ResolveArtifactPath's "unmapped" semantics.
+func memoryOutput(id string) OutputSpec {
+	return OutputSpec{ID: id, Target: OutputToMemory}
+}
+
+// fileOutput constructs an OutputSpec that persists under the given artifact
+// name. ID equals ArtifactName since callers always reference the file by its
+// canonical artifact name.
+func fileOutput(name string) OutputSpec {
+	return OutputSpec{ID: name, Target: OutputToFile, ArtifactName: name}
+}

@@ -362,6 +362,29 @@ var u0MigratedProcessIDs = []string{
 	"bmad-advanced-elicitation",
 }
 
+// phase2RolloutIDs lists the six high-traffic processes upgraded to
+// InteractIterative by registry_interactive_phase2.go. Their JSON drifts from
+// the pre-rollout golden — walking integration coverage lives in
+// registry_interactive_phase2_test.go.
+var phase2RolloutIDs = []string{
+	"bmad-dev-story",
+	"bmad-code-review",
+	"bmad-create-story",
+	"bmad-validate-prd",
+	"bmad-edit-prd",
+	"bmad-quick-dev",
+}
+
+// skippedFromU0Goldens is the union of all process IDs whose committed pre-U0
+// golden no longer matches their current shape. Stories 03-08 append their own
+// rollout slice here so the predicate stays a single Contains call.
+var skippedFromU0Goldens = func() []string {
+	out := make([]string, 0, len(u0MigratedProcessIDs)+len(phase2RolloutIDs))
+	out = append(out, u0MigratedProcessIDs...)
+	out = append(out, phase2RolloutIDs...)
+	return out
+}()
+
 // TestU0_AC2_MigratedProcesses_ShapeJSON asserts the four migrated processes
 // expose ShapeJSON on their iteration InputSpec and carry EnableAstAdapter=true.
 func TestU0_AC2_MigratedProcesses_ShapeJSON(t *testing.T) {
@@ -391,7 +414,7 @@ func TestU0_AC2_MigratedProcesses_ShapeJSON(t *testing.T) {
 func TestU0_AC3_NonMigratedProcessesUnchanged(t *testing.T) {
 	t.Parallel()
 	for _, p := range AllProcesses() {
-		if slices.Contains(u0MigratedProcessIDs, p.ID) {
+		if slices.Contains(skippedFromU0Goldens, p.ID) {
 			continue
 		}
 		t.Run(p.ID, func(t *testing.T) {
