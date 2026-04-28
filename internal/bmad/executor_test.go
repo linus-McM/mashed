@@ -114,7 +114,7 @@ func saveThreeNodeWorkflow(t *testing.T, s *Storage) string {
 			// Use autonomous processes (Mode == "") so the test exercises the
 			// legacy executeProcessNode dispatch.
 			{ID: "A", ProcessID: autonomousProcessFixtureID, Label: "A", Position: Position{X: 0, Y: 0}, Status: NodePending, Config: map[string]string{}},
-			{ID: "B", ProcessID: "bmad-create-prd", Label: "B", Position: Position{X: 250, Y: 0}, Status: NodePending, Config: map[string]string{}},
+			{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "B", Position: Position{X: 250, Y: 0}, Status: NodePending, Config: map[string]string{}},
 			{ID: "C", ProcessID: autonomousProcessFixtureID, Label: "C", Position: Position{X: 500, Y: 0}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
@@ -252,7 +252,7 @@ func TestStartWorkflow_CyclicWorkflow(t *testing.T) {
 		Name: "Cyclic",
 		Nodes: []WorkflowNode{
 			{ID: "A", ProcessID: autonomousProcessFixtureID, Label: "A", Config: map[string]string{}},
-			{ID: "B", ProcessID: "bmad-create-prd", Label: "B", Config: map[string]string{}},
+			{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "B", Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
 			{ID: "e1", Source: "A", Target: "B"},
@@ -299,7 +299,7 @@ func TestStartWorkflow_ParallelBranches(t *testing.T) {
 			// Autonomous processes only — bmad-domain-research is now interactive.
 			{ID: "A", ProcessID: autonomousProcessFixtureID, Label: "A", Config: map[string]string{}},
 			{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "B", Config: map[string]string{}},
-			{ID: "C", ProcessID: "bmad-create-prd", Label: "C", Config: map[string]string{}},
+			{ID: "C", ProcessID: autonomousProcessFixtureID, Label: "C", Config: map[string]string{}},
 			{ID: "D", ProcessID: autonomousProcessFixtureID, Label: "D", Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
@@ -1201,7 +1201,7 @@ func TestDynamicExecutor_ConditionBranching_TrueBranch(t *testing.T) {
 			{ID: "B", NodeType: NodeTypeCondition, Label: "Check", Config: map[string]string{
 				"condition": `{"type":"contains","pattern":"SUCCESS","sourceNode":"A"}`,
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
-			{ID: "C", ProcessID: "bmad-create-prd", Label: "True Path", NodeType: NodeTypeProcess,
+			{ID: "C", ProcessID: autonomousProcessFixtureID, Label: "True Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: -100}, Status: NodePending, Config: map[string]string{}},
 			{ID: "D", ProcessID: autonomousProcessFixtureID, Label: "False Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: 100}, Status: NodePending, Config: map[string]string{}},
@@ -1257,7 +1257,7 @@ func TestDynamicExecutor_ConditionBranching_FalseBranch(t *testing.T) {
 			{ID: "B", NodeType: NodeTypeCondition, Label: "Check", Config: map[string]string{
 				"condition": `{"type":"contains","pattern":"SUCCESS","sourceNode":"A"}`,
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
-			{ID: "C", ProcessID: "bmad-create-prd", Label: "True Path", NodeType: NodeTypeProcess,
+			{ID: "C", ProcessID: autonomousProcessFixtureID, Label: "True Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: -100}, Status: NodePending, Config: map[string]string{}},
 			{ID: "D", ProcessID: autonomousProcessFixtureID, Label: "False Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: 100}, Status: NodePending, Config: map[string]string{}},
@@ -1313,7 +1313,7 @@ func TestDynamicExecutor_MergeAfterCondition(t *testing.T) {
 			{ID: "A", NodeType: NodeTypeCondition, Label: "Condition A", Config: map[string]string{
 				"condition": `{"type":"contains","pattern":"SUCCESS","sourceNode":"upstream"}`,
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
-			{ID: "B", ProcessID: "bmad-create-prd", Label: "True Path", NodeType: NodeTypeProcess,
+			{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "True Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: -100}, Status: NodePending, Config: map[string]string{}},
 			{ID: "C", ProcessID: autonomousProcessFixtureID, Label: "False Path", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: 100}, Status: NodePending, Config: map[string]string{}},
@@ -1371,7 +1371,7 @@ func TestDynamicExecutor_AllBranchesSkipped(t *testing.T) {
 			{ID: "B", NodeType: NodeTypeCondition, Label: "Check MAGIC", Config: map[string]string{
 				"condition": `{"type":"contains","pattern":"MAGIC","sourceNode":"A"}`,
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
-			{ID: "C", ProcessID: "bmad-create-prd", Label: "True Only", NodeType: NodeTypeProcess,
+			{ID: "C", ProcessID: autonomousProcessFixtureID, Label: "True Only", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: 0}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
@@ -1420,7 +1420,7 @@ func TestDynamicExecutor_SkippedStatus(t *testing.T) {
 			{ID: "B", NodeType: NodeTypeCondition, Label: "Check", Config: map[string]string{
 				"condition": `{"type":"contains","pattern":"TRIGGER","sourceNode":"A"}`,
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
-			{ID: "C", ProcessID: "bmad-create-prd", Label: "True", NodeType: NodeTypeProcess,
+			{ID: "C", ProcessID: autonomousProcessFixtureID, Label: "True", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: -100}, Status: NodePending, Config: map[string]string{}},
 			{ID: "D", ProcessID: autonomousProcessFixtureID, Label: "False", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: 100}, Status: NodePending, Config: map[string]string{}},
@@ -1595,7 +1595,7 @@ func TestTransformNode_RegexExtraction(t *testing.T) {
 				"extractType":    "regex",
 				"extractPattern": `version: (\S+)`,
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
-			{ID: "B", ProcessID: "bmad-create-prd", Label: "Process B", NodeType: NodeTypeProcess,
+			{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "Process B", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: 0}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
@@ -1749,7 +1749,7 @@ func TestBuildContextStringV3_IncludesTransformData(t *testing.T) {
 	nodes := []WorkflowNode{
 		{ID: "A", ProcessID: autonomousProcessFixtureID, Label: "Process A", Status: NodeComplete, Config: map[string]string{}},
 		{ID: "T", NodeType: NodeTypeTransform, Label: "Version Extract", Status: NodeComplete, Config: map[string]string{}},
-		{ID: "B", ProcessID: "bmad-create-prd", Label: "Process B", Status: NodePending, Config: map[string]string{}},
+		{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "Process B", Status: NodePending, Config: map[string]string{}},
 	}
 	nodeIndex := buildNodeIndex(nodes)
 	nodeOutputs := map[string]string{
@@ -1785,7 +1785,7 @@ func TestBuildContextStringV3_IncludesArtifactMatching(t *testing.T) {
 	// bmad-create-prd has Inputs: ["product-brief"] and bmad-product-brief has Outputs: ["product-brief"].
 	nodes := []WorkflowNode{
 		{ID: "A", ProcessID: "bmad-product-brief", Label: "Product Brief", Status: NodeComplete, Config: map[string]string{}},
-		{ID: "B", ProcessID: "bmad-create-prd", Label: "Create PRD", Status: NodePending, Config: map[string]string{}},
+		{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "Create PRD", Status: NodePending, Config: map[string]string{}},
 	}
 	nodeIndex := buildNodeIndex(nodes)
 	nodeOutputs := map[string]string{}
@@ -1946,7 +1946,7 @@ func TestBuildContextStringV3_TransformDataPreservedWithRepoPath(t *testing.T) {
 	nodes := []WorkflowNode{
 		{ID: "A", ProcessID: "bmad-product-brief", Label: "Product Brief", Status: NodeComplete, Config: map[string]string{}},
 		{ID: "T", NodeType: NodeTypeTransform, Label: "Version Extract", Status: NodeComplete, Config: map[string]string{}},
-		{ID: "B", ProcessID: "bmad-create-prd", Label: "Create PRD", Status: NodePending, Config: map[string]string{}},
+		{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "Create PRD", Status: NodePending, Config: map[string]string{}},
 	}
 	nodeIndex := buildNodeIndex(nodes)
 	nodeOutputs := map[string]string{
@@ -2008,7 +2008,7 @@ func TestBuildContextStringV3_EdgeBasedContext_NoDuplicates(t *testing.T) {
 	// should NOT duplicate it.
 	nodes := []WorkflowNode{
 		{ID: "A", ProcessID: "bmad-product-brief", Label: "Product Brief", Status: NodeComplete, Config: map[string]string{}},
-		{ID: "B", ProcessID: "bmad-create-prd", Label: "Create PRD", Status: NodePending, Config: map[string]string{}},
+		{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "Create PRD", Status: NodePending, Config: map[string]string{}},
 	}
 	edges := []WorkflowEdge{
 		{ID: "e1", Source: "A", Target: "B"},
@@ -2111,7 +2111,7 @@ func TestLoopNode_FixedCount(t *testing.T) {
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
 			{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "B", NodeType: NodeTypeProcess,
 				Position: Position{X: 400, Y: 100}, Status: NodePending, Config: map[string]string{}},
-			{ID: "D", ProcessID: "bmad-create-prd", Label: "D", NodeType: NodeTypeProcess,
+			{ID: "D", ProcessID: autonomousProcessFixtureID, Label: "D", NodeType: NodeTypeProcess,
 				Position: Position{X: 650, Y: 0}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
@@ -2282,7 +2282,7 @@ func TestLoop_BodyFailure(t *testing.T) {
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
 			{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "B", NodeType: NodeTypeProcess,
 				Position: Position{X: 400, Y: 100}, Status: NodePending, Config: map[string]string{}},
-			{ID: "D", ProcessID: "bmad-create-prd", Label: "D", NodeType: NodeTypeProcess,
+			{ID: "D", ProcessID: autonomousProcessFixtureID, Label: "D", NodeType: NodeTypeProcess,
 				Position: Position{X: 650, Y: 0}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
@@ -2334,7 +2334,7 @@ func TestLoop_EmptyBody(t *testing.T) {
 				"maxIterations": "5",
 				"loopBodyNodes": "",
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
-			{ID: "D", ProcessID: "bmad-create-prd", Label: "D", NodeType: NodeTypeProcess,
+			{ID: "D", ProcessID: autonomousProcessFixtureID, Label: "D", NodeType: NodeTypeProcess,
 				Position: Position{X: 500, Y: 0}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{
@@ -2430,7 +2430,7 @@ func TestCompleteNode_ArtifactEvent_MissingArtifact(t *testing.T) {
 		ID:   "wf-artifact-missing",
 		Name: "Artifact Missing Test",
 		Nodes: []WorkflowNode{
-			{ID: "N1", ProcessID: "bmad-create-prd", Label: "PRD", Position: Position{X: 0, Y: 0}, Status: NodePending, Config: map[string]string{}},
+			{ID: "N1", ProcessID: autonomousProcessFixtureID, Label: "PRD", Position: Position{X: 0, Y: 0}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges:     []WorkflowEdge{},
 		CreatedAt: "2026-04-08T00:00:00Z",
@@ -2454,7 +2454,7 @@ func TestCompleteNode_ArtifactEvent_MissingArtifact(t *testing.T) {
 	assert.Equal(t, exec.ID, ae.ExecID)
 	assert.Equal(t, "N1", ae.NodeID)
 	assert.Empty(t, ae.Found, "no artifact files exist on disk")
-	assert.Equal(t, []string{"PRD.md"}, ae.Missing)
+	assert.Equal(t, []string{"sprint-status.yaml"}, ae.Missing)
 }
 
 func TestCompleteNode_NoArtifactEvent_ControlNode(t *testing.T) {
@@ -2554,7 +2554,7 @@ func TestLoopNode_IteratesOverItems(t *testing.T) {
 			}, Position: Position{X: 250, Y: 0}, Status: NodePending},
 			{ID: "B", ProcessID: autonomousProcessFixtureID, Label: "B", NodeType: NodeTypeProcess,
 				Position: Position{X: 400, Y: 100}, Status: NodePending, Config: map[string]string{}},
-			{ID: "D", ProcessID: "bmad-create-prd", Label: "D", NodeType: NodeTypeProcess,
+			{ID: "D", ProcessID: autonomousProcessFixtureID, Label: "D", NodeType: NodeTypeProcess,
 				Position: Position{X: 650, Y: 0}, Status: NodePending, Config: map[string]string{}},
 		},
 		Edges: []WorkflowEdge{

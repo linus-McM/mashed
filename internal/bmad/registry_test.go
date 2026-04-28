@@ -409,6 +409,22 @@ var phase3dRolloutIDs = []string{
 	"bmad-infrastructure-devops",
 }
 
+// phase4RolloutIDs lists the guided-batch processes upgraded by
+// registry_interactive_phase4.go.
+var phase4RolloutIDs = []string{
+	"bmad-create-prd",
+	"bmad-document-project",
+	"bmad-generate-project-context",
+}
+
+// phase5RolloutIDs lists the party-batch processes upgraded by
+// registry_interactive_phase5.go.
+var phase5RolloutIDs = []string{
+	"bmad-retrospective",
+	"bmad-web-orchestrator",
+	"bmad-game-dev-studio",
+}
+
 // skippedFromU0Goldens is the union of all process IDs whose committed pre-U0
 // golden no longer matches their current shape. Stories 03-08 append their own
 // rollout slice here so the predicate stays a single Contains call.
@@ -416,13 +432,16 @@ var skippedFromU0Goldens = func() []string {
 	out := make([]string, 0,
 		len(u0MigratedProcessIDs)+len(phase2RolloutIDs)+
 			len(phase3aRolloutIDs)+len(phase3bRolloutIDs)+
-			len(phase3cRolloutIDs)+len(phase3dRolloutIDs))
+			len(phase3cRolloutIDs)+len(phase3dRolloutIDs)+
+			len(phase4RolloutIDs)+len(phase5RolloutIDs))
 	out = append(out, u0MigratedProcessIDs...)
 	out = append(out, phase2RolloutIDs...)
 	out = append(out, phase3aRolloutIDs...)
 	out = append(out, phase3bRolloutIDs...)
 	out = append(out, phase3cRolloutIDs...)
 	out = append(out, phase3dRolloutIDs...)
+	out = append(out, phase4RolloutIDs...)
+	out = append(out, phase5RolloutIDs...)
 	return out
 }()
 

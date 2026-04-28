@@ -37,7 +37,7 @@ func sampleWorkflow(id string) WorkflowDef {
 			},
 			{
 				ID:        "n2",
-				ProcessID: "bmad-create-prd",
+				ProcessID: autonomousProcessFixtureID,
 				Label:     "Create PRD",
 				Position:  Position{X: 250, Y: 200},
 				Status:    NodePending,
