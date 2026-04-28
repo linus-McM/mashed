@@ -108,7 +108,7 @@ func saveDownstreamWorkflow(t *testing.T, s *Storage) string {
 			},
 			{
 				ID:        "n2",
-				ProcessID: "bmad-domain-research", // autonomous process (Mode == "")
+				ProcessID: autonomousProcessFixtureID, // autonomous process (Mode == "")
 				Label:     "Downstream",
 				Status:    NodePending,
 				NodeType:  NodeTypeProcess,
