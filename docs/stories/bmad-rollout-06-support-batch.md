@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** M
 **Depends On:** bmad-rollout-01, bmad-rollout-02
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -141,27 +141,27 @@ Feature: Phase 3d support-batch iterative upgrades
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create `internal/bmad/registry_interactive_phase3d.go` (AC-1..4)
-  - [ ] Six `applyIterativeUpgrade` calls via `processIndex(id)` matching the table.
-  - [ ] OutputSpecs assembled per the mapped/unmapped column.
-- [ ] Task 2: Extend rollout skip slice (AC-5)
-  - [ ] Append the six IDs; total now 20.
-- [ ] Task 3: Walking integration test `registry_interactive_phase3d_test.go` (AC-1..4)
-  - [ ] Sub-test per ID covering Mode/Gate/iterationInput/OutputSpecs.
-- [ ] Task 4: Audit dependent tests
-  - [ ] `rg` for the six IDs in `*_test.go`; update or refactor.
-- [ ] Task 5: Playwright smoke (AC-6)
-  - [ ] Add or extend a spec under `tests/ac/` that drives `bmad-editorial-review-prose` through a one-round-then-"approved" flow with the InputResponseModal.
+- [x] Task 1: Create `internal/bmad/registry_interactive_phase3d.go` (AC-1..4)
+  - [x] Six `applyIterativeUpgrade` calls via `processIndex(id)` matching the table.
+  - [x] OutputSpecs assembled per the mapped/unmapped column.
+- [x] Task 2: Extend rollout skip slice (AC-5)
+  - [x] Append the six IDs; total now 20.
+- [x] Task 3: Walking integration test `registry_interactive_phase3d_test.go` (AC-1..4)
+  - [x] Sub-test per ID covering Mode/Gate/iterationInput/OutputSpecs.
+- [x] Task 4: Audit dependent tests
+  - [x] `rg` for the six IDs in `*_test.go`; update or refactor.
+- [x] Task 5: Playwright smoke (AC-6)
+  - [x] Add or extend a spec under `tests/ac/` that drives `bmad-editorial-review-prose` through a one-round-then-"approved" flow with the InputResponseModal.
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on `registry_interactive_phase3d.go`
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code; no CRITICAL/HIGH issues
-- [ ] AC validation table populated in PR description
-- [ ] Playwright smoke spec added for at least one Support process
-- [ ] Status flipped to `done` by sprint lead
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on `registry_interactive_phase3d.go`
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code; no CRITICAL/HIGH issues
+- [x] AC validation table populated in PR description
+- [x] Playwright smoke spec added for at least one Support process
+- [x] Status flipped to `done` by sprint lead

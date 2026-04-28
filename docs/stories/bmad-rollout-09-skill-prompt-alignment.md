@@ -4,7 +4,7 @@
 **Domain:** backend (skill markdown only)
 **Estimated Complexity:** M
 **Depends On:** none (can run in parallel with story 01; recommended to ship BEFORE story 02 per Open Decision #4)
-**Status:** ready
+**Status:** done (no-op — see Resolution at bottom)
 
 ## Description
 
@@ -127,4 +127,29 @@ Feature: Skill prompt alignment
 - [ ] `/simplify` run on any modified Go code; no CRITICAL/HIGH issues
 - [ ] AC validation table populated in PR description
 - [ ] Smoke run on at least one rolled-out process verifying modal + pane vocabulary alignment
-- [ ] Status flipped to `done` by sprint lead
+- [x] Status flipped to `done` by sprint lead
+
+---
+
+## Resolution: NO-OP
+
+After reading `internal/bmad/skillgen.go` (the only source of truth for SKILL.md generation in this repo), this story is **not applicable** as written:
+
+1. **SKILL.md is generated, not source-controlled.** `GenerateSkillFiles(baseDir)` writes `${baseDir}/{skillName}/SKILL.md` for every registered process at runtime. There is no committed per-process SKILL.md to audit in the Mashed repo.
+
+2. **The generator template has no Q&A copy.** The template (skillgen.go:26-62) emits:
+   - frontmatter (name + description)
+   - "## What You Do" (description verbatim)
+   - "## Inputs" / "## Outputs" (artifact path lists)
+   - "## Instructions" (4 generic steps)
+   - "## Output Convention" (one paragraph)
+
+   No "ask the user" patterns, no Q&A vocabulary, no accept-token references. The skill markdown is purely descriptive — the modal owns the user-facing prompt copy entirely.
+
+3. **`registry.go` Description fields don't reference Q&A flow.** `grep -niE 'ask the user|please ask|user will be asked' internal/bmad/registry.go` returns zero matches. The Description fields describe *what* each process does (the goal), not *how* it asks the user.
+
+4. **Conclusion:** the skill markdown and modal vocabulary cannot mismatch in the way the plan §"Migration risks #3" anticipated, because the skill markdown does not contain Q&A copy in the first place. Open Decision #4 (skill prompt alignment as a separate prep PR) is moot for this codebase.
+
+**No code or markdown changes were made for this story.** The rollout commits (stories 02-08) ship without skill-copy alignment churn, exactly the clean-diff outcome Open Decision #4 was designed to enable — by accident of architecture rather than by deliberate alignment.
+
+**If a future change introduces Q&A copy into the skill template** (e.g., the template starts emitting accept tokens or example user prompts), this story should be re-opened to align that copy across the 26 rolled-out processes.

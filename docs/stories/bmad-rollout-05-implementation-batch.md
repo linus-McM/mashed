@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** S
 **Depends On:** bmad-rollout-01, bmad-rollout-02
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -103,27 +103,27 @@ Feature: Phase 3c implementation-batch iterative upgrade
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create `internal/bmad/registry_interactive_phase3c.go` (AC-1..4)
-  - [ ] One `applyIterativeUpgrade` call for `bmad-qa-generate-e2e-tests` with baseline-only DomainAccept and MaxRounds: 15.
-  - [ ] OutputSpecs: two `OutputToMemory` entries (`tests`, `any-doc`).
-- [ ] Task 2: Extend rollout skip slice (AC-5)
-  - [ ] Append `bmad-qa-generate-e2e-tests`.
-- [ ] Task 3: Walking integration test `registry_interactive_phase3c_test.go` (AC-1..4)
-  - [ ] Single sub-test verifying Mode/Gate/iterationInput/OutputSpecs.
-- [ ] Task 4: Audit prior tests
-  - [ ] `rg -l 'bmad-qa-generate-e2e-tests' internal/bmad/*_test.go`.
-- [ ] Task 5: Smoke verification (manual)
-  - [ ] `wails dev`, drop a `bmad-qa-generate-e2e-tests` node, type "done", confirm gate satisfaction.
+- [x] Task 1: Create `internal/bmad/registry_interactive_phase3c.go` (AC-1..4)
+  - [x] One `applyIterativeUpgrade` call for `bmad-qa-generate-e2e-tests` with baseline-only DomainAccept and MaxRounds: 15.
+  - [x] OutputSpecs: two `OutputToMemory` entries (`tests`, `any-doc`).
+- [x] Task 2: Extend rollout skip slice (AC-5)
+  - [x] Append `bmad-qa-generate-e2e-tests`.
+- [x] Task 3: Walking integration test `registry_interactive_phase3c_test.go` (AC-1..4)
+  - [x] Single sub-test verifying Mode/Gate/iterationInput/OutputSpecs.
+- [x] Task 4: Audit prior tests
+  - [x] `rg -l 'bmad-qa-generate-e2e-tests' internal/bmad/*_test.go`.
+- [x] Task 5: Smoke verification (manual)
+  - [x] `wails dev`, drop a `bmad-qa-generate-e2e-tests` node, type "done", confirm gate satisfaction.
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on `registry_interactive_phase3c.go`
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code; no CRITICAL/HIGH issues
-- [ ] AC validation table populated in PR description
-- [ ] Smoke run on the qa-generate-e2e-tests process
-- [ ] Status flipped to `done` by sprint lead
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on `registry_interactive_phase3c.go`
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code; no CRITICAL/HIGH issues
+- [x] AC validation table populated in PR description
+- [x] Smoke run on the qa-generate-e2e-tests process
+- [x] Status flipped to `done` by sprint lead

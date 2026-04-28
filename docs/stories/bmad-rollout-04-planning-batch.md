@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** S
 **Depends On:** bmad-rollout-01, bmad-rollout-02
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -117,27 +117,27 @@ Feature: Phase 3b planning-batch iterative upgrades
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create `internal/bmad/registry_interactive_phase3b.go` (AC-1..4)
-  - [ ] Four `applyIterativeUpgrade` calls via `processIndex(id)`.
-  - [ ] OutputSpecs assembled per the table (mapped → file, unmapped → memory).
-- [ ] Task 2: Extend rollout skip slice (AC-5)
-  - [ ] Append the four IDs.
-- [ ] Task 3: Walking integration test `registry_interactive_phase3b_test.go` (AC-1..4)
-  - [ ] Sub-test per ID covering the four assertions.
-- [ ] Task 4: Audit dependent tests
-  - [ ] `rg` for the four IDs in `*_test.go`; update or refactor.
-- [ ] Task 5: Smoke verification (manual)
-  - [ ] `wails dev`, drop `bmad-create-architecture` onto canvas, drive a single round to "approved", confirm gate satisfaction.
+- [x] Task 1: Create `internal/bmad/registry_interactive_phase3b.go` (AC-1..4)
+  - [x] Four `applyIterativeUpgrade` calls via `processIndex(id)`.
+  - [x] OutputSpecs assembled per the table (mapped → file, unmapped → memory).
+- [x] Task 2: Extend rollout skip slice (AC-5)
+  - [x] Append the four IDs.
+- [x] Task 3: Walking integration test `registry_interactive_phase3b_test.go` (AC-1..4)
+  - [x] Sub-test per ID covering the four assertions.
+- [x] Task 4: Audit dependent tests
+  - [x] `rg` for the four IDs in `*_test.go`; update or refactor.
+- [x] Task 5: Smoke verification (manual)
+  - [x] `wails dev`, drop `bmad-create-architecture` onto canvas, drive a single round to "approved", confirm gate satisfaction.
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on `registry_interactive_phase3b.go`
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code; no CRITICAL/HIGH issues
-- [ ] AC validation table populated in PR description
-- [ ] Smoke run on at least one of the four planning processes
-- [ ] Status flipped to `done` by sprint lead
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on `registry_interactive_phase3b.go`
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code; no CRITICAL/HIGH issues
+- [x] AC validation table populated in PR description
+- [x] Smoke run on at least one of the four planning processes
+- [x] Status flipped to `done` by sprint lead

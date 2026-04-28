@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** S
 **Depends On:** bmad-rollout-01, bmad-rollout-02
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -112,28 +112,28 @@ Feature: Phase 3a analysis-batch iterative upgrades
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create `internal/bmad/registry_interactive_phase3a.go` (AC-1, AC-2, AC-3, AC-4)
-  - [ ] `init()` calls `applyIterativeUpgrade(&registry[processIndex(id)], spec)` three times.
-  - [ ] Specs use baseline-only DomainAccept and MaxRounds: 30.
-  - [ ] OutputSpecs reference `OutputToFile` with the mapped artifact name.
-- [ ] Task 2: Update U0 skip slice (AC-5)
-  - [ ] Add the three IDs to the rollout skip list in `registry_test.go` (rename to `interactiveRolloutIDs` if appropriate, or extend `phase3aRolloutIDs` sibling slice).
-- [ ] Task 3: Walking integration test `registry_interactive_phase3a_test.go` (AC-1..4)
-  - [ ] Sub-test per ID asserting Mode/Gate/iterationInput/OutputSpecs.
-- [ ] Task 4: Audit prior tests for autonomous-shape pins (AC-6 implicit)
-  - [ ] `rg -l 'bmad-(domain|market|technical)-research' internal/bmad/*_test.go` and update any that read `Mode == ""`.
-- [ ] Task 5: Smoke verification (manual)
-  - [ ] `wails dev`, drop a `bmad-domain-research` node, confirm UI-AST modal opens on first idle and "done" closes the gate.
+- [x] Task 1: Create `internal/bmad/registry_interactive_phase3a.go` (AC-1, AC-2, AC-3, AC-4)
+  - [x] `init()` calls `applyIterativeUpgrade(&registry[processIndex(id)], spec)` three times.
+  - [x] Specs use baseline-only DomainAccept and MaxRounds: 30.
+  - [x] OutputSpecs reference `OutputToFile` with the mapped artifact name.
+- [x] Task 2: Update U0 skip slice (AC-5)
+  - [x] Add the three IDs to the rollout skip list in `registry_test.go` (rename to `interactiveRolloutIDs` if appropriate, or extend `phase3aRolloutIDs` sibling slice).
+- [x] Task 3: Walking integration test `registry_interactive_phase3a_test.go` (AC-1..4)
+  - [x] Sub-test per ID asserting Mode/Gate/iterationInput/OutputSpecs.
+- [x] Task 4: Audit prior tests for autonomous-shape pins (AC-6 implicit)
+  - [x] `rg -l 'bmad-(domain|market|technical)-research' internal/bmad/*_test.go` and update any that read `Mode == ""`.
+- [x] Task 5: Smoke verification (manual)
+  - [x] `wails dev`, drop a `bmad-domain-research` node, confirm UI-AST modal opens on first idle and "done" closes the gate.
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on `registry_interactive_phase3a.go`
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code; no CRITICAL/HIGH issues
-- [ ] AC validation table populated in PR description
-- [ ] Smoke run on at least one of the three research processes
-- [ ] Status flipped to `done` by sprint lead
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on `registry_interactive_phase3a.go`
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code; no CRITICAL/HIGH issues
+- [x] AC validation table populated in PR description
+- [x] Smoke run on at least one of the three research processes
+- [x] Status flipped to `done` by sprint lead

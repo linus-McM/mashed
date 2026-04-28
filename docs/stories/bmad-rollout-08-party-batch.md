@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** S
 **Depends On:** bmad-rollout-01
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -183,27 +183,27 @@ Feature: Phase 5 party upgrades
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create `internal/bmad/registry_interactive_phase5.go` (AC-1..5)
-  - [ ] Three `applyPartyUpgrade` calls via `processIndex(id)` matching the per-process specs above.
-  - [ ] Confirm OutputSpecs match mapped/unmapped table.
-- [ ] Task 2: Extend rollout skip slice (AC-6)
-  - [ ] Append the three Party IDs; total now 26.
-- [ ] Task 3: Walking integration test `registry_interactive_phase5_test.go` (AC-1..5)
-  - [ ] Sub-test per ID covering Mode/InputSpecs/iterationInput()/Gate/OutputSpecs.
-- [ ] Task 4: Audit prior tests
-  - [ ] `rg -l 'bmad-(retrospective|web-orchestrator|game-dev-studio)' internal/bmad/*_test.go`.
-- [ ] Task 5: Playwright smoke for retrospective (AC-7)
-  - [ ] Add a spec under `tests/ac/` driving the topic + message + exit Party flow.
+- [x] Task 1: Create `internal/bmad/registry_interactive_phase5.go` (AC-1..5)
+  - [x] Three `applyPartyUpgrade` calls via `processIndex(id)` matching the per-process specs above.
+  - [x] Confirm OutputSpecs match mapped/unmapped table.
+- [x] Task 2: Extend rollout skip slice (AC-6)
+  - [x] Append the three Party IDs; total now 26.
+- [x] Task 3: Walking integration test `registry_interactive_phase5_test.go` (AC-1..5)
+  - [x] Sub-test per ID covering Mode/InputSpecs/iterationInput()/Gate/OutputSpecs.
+- [x] Task 4: Audit prior tests
+  - [x] `rg -l 'bmad-(retrospective|web-orchestrator|game-dev-studio)' internal/bmad/*_test.go`.
+- [x] Task 5: Playwright smoke for retrospective (AC-7)
+  - [x] Add a spec under `tests/ac/` driving the topic + message + exit Party flow.
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on `registry_interactive_phase5.go`
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code; no CRITICAL/HIGH issues
-- [ ] AC validation table populated in PR description
-- [ ] Playwright smoke spec added for `bmad-retrospective`
-- [ ] Status flipped to `done` by sprint lead
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on `registry_interactive_phase5.go`
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code; no CRITICAL/HIGH issues
+- [x] AC validation table populated in PR description
+- [x] Playwright smoke spec added for `bmad-retrospective`
+- [x] Status flipped to `done` by sprint lead

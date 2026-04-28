@@ -4,7 +4,7 @@
 **Domain:** backend
 **Estimated Complexity:** M
 **Depends On:** bmad-rollout-01
-**Status:** ready
+**Status:** done
 
 ## Description
 
@@ -188,28 +188,28 @@ Feature: Phase 4 guided upgrades
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create `internal/bmad/registry_interactive_phase4.go` (AC-1..5)
-  - [ ] Three `applyGuidedUpgrade` calls via `processIndex(id)` matching the per-process specs above.
-  - [ ] Confirm `bmad-create-prd` carries `[scope, audience, timeline, approve]` post-helper.
-  - [ ] Confirm Guided processes do NOT register an iteration slot (helper guarantee).
-- [ ] Task 2: Extend rollout skip slice (AC-6)
-  - [ ] Append the three Guided IDs.
-- [ ] Task 3: Walking integration test `registry_interactive_phase4_test.go` (AC-1..5)
-  - [ ] Sub-test per ID covering Mode/InputSpecs order/iterationInput()=false/Gate.
-- [ ] Task 4: Audit prior tests
-  - [ ] `rg -l 'bmad-(create-prd|document-project|generate-project-context)' internal/bmad/*_test.go`.
-- [ ] Task 5: Playwright smoke for create-prd (AC-7)
-  - [ ] Add a spec under `tests/ac/` driving the three-stage Guided flow.
+- [x] Task 1: Create `internal/bmad/registry_interactive_phase4.go` (AC-1..5)
+  - [x] Three `applyGuidedUpgrade` calls via `processIndex(id)` matching the per-process specs above.
+  - [x] Confirm `bmad-create-prd` carries `[scope, audience, timeline, approve]` post-helper.
+  - [x] Confirm Guided processes do NOT register an iteration slot (helper guarantee).
+- [x] Task 2: Extend rollout skip slice (AC-6)
+  - [x] Append the three Guided IDs.
+- [x] Task 3: Walking integration test `registry_interactive_phase4_test.go` (AC-1..5)
+  - [x] Sub-test per ID covering Mode/InputSpecs order/iterationInput()=false/Gate.
+- [x] Task 4: Audit prior tests
+  - [x] `rg -l 'bmad-(create-prd|document-project|generate-project-context)' internal/bmad/*_test.go`.
+- [x] Task 5: Playwright smoke for create-prd (AC-7)
+  - [x] Add a spec under `tests/ac/` driving the three-stage Guided flow.
 
 ## Definition of Done
 
-- [ ] All acceptance criteria pass
-- [ ] All BDD scenarios pass as automated tests
-- [ ] 80%+ coverage on `registry_interactive_phase4.go`
-- [ ] `go build ./...` passes
-- [ ] `go vet ./...` passes
-- [ ] `go test ./... -race` passes
-- [ ] `/simplify` run on all modified code; no CRITICAL/HIGH issues
-- [ ] AC validation table populated in PR description
-- [ ] Playwright smoke spec added for `bmad-create-prd`
-- [ ] Status flipped to `done` by sprint lead
+- [x] All acceptance criteria pass
+- [x] All BDD scenarios pass as automated tests
+- [x] 80%+ coverage on `registry_interactive_phase4.go`
+- [x] `go build ./...` passes
+- [x] `go vet ./...` passes
+- [x] `go test ./... -race` passes
+- [x] `/simplify` run on all modified code; no CRITICAL/HIGH issues
+- [x] AC validation table populated in PR description
+- [x] Playwright smoke spec added for `bmad-create-prd`
+- [x] Status flipped to `done` by sprint lead
