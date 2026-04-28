@@ -183,7 +183,8 @@ func (a *defaultAdapter) Translate(ctx context.Context, raw, procID string) *UIA
 	}
 
 	ast := &UIAST{}
-	if decErr := json.Unmarshal([]byte(body), ast); decErr != nil {
+	parsedBody := extractJSONObject(body)
+	if decErr := json.Unmarshal([]byte(parsedBody), ast); decErr != nil {
 		return a.emitFallback(sanitized, "validation:malformed", ctx, start, len(body))
 	}
 
@@ -272,6 +273,60 @@ func (a *defaultAdapter) logTelemetryWithSanitize(level slog.Level, tag string, 
 		slog.Bool("untrusted", untrusted),
 		slog.Int("sanitize_delta_bytes", sanitizeDelta),
 	)
+}
+
+// extractJSONObject pulls the first balanced top-level JSON object out of a
+// model response. Local models (gemma3:4b in particular) frequently ignore
+// the system prompt's "no fences, no prose" rule and emit either:
+//
+//	Okay! Here's the JSON: ```json\n{...}\n```
+//	{...}
+//	{...}\nMore prose
+//
+// Stripping fences alone is brittle (some responses use ~~~, some omit the
+// language tag, some interleave). A balanced-brace scan finds the first
+// top-level `{...}` regardless of surrounding chrome and is robust to nested
+// objects/arrays. Strings are honoured so a `}` inside a JSON string does
+// not close the scan early. Falls back to the original body when no balanced
+// object is found, letting json.Unmarshal produce the existing
+// validation:malformed fallback.
+func extractJSONObject(body string) string {
+	start := strings.IndexByte(body, '{')
+	if start < 0 {
+		return body
+	}
+	depth := 0
+	inStr := false
+	escape := false
+	for i := start; i < len(body); i++ {
+		c := body[i]
+		if inStr {
+			if escape {
+				escape = false
+				continue
+			}
+			if c == '\\' {
+				escape = true
+				continue
+			}
+			if c == '"' {
+				inStr = false
+			}
+			continue
+		}
+		switch c {
+		case '"':
+			inStr = true
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return body[start : i+1]
+			}
+		}
+	}
+	return body
 }
 
 // classifyChatErr maps a Client.Chat error into the §4.8 reason string.

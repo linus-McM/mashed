@@ -117,6 +117,118 @@ func (c *Client) GenerateSingleShot(ctx context.Context, raw string) (*uiadapter
 	return c.Generate(ctx, raw, backend.Kind(uiadapter.StageKindText))
 }
 
+// TranslateWithFullPrompt invokes the CLI with the canonical embedded
+// system prompt (`internal/uiadapter/prompt.md`) instead of routing through
+// Stage-1 classification + per-kind Stage-2 templates. The full prompt
+// covers all four widget shapes (free, choice, multi, approval), so the
+// model is free to surface a `decision_group` for menu-shaped turns —
+// using the text-stage shortcut always degrades to a single `free` widget
+// regardless of the source. Caller is expected to supply the spotlighted
+// source turn as `raw`.
+//
+// Returns the parsed AST, the raw assistant text accumulated from the
+// stream-json events (callers can log a head of it for debugging when
+// parsing fails), and any fence/decode error.
+func (c *Client) TranslateWithFullPrompt(ctx context.Context, raw string) (*uiadapter.UIAST, string, error) {
+	rawAssistant, err := c.runRaw(ctx, uiadapter.SystemPrompt(), raw)
+	if err != nil {
+		return nil, rawAssistant, err
+	}
+	jsonBody, err := extractFencedJSON(rawAssistant)
+	if err != nil {
+		return nil, rawAssistant, err
+	}
+	ast := &uiadapter.UIAST{}
+	if err := json.Unmarshal([]byte(jsonBody), ast); err != nil {
+		return nil, rawAssistant, fmt.Errorf("claude-cli: full-prompt decode: %w", err)
+	}
+	return ast, rawAssistant, nil
+}
+
+// runRaw is like runOneShot but returns the raw assistant text BEFORE
+// fenced-JSON extraction so callers can log it on parse failure. Internal
+// helper for TranslateWithFullPrompt; runOneShot remains the production
+// entry point for stage-bound calls.
+func (c *Client) runRaw(ctx context.Context, systemPrompt, user string) (string, error) {
+	args := []string{
+		"-p",
+		"--output-format", "stream-json",
+		"--append-system-prompt", systemPrompt,
+		"--disallowedTools", "*",
+		"--permission-mode", "bypassPermissions",
+		"--input-format", "text",
+	}
+	c.mu.Lock()
+	if c.sessionID != "" {
+		args = append(args, "--resume", c.sessionID)
+	}
+	c.mu.Unlock()
+	args = append(args, c.extraArgs...)
+
+	cmd := exec.CommandContext(ctx, c.binary, args...)
+	cmd.Cancel = func() error {
+		if cmd.Process != nil {
+			_ = cmd.Process.Signal(termSignal)
+		}
+		return nil
+	}
+	cmd.Stdin = strings.NewReader(user)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", err
+	}
+	if err := cmd.Start(); err != nil {
+		return "", fmt.Errorf("%w: %v", backend.ErrBackendUnreachable, err)
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1*1024*1024)
+
+	var assistantText strings.Builder
+	for scanner.Scan() {
+		line := scanner.Bytes()
+		if len(line) == 0 {
+			continue
+		}
+		var evt map[string]any
+		if err := json.Unmarshal(line, &evt); err != nil {
+			continue
+		}
+		if sid, ok := evt["session_id"].(string); ok && sid != "" {
+			c.mu.Lock()
+			if c.sessionID == "" {
+				c.sessionID = sid
+			}
+			c.mu.Unlock()
+		}
+		if t, _ := evt["type"].(string); t == "assistant" {
+			if msg, ok := evt["message"].(map[string]any); ok {
+				switch content := msg["content"].(type) {
+				case string:
+					assistantText.WriteString(content)
+				case []any:
+					for _, block := range content {
+						b, ok := block.(map[string]any)
+						if !ok {
+							continue
+						}
+						if bt, _ := b["type"].(string); bt != "text" {
+							continue
+						}
+						if txt, ok := b["text"].(string); ok {
+							assistantText.WriteString(txt)
+						}
+					}
+				}
+			}
+		}
+	}
+	if err := cmd.Wait(); err != nil {
+		return assistantText.String(), fmt.Errorf("claude-cli: process failed: %w", err)
+	}
+	return assistantText.String(), nil
+}
+
 // runOneShot spawns `claude -p` with the given system + user and returns
 // the parsed fenced-JSON block.
 func (c *Client) runOneShot(ctx context.Context, systemPrompt, user string) (string, error) {
@@ -177,8 +289,26 @@ func (c *Client) runOneShot(ctx context.Context, systemPrompt, user string) (str
 		}
 		if t, _ := evt["type"].(string); t == "assistant" {
 			if msg, ok := evt["message"].(map[string]any); ok {
-				if content, ok := msg["content"].(string); ok {
+				switch content := msg["content"].(type) {
+				case string:
 					assistantText.WriteString(content)
+				case []any:
+					// Claude returns content as a typed-block array
+					// ([{type:"thinking",...},{type:"text",text:"..."}]).
+					// Older code assumed a flat string and got nothing —
+					// extract every text block in order.
+					for _, block := range content {
+						b, ok := block.(map[string]any)
+						if !ok {
+							continue
+						}
+						if bt, _ := b["type"].(string); bt != "text" {
+							continue
+						}
+						if txt, ok := b["text"].(string); ok {
+							assistantText.WriteString(txt)
+						}
+					}
 				}
 			}
 		}

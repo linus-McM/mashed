@@ -143,8 +143,12 @@ type mashedConfig struct {
 }
 
 const (
-	defaultOllamaModel        = "gemma3:4b"
-	defaultUIAdapterTimeoutMs = 3000
+	defaultOllamaModel = "gemma3:4b"
+	// 30s budget covers Ollama gemma3:4b cold-load (~10s) + generation
+	// (~5s) on a typical Mac. The previous 3s budget guaranteed a fallback
+	// AST on the first call after a server restart, hiding the structured
+	// menu the adapter would otherwise have produced.
+	defaultUIAdapterTimeoutMs = 30000
 )
 
 // configPath returns the path to the mashed config file.
@@ -293,18 +297,51 @@ func (a *App) startup(ctx context.Context) {
 			if closer != nil {
 				a.shutdownHooks = append(a.shutdownHooks, closer.Close)
 			}
-			adapterLogger.Info("uiadapter.boot",
-				"op", "uiadapter.boot",
-				"boot_level", level.String(),
-				"model", cfg.OllamaModel,
-				"timeout_ms", cfg.UIAdapterTimeoutMs,
-			)
-			bmadOpts = append(bmadOpts, bmad.WithAdapter(uiadapter.NewDefault(uiadapter.Config{
-				Enabled:     true,
-				Model:       cfg.OllamaModel,
-				TimeoutMs:   cfg.UIAdapterTimeoutMs,
-				MaxInflight: 1,
-			}, adapterLogger)))
+			// Pick the adapter implementation based on cfg.Backend. The
+			// "claude-cli" path delegates to the user's local `claude`
+			// binary (no API key required) and forces Haiku to keep
+			// per-translation cost negligible — Opus would cost ~30x for
+			// a task that only needs JSON shaping.
+			var adapter uiadapter.Adapter
+			switch cfg.Backend {
+			case "claude-cli":
+				cliModel := cfg.CLIModel
+				if cliModel == "" {
+					cliModel = "claude-haiku-4-5"
+				}
+				adapterLogger.Info("uiadapter.boot",
+					"op", "uiadapter.boot",
+					"boot_level", level.String(),
+					"backend", "claude-cli",
+					"model", cliModel,
+					"timeout_ms", cfg.UIAdapterTimeoutMs,
+				)
+				adapter = newClaudeCLIAdapter(uiadapter.Config{
+					Enabled:            true,
+					ClaudeModelPrimary: cliModel,
+					TimeoutMs:          cfg.UIAdapterTimeoutMs,
+					ClaudeCLIBinary:    "claude",
+					// --verbose is mandatory when --output-format is
+					// stream-json (claude refuses with exit 1 otherwise);
+					// --model pins Haiku for cost.
+					ClaudeCLIExtraFlags: []string{"--verbose", "--model", cliModel},
+				}, adapterLogger)
+			default:
+				adapterLogger.Info("uiadapter.boot",
+					"op", "uiadapter.boot",
+					"boot_level", level.String(),
+					"backend", "ollama",
+					"model", cfg.OllamaModel,
+					"timeout_ms", cfg.UIAdapterTimeoutMs,
+				)
+				adapter = uiadapter.NewDefault(uiadapter.Config{
+					Enabled:     true,
+					Model:       cfg.OllamaModel,
+					TimeoutMs:   cfg.UIAdapterTimeoutMs,
+					MaxInflight: 1,
+				}, adapterLogger)
+			}
+			bmadOpts = append(bmadOpts, bmad.WithAdapter(adapter))
 		}
 		a.bmadExecutor = bmad.NewExecutor(storage, func(event string, data interface{}) {
 			runtime.EventsEmit(a.ctx, event, data)

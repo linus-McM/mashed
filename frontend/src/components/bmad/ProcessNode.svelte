@@ -180,12 +180,20 @@
 
   .process-node.running {
     border-color: var(--accent-green, #00e57a);
-    animation: node-pulse 2s ease-in-out infinite;
+    animation: node-pulse 1.4s ease-in-out infinite;
   }
 
   @keyframes node-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-green) 0%, transparent); }
-    50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-green) 25%, transparent); }
+    0%, 100% {
+      box-shadow:
+        0 0 0 0 color-mix(in srgb, var(--accent-green) 0%, transparent),
+        0 0 8px 0 color-mix(in srgb, var(--accent-green) 20%, transparent);
+    }
+    50% {
+      box-shadow:
+        0 0 0 6px color-mix(in srgb, var(--accent-green) 55%, transparent),
+        0 0 24px 4px color-mix(in srgb, var(--accent-green) 50%, transparent);
+    }
   }
 
   .phase-bar {
@@ -274,12 +282,21 @@
 
   .status-dot.running-dot {
     background: var(--accent-green, #00e57a);
-    animation: dot-pulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-green) 80%, transparent);
+    animation: dot-pulse 1s ease-in-out infinite;
   }
 
   @keyframes dot-pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
+    0%, 100% {
+      opacity: 0.35;
+      transform: scale(0.85);
+      box-shadow: 0 0 4px color-mix(in srgb, var(--accent-green) 40%, transparent);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.25);
+      box-shadow: 0 0 14px color-mix(in srgb, var(--accent-green) 100%, transparent);
+    }
   }
 
   .running-text { color: var(--accent-green, #00e57a); }

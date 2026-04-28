@@ -357,6 +357,7 @@ export namespace bmad {
 	    }
 	}
 	export class PendingPrompt {
+	    execId?: string;
 	    nodeId: string;
 	    inputId: string;
 	    prompt: string;
@@ -374,6 +375,7 @@ export namespace bmad {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.execId = source["execId"];
 	        this.nodeId = source["nodeId"];
 	        this.inputId = source["inputId"];
 	        this.prompt = source["prompt"];

@@ -1,6 +1,6 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
-  import { X, Terminal, FileText, FolderOpen, List, Plus, Minus } from 'lucide-svelte';
+  import { X, Terminal, FileText, FolderOpen, List, Plus, Minus, MessageCircleQuestion } from 'lucide-svelte';
   import { PickFile, ReadFile, ListModels } from '../../../wailsjs/go/main/App.js';
   import { parseFriendlyTarget } from '../../lib/bmadSessionName';
   import {
@@ -21,7 +21,7 @@
   /** @type {GroupedAgents | { bmadAgents: BmadAgentConfig[]; localAgents: AgentInfo[]; globalAgents: AgentInfo[] }} */
   export let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
 
-  /** @type {import('svelte').EventDispatcher<{ update: { nodeId: string; config: Record<string, unknown> }; close: void; 'edit-items': { nodeId: string; items: string[] }; 'open-terminal': string; 'open-output': string }>} */
+  /** @type {import('svelte').EventDispatcher<{ update: { nodeId: string; config: Record<string, unknown> }; close: void; 'edit-items': { nodeId: string; items: string[] }; 'open-terminal': string; 'open-output': string; 'open-prompt': string }>} */
   const dispatch = createEventDispatcher();
 
   // Resize logic — exported so parent can read current width
@@ -512,6 +512,21 @@
         {/if}
       {/if}
 
+      {#if status === 'awaiting_input'}
+        <!-- Re-open the input modal for this node. Useful when the user
+             dismissed the modal (Cancel / Esc) and the snackbar is
+             pending — without this, they had to wait for the next
+             awaiting_input emit before the prompt was reachable again. -->
+        <button
+          class="terminal-btn respond-btn"
+          data-testid="config-panel-respond"
+          on:click={() => dispatch('open-prompt', node.id)}
+        >
+          <MessageCircleQuestion size={13} />
+          Open Input
+        </button>
+      {/if}
+
       {#if hasTerminal}
         <button
           class="terminal-btn"
@@ -848,6 +863,17 @@
 
   .output-btn {
     color: var(--accent-blue, #3d9eff);
+  }
+
+  .respond-btn {
+    color: var(--accent-amber, #f5a623);
+    border-color: color-mix(in srgb, var(--accent-amber) 40%, transparent);
+    background: color-mix(in srgb, var(--accent-amber) 8%, var(--bg-elevated));
+  }
+
+  .respond-btn:hover {
+    border-color: var(--accent-amber);
+    background: color-mix(in srgb, var(--accent-amber) 14%, var(--bg-elevated));
   }
 
   .output-btn:hover {

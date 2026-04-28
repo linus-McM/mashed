@@ -148,6 +148,97 @@ func (e *Executor) RehydrateFromSnapshot(exec *WorkflowExecution) (*execState, e
 	return state, nil
 }
 
+// RefreshPendingStructured re-runs the UI AST adapter against the persisted
+// LastOutput of every outstanding PendingPrompt and replaces Structured +
+// Shape with the fresh translation. Used after a server restart so prompts
+// cached from a prior fallback (e.g. Ollama model missing, network blip)
+// get upgraded once the adapter recovers — without forcing the user to
+// advance another round.
+//
+// No-op when the adapter is nil, the execID is unknown, or there are no
+// pending prompts. Per-prompt failures (missing process registry entry,
+// empty LastOutput) are silently skipped — the stale prompt simply remains
+// in its previous state. Persists a fresh snapshot only when at least one
+// prompt was updated.
+//
+// Concurrency: safe to call only when no round loop is running for execID
+// (i.e. only the rehydrate path). The round loop owns mutation of
+// PendingPrompts during normal execution.
+func (e *Executor) RefreshPendingStructured(ctx context.Context, execID string) {
+	if e.adapter == nil || execID == "" {
+		return
+	}
+	e.mu.Lock()
+	state, ok := e.executions[execID]
+	e.mu.Unlock()
+	if !ok {
+		return
+	}
+
+	state.mu.Lock()
+	pendingCopy := append([]PendingPrompt(nil), state.exec.PendingPrompts...)
+	nodeIndex := buildNodeIndex(state.exec.Nodes)
+	state.mu.Unlock()
+	if len(pendingCopy) == 0 {
+		return
+	}
+
+	refreshed := false
+	for _, p := range pendingCopy {
+		if p.LastOutput == "" {
+			continue
+		}
+		idx, ok := nodeIndex[p.NodeID]
+		if !ok {
+			continue
+		}
+		state.mu.Lock()
+		procID := state.exec.Nodes[idx].ProcessID
+		state.mu.Unlock()
+		proc, ok := ProcessByID(procID)
+		if !ok {
+			continue
+		}
+		var spec InputSpec
+		var hasSpec bool
+		for _, s := range proc.InputSpecs {
+			if s.ID == p.InputID {
+				spec = s
+				hasSpec = true
+				break
+			}
+		}
+		if !hasSpec {
+			continue
+		}
+		structured, fallbackShape := e.translateForPrompt(ctx, state, idx, p.LastOutput)
+		if structured == "" {
+			continue
+		}
+		resolvedShape := spec.Shape
+		if fallbackShape != "" && spec.Shape == ShapeJSON {
+			resolvedShape = fallbackShape
+		}
+		state.mu.Lock()
+		for i := range state.exec.PendingPrompts {
+			cur := &state.exec.PendingPrompts[i]
+			if cur.NodeID == p.NodeID && cur.InputID == p.InputID {
+				if cur.Structured != structured || cur.Shape != resolvedShape {
+					cur.Structured = structured
+					cur.Shape = resolvedShape
+					refreshed = true
+				}
+				break
+			}
+		}
+		state.mu.Unlock()
+	}
+
+	if refreshed {
+		_ = e.persistSnapshot(state)
+	}
+}
+
 // rehydratePending re-launches a waiter goroutine per PendingPrompt on restore
 // so a subsequent RespondToInput can release the blocked responder exactly as
 // it would during normal runtime (§7.1). The waiter channel is registered
@@ -171,8 +262,19 @@ func (e *Executor) rehydratePending(state *execState) {
 			state.mu.Lock()
 			state.exec.Nodes[idx].Status = NodeRunning
 			state.exec.PendingPrompts = removePrompt(state.exec.PendingPrompts, p.NodeID, p.InputID)
+			value := ""
+			if state.exec.NodeInputs != nil {
+				value = state.exec.NodeInputs[p.NodeID][p.InputID]
+			}
+			execID := state.exec.ID
 			state.mu.Unlock()
 			_ = e.persistSnapshot(state)
+			// Emit input_resolved so the frontend modal closes and the
+			// snackbar dismisses. suspendForSpec emits the same event on
+			// the live-loop path; the rehydrate path has no round loop,
+			// so without this emit the modal would hang open after a
+			// successful response.
+			e.emit(EventInputResolved, inputResolvedPayload(execID, p.NodeID, p.InputID, p.Round, value))
 		}(p, waitCh, idx)
 	}
 }

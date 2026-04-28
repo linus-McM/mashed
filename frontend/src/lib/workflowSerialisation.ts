@@ -146,15 +146,23 @@ export function snapshotCanvas(
 export function canvasNodesToWorkflowNodes(
   canvasNodes: CanvasNode[] | null | undefined,
 ): SerialisedWorkflowNode[] {
+  // The saved workflow is a *definition*, not an execution snapshot. Runtime
+  // state (status, tmuxTarget, storyId) is owned by the live exec record on
+  // disk under ~/.mashed/workflows/{execID}/execution.json — persisting it
+  // here causes a freshly-opened workflow to show stale `running` /
+  // `complete` badges as if the pipeline were active before Run is even
+  // clicked. Always emit pending + blank runtime fields so reload starts
+  // clean; the restoreForRepo overlay layers live state on top when an
+  // exec is actually running.
   return (canvasNodes || []).map((n) => ({
     id: n.id,
     processId: stringOr(n.data?.processId, ''),
     label: stringOr(n.data?.label, ''),
     position: n.position,
-    status: stringOr(n.data?.status, 'pending'),
+    status: 'pending',
     config: recordOr(n.data?.config),
-    tmuxTarget: stringOr(n.data?.tmuxTarget, ''),
-    storyId: stringOr(n.data?.storyId, ''),
+    tmuxTarget: '',
+    storyId: '',
     nodeType: stringOr(n.data?.nodeType, ''),
   }));
 }
@@ -212,11 +220,16 @@ export function workflowNodesToCanvasNodes(
       processId: n.processId || '',
       nodeType: n.nodeType || '',
       process: n.processId ? procs.find((p) => p.id === n.processId) ?? null : null,
-      status: n.status || 'pending',
+      // Runtime fields are intentionally reset on load — any persisted
+      // `running` / `complete` status, tmux session, or story id is stale
+      // by definition (the binary that wrote it is gone). The
+      // restoreForRepo overlay in WorkflowBuilder layers live exec state
+      // back on top when an actual execution is in flight.
+      status: 'pending',
       config: n.config ?? {},
-      tmuxTarget: n.tmuxTarget || '',
-      storyId: n.storyId || '',
-      storyStatus: n.storyStatus || '',
+      tmuxTarget: '',
+      storyId: '',
+      storyStatus: '',
     },
   }));
 }

@@ -393,7 +393,14 @@
           />
         {/if}
 
-        {#if !hideLayer1Widget}
+      </div>
+
+      {#if !hideLayer1Widget && shape}
+        <!-- Lifted out of .modal-body so the input + Send stay visible
+             when the AST/markdown content above scrolls past the fold.
+             Without this, a long Haiku translation pushes the textarea
+             below the visible viewport and the user sees only Cancel. -->
+        <div class="modal-widget-dock" data-testid="input-modal-widget-dock">
           {#if shape === 'free'}
             <FreeTextWidget
               {prompt}
@@ -436,12 +443,11 @@
               on:submit={onWidgetSubmit}
             />
           {/if}
-        {/if}
-
-        {#if prompt.helpText}
-          <div class="help-text" data-testid="input-modal-help">{prompt.helpText}</div>
-        {/if}
-      </div>
+          {#if prompt.helpText}
+            <div class="help-text" data-testid="input-modal-help">{prompt.helpText}</div>
+          {/if}
+        </div>
+      {/if}
 
       {#if effectiveError}
         <div class="error-bar" data-testid="input-modal-error">
@@ -576,6 +582,16 @@
   }
 
   .modal-body.editor { min-height: var(--modal-height-editor); }
+
+  .modal-widget-dock {
+    flex-shrink: 0;
+    padding: var(--sp-md) var(--sp-lg);
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+  }
 
   .prompt-block {
     margin: 0;

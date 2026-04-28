@@ -46,7 +46,7 @@ func TestU1_AC4_MashedConfig_LegacyLoad_DefaultsApplied(t *testing.T) {
 	assert.True(t, cfg.UIAdapterEnabled, "missing uiAdapterEnabled must default TRUE (2026-04-21 user decision)")
 	assert.True(t, cfg.OllamaEnabled, "missing ollamaEnabled must default TRUE (2026-04-21 user decision)")
 	assert.Equal(t, "gemma3:4b", cfg.OllamaModel, "missing ollamaModel must default to gemma3:4b (§4.5)")
-	assert.Equal(t, 3000, cfg.UIAdapterTimeoutMs, "missing uiAdapterTimeoutMs must default to 3000 (§4.4)")
+	assert.Equal(t, 30000, cfg.UIAdapterTimeoutMs, "missing uiAdapterTimeoutMs must default to 30000ms (raised from 3000ms to cover Ollama gemma3:4b cold-load + generation)")
 }
 
 // Explicit opt-out must survive the default-fill pass — otherwise a user who
@@ -68,7 +68,7 @@ func TestU1_AC4_MashedConfig_MalformedJSON_ReturnsDefaults(t *testing.T) {
 	assert.True(t, cfg.UIAdapterEnabled, "malformed config must fall back to enabled-by-default")
 	assert.True(t, cfg.OllamaEnabled)
 	assert.Equal(t, "gemma3:4b", cfg.OllamaModel)
-	assert.Equal(t, 3000, cfg.UIAdapterTimeoutMs)
+	assert.Equal(t, 30000, cfg.UIAdapterTimeoutMs)
 }
 
 // Missing config file (fresh install) must return defaults, not zero values.
@@ -79,7 +79,7 @@ func TestU1_AC4_MashedConfig_MissingFile_ReturnsDefaults(t *testing.T) {
 	assert.True(t, cfg.UIAdapterEnabled)
 	assert.True(t, cfg.OllamaEnabled)
 	assert.Equal(t, "gemma3:4b", cfg.OllamaModel)
-	assert.Equal(t, 3000, cfg.UIAdapterTimeoutMs)
+	assert.Equal(t, 30000, cfg.UIAdapterTimeoutMs)
 }
 
 // M1 (security): a hand-edited config.json must not bypass the binding-layer

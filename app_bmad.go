@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -274,9 +275,26 @@ func (a *App) GetBmadCurrentExecution(repoPath string) (*bmad.WorkflowExecution,
 	// return happens first — the UI subscribes on mount and would miss
 	// events fired before the bindings resolve.
 	if len(exec.PendingPrompts) > 0 {
-		prompts := append([]bmad.PendingPrompt(nil), exec.PendingPrompts...)
+		execID := exec.ID
 		go func() {
+			// Re-run the adapter against each persisted LastOutput so a
+			// server restart picks up newly-installed Ollama models / a
+			// recovered network and replaces stale fallback ASTs in place.
+			// Mutates exec.PendingPrompts in place via the shared backing
+			// array stored on the rehydrated execState. No-ops when the
+			// adapter is nil or every prompt is already fresh.
+			a.bmadExecutor.RefreshPendingStructured(context.Background(), execID)
+
+			// Snapshot AFTER refresh so the emit sees the freshened
+			// Structured + Shape values.
+			prompts := append([]bmad.PendingPrompt(nil), exec.PendingPrompts...)
 			for _, p := range prompts {
+				// Backfill ExecID for prompts persisted before the field
+				// existed so the frontend always has a valid execId on
+				// re-emit. New prompts already carry it from suspendForSpec.
+				if p.ExecID == "" {
+					p.ExecID = execID
+				}
 				a.emitEvent("bmad:node:awaiting_input", p)
 			}
 		}()
