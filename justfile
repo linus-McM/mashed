@@ -188,6 +188,25 @@ lint:
     go vet ./...
     cd frontend && npm run check
 
+# Quality gate: build + vet + test + race + frontend typecheck. Pass = green for commit.
+# Used by sprint-watchdog hook + team-sprint Phase 5 pre-flight.
+qg:
+    @echo "[qg] go build"
+    @go build ./...
+    @echo "[qg] go vet"
+    @go vet ./...
+    @echo "[qg] go test"
+    @go test -tags testing ./internal/... -count=1
+    @echo "[qg] go test -race"
+    @go test -tags testing ./internal/... -race -count=1 -short
+    @echo "[qg] svelte-check"
+    @cd frontend && npx svelte-check --threshold error --fail-on-warnings=false
+    @echo "[qg] PASS"
+
+# Quick variant: skip race + svelte-check. Used by watchdog between agent handoffs.
+qg-quick:
+    @go build ./... && go vet ./... && go test -tags testing ./internal/... -count=1 -short
+
 # Install lefthook git hooks
 hooks-install:
     lefthook install --force
