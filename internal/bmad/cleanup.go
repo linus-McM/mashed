@@ -21,15 +21,12 @@ import (
 func (e *Executor) CleanupStaleSessions(ctx context.Context) error {
 	out, listErr := e.runCmd(ctx, "tmux", "list-sessions", "-F", "#{session_name}")
 	if listErr != nil {
-		// tmux exits non-zero AND prints "no server running" when there is
-		// no daemon. Match err string OR captured output to be robust to
-		// combined-output vs separate-stream runners.
-		if strings.Contains(listErr.Error(), "no server running") || strings.Contains(string(out), "no server running") {
+		if isNoTmuxServer(listErr.Error()) || isNoTmuxServer(string(out)) {
 			return nil
 		}
 		return fmt.Errorf("bmad cleanup: list-sessions: %w", listErr)
 	}
-	if strings.Contains(string(out), "no server running") {
+	if isNoTmuxServer(string(out)) {
 		return nil
 	}
 
@@ -55,6 +52,15 @@ func (e *Executor) CleanupStaleSessions(ctx context.Context) error {
 		return fmt.Errorf("bmad cleanup: %w", errors.Join(killErrs...))
 	}
 	return nil
+}
+
+// isNoTmuxServer reports whether the supplied tmux output/error indicates that
+// no tmux daemon is running. tmux's wording differs by platform: Linux prints
+// "no server running on <socket>" while macOS prints
+// "error connecting to <socket> (No such file or directory)".
+func isNoTmuxServer(s string) bool {
+	return strings.Contains(s, "no server running") ||
+		strings.Contains(s, "error connecting to")
 }
 
 // liveSessionNames returns the bare tmux session names referenced by tracked
