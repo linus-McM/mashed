@@ -223,15 +223,11 @@
             localTerm.write(raw);
           };
 
-          // After scroll buffer replay + resize propagation, send Ctrl+L to
-          // trigger a clean redraw. The replay may contain output formatted
-          // for different dimensions — Ctrl+L makes the running application
-          // (shell, Claude Code, etc.) repaint at the correct size.
-          setTimeout(() => {
-            if (localWs.readyState === WebSocket.OPEN) {
-              localWs.send(new TextEncoder().encode('\x0c'));
-            }
-          }, 200);
+          // NOTE: previously sent Ctrl+L (\x0c) here as a "redraw nudge", but
+          // for fresh sessions claude/zsh hadn't finished init by the time it
+          // arrived — it landed in the input buffer and got echoed as a literal
+          // `^L` glyph. Resize SIGWINCH already triggers a clean repaint, so
+          // the nudge isn't needed.
 
           // Listen for screenshot path injection scoped to this terminal's pane
           if (unsubScreenshot) unsubScreenshot();
