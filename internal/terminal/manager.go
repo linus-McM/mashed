@@ -77,11 +77,12 @@ func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath strin
 		rows = 24
 	}
 
+	env := applyLoginPATH(append(os.Environ(), "TERM=xterm-256color"))
 	ptmx, pid, err := sm.helperClient.Spawn(ctx, helper.SpawnRequest{
 		ID:    name,
-		Shell: parts[0],
+		Shell: resolveExecutable(parts[0]),
 		Args:  parts[1:],
-		Env:   append(os.Environ(), "TERM=xterm-256color"),
+		Env:   env,
 		Cwd:   repoPath,
 		Cols:  cols,
 		Rows:  rows,
