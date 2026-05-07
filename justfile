@@ -56,6 +56,25 @@ build: build-helper
     codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app/Contents/MacOS/mashed-pty-helper"
     codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app"
 
+# Package the signed .app into a distributable DMG via hdiutil. Output:
+# build/bin/mashed-<version>.dmg. Requires `just build` first. Uses an
+# UDZO-compressed read-only image with a /Applications symlink so the
+# user can drag-and-drop install.
+dmg: build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION=$(git describe --tags --always --dirty 2>/dev/null || date +%Y%m%d-%H%M)
+    OUT="build/bin/mashed-${VERSION}.dmg"
+    STAGE="$(mktemp -d)/dmg"
+    mkdir -p "$STAGE"
+    cp -R build/bin/mashed.app "$STAGE/"
+    ln -s /Applications "$STAGE/Applications"
+    rm -f "$OUT"
+    hdiutil create -volname "mashed" -srcfolder "$STAGE" -ov -format UDZO "$OUT"
+    rm -rf "$STAGE"
+    codesign --force --sign "Apple Development: linus McManamey (5X8A9U965U)" "$OUT"
+    echo "DMG: $OUT"
+
 # Run Go tests. -tags testing compiles files behind //go:build testing
 # (MockAdapter + adapter/flatten/gate tests for ui-ast-U4). Without the
 # tag, those _test.go files are silently excluded from the build list.
