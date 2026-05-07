@@ -96,17 +96,34 @@
     void conditionalValues;
     void textValues;
     void repoPath;
-    return buildCommand();
+    return buildCommand({ withCd: false });
+  })();
+
+  // Display-only variant with `cd <path> &&` prefix for the preview pane.
+  // The exec command above must NOT include the cd prefix — backend tokenises
+  // with strings.Fields and execs parts[0] directly, so `cd` would run as
+  // /usr/bin/cd (a no-op stub) and immediately exit, killing the PTY.
+  $: displayCommand = (() => {
+    void model;
+    void permissionMode;
+    void effort;
+    void outputFormat;
+    void toggles;
+    void conditionalEnabled;
+    void conditionalValues;
+    void textValues;
+    void repoPath;
+    return buildCommand({ withCd: true });
   })();
 
   $: isOpus = model.includes('opus');
 
-  function buildCommand() {
+  /** @param {{ withCd: boolean }} opts */
+  function buildCommand(opts) {
     const parts = [];
 
-    // Full statement: cd into the repo, then launch claude.
-    // Paths with spaces get quoted so the preview is copy-pasteable.
-    if (repoPath) {
+    // The cd prefix is preview-only. Backend already sets cwd via repoPath.
+    if (opts.withCd && repoPath) {
       const safePath = /\s/.test(repoPath) ? `"${repoPath}"` : repoPath;
       parts.push(`cd ${safePath} &&`);
     }
@@ -431,7 +448,7 @@
     <!-- Sticky footer: command preview + actions -->
     <footer class="modal-footer">
       <div class="command-preview-pane">
-        <pre class="command-preview"><span class="command-prompt">$ </span>{command}</pre>
+        <pre class="command-preview"><span class="command-prompt">$ </span>{displayCommand}</pre>
       </div>
       <div class="actions">
         <button class="btn-cancel" on:click={cancel}>Cancel</button>
