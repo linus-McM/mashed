@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -18,6 +19,11 @@ import (
 // initScanning starts all background goroutines for a given dev directory.
 // Returns an error if the provider fails to initialize so callers can react.
 func (a *App) initScanning(devDir string) error {
+	// Canonicalize devDir so the symlink-vs-real-path comparison in doScan
+	// (line ~108) matches what `git rev-parse --show-toplevel` returns.
+	if resolved, err := filepath.EvalSymlinks(devDir); err == nil {
+		devDir = resolved
+	}
 	a.devDir = devDir
 
 	provider, err := scanner.NewClaudeCodeProvider(devDir)

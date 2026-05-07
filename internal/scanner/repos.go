@@ -69,6 +69,14 @@ func (rs *RepoScanner) ScanRepos(agents map[string][]domain.AgentSession) ([]dom
 			continue
 		}
 
+		// Resolve symlinks so repoPath matches what `git rev-parse --show-toplevel`
+		// returns elsewhere in the app (canonical path). Without this, agents
+		// scanned by PID get a canonical RepoPath that never matches a symlink-form
+		// RepoInfo.Path, breaking the project detail view.
+		if resolved, err := filepath.EvalSymlinks(repoPath); err == nil {
+			repoPath = resolved
+		}
+
 		info, err := rs.getRepoInfo(repoPath)
 		if err != nil {
 			continue // skip non-git dirs silently
