@@ -184,6 +184,18 @@
         return false;
       }
 
+      // Cmd+K — wipe xterm scrollback + ask the running app to redraw.
+      // Clears the visible artifacts that scrollback accumulates when the
+      // PTY has been resized (claude/zsh repaint at the new size but old
+      // frames remain in history).
+      if (isMeta && ev.key === 'k') {
+        localTerm.clear();
+        if (ws && ws.readyState === WebSocket.OPEN && paneTarget) {
+          ws.send(new TextEncoder().encode('\x0c'));
+        }
+        return false;
+      }
+
       return true;
     });
 
