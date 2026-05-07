@@ -58,7 +58,7 @@ func TestSessionManager_NilClient_SpawnReturnsErrHelperNotRunning(t *testing.T) 
 	sm := NewSessionManager(nil)
 	defer sm.Shutdown()
 
-	ms, err := sm.Spawn(context.Background(), "test", t.TempDir(), "")
+	ms, err := sm.Spawn(context.Background(), "test", t.TempDir(), "", 0, 0)
 	assert.Nil(t, ms)
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, ErrHelperNotRunning),
@@ -69,7 +69,7 @@ func TestSessionManager_NilClient_SpawnWithCommand(t *testing.T) {
 	sm := NewSessionManager(nil)
 	defer sm.Shutdown()
 
-	ms, err := sm.Spawn(context.Background(), "test", t.TempDir(), "echo hello")
+	ms, err := sm.Spawn(context.Background(), "test", t.TempDir(), "echo hello", 0, 0)
 	assert.Nil(t, ms)
 	assert.ErrorIs(t, err, ErrHelperNotRunning)
 }
@@ -178,7 +178,7 @@ func TestSessionManager_DuplicateName(t *testing.T) {
 
 	// With nil client, Spawn returns ErrHelperNotRunning before reaching
 	// duplicate check. Verify the session is still unaffected.
-	dup, err := sm.Spawn(context.Background(), "dup", t.TempDir(), "")
+	dup, err := sm.Spawn(context.Background(), "dup", t.TempDir(), "", 0, 0)
 	assert.Nil(t, dup)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, ErrHelperNotRunning)

@@ -12,6 +12,7 @@
   import NewSessionModal from './NewSessionModal.svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
   import { addSession, makeSession } from '../lib/stores/sessions';
+  import { estimatePtySize } from '../lib/ptySize';
   import SparkLine from '../components/SparkLine.svelte';
   import type { StatusToken } from '../types/status';
   import { REPO_BORDER_PALETTE, REPO_BORDER_NONE } from '../lib/repoPalette';
@@ -486,7 +487,8 @@
     sessionModalRepo = null;
     spawningRepo = repoPath;
     try {
-      const target = await SpawnAgentWithCommand(repoPath, command);
+      const { cols, rows } = estimatePtySize();
+      const target = await SpawnAgentWithCommand(repoPath, command, cols, rows);
       const repoName = repoNameFromDir(repoPath);
       addSession(repoPath, makeSession(target, repoPath, repoName, 'agent', model));
       const agent: NotificationEntry = {
@@ -523,7 +525,8 @@
     if (spawningTerminal) return;
     spawningTerminal = repo.path;
     try {
-      const target = await SpawnTerminal(repo.path);
+      const { cols, rows } = estimatePtySize();
+      const target = await SpawnTerminal(repo.path, cols, rows);
       addSession(repo.path, makeSession(target, repo.path, repo.name, 'terminal', ''));
       const termSession: NotificationEntry = {
         agentId: `term-${Date.now()}`,

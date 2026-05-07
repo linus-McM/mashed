@@ -357,7 +357,7 @@ func (a *App) SpawnRefactorPlan(repoPath, adviceText string, filePaths []string)
 
 	defaultModel := domain.DefaultAlias(a.ListModels())
 	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s -p %q", defaultModel, prompt)
-	_, err := a.spawnSession("refactor", repoPath, cmd, domain.SessionAgent, defaultModel)
+	_, err := a.spawnSession("refactor", repoPath, cmd, domain.SessionAgent, defaultModel, 0, 0)
 	if err != nil {
 		return "", fmt.Errorf("spawn refactor plan agent: %w", err)
 	}

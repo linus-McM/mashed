@@ -4,6 +4,7 @@
   import { cubicOut } from 'svelte/easing';
   import { ListRepoChoices, SpawnAgent, ListModels } from '../../wailsjs/go/main/App.js';
   import { errorMessage } from '../lib/errorMessage';
+  import { estimatePtySize } from '../lib/ptySize';
   import type { RepoChoice } from '../lib/types/wails';
 
   /** Narrowed option entry for the model dropdown. */
@@ -52,7 +53,8 @@
     spawning = true;
     error = '';
     try {
-      const target = await SpawnAgent(selectedRepo.path, model);
+      const { cols, rows } = estimatePtySize();
+      const target = await SpawnAgent(selectedRepo.path, model, cols, rows);
       dispatch('spawned', { target, repo: selectedRepo, model });
     } catch (e) {
       error = errorMessage(e) || 'Failed to spawn agent';

@@ -34,7 +34,7 @@ type paneDiscoverer interface {
 
 // sessionManager abstracts PTY session lifecycle for testability.
 type sessionManager interface {
-	Spawn(ctx context.Context, name, repoPath, command string) (*terminal.ManagedSession, error)
+	Spawn(ctx context.Context, name, repoPath, command string, cols, rows uint16) (*terminal.ManagedSession, error)
 	Kill(name string) error
 	IsAlive(name string) bool
 	FindByPID(pid int) (*terminal.ManagedSession, bool)

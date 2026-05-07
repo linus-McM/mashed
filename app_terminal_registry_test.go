@@ -59,7 +59,7 @@ func newFakeManager(aliveNames ...string) *fakeSessionManager {
 	return m
 }
 
-func (f *fakeSessionManager) Spawn(_ context.Context, name, _, _ string) (*terminal.ManagedSession, error) {
+func (f *fakeSessionManager) Spawn(_ context.Context, name, _, _ string, _, _ uint16) (*terminal.ManagedSession, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.alive[name] = true

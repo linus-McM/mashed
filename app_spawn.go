@@ -15,12 +15,13 @@ import (
 // spawnSession creates a new managed PTY session with the given prefix, working
 // directory, and optional shell command. It returns the session name.
 // If command is empty, the session starts the user's default shell.
-func (a *App) spawnSession(prefix, repoPath, command string, sessionType domain.SessionType, model string) (string, error) {
+// cols/rows set the initial PTY winsize; 0 falls back to defaults (80x24).
+func (a *App) spawnSession(prefix, repoPath, command string, sessionType domain.SessionType, model string, cols, rows uint16) (string, error) {
 	now := time.Now()
 	repoName := repoNameFromDir(repoPath)
 	sessionName := fmt.Sprintf("%s-%s-%d", prefix, repoName, now.Unix())
 
-	if _, err := a.manager.Spawn(a.ctx, sessionName, repoPath, command); err != nil {
+	if _, err := a.manager.Spawn(a.ctx, sessionName, repoPath, command, cols, rows); err != nil {
 		return "", fmt.Errorf("spawn session failed: %w", err)
 	}
 
@@ -43,7 +44,9 @@ func (a *App) spawnSession(prefix, repoPath, command string, sessionType domain.
 
 // SpawnAgent starts a new Claude session in a managed PTY for the given repo.
 // Returns the session name for the terminal bridge.
-func (a *App) SpawnAgent(repoPath string, model string) (string, error) {
+// cols/rows set the initial PTY winsize so claude's first paint matches the
+// frontend viewport; 0 means use the helper defaults.
+func (a *App) SpawnAgent(repoPath string, model string, cols, rows uint16) (string, error) {
 	if repoPath == "" {
 		return "", fmt.Errorf("empty repo path")
 	}
@@ -51,25 +54,25 @@ func (a *App) SpawnAgent(repoPath string, model string) (string, error) {
 		model = domain.DefaultAlias(a.ListModels())
 	}
 	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s", model)
-	return a.spawnSession("mashed", repoPath, cmd, domain.SessionAgent, model)
+	return a.spawnSession("mashed", repoPath, cmd, domain.SessionAgent, model, cols, rows)
 }
 
 // SpawnAgentWithCommand starts a Claude session using a fully built CLI command.
 // Returns the session name.
-func (a *App) SpawnAgentWithCommand(repoPath, command string) (string, error) {
+func (a *App) SpawnAgentWithCommand(repoPath, command string, cols, rows uint16) (string, error) {
 	if repoPath == "" || command == "" {
 		return "", fmt.Errorf("repo path and command are required")
 	}
-	return a.spawnSession("mashed", repoPath, command, domain.SessionAgent, "")
+	return a.spawnSession("mashed", repoPath, command, domain.SessionAgent, "", cols, rows)
 }
 
 // SpawnTerminal starts a plain shell PTY session in the given repo directory.
 // Returns the session name for the terminal bridge.
-func (a *App) SpawnTerminal(repoPath string) (string, error) {
+func (a *App) SpawnTerminal(repoPath string, cols, rows uint16) (string, error) {
 	if repoPath == "" {
 		return "", fmt.Errorf("empty repo path")
 	}
-	return a.spawnSession("term", repoPath, "", domain.SessionTerminal, "")
+	return a.spawnSession("term", repoPath, "", domain.SessionTerminal, "", cols, rows)
 }
 
 // GetAgentLog returns the parsed log lines for an agent's latest session.

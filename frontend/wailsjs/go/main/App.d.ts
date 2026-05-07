@@ -211,15 +211,15 @@ export function SetUIAdapterUntrustedExpanded(arg1:boolean):Promise<void>;
 
 export function SetVSCodiumExtPath(arg1:string):Promise<void>;
 
-export function SpawnAgent(arg1:string,arg2:string):Promise<string>;
+export function SpawnAgent(arg1:string,arg2:string,arg3:number,arg4:number):Promise<string>;
 
-export function SpawnAgentWithCommand(arg1:string,arg2:string):Promise<string>;
+export function SpawnAgentWithCommand(arg1:string,arg2:string,arg3:number,arg4:number):Promise<string>;
 
 export function SpawnPRReview(arg1:string):Promise<string>;
 
 export function SpawnRefactorPlan(arg1:string,arg2:string,arg3:Array<string>):Promise<string>;
 
-export function SpawnTerminal(arg1:string):Promise<string>;
+export function SpawnTerminal(arg1:string,arg2:number,arg3:number):Promise<string>;
 
 export function StartBmadWorkflow(arg1:string,arg2:string,arg3:string):Promise<string>;
 

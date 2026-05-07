@@ -123,7 +123,7 @@ func TestBridge_AC2_WSRoutesToSession(t *testing.T) {
 
 	sm, b := startBridgeWithManager(t, ctx)
 
-	_, err := sm.Spawn(ctx, "test-sess", t.TempDir(), "echo hello-bridge && cat")
+	_, err := sm.Spawn(ctx, "test-sess", t.TempDir(), "echo hello-bridge && cat", 0, 0)
 	require.NoError(t, err, "Spawn should succeed")
 
 	time.Sleep(outputSettleTime)
@@ -242,7 +242,7 @@ func TestBridge_AC5_MultipleClients(t *testing.T) {
 
 	sm, b := startBridgeWithManager(t, ctx)
 
-	_, err := sm.Spawn(ctx, "shared", t.TempDir(), "cat")
+	_, err := sm.Spawn(ctx, "shared", t.TempDir(), "cat", 0, 0)
 	require.NoError(t, err, "Spawn should succeed")
 	time.Sleep(outputSettleTime)
 

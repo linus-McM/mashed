@@ -12,6 +12,7 @@
   import MergeModal from './MergeModal.svelte';
   import ForcePushModal from './ForcePushModal.svelte';
   import { errorMessage } from '../lib/errorMessage';
+  import { estimatePtySize } from '../lib/ptySize';
 
   /** @type {import('svelte').EventDispatcher<{ back: void }>} */
   const dispatch = createEventDispatcher();
@@ -133,7 +134,8 @@
   }
 
   async function spawnNewTerminal() {
-    const target = await SpawnTerminal(agent.repoPath);
+    const { cols, rows } = estimatePtySize();
+    const target = await SpawnTerminal(agent.repoPath, cols, rows);
     pendingPaneTarget = target;
   }
 

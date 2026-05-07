@@ -414,12 +414,12 @@ export function SetVSCodiumExtPath(arg1) {
   return window['go']['main']['App']['SetVSCodiumExtPath'](arg1);
 }
 
-export function SpawnAgent(arg1, arg2) {
-  return window['go']['main']['App']['SpawnAgent'](arg1, arg2);
+export function SpawnAgent(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['SpawnAgent'](arg1, arg2, arg3, arg4);
 }
 
-export function SpawnAgentWithCommand(arg1, arg2) {
-  return window['go']['main']['App']['SpawnAgentWithCommand'](arg1, arg2);
+export function SpawnAgentWithCommand(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['SpawnAgentWithCommand'](arg1, arg2, arg3, arg4);
 }
 
 export function SpawnPRReview(arg1) {
@@ -430,8 +430,8 @@ export function SpawnRefactorPlan(arg1, arg2, arg3) {
   return window['go']['main']['App']['SpawnRefactorPlan'](arg1, arg2, arg3);
 }
 
-export function SpawnTerminal(arg1) {
-  return window['go']['main']['App']['SpawnTerminal'](arg1);
+export function SpawnTerminal(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SpawnTerminal'](arg1, arg2, arg3);
 }
 
 export function StartBmadWorkflow(arg1, arg2, arg3) {
