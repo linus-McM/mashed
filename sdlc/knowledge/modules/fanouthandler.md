@@ -1,13 +1,13 @@
 ---
 type: Module
 title: fanoutHandler
-description: "Graphify community 450: internal/uiadapter/logging.go"
+description: "Graphify community 400: internal/uiadapter/logging.go"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: logging, resource: internal/uiadapter/logging.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f7d1f46bdb4ea215 }
 ---

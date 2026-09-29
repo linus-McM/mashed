@@ -1,19 +1,21 @@
 ---
 type: Module
 title: App
-description: "Graphify community 63: app_git.go"
-resource: .
+description: "Graphify community 63: app_git.go, readfilebase64_test.go"
+resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: app_git, resource: app_git.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 6abf9d08d507b1db }
+  - { id: readfilebase64_test, resource: readfilebase64_test.go, last_modified: "2026-04-09T11:58:53+10:00", digest: 82165929a5efaa1e }
 ---
 
 # Files
 - `app_git.go`
+- `readfilebase64_test.go`
 
 # Symbols
 - .GitListBranches() (app_git.go:L172)
@@ -36,17 +38,18 @@ sources:
 - .ListRepoFiles() (app_git.go:L734)
 - .WriteFile() (app_git.go:L757)
 - .ReadFile() (app_git.go:L765)
+- mimeForExt() (app_git.go:L783)
+- .ReadFileBase64() (app_git.go:L805)
 - .CreateRepo() (app_git.go:L82)
 - .ReadFileDiff() (app_git.go:L828)
 - .ReadFileAtHead() (app_git.go:L847)
 - .MarkRead() (app_git.go:L863)
-- .SpawnPRReview() (app_git.go:L876)
+- TestReadFileBase64_AC2_MimeTypes() (readfilebase64_test.go:L40)
 
 # Depends on
 - [claudeCommand](/modules/claudecommand.md)
-- [mimeForExt](/modules/mimeforext.md)
+- [diff.go](/modules/diff-go.md)
 - [ModelInfo](/modules/modelinfo.md)
-- [ScopedDiff](/modules/scopeddiff.md)
 - [worktree.go](/modules/worktree-go.md)
 
 # Inferred

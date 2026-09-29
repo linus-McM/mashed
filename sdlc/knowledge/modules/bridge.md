@@ -5,9 +5,9 @@ description: "Graphify community 129: internal/terminal/bridge.go, internal/term
 resource: internal/terminal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: bridge, resource: internal/terminal/bridge.go, last_modified: "2026-04-11T19:45:53+10:00", digest: a42cec584372611b }
   - { id: bridge_test, resource: internal/terminal/bridge_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: b13529690aa8d966 }
@@ -29,10 +29,16 @@ sources:
 - TmuxAttacher (internal/terminal/bridge.go:L78)
 - Bridge (internal/terminal/bridge.go:L85)
 - NewBridge() (internal/terminal/bridge.go:L99)
+- TestBridge_AC2_WSRoutesToSession() (internal/terminal/bridge_test.go:L112)
+- TestBridge_AC5_MultipleClients() (internal/terminal/bridge_test.go:L231)
 - TestBridge_StopIdempotent() (internal/terminal/bridge_test.go:L327)
+- startBridgeWithManager() (internal/terminal/bridge_test.go:L39)
+- dialBridgeWS() (internal/terminal/bridge_test.go:L58)
+- readWSMessage() (internal/terminal/bridge_test.go:L74)
 - TestBridge_AC1_NewBridgeWithManager() (internal/terminal/bridge_test.go:L86)
 
 # Depends on
+- [bridge_test.go](/modules/bridge-test-go.md)
 - [ManagedSession](/modules/managedsession.md)
 
 # Inferred

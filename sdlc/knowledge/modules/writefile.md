@@ -1,15 +1,14 @@
 ---
 type: Module
 title: WriteFile
-description: "Graphify community 73: docs/feasibility-multi-editor.md, docs/plans/repo-health-remediation.md, docs/stories/old_stories/meditor-02-readfilebase64-binding.md, docs/stories/old_stories/meditor-04-markd"
+description: "Graphify community 73: docs/plans/repo-health-remediation.md, docs/stories/old_stories/meditor-02-readfilebase64-binding.md, docs/stories/old_stories/meditor-04-markdown-editor.md, frontend/wailsjs/go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
-  - { id: feasibility-multi-editor, resource: docs/feasibility-multi-editor.md, last_modified: "2026-04-09T21:06:37+10:00", digest: d1cc54cadf1483b3 }
   - { id: repo-health-remediation, resource: docs/plans/repo-health-remediation.md, last_modified: "2026-09-29T06:03:48Z", digest: f5a96b797d990d0e }
   - { id: meditor-02-readfilebase64-binding, resource: docs/stories/old_stories/meditor-02-readfilebase64-binding.md, last_modified: "2026-04-12T10:43:48+10:00", digest: c3e539f11ac58af8 }
   - { id: meditor-04-markdown-editor, resource: docs/stories/old_stories/meditor-04-markdown-editor.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 2c11f30e526240e8 }
@@ -17,17 +16,12 @@ sources:
 ---
 
 # Files
-- `docs/feasibility-multi-editor.md`
 - `docs/plans/repo-health-remediation.md`
 - `docs/stories/old_stories/meditor-02-readfilebase64-binding.md`
 - `docs/stories/old_stories/meditor-04-markdown-editor.md`
 - `frontend/wailsjs/go/main/App.js`
 
 # Symbols
-- 6. Implementation Phases (docs/feasibility-multi-editor.md:L257)
-- Phase 1: EditorRouter + Image Viewer (Low risk, high impact) (docs/feasibility-multi-editor.md:L259)
-- Phase 2: Markdown Editor with Crepe (Medium risk, medium effort) (docs/feasibility-multi-editor.md:L267)
-- Phase 3: Polish & Edge Cases (docs/feasibility-multi-editor.md:L276)
 - Phase 1 — Security *(P0)* (docs/plans/repo-health-remediation.md:L30)
 - Task 1.1 — Lock down the terminal WebSocket (docs/plans/repo-health-remediation.md:L32)
 - Task 1.2 — Stop git option injection (docs/plans/repo-health-remediation.md:L39)
@@ -38,6 +32,7 @@ sources:
 - Technical Considerations (docs/stories/old_stories/meditor-02-readfilebase64-binding.md:L21)
 - Risks & Edge Cases (docs/stories/old_stories/meditor-02-readfilebase64-binding.md:L28)
 - Reference Files (docs/stories/old_stories/meditor-02-readfilebase64-binding.md:L34)
+- meditor-04-markdown-editor.md (docs/stories/old_stories/meditor-04-markdown-editor.md:L1)
 - Story 4: MarkdownEditor with Milkdown Crepe WYSIWYG (docs/stories/old_stories/meditor-04-markdown-editor.md:L1)
 - Scenario 2: Auto-save behavior (docs/stories/old_stories/meditor-04-markdown-editor.md:L117)
 - Developer Notes (docs/stories/old_stories/meditor-04-markdown-editor.md:L13)
@@ -63,6 +58,7 @@ sources:
 - [ReadFileBase64](/modules/readfilebase64.md)
 - [StreamAdvice](/modules/streamadvice.md)
 - [themeInit.js](/modules/themeinit-js.md)
+- [uiAdapterSettings.ts](/modules/uiadaptersettings-ts.md)
 
 # Features
 - no feature plan names these files

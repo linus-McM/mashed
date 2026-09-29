@@ -1,13 +1,13 @@
 ---
 type: Module
 title: ui-ast-view-raw.spec.ts
-description: "Graphify community 441: docs/stories/ui-ast-U8-view-raw-diagnostics.md, frontend/src/components/titlebar/DynamicUiSelector.svelte, tests/ac/ui-ast-view-raw.spec.ts"
+description: "Graphify community 322: docs/stories/ui-ast-U8-view-raw-diagnostics.md, frontend/src/components/titlebar/DynamicUiSelector.svelte, tests/ac/ui-ast-view-raw.spec.ts"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: ui-ast-U8-view-raw-diagnostics, resource: docs/stories/ui-ast-U8-view-raw-diagnostics.md, last_modified: "2026-04-22T12:56:23+10:00", digest: 5f903d3926d8d0e0 }
   - { id: DynamicUiSelector, resource: frontend/src/components/titlebar/DynamicUiSelector.svelte, last_modified: "2026-04-23T13:17:59+10:00", digest: 5665ff6cccbc963c }

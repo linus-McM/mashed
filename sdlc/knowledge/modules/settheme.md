@@ -5,9 +5,9 @@ description: "Graphify community 74: docs/stories/old_stories/S03-config-persist
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: S03-config-persistence, resource: docs/stories/old_stories/S03-config-persistence.md, last_modified: "2026-04-08T10:23:03+10:00", digest: d2003a3ed0a69d86 }
   - { id: S05-settings-view, resource: docs/stories/old_stories/S05-settings-view.md, last_modified: "2026-04-08T10:23:03+10:00", digest: dac9b7a63edb9e0e }
@@ -65,8 +65,8 @@ sources:
 # Inferred
 - [applyTheme](/modules/applytheme.md)
 - [ReadFileBase64](/modules/readfilebase64.md)
-- [TakeScreenshot](/modules/takescreenshot.md)
 - [themeInit.js](/modules/themeinit-js.md)
+- [uiAdapterSettings.ts](/modules/uiadaptersettings-ts.md)
 - [WriteFile](/modules/writefile.md)
 
 # Features

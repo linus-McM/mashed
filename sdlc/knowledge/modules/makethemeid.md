@@ -1,17 +1,17 @@
 ---
 type: Module
 title: makeThemeId
-description: "Graphify community 123: docs/stories/old_stories/vsix-02-frontend-vsix-path-handling.md, docs/stories/old_stories/vsix-sprint-backlog.md, frontend/src/lib/themeInit.js"
+description: "Graphify community 138: docs/stories/old_stories/vsix-02-frontend-vsix-path-handling.md, docs/stories/old_stories/vsix-sprint-backlog.md, frontend/src/lib/themeInit.js"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T07:07:25Z" }
-stale_after: "2026-10-13T07:07:25Z"
-source_commit: ""
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
-  - { id: vsix-02-frontend-vsix-path-handling, resource: docs/stories/old_stories/vsix-02-frontend-vsix-path-handling.md, last_modified: "2026-09-29T07:07:25Z", digest: 26f44fbbb6ff8bbb }
-  - { id: vsix-sprint-backlog, resource: docs/stories/old_stories/vsix-sprint-backlog.md, last_modified: "2026-09-29T07:07:25Z", digest: 2453bfb7bf7a10fb }
-  - { id: themeInit, resource: frontend/src/lib/themeInit.js, last_modified: "2026-09-29T07:07:25Z", digest: 30161049c3a59f8f }
+  - { id: vsix-02-frontend-vsix-path-handling, resource: docs/stories/old_stories/vsix-02-frontend-vsix-path-handling.md, last_modified: "2026-04-08T10:23:03+10:00", digest: 26f44fbbb6ff8bbb }
+  - { id: vsix-sprint-backlog, resource: docs/stories/old_stories/vsix-sprint-backlog.md, last_modified: "2026-04-08T10:23:03+10:00", digest: 2453bfb7bf7a10fb }
+  - { id: themeInit, resource: frontend/src/lib/themeInit.js, last_modified: "2026-04-22T19:23:56+10:00", digest: 30161049c3a59f8f }
 ---
 
 # Files

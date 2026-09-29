@@ -1,24 +1,22 @@
 ---
 type: Module
 title: bmad/types.go
-description: "Graphify community 65: app_bmad.go, internal/bmad/executor.go, internal/bmad/interactive_types_test.go, internal/bmad/types.go"
+description: "Graphify community 65: app_bmad.go, internal/bmad/executor.go, internal/bmad/types.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: app_bmad, resource: app_bmad.go, last_modified: "2026-04-28T12:36:05+10:00", digest: fca7c61a439c150e }
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
-  - { id: interactive_types_test, resource: internal/bmad/interactive_types_test.go, last_modified: "2026-04-20T13:01:41+10:00", digest: 0282e550b6b93893 }
   - { id: types, resource: internal/bmad/types.go, last_modified: "2026-04-28T09:29:49+10:00", digest: 05a3e7d01f5f08c2 }
 ---
 
 # Files
 - `app_bmad.go`
 - `internal/bmad/executor.go`
-- `internal/bmad/interactive_types_test.go`
 - `internal/bmad/types.go`
 
 # Symbols
@@ -27,14 +25,12 @@ sources:
 - .SaveBmadAgent() (app_bmad.go:L316)
 - .GetControlFlowNodes() (app_bmad.go:L468)
 - ExecStatusEvent (internal/bmad/executor.go:L48)
-- TestConstantJSONValues() (internal/bmad/interactive_types_test.go:L460)
 - bmad/types.go (internal/bmad/types.go:L1)
 - InputSource (internal/bmad/types.go:L138)
 - InputShape (internal/bmad/types.go:L149)
 - InputSpec (internal/bmad/types.go:L161)
 - OutputTarget (internal/bmad/types.go:L178)
 - OutputSpec (internal/bmad/types.go:L187)
-- InteractionMode (internal/bmad/types.go:L196)
 - GateKind (internal/bmad/types.go:L213)
 - IterationGate (internal/bmad/types.go:L223)
 - NodeType (internal/bmad/types.go:L232)
@@ -57,8 +53,8 @@ sources:
 
 # Depends on
 - [App](/modules/app-76.md)
-- [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
 - [executor_command_test.go](/modules/executor-command-test-go.md)
+- [ProcessDef](/modules/processdef.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

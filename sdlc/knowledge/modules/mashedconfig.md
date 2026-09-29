@@ -1,14 +1,15 @@
 ---
 type: Module
 title: mashedConfig
-description: "Graphify community 133: docs/stories/breadcrumbs-09-ollama-settings-lifecycle.md, docs/stories/ui-ast-U1-ollama-client-config.md, frontend/wailsjs/go/main/App.js, frontend/wailsjs/go/models.ts"
+description: "Graphify community 133: docs/mashed-ui-ast-schema.md, docs/stories/breadcrumbs-09-ollama-settings-lifecycle.md, docs/stories/ui-ast-U1-ollama-client-config.md, frontend/wailsjs/go/main/App.js, fronten"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
+  - { id: mashed-ui-ast-schema, resource: docs/mashed-ui-ast-schema.md, last_modified: "2026-04-21T09:23:10+10:00", digest: 64818d2a93dc4aef }
   - { id: breadcrumbs-09-ollama-settings-lifecycle, resource: docs/stories/breadcrumbs-09-ollama-settings-lifecycle.md, last_modified: "2026-04-13T12:33:54+10:00", digest: 9bd7cd4c64d71466 }
   - { id: ui-ast-U1-ollama-client-config, resource: docs/stories/ui-ast-U1-ollama-client-config.md, last_modified: "2026-04-21T10:01:31+10:00", digest: 8ae3ba773fd23c32 }
   - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
@@ -16,12 +17,22 @@ sources:
 ---
 
 # Files
+- `docs/mashed-ui-ast-schema.md`
 - `docs/stories/breadcrumbs-09-ollama-settings-lifecycle.md`
 - `docs/stories/ui-ast-U1-ollama-client-config.md`
 - `frontend/wailsjs/go/main/App.js`
 - `frontend/wailsjs/go/models.ts`
 
 # Symbols
+- 4. The Ollama Adapter (docs/mashed-ui-ast-schema.md:L228)
+- 4.1 Pipeline position (docs/mashed-ui-ast-schema.md:L230)
+- 4.2 Package layout (docs/mashed-ui-ast-schema.md:L251)
+- 4.3 Adapter contract (docs/mashed-ui-ast-schema.md:L266)
+- 4.4 Configuration (docs/mashed-ui-ast-schema.md:L303)
+- 4.5 Model choice (docs/mashed-ui-ast-schema.md:L321)
+- 4.6 System prompt (sketch) (docs/mashed-ui-ast-schema.md:L337)
+- 4.7 Reliability layers (defence in depth) (docs/mashed-ui-ast-schema.md:L350)
+- 4.8 Failure modes (docs/mashed-ui-ast-schema.md:L364)
 - breadcrumbs-09-ollama-settings-lifecycle.md (docs/stories/breadcrumbs-09-ollama-settings-lifecycle.md:L1)
 - Story breadcrumbs-09: Ollama settings UI + lifecycle (DEFERRED) (docs/stories/breadcrumbs-09-ollama-settings-lifecycle.md:L1)
 - Description (docs/stories/breadcrumbs-09-ollama-settings-lifecycle.md:L11)
@@ -55,12 +66,13 @@ sources:
 - ListModels() (frontend/wailsjs/go/main/App.js:L221)
 - mashedConfig (frontend/wailsjs/go/models.ts:L1184)
 - .createFrom() (frontend/wailsjs/go/models.ts:L1204)
+- .constructor() (frontend/wailsjs/go/models.ts:L1208)
 
 # Depends on
 - [.convertValues](/modules/convertvalues.md)
 
 # Inferred
-- [ListOllamaModels](/modules/listollamamodels.md)
+- [uiAdapterSettings.ts](/modules/uiadaptersettings-ts.md)
 
 # Features
 - no feature plan names these files

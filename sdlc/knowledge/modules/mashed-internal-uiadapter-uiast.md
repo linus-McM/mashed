@@ -5,9 +5,9 @@ description: "Graphify community 25: internal/bmad/executor_adapter_test.go, int
 resource: internal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: executor_adapter_test, resource: internal/bmad/executor_adapter_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f79102c9f400d28f }
   - { id: stubs, resource: internal/uiadapter/backend/stubs.go, last_modified: "2026-04-23T11:09:52+10:00", digest: 60bb478e1146d7a5 }
@@ -15,7 +15,7 @@ sources:
   - { id: corpus_test, resource: internal/uiadapter/eval/corpus_test.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 2df8e716d6d0fee2 }
   - { id: scorecard, resource: internal/uiadapter/eval/scorecard.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 478867f290bdf6a9 }
   - { id: scorecard_test, resource: internal/uiadapter/eval/scorecard_test.go, last_modified: "2026-04-22T14:13:03+10:00", digest: c10507f5ef6c8f7b }
-  - { id: eval_test, resource: internal/uiadapter/eval_test.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 170e442f3eb11320 }
+  - { id: prompt, resource: internal/uiadapter/prompt.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 07d009f8f445be65 }
 ---
 
 # Files
@@ -25,7 +25,7 @@ sources:
 - `internal/uiadapter/eval/corpus_test.go`
 - `internal/uiadapter/eval/scorecard.go`
 - `internal/uiadapter/eval/scorecard_test.go`
-- `internal/uiadapter/eval_test.go`
+- `internal/uiadapter/prompt.go`
 
 # Symbols
 - delayAdapter (internal/bmad/executor_adapter_test.go:L34)
@@ -62,13 +62,14 @@ sources:
 - astValidatorFailed() (internal/uiadapter/eval/scorecard_test.go:L53)
 - astMalformed() (internal/uiadapter/eval/scorecard_test.go:L62)
 - TestEval_Scorecard_Metrics() (internal/uiadapter/eval/scorecard_test.go:L72)
-- TestEval_FullCorpus_MeetsThresholds() (internal/uiadapter/eval_test.go:L52)
+- prompt.go (internal/uiadapter/prompt.go:L1)
+- PromptVersion() (internal/uiadapter/prompt.go:L17)
 
 # Depends on
-- [Config](/modules/config.md)
+- [claudeapi/client.go](/modules/claudeapi-client-go.md)
+- [log/slog.Logger](/modules/log-slog-logger.md)
 - [prompt_test.go](/modules/prompt-test-go.md)
-- [Scorecard](/modules/scorecard.md)
-- [testLogBuffer](/modules/testlogbuffer.md)
+- [time.Duration](/modules/time-duration.md)
 - [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Inferred

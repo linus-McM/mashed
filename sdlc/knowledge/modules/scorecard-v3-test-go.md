@@ -5,9 +5,9 @@ description: "Graphify community 391: internal/uiadapter/eval/scorecard_v3.go, i
 resource: internal/uiadapter/eval
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: scorecard_v3, resource: internal/uiadapter/eval/scorecard_v3.go, last_modified: "2026-04-23T11:36:37+10:00", digest: 43f9103bcabd6620 }
   - { id: scorecard_v3_test, resource: internal/uiadapter/eval/scorecard_v3_test.go, last_modified: "2026-04-23T11:36:37+10:00", digest: cd219473982ce8b5 }
@@ -31,7 +31,8 @@ sources:
 - TestShadowSampler_Extremes() (internal/uiadapter/eval/scorecard_v3_test.go:L99)
 
 # Depends on
-- [time.Duration](/modules/time-duration.md)
+- [ScorecardV3](/modules/scorecardv3.md)
+- [StubBackend](/modules/stubbackend.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

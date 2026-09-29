@@ -1,37 +1,27 @@
 ---
 type: Module
 title: bmad/registry_test.go
-description: "Graphify community 62: app_bmad.go, internal/bmad/executor_multifileloader_test.go, internal/bmad/registry.go, internal/bmad/registry_interactive_phase2_test.go, internal/bmad/registry_test.go, intern"
-resource: ""
+description: "Graphify community 62: internal/bmad/executor_multifileloader_test.go, internal/bmad/registry.go, internal/bmad/registry_interactive_phase2_test.go, internal/bmad/registry_test.go"
+resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
-  - { id: app_bmad, resource: app_bmad.go, last_modified: "2026-04-28T12:36:05+10:00", digest: fca7c61a439c150e }
   - { id: executor_multifileloader_test, resource: internal/bmad/executor_multifileloader_test.go, last_modified: "2026-04-14T19:25:01+10:00", digest: 32a16dc3fc140e25 }
   - { id: registry, resource: internal/bmad/registry.go, last_modified: "2026-04-21T09:23:33+10:00", digest: df9f16ce4aa6d2e3 }
   - { id: registry_interactive_phase2_test, resource: internal/bmad/registry_interactive_phase2_test.go, last_modified: "2026-04-28T11:16:27+10:00", digest: 145cf97aa6278c93 }
   - { id: registry_test, resource: internal/bmad/registry_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: c231191d71cc2f84 }
-  - { id: skillgen, resource: internal/bmad/skillgen.go, last_modified: "2026-04-09T22:26:45+10:00", digest: 925f4004ca59e699 }
-  - { id: skillgen_test, resource: internal/bmad/skillgen_test.go, last_modified: "2026-04-09T22:26:45+10:00", digest: 421c997fe09f72e2 }
-  - { id: types, resource: internal/bmad/types.go, last_modified: "2026-04-28T09:29:49+10:00", digest: 05a3e7d01f5f08c2 }
 ---
 
 # Files
-- `app_bmad.go`
 - `internal/bmad/executor_multifileloader_test.go`
 - `internal/bmad/registry.go`
 - `internal/bmad/registry_interactive_phase2_test.go`
 - `internal/bmad/registry_test.go`
-- `internal/bmad/skillgen.go`
-- `internal/bmad/skillgen_test.go`
-- `internal/bmad/types.go`
 
 # Symbols
-- .GetBmadProcesses() (app_bmad.go:L68)
-- .GetBmadProcessesByPhase() (app_bmad.go:L73)
 - TestMultiFileLoader_AC5_RegistrySurface() (internal/bmad/executor_multifileloader_test.go:L233)
 - bmad/registry.go (internal/bmad/registry.go:L1)
 - init() (internal/bmad/registry.go:L13)
@@ -61,27 +51,10 @@ sources:
 - TestProcessByID_Existing() (internal/bmad/registry_test.go:L82)
 - TestProcessByID_Missing() (internal/bmad/registry_test.go:L90)
 - TestProcessesByModule_Core() (internal/bmad/registry_test.go:L95)
-- GenerateSkillFiles() (internal/bmad/skillgen.go:L67)
-- skillgen_test.go (internal/bmad/skillgen_test.go:L1)
-- TestGenerateSkillFiles_OutputPathsResolved() (internal/bmad/skillgen_test.go:L109)
-- TestGenerateSkillFiles_NoInputsFallback() (internal/bmad/skillgen_test.go:L123)
-- TestGenerateSkillFiles_CreatesAllDirectories() (internal/bmad/skillgen_test.go:L13)
-- TestGenerateSkillFiles_UnmappedOutputFallback() (internal/bmad/skillgen_test.go:L137)
-- TestGenerateSkillFiles_ErrorOnInvalidBaseDir() (internal/bmad/skillgen_test.go:L155)
-- TestGenerateSkillFiles_ErrorOnReadOnlyDir() (internal/bmad/skillgen_test.go:L166)
-- TestGenerateSkillFiles_MixedMappedAndUnmappedOutputs() (internal/bmad/skillgen_test.go:L179)
-- TestGenerateSkillFiles_Idempotent() (internal/bmad/skillgen_test.go:L196)
-- TestGenerateSkillFiles_DirectoryNamesMatchSkillNames() (internal/bmad/skillgen_test.go:L32)
-- TestGenerateSkillFiles_FrontmatterCorrect() (internal/bmad/skillgen_test.go:L58)
-- TestGenerateSkillFiles_InputPathsResolved() (internal/bmad/skillgen_test.go:L95)
-- .iterationInput() (internal/bmad/types.go:L110)
-- BmadPhase (internal/bmad/types.go:L57)
-- ProcessDef (internal/bmad/types.go:L82)
 
 # Depends on
-- [bmad/types.go](/modules/bmad-types-go.md)
 - [ProcessByID](/modules/processbyid.md)
-- [skillgen.go](/modules/skillgen-go.md)
+- [ProcessDef](/modules/processdef.md)
 
 # Inferred
 - [ProcessByID](/modules/processbyid.md)

@@ -5,9 +5,9 @@ description: "Graphify community 76: app_bmad.go, internal/bmad/executor.go, int
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: app_bmad, resource: app_bmad.go, last_modified: "2026-04-28T12:36:05+10:00", digest: fca7c61a439c150e }
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
@@ -38,7 +38,9 @@ sources:
 - .ListAllAgents() (app_bmad.go:L333)
 - .ListBmadWorkflows() (app_bmad.go:L34)
 - .GetBmadWorkflow() (app_bmad.go:L42)
+- .SaveMashedAssetFrontmatter() (app_bmad.go:L436)
 - .GetNodeOutput() (app_bmad.go:L450)
+- .GetArtifactStatus() (app_bmad.go:L463)
 - .SaveBmadWorkflow() (app_bmad.go:L50)
 - .DeleteBmadWorkflow() (app_bmad.go:L58)
 - .ListBmadWorkflowsByRepo() (app_bmad.go:L78)
@@ -51,11 +53,12 @@ sources:
 
 # Depends on
 - [assets_test.go](/modules/assets-test-go.md)
-- [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
+- [assets_write_test.go](/modules/assets-write-test-go.md)
 - [bmad/types.go](/modules/bmad-types-go.md)
 - [BuiltinTemplates](/modules/builtintemplates.md)
-- [executor_test.go](/modules/executor-test-go.md)
 - [GetModules](/modules/getmodules.md)
+- [ProcessDef](/modules/processdef.md)
+- [ResolveArtifactPath](/modules/resolveartifactpath.md)
 - [resume_ghost_test.go](/modules/resume-ghost-test-go.md)
 - [sprint.go](/modules/sprint-go.md)
 - [sprint_test.go](/modules/sprint-test-go.md)

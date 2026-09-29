@@ -1,25 +1,28 @@
 ---
 type: Module
 title: ModelInfo
-description: "Graphify community 254: app_models.go, app_review_test.go, internal/domain/models.go"
+description: "Graphify community 206: app_git.go, app_models.go, app_review_test.go, internal/domain/models.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
+  - { id: app_git, resource: app_git.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 6abf9d08d507b1db }
   - { id: app_models, resource: app_models.go, last_modified: "2026-04-10T11:36:27+10:00", digest: cf387264112e9ff8 }
   - { id: app_review_test, resource: app_review_test.go, last_modified: "2026-04-10T15:03:59+10:00", digest: cd3cd948419c464e }
   - { id: models, resource: internal/domain/models.go, last_modified: "2026-04-10T10:55:13+10:00", digest: 66a73fbeed36ede6 }
 ---
 
 # Files
+- `app_git.go`
 - `app_models.go`
 - `app_review_test.go`
 - `internal/domain/models.go`
 
 # Symbols
+- .SpawnPRReview() (app_git.go:L876)
 - App (app_models.go:L102)
 - .initModelCache() (app_models.go:L102)
 - .ListModels() (app_models.go:L109)

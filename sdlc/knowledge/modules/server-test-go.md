@@ -5,9 +5,9 @@ description: "Graphify community 5: cmd/pty-helper/main.go, internal/terminal/he
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: main, resource: cmd/pty-helper/main.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 5b417efc875ee944 }
   - { id: client, resource: internal/terminal/helper/client.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 46fc572e21238bfb }
@@ -49,7 +49,6 @@ sources:
 - TestDial_Success() (internal/terminal/helper/client_test.go:L302)
 - TestClientSpawn_Success() (internal/terminal/helper/client_test.go:L44)
 - TestClientSpawn_Error() (internal/terminal/helper/client_test.go:L89)
-- integration_test.go (internal/terminal/helper/integration_test.go:L1)
 - TestIntegration_BidirectionalIO() (internal/terminal/helper/integration_test.go:L133)
 - TestIntegration_ConcurrentSpawnsFdIsolation() (internal/terminal/helper/integration_test.go:L174)
 - catSpawnReq() (internal/terminal/helper/integration_test.go:L22)

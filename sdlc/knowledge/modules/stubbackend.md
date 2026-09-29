@@ -1,13 +1,13 @@
 ---
 type: Module
 title: StubBackend
-description: "Graphify community 232: internal/uiadapter/backend/backend.go, internal/uiadapter/backend/claudeapi/client.go, internal/uiadapter/backend/claudecli/client.go, internal/uiadapter/backend/lifecycle_test"
+description: "Graphify community 323: internal/uiadapter/backend/backend.go, internal/uiadapter/backend/claudeapi/client.go, internal/uiadapter/backend/claudecli/client.go, internal/uiadapter/backend/lifecycle_test"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: backend, resource: internal/uiadapter/backend/backend.go, last_modified: "2026-04-23T11:09:52+10:00", digest: d0eac5646b5c1ef3 }
   - { id: client, resource: internal/uiadapter/backend/claudeapi/client.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 3e20643bf928e2f2 }
@@ -39,7 +39,6 @@ sources:
 - .Capabilities() (internal/uiadapter/backend/stubs.go:L62)
 - .Calls() (internal/uiadapter/backend/stubs.go:L66)
 - ShadowSampler (internal/uiadapter/eval/scorecard_v3.go:L262)
-- .ShouldSample() (internal/uiadapter/eval/scorecard_v3.go:L274)
 - .Counts() (internal/uiadapter/eval/scorecard_v3.go:L296)
 
 # Depends on

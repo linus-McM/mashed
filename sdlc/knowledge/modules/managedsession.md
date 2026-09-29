@@ -5,15 +5,16 @@ description: "Graphify community 48: app_terminal_registry_test.go, internal/ter
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: app_terminal_registry_test, resource: app_terminal_registry_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 2f85a0b04c1b8ba7 }
   - { id: server, resource: internal/terminal/helper/server.go, last_modified: "2026-04-09T21:03:43+10:00", digest: e54a6a9ea36ca59d }
   - { id: login_path, resource: internal/terminal/login_path.go, last_modified: "2026-05-07T20:55:09+10:00", digest: 7ad84d121b34092b }
   - { id: manager, resource: internal/terminal/manager.go, last_modified: "2026-05-07T20:55:09+10:00", digest: 4c7107fb7905c1b1 }
   - { id: session, resource: internal/terminal/session.go, last_modified: "2026-04-09T18:42:25+10:00", digest: 6213e8a0ece661b9 }
+  - { id: session_test, resource: internal/terminal/session_test.go, last_modified: "2026-04-09T18:42:25+10:00", digest: 64fc12b5f28e698a }
   - { id: stub, resource: internal/terminal/stub.go, last_modified: "2026-04-09T11:24:44+10:00", digest: 4e852c6c9f8e0735 }
 ---
 
@@ -23,6 +24,7 @@ sources:
 - `internal/terminal/login_path.go`
 - `internal/terminal/manager.go`
 - `internal/terminal/session.go`
+- `internal/terminal/session_test.go`
 - `internal/terminal/stub.go`
 
 # Symbols
@@ -57,14 +59,17 @@ sources:
 - .Wait() (internal/terminal/session.go:L306)
 - .Name() (internal/terminal/session.go:L311)
 - scrollBuffer (internal/terminal/session.go:L36)
+- newScrollBuffer() (internal/terminal/session.go:L44)
 - .Write() (internal/terminal/session.go:L52)
 - .Snapshot() (internal/terminal/session.go:L78)
+- TestScrollBuffer_AC1_WriteAndSnapshot() (internal/terminal/session_test.go:L114)
+- TestScrollBuffer_AC1_LargeOverCapacity() (internal/terminal/session_test.go:L187)
+- TestScrollBuffer_AC1_SnapshotIndependentCopy() (internal/terminal/session_test.go:L208)
 - terminal/stub.go (internal/terminal/stub.go:L1)
 - NewStubSession() (internal/terminal/stub.go:L4)
 
 # Depends on
 - [server_test.go](/modules/server-test-go.md)
-- [session_test.go](/modules/session-test-go.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

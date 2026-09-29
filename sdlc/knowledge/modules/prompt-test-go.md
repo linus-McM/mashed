@@ -5,9 +5,9 @@ description: "Graphify community 70: internal/uiadapter/prompt.go, internal/uiad
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: prompt, resource: internal/uiadapter/prompt.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 07d009f8f445be65 }
   - { id: prompt_test, resource: internal/uiadapter/prompt_test.go, last_modified: "2026-04-27T10:45:20+10:00", digest: c0e8d16fee76a549 }
@@ -18,9 +18,7 @@ sources:
 - `internal/uiadapter/prompt_test.go`
 
 # Symbols
-- prompt.go (internal/uiadapter/prompt.go:L1)
 - SystemPrompt() (internal/uiadapter/prompt.go:L13)
-- PromptVersion() (internal/uiadapter/prompt.go:L17)
 - prompt_test.go (internal/uiadapter/prompt_test.go:L1)
 - TestPromptVersion_IsV2() (internal/uiadapter/prompt_test.go:L107)
 - TestAdapter_SendsSystemPromptInRequest() (internal/uiadapter/prompt_test.go:L116)

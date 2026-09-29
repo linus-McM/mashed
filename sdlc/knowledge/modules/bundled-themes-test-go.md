@@ -1,13 +1,13 @@
 ---
 type: Module
 title: bundled_themes_test.go
-description: "Graphify community 140: bundled_themes_test.go, theme_scanner.go, theme_scanner_test.go"
+description: "Graphify community 45: bundled_themes_test.go, theme_scanner.go, theme_scanner_test.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: bundled_themes_test, resource: bundled_themes_test.go, last_modified: "2026-04-10T09:28:28+10:00", digest: 7521e18fece03e1e }
   - { id: theme_scanner, resource: theme_scanner.go, last_modified: "2026-04-10T09:28:28+10:00", digest: d02c5e5c45d34f49 }
@@ -45,7 +45,6 @@ sources:
 - TestReadThemeFile_VSIX_SizeLimit() (theme_scanner_test.go:L1070)
 - TestReadThemeFile_VSIX_FileNotFound() (theme_scanner_test.go:L1100)
 - createMockVSIX() (theme_scanner_test.go:L78)
-- TestReadThemeFile_VSIX_HappyPath() (theme_scanner_test.go:L797)
 - TestReadThemeFile_VSIX_JSONCStripped() (theme_scanner_test.go:L830)
 - TestReadThemeFile_VSIX_IncludeResolution() (theme_scanner_test.go:L870)
 - TestReadThemeFile_VSIX_IncludeMultiLevel() (theme_scanner_test.go:L942)

@@ -5,9 +5,9 @@ description: "Graphify community 18: internal/terminal/tmux_adapter.go, internal
 resource: internal/terminal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
+stale_after: "2026-10-13T11:35:27Z"
+source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
 sources:
   - { id: tmux_adapter, resource: internal/terminal/tmux_adapter.go, last_modified: "2026-04-12T15:24:29+10:00", digest: 1a5bf00ab35bc698 }
   - { id: tmux_adapter_coverage_test, resource: internal/terminal/tmux_adapter_coverage_test.go, last_modified: "2026-04-11T19:58:57+10:00", digest: 24b353b6c1480a46 }
@@ -104,7 +104,7 @@ sources:
 
 # Depends on
 - [app_terminal_registry_test.go](/modules/app-terminal-registry-test-go.md)
-- [mockTmuxSession](/modules/mocktmuxsession.md)
+- [mockTmuxAttacher](/modules/mocktmuxattacher.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints
