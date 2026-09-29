@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { ReadFile, ReadFileAtHead, WriteFile, ExplainDiffHunk, IsExplainAvailable } from '../../wailsjs/go/main/App.js';
+  import { runSave } from '../lib/saveFeedback';
   import { defineAllThemes, getEditorFont, toMonacoId } from '../lib/monacoTheme.js';
   import { currentMonoFont, currentFontSize } from '../lib/stores/font.js';
   import { allThemes, currentThemeId, builtInThemeIds } from '../lib/stores/theme.js';
@@ -40,6 +41,8 @@
   let hoverDisposables = [];
   /** @type {SaveStatus} */
   let saveStatus = '';
+  /** Reason shown when the last save failed (announced via aria-live). */
+  let saveError = '';
   let saving = false;
   let loading = true;
   let error = '';
@@ -441,17 +444,17 @@
     saving = true;
     saveStatus = 'saving';
 
-    try {
-      const content = /** @type {IStandaloneCodeEditor} */ (editor).getValue();
-      await WriteFile(fullPath, content);
+    const ed = /** @type {IStandaloneCodeEditor} */ (editor);
+    const result = await runSave(() => ed.getValue(), (content) => WriteFile(fullPath, content));
+    saving = false;
+    saveError = result.message;
+    if (result.status === 'saved') {
       saveStatus = 'saved';
       if (statusTimer) clearTimeout(statusTimer);
       statusTimer = setTimeout(() => { saveStatus = ''; }, 2000);
-    } catch (e) {
+    } else {
       saveStatus = 'error';
-      console.error('Auto-save failed:', e);
-    } finally {
-      saving = false;
+      console.error('Auto-save failed:', result.message);
     }
   }
 
@@ -579,7 +582,7 @@
       {:else if saveStatus === 'saved'}
         <span class="save-status saved">Saved</span>
       {:else if saveStatus === 'error'}
-        <span class="save-status error">Save failed</span>
+        <span class="save-status error" role="status" aria-live="polite">{saveError}</span>
       {/if}
       <div class="mode-toggle">
         <button class:active={mode === 'source'} on:click={() => switchMode('source')}>Source</button>

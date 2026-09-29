@@ -29,6 +29,7 @@ From: spec.md (2026-09-29). Status: accepted. Risk: high.
 - frontend/src/components/MarkdownEditor.svelte
 - frontend/src/components/__tests__/MonacoEditor.guard.test.ts (new)
 - frontend/src/components/__tests__/MarkdownEditor.guard.test.ts (new)
+- frontend/src/lib/saveFeedback.ts (new, s1.5: shared runSave and describeSaveError)
 - app_review.go
 - app_review_scoped.go
 - app_review_scoped_test.go

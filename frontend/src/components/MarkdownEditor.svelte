@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { get } from 'svelte/store';
   import { ReadFile, WriteFile } from '../../wailsjs/go/main/App.js';
+  import { runSave } from '../lib/saveFeedback';
   import {
     createDebouncedSave,
     applyToolbarAttributes,
@@ -28,6 +29,8 @@
   let crepe = null;
   /** @type {'idle' | 'modified' | 'saving' | 'saved' | 'error'} */
   let saveStatus = 'idle';
+  /** Reason shown when the last save failed (announced via aria-live). */
+  let saveError = '';
   /** @type {ReturnType<typeof setTimeout> | null} */
   let statusTimer = null;
   let loading = true;
@@ -54,15 +57,16 @@
   const saver = createDebouncedSave(async () => {
     if (!crepe || !editable) return;
     saveStatus = 'saving';
-    try {
-      const content = crepe.getMarkdown();
-      await WriteFile(fullPath, content);
+    const editor = crepe;
+    const result = await runSave(() => editor.getMarkdown(), (content) => WriteFile(fullPath, content));
+    saveError = result.message;
+    if (result.status === 'saved') {
       saveStatus = 'saved';
       if (statusTimer) clearTimeout(statusTimer);
       statusTimer = setTimeout(() => { saveStatus = 'idle'; }, 2000);
-    } catch (e) {
+    } else {
       saveStatus = 'error';
-      console.error('Auto-save failed:', e);
+      console.error('Auto-save failed:', result.message);
     }
   }, 800);
 
@@ -199,7 +203,7 @@
       {:else if saveStatus === 'modified'}
         <span class="save-status modified">Modified</span>
       {:else if saveStatus === 'error'}
-        <span class="save-status error">Save failed</span>
+        <span class="save-status error" role="status" aria-live="polite">{saveError}</span>
       {/if}
     </div>
   </div>
