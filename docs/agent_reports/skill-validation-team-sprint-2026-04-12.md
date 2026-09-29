@@ -1,7 +1,7 @@
 # Skill Validation Report: team-sprint
 
 **Date:** 2026-04-12
-**Skill Path:** `/Users/linus/Development/mashed/.claude/skills/team-sprint`
+**Skill Path:** `/Users/dev/Development/mashed/.claude/skills/team-sprint`
 **Validator Version:** 1.1
 **Change under review:** integrate `use-repo-code` skill as the canonical codebase-reference path for the lead and all spawned agents.
 

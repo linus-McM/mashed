@@ -77,7 +77,7 @@ Reference skills: `/golang-testing`, `/golang-error-handling`, `/simplify`.
 ## Acceptance Criteria
 
 **AC-1: BuildSessionName produces self-describing names**
-- Given `repoPath="/Users/linus/Development/surfseer"`, `branch="main"`, `nodeLabel="Create Story"`, `nodeID="node-1775795467345"`, and `nowNanos=1712600000000000000`
+- Given `repoPath="/Users/dev/Development/surfseer"`, `branch="main"`, `nodeLabel="Create Story"`, `nodeID="node-1775795467345"`, and `nowNanos=1712600000000000000`
 - When `BuildSessionName(...)` is called
 - Then the returned string starts with `"bmad-surfseer-main-create-story-"`
 - And the final 8 characters are lowercase hex
@@ -132,7 +132,7 @@ Reference skills: `/golang-testing`, `/golang-error-handling`, `/simplify`.
 Feature: Descriptive BMAD session names
 
   Scenario: Typical case with all fields populated
-    Given repoPath "/Users/linus/Development/surfseer"
+    Given repoPath "/Users/dev/Development/surfseer"
     And branch "main"
     And nodeLabel "Create Story"
     And nodeID "node-1775795467345"

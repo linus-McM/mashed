@@ -47,6 +47,12 @@ jobs:
       - name: Terminal fan-out and late-client scrollback, repeated (R20)
         run: go test -count=50 -run 'AC2|LateClient' ./internal/terminal/
 
+      - name: No generated artefacts tracked (R26)
+        run: "! git ls-files | grep -E '^(docs/repomixer|\\.playwright-(mcp|cli)|desloppify-workspace|frontend/coverage|\\.vite|frontend/\\.claude)/|^todo\\.md$'"
+
+      - name: No personal home paths tracked (R26)
+        run: "! git grep -l -F \"/Users/linus\" -- . ':!docs/plans' ':!sdlc' ':!repo_hygiene_test.go' ':!.github/workflows/ci.yml'"
+
       - name: Permission tests as root (R23)
         run: sudo -E env "PATH=$PATH" go test ./internal/bmad/ -run 'ErrorOnReadOnlyDir|StatErrorNotNotExist|WriteFailure'
 

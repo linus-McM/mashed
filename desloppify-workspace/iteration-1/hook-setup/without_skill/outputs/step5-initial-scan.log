@@ -1,4 +1,0 @@
-PENDING - Run manually after desloppify install:
-  source .venv-desloppify/bin/activate
-  desloppify scan --path .
-Agent was unable to execute desloppify commands due to permission restrictions.

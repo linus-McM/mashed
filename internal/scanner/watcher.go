@@ -112,7 +112,7 @@ func (p *ClaudeCodeProvider) handleFSEvent(event fsnotify.Event, watcher *fsnoti
 }
 
 // repoPathFromSessionDir converts a session dir key back to a repo path.
-// ~/.claude/projects/-Users-linus-Development-mashed -> /Users/linus/Development/mashed
+// ~/.claude/projects/-Users-dev-Development-mashed -> /Users/dev/Development/mashed
 func (p *ClaudeCodeProvider) repoPathFromSessionDir(sessionDir string) string {
 	key := filepath.Base(sessionDir)
 	if strings.HasPrefix(key, "-") {

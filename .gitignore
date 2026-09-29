@@ -95,3 +95,9 @@ todo.md
 .env*
 .repomix-output.xml
 .claude/repomix/
+
+# Generated artefacts and personal tool state (repo health R26)
+desloppify-workspace/
+frontend/coverage/
+.vite/
+frontend/.claude/

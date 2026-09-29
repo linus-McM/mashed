@@ -66,7 +66,7 @@ func NewClaudeCodeProvider(devDir string) (*ClaudeCodeProvider, error) {
 }
 
 // SessionDir returns the session storage directory for a given repo path.
-// /Users/linus/Development/mashed -> ~/.claude/projects/-Users-linus-Development-mashed
+// /Users/dev/Development/mashed -> ~/.claude/projects/-Users-dev-Development-mashed
 func (p *ClaudeCodeProvider) SessionDir(repoPath string) string {
 	key := strings.ReplaceAll(repoPath, "/", "-")
 	return filepath.Join(p.claudeDir, key)

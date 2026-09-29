@@ -54,12 +54,12 @@ Introduce the foundational logging infrastructure for `internal/uiadapter`: a ne
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/internal/uiadapter/adapter.go:118` — `NewDefault(cfg Config, logger *slog.Logger) Adapter` already accepts the logger and nil-guards via `slog.New(slog.NewTextHandler(io.Discard, nil))`. Boot wiring in this story replaces the `slog.Default()` call site at `app.go:283`.
-- `/Users/linus/Development/mashed/internal/uiadapter/config.go:10` — `DefaultConfig()` and `mergeWithDefaults` (reflection-based) — pattern to follow for adding `LogLevel` / `LogDir`.
-- `/Users/linus/Development/mashed/app.go:283` — exact line to edit for boot wiring.
-- `/Users/linus/Development/mashed/app.go:317-331` — `(*App).shutdown` — append hook drain here.
-- `/Users/linus/Development/mashed/main.go:194` — `OnShutdown: app.shutdown` — verify hook drain runs.
-- `/Users/linus/Development/mashed/internal/uiadapter/allowlist.go` — existing `slog.Default()` usage; do NOT modify in this story.
+- `/Users/dev/Development/mashed/internal/uiadapter/adapter.go:118` — `NewDefault(cfg Config, logger *slog.Logger) Adapter` already accepts the logger and nil-guards via `slog.New(slog.NewTextHandler(io.Discard, nil))`. Boot wiring in this story replaces the `slog.Default()` call site at `app.go:283`.
+- `/Users/dev/Development/mashed/internal/uiadapter/config.go:10` — `DefaultConfig()` and `mergeWithDefaults` (reflection-based) — pattern to follow for adding `LogLevel` / `LogDir`.
+- `/Users/dev/Development/mashed/app.go:283` — exact line to edit for boot wiring.
+- `/Users/dev/Development/mashed/app.go:317-331` — `(*App).shutdown` — append hook drain here.
+- `/Users/dev/Development/mashed/main.go:194` — `OnShutdown: app.shutdown` — verify hook drain runs.
+- `/Users/dev/Development/mashed/internal/uiadapter/allowlist.go` — existing `slog.Default()` usage; do NOT modify in this story.
 
 ### Skills
 

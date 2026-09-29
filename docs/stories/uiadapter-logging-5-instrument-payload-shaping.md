@@ -116,12 +116,12 @@ The existing `slog.Default()` call in `allowlist.go` is replaced by `cfg`'s inje
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/internal/uiadapter/sanitize.go` — entry point for every Translate request.
-- `/Users/linus/Development/mashed/internal/uiadapter/contextguard.go:40-99` — the two `Apply*` methods.
-- `/Users/linus/Development/mashed/internal/uiadapter/validator.go:40-67` — `Validate` orchestrator and rule appliers.
-- `/Users/linus/Development/mashed/internal/uiadapter/schema.go:83` — `WidgetNode.UnmarshalJSON`.
-- `/Users/linus/Development/mashed/internal/uiadapter/allowlist.go:31` — already takes a logger; only file in plan that does.
-- `/Users/linus/Development/mashed/internal/uiadapter/logging.go` (Story 1) — `nilSafeLogger`, attr name conventions.
+- `/Users/dev/Development/mashed/internal/uiadapter/sanitize.go` — entry point for every Translate request.
+- `/Users/dev/Development/mashed/internal/uiadapter/contextguard.go:40-99` — the two `Apply*` methods.
+- `/Users/dev/Development/mashed/internal/uiadapter/validator.go:40-67` — `Validate` orchestrator and rule appliers.
+- `/Users/dev/Development/mashed/internal/uiadapter/schema.go:83` — `WidgetNode.UnmarshalJSON`.
+- `/Users/dev/Development/mashed/internal/uiadapter/allowlist.go:31` — already takes a logger; only file in plan that does.
+- `/Users/dev/Development/mashed/internal/uiadapter/logging.go` (Story 1) — `nilSafeLogger`, attr name conventions.
 - Story 3's `testLogBuffer` helper is reused.
 
 ### Skills

@@ -1,7 +1,7 @@
 # Skill Rectification Report: use-repo-code
 
 **Date:** 2026-04-12
-**Skill Path:** `/Users/linus/Development/mashed/.claude/skills/use-repo-code`
+**Skill Path:** `/Users/dev/Development/mashed/.claude/skills/use-repo-code`
 **Source Validation Report:** `docs/agent_reports/skill-validation-use-repo-code-2026-04-12.md`
 **Grade Before:** C (6 warnings)
 **Grade After:** A (0 warnings)

@@ -79,10 +79,10 @@ The `defaultAdapter` struct already has a `logger` field. Add equivalent fields 
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/internal/uiadapter/adapter.go:118-136` — `NewDefault` template; this is the canonical "scope logger then inject" pattern to follow.
-- `/Users/linus/Development/mashed/internal/uiadapter/adapter.go:119-121` — existing nil-guard inline; replace with `nilSafeLogger`.
-- `/Users/linus/Development/mashed/internal/uiadapter/semaphore.go` — type promotion required; smallest file but highest blast radius.
-- `/Users/linus/Development/mashed/internal/uiadapter/allowlist.go:31` — only existing constructor that already takes a logger; mirrors the desired final shape.
+- `/Users/dev/Development/mashed/internal/uiadapter/adapter.go:118-136` — `NewDefault` template; this is the canonical "scope logger then inject" pattern to follow.
+- `/Users/dev/Development/mashed/internal/uiadapter/adapter.go:119-121` — existing nil-guard inline; replace with `nilSafeLogger`.
+- `/Users/dev/Development/mashed/internal/uiadapter/semaphore.go` — type promotion required; smallest file but highest blast radius.
+- `/Users/dev/Development/mashed/internal/uiadapter/allowlist.go:31` — only existing constructor that already takes a logger; mirrors the desired final shape.
 
 ### Skills
 

@@ -77,11 +77,11 @@ New file. One test that:
 ### Reference Files
 
 - All instrumented files from Stories 1–5.
-- `/Users/linus/Development/mashed/internal/uiadapter/adapter_test.go` — pattern for constructing a test adapter.
-- `/Users/linus/Development/mashed/internal/uiadapter/testdata/` — existing fixtures.
-- `/Users/linus/Development/mashed/.wolf/cerebrum.md` — append-only decision log.
-- `/Users/linus/Development/mashed/.wolf/anatomy.md` — file registry.
-- `/Users/linus/Development/mashed/.gitignore` — append `logs/` if missing.
+- `/Users/dev/Development/mashed/internal/uiadapter/adapter_test.go` — pattern for constructing a test adapter.
+- `/Users/dev/Development/mashed/internal/uiadapter/testdata/` — existing fixtures.
+- `/Users/dev/Development/mashed/.wolf/cerebrum.md` — append-only decision log.
+- `/Users/dev/Development/mashed/.wolf/anatomy.md` — file registry.
+- `/Users/dev/Development/mashed/.gitignore` — append `logs/` if missing.
 
 ### Skills
 

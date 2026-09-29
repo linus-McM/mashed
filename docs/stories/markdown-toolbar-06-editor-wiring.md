@@ -14,7 +14,7 @@ Wire `MarkdownEditor.svelte` to read the store, pass `buildToolbar` into Crepe's
 ## Developer Notes
 
 ### Architecture
-- File to modify: `/Users/linus/Development/mashed/frontend/src/components/MarkdownEditor.svelte`
+- File to modify: `/Users/dev/Development/mashed/frontend/src/components/MarkdownEditor.svelte`
 - New imports (add to the existing `<script>` block):
 
 ```ts
@@ -93,8 +93,8 @@ Settings is a small flat object with primitive values. `JSON.stringify` is the s
 - **featureConfigs shape** — Crepe's typing may require exact key names. `Crepe.Feature.Toolbar` is the enum; verify this import path in the existing Crepe integration. If the enum namespace differs, import directly: `import { Feature } from '@milkdown/crepe'` then use `[Feature.Toolbar]`.
 
 ### Reference Files
-- `/Users/linus/Development/mashed/frontend/src/components/MarkdownEditor.svelte` — current file, see the filePath-change block as the pattern.
-- `/Users/linus/Development/mashed/frontend/src/components/markdownEditorUtils.ts` — `createDebouncedSave` implementation (already imports `saver.flush()`).
+- `/Users/dev/Development/mashed/frontend/src/components/MarkdownEditor.svelte` — current file, see the filePath-change block as the pattern.
+- `/Users/dev/Development/mashed/frontend/src/components/markdownEditorUtils.ts` — `createDebouncedSave` implementation (already imports `saver.flush()`).
 - Milkdown Crepe docs on `featureConfigs` — verify the `Toolbar` key name.
 
 ## Acceptance Criteria

@@ -37,7 +37,7 @@ The frontend catch block silently swallows the error with `console.error()`, mak
 
 ## Environment Details
 
-- Binary: `/Users/linus/Development/mashed/build/bin/mashed.app/Contents/MacOS/mashed`
+- Binary: `/Users/dev/Development/mashed/build/bin/mashed.app/Contents/MacOS/mashed`
 - Wails builds as a macOS `.app` bundle with embedded WebKit (WKWebView)
 - The binary has `com.apple.provenance` xattr (sticky, cannot be removed on Sequoia)
 - Wails dev server runs on `:34115` (Go bindings) and `:5173` (Vite frontend)

@@ -14,8 +14,8 @@ Create a Svelte store that mirrors the backend `MarkdownMenuSettings` plus a dir
 ## Developer Notes
 
 ### Architecture
-- New file: `/Users/linus/Development/mashed/frontend/src/lib/stores/markdownMenuSettings.ts`
-- Mirror the shape of `/Users/linus/Development/mashed/frontend/src/lib/stores/editorSettings.js` (pattern reference). Use TypeScript (not .js) — the plan specifies `.ts`.
+- New file: `/Users/dev/Development/mashed/frontend/src/lib/stores/markdownMenuSettings.ts`
+- Mirror the shape of `/Users/dev/Development/mashed/frontend/src/lib/stores/editorSettings.js` (pattern reference). Use TypeScript (not .js) — the plan specifies `.ts`.
 - Exported API (exact names):
 
 ```ts
@@ -57,8 +57,8 @@ Frontend DEFAULTS exist as a safety net (if the Wails call fails during hydratio
 - **Wails call fails mid-update** — if `SetMarkdownMenuSettings` rejects, the store value is already updated locally. This is acceptable for MVP — user sees the UI reflect the toggle, disk persistence fails silently. Log via `console.error` but do not revert the store. Re-opening the app will re-read from disk, reverting the failed change. Document this tradeoff in a code comment.
 
 ### Reference Files
-- `/Users/linus/Development/mashed/frontend/src/lib/stores/editorSettings.js` — copy pattern: init with merge, update with persist, sync with writable store.
-- `/Users/linus/Development/mashed/frontend/src/lib/bmadSessionName.ts` — TypeScript module style already in the repo.
+- `/Users/dev/Development/mashed/frontend/src/lib/stores/editorSettings.js` — copy pattern: init with merge, update with persist, sync with writable store.
+- `/Users/dev/Development/mashed/frontend/src/lib/bmadSessionName.ts` — TypeScript module style already in the repo.
 
 ## Acceptance Criteria
 

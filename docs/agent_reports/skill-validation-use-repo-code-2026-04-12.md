@@ -1,7 +1,7 @@
 # Skill Validation Report: use-repo-code
 
 **Date:** 2026-04-12
-**Skill Path:** `/Users/linus/Development/mashed/.claude/skills/use-repo-code`
+**Skill Path:** `/Users/dev/Development/mashed/.claude/skills/use-repo-code`
 **Validator Version:** 1.1
 
 ## Summary

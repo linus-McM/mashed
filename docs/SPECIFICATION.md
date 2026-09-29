@@ -491,8 +491,8 @@ Sessions are sorted newest-first. For each agent:
 ~/.claude/projects/{repo-key}/{session-id}.jsonl
 
 repo-key = strings.ReplaceAll(repoAbsPath, "/", "-")
-Example:  /Users/linus/Development/mashed
-        → -Users-linus-Development-mashed
+Example:  /Users/dev/Development/mashed
+        → -Users-dev-Development-mashed
 ```
 
 ### Line Format
@@ -1038,7 +1038,7 @@ Persisted to `~/.mashed/config.json` via `loadConfig()` / `saveConfig()`. `Edito
 ### Repo Key Derivation
 
 ```
-/Users/linus/Development/mashed → -Users-linus-Development-mashed
+/Users/dev/Development/mashed → -Users-dev-Development-mashed
 ```
 (Replace all `/` with `-`)
 

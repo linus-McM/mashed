@@ -131,10 +131,10 @@ try {
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/frontend/src/components/MonacoEditor.svelte` -- lines 6, 396-432 (onMount and reactive theme block)
-- `/Users/linus/Development/mashed/frontend/src/lib/monacoTheme.js` -- `defineAllThemes`, `defineImportedTheme` (from Story 3)
-- `/Users/linus/Development/mashed/frontend/src/lib/stores/theme.js` -- `allThemes`, `currentThemeId`, `builtInThemeIds` (from Story 3)
-- `/Users/linus/Development/mashed/frontend/src/views/Settings.svelte` -- imported themes section (from Story 4)
+- `/Users/dev/Development/mashed/frontend/src/components/MonacoEditor.svelte` -- lines 6, 396-432 (onMount and reactive theme block)
+- `/Users/dev/Development/mashed/frontend/src/lib/monacoTheme.js` -- `defineAllThemes`, `defineImportedTheme` (from Story 3)
+- `/Users/dev/Development/mashed/frontend/src/lib/stores/theme.js` -- `allThemes`, `currentThemeId`, `builtInThemeIds` (from Story 3)
+- `/Users/dev/Development/mashed/frontend/src/views/Settings.svelte` -- imported themes section (from Story 4)
 
 ## Acceptance Criteria
 

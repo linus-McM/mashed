@@ -17,7 +17,7 @@ Refactor `Settings.svelte`'s right-side `.col-settings` from a single vertical s
 The layout refactor touches every existing panel's container markup. Bundling it with the Markdown Editor panel addition (story 05) would make the diff hard to review and risks breaking unrelated settings. Shipping the grid first, with NO new content, lets QA verify nothing regressed for existing controls before the new toggle section shows up.
 
 ### Architecture
-- File to modify: `/Users/linus/Development/mashed/frontend/src/views/Settings.svelte`
+- File to modify: `/Users/dev/Development/mashed/frontend/src/views/Settings.svelte`
 - Within `.settings-body` the current structure is:
   ```
   .col-themes          (unchanged, 280px)
@@ -100,9 +100,9 @@ At viewport width ≤ 1100px the grid collapses to a single column. Panels remai
 - **Drag-reorder of panels not supported** — the plan rules this out explicitly; column assignments are hardcoded.
 
 ### Reference Files
-- `/Users/linus/Development/mashed/frontend/src/views/Settings.svelte` — the file to modify.
-- `/Users/linus/Development/mashed/DESIGN.md` — tokens and conventions.
-- `/Users/linus/Development/mashed/frontend/src/style.css` — CSS variable definitions.
+- `/Users/dev/Development/mashed/frontend/src/views/Settings.svelte` — the file to modify.
+- `/Users/dev/Development/mashed/DESIGN.md` — tokens and conventions.
+- `/Users/dev/Development/mashed/frontend/src/style.css` — CSS variable definitions.
 
 ## Acceptance Criteria
 

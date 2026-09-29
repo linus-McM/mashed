@@ -49,3 +49,5 @@
 {"phase": "green", "step": "s3.4-ci", "exit": 0, "ts": "2026-09-29"}
 {"phase": "red", "step": "s3.5-prepush", "exit": 1, "ts": "2026-09-29"}
 {"phase": "green", "step": "s3.5-prepush", "exit": 0, "ts": "2026-09-29"}
+{"phase": "red", "step": "s4.1-untrack-junk", "exit": 1, "ts": "2026-09-29"}
+{"phase": "green", "step": "s4.1-untrack-junk", "exit": 0, "ts": "2026-09-29"}

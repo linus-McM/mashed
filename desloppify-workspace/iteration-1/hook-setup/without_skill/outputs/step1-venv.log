@@ -1,3 +1,0 @@
-PENDING - Run manually: python3 -m venv .venv-desloppify
-Agent was unable to execute python3 commands due to permission restrictions.
-Run: bash setup-desloppify.sh

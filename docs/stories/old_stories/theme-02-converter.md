@@ -106,9 +106,9 @@ rule.foreground = entry.settings.foreground.replace('#', '');
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/frontend/src/lib/themes.js` -- the target format. Each built-in theme has `{ label, css, monaco, xterm }`. The converter must produce this exact shape.
-- `/Users/linus/Development/mashed/docs/vscodium-theme-loading-plan.md` lines 398-475 -- the `mapVSCodeColorsToCSSVars`, `deriveXtermTheme`, and `dimColor` functions to adapt.
-- `/Users/linus/Development/mashed/docs/vscodium-theme-loading-plan.md` lines 536-645 -- the B2 scope mapper and `convertTokenColors` function to adapt (with H-5 fix).
+- `/Users/dev/Development/mashed/frontend/src/lib/themes.js` -- the target format. Each built-in theme has `{ label, css, monaco, xterm }`. The converter must produce this exact shape.
+- `/Users/dev/Development/mashed/docs/vscodium-theme-loading-plan.md` lines 398-475 -- the `mapVSCodeColorsToCSSVars`, `deriveXtermTheme`, and `dimColor` functions to adapt.
+- `/Users/dev/Development/mashed/docs/vscodium-theme-loading-plan.md` lines 536-645 -- the B2 scope mapper and `convertTokenColors` function to adapt (with H-5 fix).
 
 ## Acceptance Criteria
 
@@ -259,7 +259,7 @@ Feature: Graceful degradation
 ## Tasks / Subtasks
 
 - [ ] Task 1: Create themeConverter.js with utility functions (AC: AC-5, AC-6)
-  - [ ] Create `/Users/linus/Development/mashed/frontend/src/lib/themeConverter.js`
+  - [ ] Create `/Users/dev/Development/mashed/frontend/src/lib/themeConverter.js`
   - [ ] Implement `normalizeHex(hex)` -- handles #RGB, #RRGGBB, #RRGGBBAA formats
   - [ ] Implement `dimColor(hex, factor)` -- uses normalizeHex before parsing
   - [ ] Implement `getMonacoBase(vsTheme)` -- maps vs/vs-dark/hc-black/hc-light

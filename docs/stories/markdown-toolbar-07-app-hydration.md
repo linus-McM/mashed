@@ -14,7 +14,7 @@ Initialise the `markdownMenuSettings` store from the persisted config during `Ap
 ## Developer Notes
 
 ### Architecture
-- File to modify: `/Users/linus/Development/mashed/frontend/src/App.svelte`
+- File to modify: `/Users/dev/Development/mashed/frontend/src/App.svelte`
 - Existing pattern (already in the file, lines 26442 and 26482 of the corpus):
   ```ts
   import { initEditorSettings } from './lib/stores/editorSettings.js';
@@ -53,8 +53,8 @@ If it turns out `cfg.markdownMenu` serialises inconsistently across Wails versio
 - **Do not await unnecessarily** — `initMarkdownMenuSettings` is synchronous. Don't wrap it in `await`.
 
 ### Reference Files
-- `/Users/linus/Development/mashed/frontend/src/App.svelte` — look at the existing `onMount` block, specifically the lines around the first `await GetConfig()` call.
-- `/Users/linus/Development/mashed/frontend/src/lib/stores/markdownMenuSettings.ts` — import source.
+- `/Users/dev/Development/mashed/frontend/src/App.svelte` — look at the existing `onMount` block, specifically the lines around the first `await GetConfig()` call.
+- `/Users/dev/Development/mashed/frontend/src/lib/stores/markdownMenuSettings.ts` — import source.
 
 ## Acceptance Criteria
 

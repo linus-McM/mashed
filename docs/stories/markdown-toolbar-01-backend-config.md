@@ -14,7 +14,7 @@ Add the `MarkdownMenuSettings` struct, persist it via `mashedConfig.MarkdownMenu
 ## Developer Notes
 
 ### Architecture
-- File to modify: `/Users/linus/Development/mashed/app.go`
+- File to modify: `/Users/dev/Development/mashed/app.go`
 - Add new struct next to existing `EditorSettings` (currently at the `type EditorSettings struct` block). Mirror its shape and placement conventions.
 - Extend `mashedConfig` struct — the private config type used by `loadConfig`/`saveConfig`. Add `MarkdownMenu *MarkdownMenuSettings \`json:"markdownMenu,omitempty"\``. Pointer + omitempty so a nil value omits the key entirely and `GetMarkdownMenuSettings` can distinguish "never set" from "explicitly set".
 - `GetConfig()` already returns `mashedConfig` — the new field flows through automatically once added to the struct; no additional edits to `GetConfig` needed.
@@ -36,9 +36,9 @@ func (a *App) SetMarkdownMenuSettings(s MarkdownMenuSettings) error
 
 ### Wails Binding Regeneration
 After the Go edits, run `wails generate module` from the repo root. This updates:
-- `/Users/linus/Development/mashed/frontend/wailsjs/go/main/App.js` — adds three named exports
-- `/Users/linus/Development/mashed/frontend/wailsjs/go/main/App.d.ts` — adds TypeScript declarations
-- `/Users/linus/Development/mashed/frontend/wailsjs/go/models.ts` — adds `main.MarkdownMenuSettings`
+- `/Users/dev/Development/mashed/frontend/wailsjs/go/main/App.js` — adds three named exports
+- `/Users/dev/Development/mashed/frontend/wailsjs/go/main/App.d.ts` — adds TypeScript declarations
+- `/Users/dev/Development/mashed/frontend/wailsjs/go/models.ts` — adds `main.MarkdownMenuSettings`
 
 Commit the regenerated files alongside the Go changes. The frontend stories import from these paths.
 
@@ -60,8 +60,8 @@ Commit the regenerated files alongside the Go changes. The frontend stories impo
 - **omitempty on pointer** — a nil pointer serialises to absent key, NOT `null`. Test this explicitly.
 
 ### Reference Files
-- `/Users/linus/Development/mashed/app.go` — existing `EditorSettings`, `DefaultEditorSettings`, `GetEditorSettings`, `SetEditorSettings`, `mashedConfig`, `loadConfig`, `saveConfig` are the exact template.
-- `/Users/linus/Development/mashed/editor_settings_test.go` — test-file template for story 09 and the test block in this story's DoD.
+- `/Users/dev/Development/mashed/app.go` — existing `EditorSettings`, `DefaultEditorSettings`, `GetEditorSettings`, `SetEditorSettings`, `mashedConfig`, `loadConfig`, `saveConfig` are the exact template.
+- `/Users/dev/Development/mashed/editor_settings_test.go` — test-file template for story 09 and the test block in this story's DoD.
 
 ## Acceptance Criteria
 

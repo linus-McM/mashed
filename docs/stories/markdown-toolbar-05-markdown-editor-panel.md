@@ -14,7 +14,7 @@ Add the "Markdown Editor" settings panel to Column 2 of `Settings.svelte`. The p
 ## Developer Notes
 
 ### Architecture
-- File to modify: `/Users/linus/Development/mashed/frontend/src/views/Settings.svelte`
+- File to modify: `/Users/dev/Development/mashed/frontend/src/views/Settings.svelte`
 - Import additions in `<script>`:
   ```ts
   import { markdownMenuSettings, updateMarkdownMenuItem, clearMarkdownMenuDirty }
@@ -92,8 +92,8 @@ No new CSS. Reuse existing `.setting-row`, `.setting-label`, `.setting-toggle.ac
 - **Accessibility** — each toggle is a `<button>`, which is focusable and has implicit role `button`. The `On`/`Off` text inside is accessible. Optionally add `aria-pressed={$markdownMenuSettings[item.key]}` for screen readers. Not strictly required for MVP but recommended.
 
 ### Reference Files
-- `/Users/linus/Development/mashed/frontend/src/views/Settings.svelte` — the file to modify (Editor panel has similar toggle rows to mirror).
-- `/Users/linus/Development/mashed/frontend/src/lib/stores/markdownMenuSettings.ts` — the store imports.
+- `/Users/dev/Development/mashed/frontend/src/views/Settings.svelte` — the file to modify (Editor panel has similar toggle rows to mirror).
+- `/Users/dev/Development/mashed/frontend/src/lib/stores/markdownMenuSettings.ts` — the store imports.
 
 ## Acceptance Criteria
 

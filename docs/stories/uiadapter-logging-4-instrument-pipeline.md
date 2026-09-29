@@ -90,12 +90,12 @@ Instrument with `logger.LogAttrs(ctx, slog.LevelDebug, msg, attrs...)` calls beh
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/internal/uiadapter/fastpath.go:35-115` — full classifier surface.
-- `/Users/linus/Development/mashed/internal/uiadapter/repair.go:81-122` — `Repairer.Run` retry loop.
-- `/Users/linus/Development/mashed/internal/uiadapter/stages.go:124-...` — `RunTwoStage`.
-- `/Users/linus/Development/mashed/internal/uiadapter/fallback.go:14-32` — small file, two functions.
-- `/Users/linus/Development/mashed/internal/uiadapter/fallback_tiers.go:35-...` — `RunWithFallback`.
-- `/Users/linus/Development/mashed/internal/uiadapter/logging.go` (Story 1) — standard attr names.
+- `/Users/dev/Development/mashed/internal/uiadapter/fastpath.go:35-115` — full classifier surface.
+- `/Users/dev/Development/mashed/internal/uiadapter/repair.go:81-122` — `Repairer.Run` retry loop.
+- `/Users/dev/Development/mashed/internal/uiadapter/stages.go:124-...` — `RunTwoStage`.
+- `/Users/dev/Development/mashed/internal/uiadapter/fallback.go:14-32` — small file, two functions.
+- `/Users/dev/Development/mashed/internal/uiadapter/fallback_tiers.go:35-...` — `RunWithFallback`.
+- `/Users/dev/Development/mashed/internal/uiadapter/logging.go` (Story 1) — standard attr names.
 - Story 3's `testLogBuffer` helper is reused here.
 
 ### Skills

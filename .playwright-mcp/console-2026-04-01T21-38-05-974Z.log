@@ -1,7 +1,0 @@
-[      65ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
-[      66ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
-[      66ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
-[   26936ms] [LOG] Queueing: runtime:ready @ http://localhost:34115/wails/ipc.js:6
-[   26937ms] [LOG] %c wails dev %c Connected to backend  background: #aa0000; color: #fff; border-radius: 3px 0px 0px 3px; padding: 1px; font-size: 0.7rem background: #009900; color: #fff; border-radius: 0px 3px 3px 0px; padding: 1px; font-size: 0.7rem @ http://localhost:34115/wails/ipc.js:0
-[   26937ms] [LOG] sending queued message: runtime:ready @ http://localhost:34115/wails/ipc.js:6
-[   38416ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:58321/ws/conductor-mashed-1775079524%3A0.0' failed: Error during WebSocket handshake: Unexpected response code: 404 @ http://localhost:34115/src/components/Terminal.svelte:176

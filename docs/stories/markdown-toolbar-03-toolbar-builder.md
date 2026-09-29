@@ -14,7 +14,7 @@ Implement the pure function `buildToolbarFromSettings(settings)` that returns a 
 ## Developer Notes
 
 ### Architecture
-- New file: `/Users/linus/Development/mashed/frontend/src/components/markdownToolbarBuilder.ts`
+- New file: `/Users/dev/Development/mashed/frontend/src/components/markdownToolbarBuilder.ts`
 - Export a single named function: `export function buildToolbarFromSettings(s: MarkdownMenuSettings): (builder: GroupBuilder<ToolbarItem>) => void`
 - The returned function seeds a single group named `'toolbar'` and conditionally adds items using `group.addItem(key, {icon, active, onRun})`.
 
@@ -90,8 +90,8 @@ If going the fallback route, confirm Crepe emits `data-key` on `.toolbar-item` e
 - **Latex not installed** — if the Milkdown LaTeX feature isn't enabled in Crepe construction, `toggleLatexCommand` may be undefined at runtime. Guard by only importing latex symbols and defer the `group.addItem('latex', ...)` call — if the runtime command is absent, the button click will noop. This is acceptable; LaTeX default is `off` anyway.
 
 ### Reference Files
-- `/Users/linus/Development/mashed/frontend/src/components/MarkdownEditor.svelte` — existing Crepe integration (no `featureConfigs` yet; that's story 05).
-- `/Users/linus/Development/mashed/frontend/src/lib/stores/markdownMenuSettings.ts` — source of the `MarkdownMenuSettings` type.
+- `/Users/dev/Development/mashed/frontend/src/components/MarkdownEditor.svelte` — existing Crepe integration (no `featureConfigs` yet; that's story 05).
+- `/Users/dev/Development/mashed/frontend/src/lib/stores/markdownMenuSettings.ts` — source of the `MarkdownMenuSettings` type.
 - Milkdown source (via `node_modules/@milkdown/crepe/src/feature/toolbar/config.ts` or the bundled dist) — the canonical shape to mirror.
 
 ## Acceptance Criteria

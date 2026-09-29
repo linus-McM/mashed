@@ -54,8 +54,8 @@ Invoke the `/playwright-cli` skill to automate steps 1–10 where possible:
 - **Toolbar DOM selector stability** — `.toolbar-item` is the Crepe class; verify it's stable in the pinned Crepe version before asserting on it.
 
 ### Reference Files
-- `/Users/linus/Development/mashed/docs/plans/markdown-toolbar-settings.md` — §Verification contains the canonical script.
-- `/Users/linus/Development/mashed/.wolf/designqc-captures/` — screenshot drop directory.
+- `/Users/dev/Development/mashed/docs/plans/markdown-toolbar-settings.md` — §Verification contains the canonical script.
+- `/Users/dev/Development/mashed/.wolf/designqc-captures/` — screenshot drop directory.
 
 ## Acceptance Criteria
 

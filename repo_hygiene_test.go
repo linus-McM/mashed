@@ -188,6 +188,8 @@ func TestRepo_CIWorkflow(t *testing.T) {
 		"go test -race ./...",
 		"go test -count=50 -run 'AC2|LateClient' ./internal/terminal/", // R20 on ubuntu
 		"sudo -E env \"PATH=$PATH\" go test ./internal/bmad/",           // R23 as root
+		"! git ls-files | grep -E",                                      // R26 junk
+		"! git grep -l -F \"/Users/",                                    // R26 personal paths
 	} {
 		if !strings.Contains(runs["go"], want) {
 			t.Errorf("go job lacks %q", want)
@@ -224,6 +226,60 @@ func TestRepo_PrePushCoversRoot(t *testing.T) {
 	}
 	if cmd.Run != "go test -short -count=1 ./..." {
 		t.Errorf("pre-push go-test-all runs %q, want %q", cmd.Run, "go test -short -count=1 ./...")
+	}
+}
+
+// junkPaths are generated or personal artefacts that must never be tracked.
+var junkPaths = []string{
+	"docs/repomixer", ".playwright-mcp", ".playwright-cli", "desloppify-workspace",
+	"frontend/coverage", ".vite", "frontend/.claude", "todo.md",
+}
+
+// personalPath is built from pieces so this file never matches itself.
+var personalPath = "/Users/" + "linus"
+
+// gitGrepFiles lists tracked files containing needle (fixed string), outside
+// docs/plans/, sdlc/ and the files that must spell the needle out.
+func gitGrepFiles(t *testing.T, extended bool, needle string) []string {
+	t.Helper()
+	args := []string{"grep", "-l", "-F"}
+	if extended {
+		args = []string{"grep", "-l", "-E"}
+	}
+	args = append(args, needle, "--", ".",
+		":!docs/plans", ":!sdlc", ":!repo_hygiene_test.go", ":!.github/workflows/ci.yml")
+	cmd := exec.Command("git", args...)
+	cmd.Dir = repoRoot(t)
+	cmd.Env = cleanGitEnv()
+	out, err := cmd.Output()
+	if err != nil {
+		if ee, ok := err.(*exec.ExitError); ok && ee.ExitCode() == 1 {
+			return nil // no matches
+		}
+		t.Fatalf("git grep: %v", err)
+	}
+	return strings.Fields(string(out))
+}
+
+// R26: generated artefacts and personal paths are not tracked, and stay out.
+func TestRepo_NoTrackedJunk(t *testing.T) {
+	if got := trackedFiles(t, junkPaths...); len(got) > 0 {
+		t.Errorf("%d junk files still tracked, e.g. %v", len(got), got[:min(3, len(got))])
+	}
+	for _, p := range junkPaths {
+		probe := p + "/probe"
+		if p == "todo.md" {
+			probe = p
+		}
+		cmd := exec.Command("git", "check-ignore", "-q", "--no-index", probe)
+		cmd.Dir = repoRoot(t)
+		cmd.Env = cleanGitEnv()
+		if err := cmd.Run(); err != nil {
+			t.Errorf("%s is not git-ignored", probe)
+		}
+	}
+	if got := gitGrepFiles(t, false, personalPath); len(got) > 0 {
+		t.Errorf("tracked files contain a personal home path: %v", got)
 	}
 }
 

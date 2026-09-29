@@ -100,13 +100,13 @@ These are free functions — they receive `logger *slog.Logger` from Story 2's p
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/internal/uiadapter/adapter.go:200-260` — existing `logTelemetry` / `logTelemetryWithSanitize` shows the canonical sanitize discipline. Mirror its attribute style.
-- `/Users/linus/Development/mashed/internal/uiadapter/allowlist.go:31` — existing `slog.Default()` usage gives the template for warn-level emission.
-- `/Users/linus/Development/mashed/internal/uiadapter/logging.go` (created in Story 1) — contains `nilSafeLogger`; standard attribute names in the doc comment.
-- `/Users/linus/Development/mashed/internal/uiadapter/client.go` — primary file; ~80 LOC.
-- `/Users/linus/Development/mashed/internal/uiadapter/cache.go` — second largest target; LRU eviction is the eviction site.
-- `/Users/linus/Development/mashed/internal/uiadapter/breaker.go` — state machine; transition is the only branch worth instrumenting.
-- `/Users/linus/Development/mashed/internal/uiadapter/semaphore.go` — small file but every Translate goes through it.
+- `/Users/dev/Development/mashed/internal/uiadapter/adapter.go:200-260` — existing `logTelemetry` / `logTelemetryWithSanitize` shows the canonical sanitize discipline. Mirror its attribute style.
+- `/Users/dev/Development/mashed/internal/uiadapter/allowlist.go:31` — existing `slog.Default()` usage gives the template for warn-level emission.
+- `/Users/dev/Development/mashed/internal/uiadapter/logging.go` (created in Story 1) — contains `nilSafeLogger`; standard attribute names in the doc comment.
+- `/Users/dev/Development/mashed/internal/uiadapter/client.go` — primary file; ~80 LOC.
+- `/Users/dev/Development/mashed/internal/uiadapter/cache.go` — second largest target; LRU eviction is the eviction site.
+- `/Users/dev/Development/mashed/internal/uiadapter/breaker.go` — state machine; transition is the only branch worth instrumenting.
+- `/Users/dev/Development/mashed/internal/uiadapter/semaphore.go` — small file but every Translate goes through it.
 
 ### Skills
 

@@ -750,7 +750,7 @@ func TestDetectIdlePrompt(t *testing.T) {
 		"────────────────────────────────────────────────────────────────\n" +
 		"❯ \n" +
 		"────────────────────────────────────────────────────────────────\n" +
-		"   cwd: /Users/linus/Development/surfseer  ⎇ main\n" +
+		"   cwd: /Users/dev/Development/surfseer  ⎇ main\n" +
 		"   Model: Opus 4.6                         Total: 68.5 t/s\n" +
 		"  ⏵⏵ bypass permissions on (shift+tab to cycle)\n"
 

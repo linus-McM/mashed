@@ -76,4 +76,4 @@ bmad-01 + bmad-04 --------> bmad-05 (Wails Bindings) ---------> bmad-06 (View & 
 **P2 (Polish):** 1 story (bmad-09)
 **Ready for Sprint (no dependencies):** bmad-01, bmad-02
 
-Story files written to: `/Users/linus/Development/mashed/docs/stories/`
+Story files written to: `/Users/dev/Development/mashed/docs/stories/`

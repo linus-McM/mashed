@@ -255,4 +255,4 @@ All files ready for Go port specification document.
 
 ================================================================================
 EOF
-cat /Users/linus/Development/mashed/DOCUMENTATION_SUMMARY.txt
+cat /Users/dev/Development/mashed/DOCUMENTATION_SUMMARY.txt
