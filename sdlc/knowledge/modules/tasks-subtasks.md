@@ -1,13 +1,13 @@
 ---
 type: Module
 title: Tasks / Subtasks
-description: "Graphify community 13: docs/SPECIFICATION.md, docs/stories/breadcrumbs-06-downstream-autofill.md, docs/stories/old_stories/bmad-05-wails-bindings.md, docs/stories/old_stories/bmad-06-workflow-view-can"
+description: "Graphify community 65: docs/SPECIFICATION.md, docs/stories/breadcrumbs-06-downstream-autofill.md, docs/stories/old_stories/bmad-05-wails-bindings.md, docs/stories/old_stories/bmad-06-workflow-view-can"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: SPECIFICATION, resource: docs/SPECIFICATION.md, last_modified: "2026-04-12T09:58:35+10:00", digest: 2150575fba9a1ee2 }
   - { id: breadcrumbs-06-downstream-autofill, resource: docs/stories/breadcrumbs-06-downstream-autofill.md, last_modified: "2026-04-14T16:10:56+10:00", digest: 9c851abd94d1be99 }
@@ -36,6 +36,7 @@ sources:
 - Wails Bindings: BMAD API Surface (docs/stories/old_stories/bmad-05-wails-bindings.md:L1)
 - Technical Considerations (docs/stories/old_stories/bmad-05-wails-bindings.md:L119)
 - Developer Notes (docs/stories/old_stories/bmad-05-wails-bindings.md:L12)
+- Reference Files (docs/stories/old_stories/bmad-05-wails-bindings.md:L133)
 - Architecture (docs/stories/old_stories/bmad-05-wails-bindings.md:L14)
 - Acceptance Criteria (docs/stories/old_stories/bmad-05-wails-bindings.md:L141)
 - BDD Test Scenarios (docs/stories/old_stories/bmad-05-wails-bindings.md:L151)
@@ -62,13 +63,13 @@ sources:
 - GetBmadWorkflow() (frontend/wailsjs/go/main/App.js:L61)
 
 # Depends on
-- [GetTerminalPort](/modules/getterminalport.md)
-- [SpawnAgent](/modules/spawnagent.md)
+- no EXTRACTED edges to other modules
 
 # Inferred
-- [10. Wails Bindings (Go → Svelte API)](/modules/10-wails-bindings-go-svelte-api.md)
+- [13. Edge Cases and Failure Modes](/modules/13-edge-cases-and-failure-modes.md)
+- [App.js](/modules/app-js.md)
 - [CreateFromTemplate](/modules/createfromtemplate.md)
-- [GetTerminalPort](/modules/getterminalport.md)
+- [SpawnAgent](/modules/spawnagent.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

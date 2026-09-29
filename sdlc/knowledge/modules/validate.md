@@ -1,13 +1,13 @@
 ---
 type: Module
 title: Validate
-description: "Graphify community 39: internal/uiadapter/sanitize_adapter_test.go, internal/uiadapter/validator.go, internal/uiadapter/validator_test.go"
+description: "Graphify community 51: internal/uiadapter/sanitize_adapter_test.go, internal/uiadapter/validator.go, internal/uiadapter/validator_test.go"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: sanitize_adapter_test, resource: internal/uiadapter/sanitize_adapter_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: 2951e338741da597 }
   - { id: validator, resource: internal/uiadapter/validator.go, last_modified: "2026-04-26T11:30:52+10:00", digest: ea853a4a6aadb5f2 }
@@ -56,9 +56,10 @@ sources:
 - TestValidate_Rule4_DuplicateKeySuffix() (internal/uiadapter/validator_test.go:L76)
 
 # Depends on
-- [DefaultConfig](/modules/defaultconfig.md)
+- [testLogBuffer](/modules/testlogbuffer.md)
 
 # Inferred
+- [go_pkg_log_slog](/modules/go-pkg-log-slog.md)
 - [log/slog.Logger](/modules/log-slog-logger.md)
 
 # Features

@@ -1,28 +1,23 @@
 ---
 type: Module
 title: time.Duration
-description: "Graphify community 345: app_review.go, internal/uiadapter/eval/scorecard.go, internal/uiadapter/eval/scorecard_v3.go"
-resource: ""
+description: "Graphify community 310: internal/uiadapter/eval/scorecard.go, internal/uiadapter/eval/scorecard_v3.go"
+resource: internal/uiadapter/eval
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
-  - { id: app_review, resource: app_review.go, last_modified: "2026-05-07T18:18:02+10:00", digest: f186f322bd66e914 }
   - { id: scorecard, resource: internal/uiadapter/eval/scorecard.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 478867f290bdf6a9 }
   - { id: scorecard_v3, resource: internal/uiadapter/eval/scorecard_v3.go, last_modified: "2026-04-23T11:36:37+10:00", digest: 43f9103bcabd6620 }
 ---
 
 # Files
-- `app_review.go`
 - `internal/uiadapter/eval/scorecard.go`
 - `internal/uiadapter/eval/scorecard_v3.go`
 
 # Symbols
-- .StreamCodeReviewSummary() (app_review.go:L112)
-- runClaudePrompt() (app_review.go:L459)
-- isReviewableFile() (app_review.go:L84)
 - .ValidJSONRate() (internal/uiadapter/eval/scorecard.go:L131)
 - .ValidatorPassRate() (internal/uiadapter/eval/scorecard.go:L138)
 - .P95Latency() (internal/uiadapter/eval/scorecard.go:L149)
@@ -37,12 +32,10 @@ sources:
 - BackendThresholds (internal/uiadapter/eval/scorecard_v3.go:L20)
 
 # Depends on
-- [app_review_test.go](/modules/app-review-test-go.md)
 - [mashed/internal/uiadapter.UIAST](/modules/mashed-internal-uiadapter-uiast.md)
-- [ScopedDiff](/modules/scopeddiff.md)
 
 # Inferred
-- [App](/modules/app-63.md)
+- no INFERRED edges; treat any that appear as hints
 
 # Features
-- [Repo health remediation](/features/repo-health-remediation.md)
+- no feature plan names these files

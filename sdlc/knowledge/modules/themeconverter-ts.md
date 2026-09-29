@@ -1,13 +1,13 @@
 ---
 type: Module
 title: themeConverter.ts
-description: "Graphify community 34: docs/stories/old_stories/theme-02-converter.md, docs/stories/svelte-check-01-js-stores-to-ts.md, docs/stories/svelte-check-complete-report.md, frontend/src/lib/themeConverter.te"
+description: "Graphify community 19: docs/stories/old_stories/theme-02-converter.md, docs/stories/svelte-check-01-js-stores-to-ts.md, docs/stories/svelte-check-complete-report.md, frontend/src/lib/themeConverter.te"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: theme-02-converter, resource: docs/stories/old_stories/theme-02-converter.md, last_modified: "2026-04-08T10:23:03+10:00", digest: f358caa9c259f69b }
   - { id: svelte-check-01-js-stores-to-ts, resource: docs/stories/svelte-check-01-js-stores-to-ts.md, last_modified: "2026-04-22T17:06:36+10:00", digest: 3cdcd1064aabe570 }
@@ -34,6 +34,12 @@ sources:
 - Acceptance Criteria (docs/stories/old_stories/theme-02-converter.md:L113)
 - Developer Notes (docs/stories/old_stories/theme-02-converter.md:L13)
 - Architecture (docs/stories/old_stories/theme-02-converter.md:L15)
+- BDD Test Scenarios (docs/stories/old_stories/theme-02-converter.md:L153)
+- Scenario 1: Full Dracula theme conversion (docs/stories/old_stories/theme-02-converter.md:L155)
+- Scenario 2: Token specificity ordering (docs/stories/old_stories/theme-02-converter.md:L182)
+- Scenario 3: Hex normalization edge cases (docs/stories/old_stories/theme-02-converter.md:L202)
+- Scenario 4: Light and high-contrast themes (docs/stories/old_stories/theme-02-converter.md:L224)
+- Scenario 5: Missing data graceful handling (docs/stories/old_stories/theme-02-converter.md:L241)
 - Tasks / Subtasks (docs/stories/old_stories/theme-02-converter.md:L259)
 - Technical Considerations (docs/stories/old_stories/theme-02-converter.md:L29)
 - Definition of Done (docs/stories/old_stories/theme-02-converter.md:L298)

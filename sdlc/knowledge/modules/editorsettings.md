@@ -1,13 +1,13 @@
 ---
 type: Module
 title: EditorSettings
-description: "Graphify community 540: frontend/wailsjs/go/models.ts"
+description: "Graphify community 514: frontend/wailsjs/go/models.ts"
 resource: frontend/wailsjs/go
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: models, resource: frontend/wailsjs/go/models.ts, last_modified: "2026-04-28T12:36:05+10:00", digest: 921deb8fd959e9dc }
 ---
@@ -27,4 +27,4 @@ sources:
 - no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

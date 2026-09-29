@@ -1,20 +1,21 @@
 ---
 type: Module
 title: svelte
-description: "Graphify community 6: @xyflow/svelte/dist/style.css, @xyflow/system, frontend/src/App.svelte, frontend/src/components/AboutModal.svelte, frontend/src/components/NewRepoModal.svelte, frontend/src/compo"
+description: "Graphify community 3: @xyflow/svelte/dist/style.css, @xyflow/system, frontend/src/App.svelte, frontend/src/components/AboutModal.svelte, frontend/src/components/NewRepoModal.svelte, frontend/src/compo"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
-  - { id: style, resource: "@xyflow/svelte/dist/style.css", last_modified: "2026-09-29T12:23:14Z", digest: missing }
-  - { id: system, resource: "@xyflow/system", last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: style, resource: "@xyflow/svelte/dist/style.css", last_modified: "2026-09-29T14:46:21Z", digest: missing }
+  - { id: system, resource: "@xyflow/system", last_modified: "2026-09-29T14:46:21Z", digest: missing }
   - { id: App, resource: frontend/src/App.svelte, last_modified: "2026-04-23T11:09:52+10:00", digest: 10db755a7a0e5abe }
   - { id: AboutModal, resource: frontend/src/components/AboutModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 4371891538f83733 }
   - { id: NewRepoModal, resource: frontend/src/components/NewRepoModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 88f99d701a9fb7ec }
   - { id: SparkLine, resource: frontend/src/components/SparkLine.svelte, last_modified: "2026-04-22T19:23:56+10:00", digest: 61bc0e7ea260e7dc }
+  - { id: StatusBadge, resource: frontend/src/components/StatusBadge.svelte, last_modified: "2026-04-22T18:25:48+10:00", digest: adf6af8794b8416c }
   - { id: TitleBar, resource: frontend/src/components/TitleBar.svelte, last_modified: "2026-04-23T14:09:41+10:00", digest: 24aa88a7c4d75635 }
   - { id: AgentConfigModal, resource: frontend/src/components/bmad/AgentConfigModal.svelte, last_modified: "2026-04-22T20:18:54+10:00", digest: 9348dfb08c71e64b }
   - { id: ArrayEditorModal, resource: frontend/src/components/bmad/ArrayEditorModal.svelte, last_modified: "2026-04-22T19:45:14+10:00", digest: 4989e0175e938fd6 }
@@ -34,20 +35,24 @@ sources:
   - { id: NodeConfigPanel, resource: frontend/src/components/bmad/NodeConfigPanel.svelte, last_modified: "2026-04-28T12:36:05+10:00", digest: 4f3162377da28e00 }
   - { id: NodeInputSnackbarStack, resource: frontend/src/components/bmad/NodeInputSnackbarStack.svelte, last_modified: "2026-04-23T13:05:14+10:00", digest: 9303637e3d1e41ca }
   - { id: OutputViewerModal, resource: frontend/src/components/bmad/OutputViewerModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 3c41b18ddced34a3 }
+  - { id: ProcessNode, resource: frontend/src/components/bmad/ProcessNode.svelte, last_modified: "2026-04-28T12:36:05+10:00", digest: 868ed67d7007ebb8 }
   - { id: ProcessSidebar, resource: frontend/src/components/bmad/ProcessSidebar.svelte, last_modified: "2026-04-22T20:32:12+10:00", digest: ba2dd5fd34da2ea9 }
+  - { id: QuestionResponseModal, resource: frontend/src/components/bmad/QuestionResponseModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 5672933bac7b8d06 }
   - { id: QuestionSnackbarStack, resource: frontend/src/components/bmad/QuestionSnackbarStack.svelte, last_modified: "2026-04-20T14:57:51+10:00", digest: c485ed709e057516 }
   - { id: RepoContextBar, resource: frontend/src/components/bmad/RepoContextBar.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 4b88c9306bfe4566 }
   - { id: SkillEditorModal, resource: frontend/src/components/bmad/SkillEditorModal.svelte, last_modified: "2026-04-22T20:18:54+10:00", digest: 72aca99565eade35 }
+  - { id: SprintPanel, resource: frontend/src/components/bmad/SprintPanel.svelte, last_modified: "2026-04-22T19:45:14+10:00", digest: f598d595c77d3900 }
   - { id: TemplatePicker, resource: frontend/src/components/bmad/TemplatePicker.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 03fb81f98450e65a }
   - { id: TransformNode, resource: frontend/src/components/bmad/TransformNode.svelte, last_modified: "2026-04-22T19:45:14+10:00", digest: 9db9d57796b59d33 }
   - { id: dragMimeTypes, resource: frontend/src/components/bmad/dragMimeTypes.js, last_modified: "2026-04-12T11:29:01+10:00", digest: 18265d72e3368a5f }
-  - { id: ChoiceWidget, resource: frontend/src/components/bmad/inputWidgets/ChoiceWidget.svelte, last_modified: "2026-04-28T12:36:05+10:00", digest: 627fa216a773bbcc }
-  - { id: MultiChoiceWidget, resource: frontend/src/components/bmad/inputWidgets/MultiChoiceWidget.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: a5b9208bb3c31b33 }
+  - { id: FileInputWidget, resource: frontend/src/components/bmad/inputWidgets/FileInputWidget.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: f8d44fad8490e625 }
   - { id: nodeUtils, resource: frontend/src/components/bmad/nodeUtils.js, last_modified: "2026-04-10T12:50:28+10:00", digest: 37206f78b45ce6ed }
   - { id: errorMessage, resource: frontend/src/lib/errorMessage.ts, last_modified: "2026-04-22T17:53:53+10:00", digest: 01d52ec3146aae0e }
   - { id: ptySize, resource: frontend/src/lib/ptySize.ts, last_modified: "2026-05-07T18:18:02+10:00", digest: 819faf79772ff83a }
-  - { id: wails, resource: frontend/src/lib/types/wails, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: sprintColors, resource: frontend/src/lib/sprintColors.js, last_modified: "2026-04-08T15:23:40+10:00", digest: 615bf277a88f2117 }
+  - { id: wails, resource: frontend/src/lib/types/wails, last_modified: "2026-09-29T14:46:21Z", digest: missing }
   - { id: workflow, resource: frontend/src/types/workflow.ts, last_modified: "2026-04-23T13:05:14+10:00", digest: dde86e2d10f68917 }
+  - { id: AgentDetail, resource: frontend/src/views/AgentDetail.svelte, last_modified: "2026-05-07T18:18:02+10:00", digest: ae357b7360448f38 }
   - { id: BranchModal, resource: frontend/src/views/BranchModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 6d3c58fc0fa1902c }
   - { id: ForcePushModal, resource: frontend/src/views/ForcePushModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 6f35f823b43cd232 }
   - { id: MergeModal, resource: frontend/src/views/MergeModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: aad1d4fffa15e556 }
@@ -55,12 +60,13 @@ sources:
   - { id: Settings, resource: frontend/src/views/Settings.svelte, last_modified: "2026-04-23T11:09:52+10:00", digest: edc56fcaa6890012 }
   - { id: Setup, resource: frontend/src/views/Setup.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: aeb9be820e3be7e3 }
   - { id: SpawnAgent, resource: frontend/src/views/SpawnAgent.svelte, last_modified: "2026-05-07T18:18:02+10:00", digest: b9e9afd8fe710518 }
-  - { id: SummarisationModal, resource: frontend/src/views/SummarisationModal.svelte, last_modified: "2026-04-22T20:32:12+10:00", digest: 1b621514b92c549f }
+  - { id: SwitchBranchModal, resource: frontend/src/views/SwitchBranchModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 501e05cfd7841900 }
   - { id: WorkflowBuilder, resource: frontend/src/views/WorkflowBuilder.svelte, last_modified: "2026-04-27T10:45:20+10:00", digest: 40a1956dcdb95828 }
-  - { id: lucide-svelte, resource: lucide-svelte, last_modified: "2026-09-29T12:23:14Z", digest: missing }
-  - { id: animate, resource: svelte/animate, last_modified: "2026-09-29T12:23:14Z", digest: missing }
-  - { id: easing, resource: svelte/easing, last_modified: "2026-09-29T12:23:14Z", digest: missing }
-  - { id: transition, resource: svelte/transition, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
+  - { id: lucide-svelte, resource: lucide-svelte, last_modified: "2026-09-29T14:46:21Z", digest: missing }
+  - { id: animate, resource: svelte/animate, last_modified: "2026-09-29T14:46:21Z", digest: missing }
+  - { id: easing, resource: svelte/easing, last_modified: "2026-09-29T14:46:21Z", digest: missing }
+  - { id: transition, resource: svelte/transition, last_modified: "2026-09-29T14:46:21Z", digest: missing }
 ---
 
 # Files
@@ -70,6 +76,7 @@ sources:
 - `frontend/src/components/AboutModal.svelte`
 - `frontend/src/components/NewRepoModal.svelte`
 - `frontend/src/components/SparkLine.svelte`
+- `frontend/src/components/StatusBadge.svelte`
 - `frontend/src/components/TitleBar.svelte`
 - `frontend/src/components/bmad/AgentConfigModal.svelte`
 - `frontend/src/components/bmad/ArrayEditorModal.svelte`
@@ -89,20 +96,24 @@ sources:
 - `frontend/src/components/bmad/NodeConfigPanel.svelte`
 - `frontend/src/components/bmad/NodeInputSnackbarStack.svelte`
 - `frontend/src/components/bmad/OutputViewerModal.svelte`
+- `frontend/src/components/bmad/ProcessNode.svelte`
 - `frontend/src/components/bmad/ProcessSidebar.svelte`
+- `frontend/src/components/bmad/QuestionResponseModal.svelte`
 - `frontend/src/components/bmad/QuestionSnackbarStack.svelte`
 - `frontend/src/components/bmad/RepoContextBar.svelte`
 - `frontend/src/components/bmad/SkillEditorModal.svelte`
+- `frontend/src/components/bmad/SprintPanel.svelte`
 - `frontend/src/components/bmad/TemplatePicker.svelte`
 - `frontend/src/components/bmad/TransformNode.svelte`
 - `frontend/src/components/bmad/dragMimeTypes.js`
-- `frontend/src/components/bmad/inputWidgets/ChoiceWidget.svelte`
-- `frontend/src/components/bmad/inputWidgets/MultiChoiceWidget.svelte`
+- `frontend/src/components/bmad/inputWidgets/FileInputWidget.svelte`
 - `frontend/src/components/bmad/nodeUtils.js`
 - `frontend/src/lib/errorMessage.ts`
 - `frontend/src/lib/ptySize.ts`
+- `frontend/src/lib/sprintColors.js`
 - `frontend/src/lib/types/wails`
 - `frontend/src/types/workflow.ts`
+- `frontend/src/views/AgentDetail.svelte`
 - `frontend/src/views/BranchModal.svelte`
 - `frontend/src/views/ForcePushModal.svelte`
 - `frontend/src/views/MergeModal.svelte`
@@ -110,8 +121,9 @@ sources:
 - `frontend/src/views/Settings.svelte`
 - `frontend/src/views/Setup.svelte`
 - `frontend/src/views/SpawnAgent.svelte`
-- `frontend/src/views/SummarisationModal.svelte`
+- `frontend/src/views/SwitchBranchModal.svelte`
 - `frontend/src/views/WorkflowBuilder.svelte`
+- `frontend/wailsjs/go/main/App.js`
 - `lucide-svelte`
 - `svelte/animate`
 - `svelte/easing`
@@ -126,6 +138,7 @@ sources:
 - NewRepoModal.svelte (frontend/src/components/NewRepoModal.svelte:L1)
 - selected (frontend/src/components/NewRepoModal.svelte:L91)
 - SparkLine.svelte (frontend/src/components/SparkLine.svelte:L1)
+- StatusBadge.svelte (frontend/src/components/StatusBadge.svelte:L1)
 - TitleBar.svelte (frontend/src/components/TitleBar.svelte:L1)
 - active (frontend/src/components/TitleBar.svelte:L156)
 - AgentConfigModal.svelte (frontend/src/components/bmad/AgentConfigModal.svelte:L1)
@@ -148,26 +161,32 @@ sources:
 - MergeNode.svelte (frontend/src/components/bmad/MergeNode.svelte:L1)
 - MultiFileLoaderNode.svelte (frontend/src/components/bmad/MultiFileLoaderNode.svelte:L1)
 - var() (frontend/src/components/bmad/MultiFileLoaderNode.svelte:L101)
-- i() (frontend/src/components/bmad/MultiFileLoaderNode.svelte:L34)
 - NameWorkflowModal.svelte (frontend/src/components/bmad/NameWorkflowModal.svelte:L1)
 - NodeConfigPanel.svelte (frontend/src/components/bmad/NodeConfigPanel.svelte:L1)
 - onMouseMove() (frontend/src/components/bmad/NodeConfigPanel.svelte:L39)
 - onMouseUp() (frontend/src/components/bmad/NodeConfigPanel.svelte:L43)
 - NodeInputSnackbarStack.svelte (frontend/src/components/bmad/NodeInputSnackbarStack.svelte:L1)
 - OutputViewerModal.svelte (frontend/src/components/bmad/OutputViewerModal.svelte:L1)
+- ProcessNode.svelte (frontend/src/components/bmad/ProcessNode.svelte:L1)
+- var() (frontend/src/components/bmad/ProcessNode.svelte:L194)
 - ProcessSidebar.svelte (frontend/src/components/bmad/ProcessSidebar.svelte:L1)
+- handleCancel() (frontend/src/components/bmad/QuestionResponseModal.svelte:L71)
 - QuestionSnackbarStack.svelte (frontend/src/components/bmad/QuestionSnackbarStack.svelte:L1)
 - questions (frontend/src/components/bmad/QuestionSnackbarStack.svelte:L10)
 - RepoContextBar.svelte (frontend/src/components/bmad/RepoContextBar.svelte:L1)
 - SkillEditorModal.svelte (frontend/src/components/bmad/SkillEditorModal.svelte:L1)
+- if() (frontend/src/components/bmad/SkillEditorModal.svelte:L55)
+- SprintPanel.svelte (frontend/src/components/bmad/SprintPanel.svelte:L1)
+- labelFor() (frontend/src/components/bmad/SprintPanel.svelte:L18)
+- toggleEpic() (frontend/src/components/bmad/SprintPanel.svelte:L29)
+- epicDone() (frontend/src/components/bmad/SprintPanel.svelte:L34)
+- onDragStart() (frontend/src/components/bmad/SprintPanel.svelte:L46)
 - TemplatePicker.svelte (frontend/src/components/bmad/TemplatePicker.svelte:L1)
 - TransformNode.svelte (frontend/src/components/bmad/TransformNode.svelte:L1)
 - dragMimeTypes.js (frontend/src/components/bmad/dragMimeTypes.js:L1)
 - MASHED_ASSET_MIME (frontend/src/components/bmad/dragMimeTypes.js:L4)
-- ChoiceWidget.svelte (frontend/src/components/bmad/inputWidgets/ChoiceWidget.svelte:L1)
-- selected (frontend/src/components/bmad/inputWidgets/ChoiceWidget.svelte:L105)
-- submit() (frontend/src/components/bmad/inputWidgets/ChoiceWidget.svelte:L75)
-- MultiChoiceWidget.svelte (frontend/src/components/bmad/inputWidgets/MultiChoiceWidget.svelte:L1)
+- FileInputWidget.svelte (frontend/src/components/bmad/inputWidgets/FileInputWidget.svelte:L1)
+- invalid (frontend/src/components/bmad/inputWidgets/FileInputWidget.svelte:L74)
 - nodeUtils.js (frontend/src/components/bmad/nodeUtils.js:L1)
 - formatConditionSummary() (frontend/src/components/bmad/nodeUtils.js:L10)
 - formatIterationDisplay() (frontend/src/components/bmad/nodeUtils.js:L27)
@@ -175,16 +194,25 @@ sources:
 - errorMessage.ts (frontend/src/lib/errorMessage.ts:L1)
 - ptySize.ts (frontend/src/lib/ptySize.ts:L1)
 - estimatePtySize() (frontend/src/lib/ptySize.ts:L17)
+- sprintColors.js (frontend/src/lib/sprintColors.js:L1)
+- storyStatusLabels (frontend/src/lib/sprintColors.js:L10)
+- storyStatusColors (frontend/src/lib/sprintColors.js:L2)
 - ../lib/types/wails (frontend/src/lib/types/wails:)
 - workflow.ts (frontend/src/types/workflow.ts:L1)
 - WorkflowEdge (frontend/src/types/workflow.ts:L24)
 - WorkflowNode (frontend/src/types/workflow.ts:L27)
+- AgentDetail.svelte (frontend/src/views/AgentDetail.svelte:L1)
+- active (frontend/src/views/AgentDetail.svelte:L457)
+- if() (frontend/src/views/AgentDetail.svelte:L70)
 - BranchModal.svelte (frontend/src/views/BranchModal.svelte:L1)
 - repoPath (frontend/src/views/BranchModal.svelte:L22)
 - repoBranch (frontend/src/views/BranchModal.svelte:L23)
 - prefixes (frontend/src/views/BranchModal.svelte:L25)
 - sanitize() (frontend/src/views/BranchModal.svelte:L45)
 - handleInput() (frontend/src/views/BranchModal.svelte:L58)
+- create() (frontend/src/views/BranchModal.svelte:L66)
+- cancel() (frontend/src/views/BranchModal.svelte:L79)
+- handleKeydown() (frontend/src/views/BranchModal.svelte:L84)
 - ForcePushModal.svelte (frontend/src/views/ForcePushModal.svelte:L1)
 - cancel() (frontend/src/views/ForcePushModal.svelte:L28)
 - handleKeydown() (frontend/src/views/ForcePushModal.svelte:L33)
@@ -195,14 +223,14 @@ sources:
 - Setup.svelte (frontend/src/views/Setup.svelte:L1)
 - SpawnAgent.svelte (frontend/src/views/SpawnAgent.svelte:L1)
 - selected (frontend/src/views/SpawnAgent.svelte:L91)
-- SummarisationModal.svelte (frontend/src/views/SummarisationModal.svelte:L1)
-- close() (frontend/src/views/SummarisationModal.svelte:L127)
-- handleKeydown() (frontend/src/views/SummarisationModal.svelte:L131)
-- openFile() (frontend/src/views/SummarisationModal.svelte:L135)
-- toggleFile() (frontend/src/views/SummarisationModal.svelte:L139)
-- handleCardKey() (frontend/src/views/SummarisationModal.svelte:L156)
+- SwitchBranchModal.svelte (frontend/src/views/SwitchBranchModal.svelte:L1)
+- switchBranch() (frontend/src/views/SwitchBranchModal.svelte:L42)
+- cancel() (frontend/src/views/SwitchBranchModal.svelte:L55)
+- handleKeydown() (frontend/src/views/SwitchBranchModal.svelte:L60)
 - WorkflowBuilder.svelte (frontend/src/views/WorkflowBuilder.svelte:L1)
 - catch() (frontend/src/views/WorkflowBuilder.svelte:L1227)
+- GitCreateBranch() (frontend/wailsjs/go/main/App.js:L137)
+- GitSwitchBranch() (frontend/wailsjs/go/main/App.js:L161)
 - lucide-svelte (lucide-svelte:)
 - svelte/animate (svelte/animate:)
 - svelte/easing (svelte/easing:)
@@ -214,22 +242,21 @@ sources:
 - [bmadEvents.ts](/modules/bmadevents-ts.md)
 - [canvasPaneDropHandler.ts](/modules/canvaspanedrophandler-ts.md)
 - [DynamicUiSelector.svelte](/modules/dynamicuiselector-svelte.md)
+- [FileTree.svelte](/modules/filetree-svelte.md)
 - [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
 - [interactiveInput.ts](/modules/interactiveinput-ts.md)
+- [ListRepoSessions](/modules/listreposessions.md)
 - [markdownMenuSettings.ts](/modules/markdownmenusettings-ts.md)
-- [mashedConfig](/modules/mashedconfig.md)
 - [models.ts](/modules/models-ts.md)
 - [MonacoEditor.svelte](/modules/monacoeditor-svelte.md)
 - [NewSessionModal.svelte](/modules/newsessionmodal-svelte.md)
-- [ProcessNode.awaiting.test.ts](/modules/processnode-awaiting-test-ts.md)
-- [ProcessNode.status.test.ts](/modules/processnode-status-test-ts.md)
+- [nodePath.ts](/modules/nodepath-ts.md)
 - [QuestionSnackbarStack.test.ts](/modules/questionsnackbarstack-test-ts.md)
 - [repoPalette.ts](/modules/repopalette-ts.md)
 - [runtime.js](/modules/runtime-js.md)
 - [status.ts](/modules/status-ts.md)
-- [Story 2: Code Review Summary & Advice Streaming Backend](/modules/story-2-code-review-summary-advice-streaming-backend.md)
 - [Story bridge-04: Stale Session Cleanup and Frontend Polish](/modules/story-bridge-04-stale-session-cleanup-and-frontend-polish.md)
-- [StreamScopedAdvice](/modules/streamscopedadvice.md)
+- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
 - [themeInit.js](/modules/themeinit-js.md)
 - [uiAdapterSettings.ts](/modules/uiadaptersettings-ts.md)
 - [ValidationBadge.svelte](/modules/validationbadge-svelte.md)
@@ -237,13 +264,13 @@ sources:
 - [workflowSerialisation.ts](/modules/workflowserialisation-ts.md)
 
 # Inferred
+- [App.js](/modules/app-js.md)
 - [autoFill.test.ts](/modules/autofill-test-ts.md)
 - [CodeEditor.svelte](/modules/codeeditor-svelte.md)
+- [EventsEmit](/modules/eventsemit.md)
 - [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
 - [markdownToolbarBuilder.test.ts](/modules/markdowntoolbarbuilder-test-ts.md)
-- [QuestionSnackbarStack.test.ts](/modules/questionsnackbarstack-test-ts.md)
-- [Story 1: Native macOS Menu Bar Construction](/modules/story-1-native-macos-menu-bar-construction.md)
-- [StreamScopedAdvice](/modules/streamscopedadvice.md)
+- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

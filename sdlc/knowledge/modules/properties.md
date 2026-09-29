@@ -1,13 +1,13 @@
 ---
 type: Module
 title: properties
-description: "Graphify community 160: internal/uiadapter/schemas/uiast.json"
+description: "Graphify community 163: internal/uiadapter/schemas/uiast.json"
 resource: internal/uiadapter/schemas
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: uiast, resource: internal/uiadapter/schemas/uiast.json, last_modified: "2026-04-23T11:04:07+10:00", digest: 9a570fa814deb342 }
 ---
@@ -37,7 +37,7 @@ sources:
 - type (internal/uiadapter/schemas/uiast.json:L81)
 
 # Depends on
-- [properties](/modules/properties-253.md)
+- [properties](/modules/properties-261.md)
 - [type](/modules/type.md)
 - [widget](/modules/widget.md)
 

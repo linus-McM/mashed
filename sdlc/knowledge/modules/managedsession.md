@@ -1,13 +1,13 @@
 ---
 type: Module
 title: ManagedSession
-description: "Graphify community 48: app_terminal_registry_test.go, internal/terminal/helper/server.go, internal/terminal/login_path.go, internal/terminal/manager.go, internal/terminal/session.go, internal/terminal"
+description: "Graphify community 37: app_terminal_registry_test.go, internal/terminal/helper/server.go, internal/terminal/login_path.go, internal/terminal/manager.go, internal/terminal/session.go, internal/terminal"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: app_terminal_registry_test, resource: app_terminal_registry_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 2f85a0b04c1b8ba7 }
   - { id: server, resource: internal/terminal/helper/server.go, last_modified: "2026-04-09T21:03:43+10:00", digest: e54a6a9ea36ca59d }
@@ -63,7 +63,7 @@ sources:
 - NewStubSession() (internal/terminal/stub.go:L4)
 
 # Depends on
-- [server_test.go](/modules/server-test-go.md)
+- [Client](/modules/client.md)
 - [session_test.go](/modules/session-test-go.md)
 
 # Inferred

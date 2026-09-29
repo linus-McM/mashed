@@ -33,3 +33,6 @@ Shipped in stories `bmad-interactive-01..07`. Full schema: `docs/bmad-interactiv
 - **Persistence** — `persistSnapshot` writes `~/.mashed/workflows/{execID}/execution.json` (serialized by `state.snapshotMu`, atomic rename with per-call unique tempfile); `Version` tagged 2 when interactive fields populated.
 - **Security** — `ShapeFile` values rejected outside repo root via `Clean+Separator` prefix guard (§14.2); `:input_resolved` carries `valueHash` (SHA-256 prefix), never raw (§14.3); `OptionsRef` resolver accepts only `registry:*` scheme (§14.4).
 
+<!-- sdlc-knowledge-start -->
+Knowledge base: read `sdlc/knowledge/index.md` first; for call-graph questions run `graphify query "<question>"` (graphify-out/ is the AST graph; INFERRED edges are hints, EXTRACTED edges are parsed facts).
+<!-- sdlc-knowledge-end -->

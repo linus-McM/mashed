@@ -1,13 +1,13 @@
 ---
 type: Module
 title: loadConfig
-description: "Graphify community 16: app.go, app_config_test.go, app_uiadapter_bindings_test.go, theme_scanner_test.go"
+description: "Graphify community 42: app.go, app_config_test.go, app_uiadapter_bindings_test.go, theme_scanner_test.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: app, resource: app.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 295875db4f0bdc1e }
   - { id: app_config_test, resource: app_config_test.go, last_modified: "2026-04-28T12:36:05+10:00", digest: ca9b2bb89bd6ecc6 }
@@ -22,12 +22,15 @@ sources:
 - `theme_scanner_test.go`
 
 # Symbols
+- mashedConfig (app.go:L122)
 - configPath() (app.go:L155)
 - loadConfig() (app.go:L168)
 - defaultConfig() (app.go:L203)
 - saveConfig() (app.go:L213)
 - .SetDevDir() (app.go:L492)
+- .GetConfig() (app.go:L525)
 - .SetTheme() (app.go:L530)
+- .SetVSCodiumExtPath() (app.go:L539)
 - .SetMonoFont() (app.go:L548)
 - .SetFontSize() (app.go:L557)
 - .SetSidebarWidth() (app.go:L566)
@@ -35,9 +38,6 @@ sources:
 - TestU5_AC3_App_SetOllamaModel_ValidatesName() (app_uiadapter_bindings_test.go:L111)
 - TestU5_AC2_App_SetUIAdapterTimeoutMs_BoundsCheck() (app_uiadapter_bindings_test.go:L71)
 - theme_scanner_test.go (theme_scanner_test.go:L1)
-- TestReadThemeFile_VSIX_PathTraversal() (theme_scanner_test.go:L1040)
-- TestReadThemeFile_VSIX_SizeLimit() (theme_scanner_test.go:L1070)
-- TestReadThemeFile_VSIX_FileNotFound() (theme_scanner_test.go:L1100)
 - TestReadThemeFile_VSIX_BackwardCompat() (theme_scanner_test.go:L1127)
 - TestSetImportedTheme() (theme_scanner_test.go:L1212)
 - TestConcurrentConfigWrites() (theme_scanner_test.go:L1232)
@@ -59,20 +59,14 @@ sources:
 - TestReadThemeFile_IncludeResolution() (theme_scanner_test.go:L626)
 - TestReadThemeFile_IncludeMultiLevel() (theme_scanner_test.go:L699)
 - TestReadThemeFile_IncludeDepthLimit() (theme_scanner_test.go:L744)
-- TestReadThemeFile_VSIX_HappyPath() (theme_scanner_test.go:L797)
-- TestReadThemeFile_VSIX_JSONCStripped() (theme_scanner_test.go:L830)
-- TestReadThemeFile_VSIX_IncludeResolution() (theme_scanner_test.go:L870)
-- TestReadThemeFile_VSIX_IncludeMultiLevel() (theme_scanner_test.go:L942)
-- TestReadThemeFile_VSIX_IncludeDepthLimit() (theme_scanner_test.go:L988)
 
 # Depends on
-- [App](/modules/app.md)
+- [App](/modules/app-109.md)
 - [bundled_themes_test.go](/modules/bundled-themes-test-go.md)
-- [theme_scanner.go](/modules/theme-scanner-go.md)
+- [.ReadThemeFile](/modules/readthemefile.md)
 
 # Inferred
-- [App](/modules/app-296.md)
-- [bundled_themes_test.go](/modules/bundled-themes-test-go.md)
+- [App](/modules/app-356.md)
 - [setupTestConfig](/modules/setuptestconfig.md)
 
 # Features

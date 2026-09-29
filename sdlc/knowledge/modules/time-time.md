@@ -1,23 +1,21 @@
 ---
 type: Module
 title: time.Time
-description: "Graphify community 450: internal/domain/types.go, internal/scanner/repos.go, internal/uiadapter/adapter.go"
+description: "Graphify community 403: internal/domain/types.go, internal/scanner/repos.go"
 resource: internal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: types, resource: internal/domain/types.go, last_modified: "2026-04-11T17:08:28+10:00", digest: a6b057db991af9b4 }
   - { id: repos, resource: internal/scanner/repos.go, last_modified: "2026-05-07T10:33:04+10:00", digest: c8bd28e2f7bd59b8 }
-  - { id: adapter, resource: internal/uiadapter/adapter.go, last_modified: "2026-04-28T12:36:05+10:00", digest: aad905dbc8e94a13 }
 ---
 
 # Files
 - `internal/domain/types.go`
 - `internal/scanner/repos.go`
-- `internal/uiadapter/adapter.go`
 
 # Symbols
 - AgentSession (internal/domain/types.go:L137)
@@ -28,24 +26,12 @@ sources:
 - repoCacheEntry (internal/scanner/repos.go:L25)
 - .ScanRepos() (internal/scanner/repos.go:L48)
 - .getRepoInfo() (internal/scanner/repos.go:L96)
-- defaultAdapter (internal/uiadapter/adapter.go:L106)
-- disabledAdapter (internal/uiadapter/adapter.go:L118)
-- .Translate() (internal/uiadapter/adapter.go:L156)
-- .Translate() (internal/uiadapter/adapter.go:L164)
-- .chat() (internal/uiadapter/adapter.go:L210)
-- .stampSuccessMetadata() (internal/uiadapter/adapter.go:L220)
-- .emitFallback() (internal/uiadapter/adapter.go:L239)
-- .logTelemetry() (internal/uiadapter/adapter.go:L255)
-- .logTelemetryWithSanitize() (internal/uiadapter/adapter.go:L263)
-- extractJSONObject() (internal/uiadapter/adapter.go:L293)
 
 # Depends on
-- [context.Context](/modules/context-context.md)
+- no EXTRACTED edges to other modules
 
 # Inferred
-- [go_pkg_log_slog](/modules/go-pkg-log-slog.md)
-- [log/slog.Logger](/modules/log-slog-logger.md)
-- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
+- no INFERRED edges; treat any that appear as hints
 
 # Features
 - no feature plan names these files

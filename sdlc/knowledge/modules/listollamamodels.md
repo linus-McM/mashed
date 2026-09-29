@@ -1,13 +1,13 @@
 ---
 type: Module
 title: ListOllamaModels
-description: "Graphify community 181: docs/stories/ui-ast-U5-settings-ui.md, frontend/src/lib/stores/uiAdapterSettings.ts, frontend/wailsjs/go/main/App.js"
+description: "Graphify community 255: docs/stories/ui-ast-U5-settings-ui.md, frontend/src/lib/stores/uiAdapterSettings.ts, frontend/wailsjs/go/main/App.js"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: ui-ast-U5-settings-ui, resource: docs/stories/ui-ast-U5-settings-ui.md, last_modified: "2026-04-21T21:07:33+10:00", digest: 52cf1571c97b6ab5 }
   - { id: uiAdapterSettings, resource: frontend/src/lib/stores/uiAdapterSettings.ts, last_modified: "2026-04-23T11:43:31+10:00", digest: 439345ecd230d960 }
@@ -40,8 +40,8 @@ sources:
 - no EXTRACTED edges to other modules
 
 # Inferred
+- [GetConfig](/modules/getconfig.md)
 - [hydrate](/modules/hydrate.md)
-- [mashedConfig](/modules/mashedconfig.md)
 - [Story 18 — Title-bar Dynamic UI model selector](/modules/story-18-title-bar-dynamic-ui-model-selector.md)
 
 # Features

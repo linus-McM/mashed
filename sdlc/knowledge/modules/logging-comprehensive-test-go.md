@@ -1,13 +1,13 @@
 ---
 type: Module
 title: logging_comprehensive_test.go
-description: "Graphify community 89: internal/uiadapter/logging.go, internal/uiadapter/logging_comprehensive_test.go, internal/uiadapter/logging_handler_test.go, internal/uiadapter/logging_test.go"
+description: "Graphify community 105: internal/uiadapter/logging.go, internal/uiadapter/logging_comprehensive_test.go, internal/uiadapter/logging_handler_test.go, internal/uiadapter/logging_test.go"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: logging, resource: internal/uiadapter/logging.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f7d1f46bdb4ea215 }
   - { id: logging_comprehensive_test, resource: internal/uiadapter/logging_comprehensive_test.go, last_modified: "2026-04-26T12:39:41+10:00", digest: 446816f0c9fa2be3 }
@@ -41,15 +41,17 @@ sources:
 - TestStory1_AC3_StdoutOnlyFallback() (internal/uiadapter/logging_test.go:L173)
 - TestStory1_AC4_ParseSlogLevel() (internal/uiadapter/logging_test.go:L208)
 - TestStory1_AC4_EnvVarBootLevel() (internal/uiadapter/logging_test.go:L241)
+- TestStory1_AC5_ConfigDefaults() (internal/uiadapter/logging_test.go:L260)
 - captureStdout() (internal/uiadapter/logging_test.go:L35)
 - expectedLogFile() (internal/uiadapter/logging_test.go:L57)
 - TestStory1_AC1_NewProductionLogger_FanoutToBothSinks() (internal/uiadapter/logging_test.go:L66)
 
 # Depends on
-- [Config](/modules/config.md)
+- no EXTRACTED edges to other modules
 
 # Inferred
-- [go_pkg_log_slog](/modules/go-pkg-log-slog.md)
+- [DefaultConfig](/modules/defaultconfig.md)
+- [log/slog.Logger](/modules/log-slog-logger.md)
 
 # Features
 - no feature plan names these files

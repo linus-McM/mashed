@@ -1,13 +1,13 @@
 ---
 type: Module
 title: "Story 2: Code Review Summary & Advice Streaming Backend"
-description: "Graphify community 108: docs/stories/old_stories/review-02-review-backend.md, frontend/src/types/reviewEvents.ts, frontend/wailsjs/go/main/App.js"
+description: "Graphify community 117: docs/stories/old_stories/review-02-review-backend.md, frontend/src/types/reviewEvents.ts, frontend/wailsjs/go/main/App.js"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: review-02-review-backend, resource: docs/stories/old_stories/review-02-review-backend.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 897b72d9f41644f3 }
   - { id: reviewEvents, resource: frontend/src/types/reviewEvents.ts, last_modified: "2026-04-22T19:23:56+10:00", digest: 49fb1a6f6b36384f }
@@ -20,7 +20,6 @@ sources:
 - `frontend/wailsjs/go/main/App.js`
 
 # Symbols
-- review-02-review-backend.md (docs/stories/old_stories/review-02-review-backend.md:L1)
 - Story 2: Code Review Summary & Advice Streaming Backend (docs/stories/old_stories/review-02-review-backend.md:L1)
 - Acceptance Criteria (docs/stories/old_stories/review-02-review-backend.md:L101)
 - Developer Notes (docs/stories/old_stories/review-02-review-backend.md:L13)
@@ -48,7 +47,7 @@ sources:
 - no EXTRACTED edges to other modules
 
 # Inferred
-- no INFERRED edges; treat any that appear as hints
+- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

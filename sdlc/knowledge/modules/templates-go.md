@@ -1,13 +1,13 @@
 ---
 type: Module
 title: templates.go
-description: "Graphify community 228: internal/bmad/templates.go"
+description: "Graphify community 235: internal/bmad/templates.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: templates, resource: internal/bmad/templates.go, last_modified: "2026-04-08T22:05:53+10:00", digest: 4a56b72dabf842f3 }
 ---

@@ -1,13 +1,13 @@
 ---
 type: Module
 title: activateImportedTheme
-description: "Graphify community 138: docs/stories/old_stories/theme-04-settings-activation.md, docs/stories/old_stories/theme-05-monaco-registration.md, docs/stories/old_stories/vsix-02-frontend-vsix-path-handling"
+description: "Graphify community 103: docs/stories/old_stories/theme-04-settings-activation.md, docs/stories/old_stories/theme-05-monaco-registration.md, docs/stories/old_stories/vsix-02-frontend-vsix-path-handling"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: theme-04-settings-activation, resource: docs/stories/old_stories/theme-04-settings-activation.md, last_modified: "2026-04-08T10:23:03+10:00", digest: 5604998bc5d1ad34 }
   - { id: theme-05-monaco-registration, resource: docs/stories/old_stories/theme-05-monaco-registration.md, last_modified: "2026-04-08T10:23:03+10:00", digest: dcb77471f481713a }
@@ -51,12 +51,12 @@ sources:
 
 # Depends on
 - [applyTheme](/modules/applytheme.md)
-- [SetTheme](/modules/settheme.md)
+- [GetConfig](/modules/getconfig.md)
 - [themeConverter.ts](/modules/themeconverter-ts.md)
 - [themeInit.js](/modules/themeinit-js.md)
 
 # Inferred
-- [themeInit.js](/modules/themeinit-js.md)
+- [GetConfig](/modules/getconfig.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

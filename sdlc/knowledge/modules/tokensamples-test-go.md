@@ -1,13 +1,13 @@
 ---
 type: Module
 title: tokensamples_test.go
-description: "Graphify community 363: internal/agent/tokensamples.go, internal/agent/tokensamples_test.go"
+description: "Graphify community 350: internal/agent/tokensamples.go, internal/agent/tokensamples_test.go"
 resource: internal/agent
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: tokensamples, resource: internal/agent/tokensamples.go, last_modified: "2026-04-11T17:08:28+10:00", digest: 281db4a1d2ab32a0 }
   - { id: tokensamples_test, resource: internal/agent/tokensamples_test.go, last_modified: "2026-04-11T17:08:28+10:00", digest: e73f3aa2bb785df4 }
@@ -31,7 +31,7 @@ sources:
 - TestAgentJSON_IncludesTokenSamples() (internal/agent/tokensamples_test.go:L97)
 
 # Depends on
-- [engine_test.go](/modules/engine-test-go.md)
+- [NotificationEngine](/modules/notificationengine.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

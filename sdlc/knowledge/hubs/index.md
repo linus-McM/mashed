@@ -9,4 +9,4 @@
 * [newHarness()](newharness.md) - Graphify god node with degree 126 in internal/bmad/executor_test.go
 * [ProcessByID()](processbyid.md) - Graphify god node with degree 76 in internal/bmad/registry.go
 * [runtime.js](runtime-js.md) - Graphify god node with degree 80 in frontend/wailsjs/runtime/runtime.js
-* [testing.T](testing-t.md) - Graphify god node with degree 1312
+* [testing.T](testing-t.md) - Graphify god node with degree 1322

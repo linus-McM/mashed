@@ -4,18 +4,18 @@ title: Repo health remediation
 description: "The Mashed desktop app (Wails, Go + Svelte, macOS) has security holes, broken features and a build that does not work from a fresh clone. Source review: `docs/plans/repo-health-remediation.md` (measur"
 resource: sdlc/repo-health-remediation
 tags: [feature, accepted]
-status: stable
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+status: draft
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
 verified:
   - { by: "human:linus-mcmanamey", at: "2026-09-29T11:16:08Z" }
   - { by: "human:linus-mcmanamey", at: "2026-09-29T11:35:20Z" }
   - { by: "human:linus-mcmanamey", at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: intent, resource: sdlc/repo-health-remediation/intent.md, last_modified: "2026-09-29T21:16:08+10:00", digest: 476d74d6341cb18a }
   - { id: spec, resource: sdlc/repo-health-remediation/spec.md, last_modified: "2026-09-29T21:35:20+10:00", digest: 39c3836c2ae03762 }
-  - { id: plan, resource: sdlc/repo-health-remediation/plan.md, last_modified: "2026-09-29T22:23:00+10:00", digest: 630a4bebc7512078 }
+  - { id: plan, resource: sdlc/repo-health-remediation/plan.md, last_modified: "2026-09-30T00:42:54+10:00", digest: 30682578017b97f7 }
 ---
 
 # Problem
@@ -210,30 +210,30 @@ Success measure (done means all of):
 - `.vite/deps_temp_c90be2f4/package.json`
 - `LICENSE`
 - `README.md`
-- `app.go` in [ensureGitignoreEntry](/modules/ensuregitignoreentry.md)
+- `app.go` in [NotificationEngine](/modules/notificationengine.md)
 - `app_asset_follow_test.go`
-- `app_config_test.go` in [setupTestConfig](/modules/setuptestconfig.md)
+- `app_config_test.go` in [loadConfig](/modules/loadconfig.md)
 - `app_files_guard_test.go`
-- `app_git.go` in [mimeForExt](/modules/mimeforext.md)
+- `app_git.go` in [worktree.go](/modules/worktree-go.md)
 - `app_git_file_test.go`
 - `app_git_guard_test.go`
 - `app_git_spawn_test.go`
-- `app_review.go` in [App](/modules/app-348.md)
-- `app_review_scoped.go` in [loader_test.go](/modules/loader-test-go.md)
-- `app_review_scoped_test.go` in [loader_test.go](/modules/loader-test-go.md)
-- `app_review_test.go` in [App](/modules/app-348.md)
-- `app_scan.go` in [ClaudeCodeProvider](/modules/claudecodeprovider.md)
+- `app_review.go` in [refactorPlanFilename](/modules/refactorplanfilename.md)
+- `app_review_scoped.go` in [app_review_scoped_test.go](/modules/app-review-scoped-test-go.md)
+- `app_review_scoped_test.go` in [app_review_scoped_test.go](/modules/app-review-scoped-test-go.md)
+- `app_review_test.go` in [refactorPlanFilename](/modules/refactorplanfilename.md)
+- `app_scan.go` in [question.go](/modules/question-go.md)
 - `app_scan_lifecycle_test.go`
 - `app_sessions.go` in [SessionData](/modules/sessiondata.md)
-- `app_spawn.go` in [App](/modules/app-355.md)
-- `app_terminal_registry.go` in [App](/modules/app-349.md)
-- `app_terminal_registry_test.go` in [app_terminal_registry_test.go](/modules/app-terminal-registry-test-go.md)
-- `app_uiadapter.go` in [App](/modules/app-296.md)
-- `app_uiadapter_bindings_test.go` in [setupTestConfig](/modules/setuptestconfig.md)
-- `app_uiadapter_v3.go` in [App](/modules/app-361.md)
-- `app_uiadapter_v3_test.go` in [app_uiadapter_v3_test.go](/modules/app-uiadapter-v3-test-go.md)
-- `bundled_themes_test.go` in [bundled_themes_test.go](/modules/bundled-themes-test-go.md)
-- `cmd/pty-helper/main.go` in [go_pkg_testing](/modules/go-pkg-testing.md)
+- `app_spawn.go` in [App](/modules/app-436.md)
+- `app_terminal_registry.go` in [App](/modules/app-355.md)
+- `app_terminal_registry_test.go` in [Client](/modules/client.md)
+- `app_uiadapter.go` in [App](/modules/app-356.md)
+- `app_uiadapter_bindings_test.go` in [loadConfig](/modules/loadconfig.md)
+- `app_uiadapter_v3.go` in [App](/modules/app-404.md)
+- `app_uiadapter_v3_test.go` in [testing.T](/modules/testing-t.md)
+- `bundled_themes_test.go` in [.ReadThemeFile](/modules/readthemefile.md)
+- `cmd/pty-helper/main.go` in [server_test.go](/modules/server-test-go.md)
 - `cmd/pty-helper/main_test.go`
 - `desloppify-workspace/iteration-1/benchmark.json`
 - `desloppify-workspace/iteration-1/hook-setup/eval_metadata.json`
@@ -290,7 +290,7 @@ Success measure (done means all of):
 - `desloppify-workspace/iteration-2/sloppy-code-check/without_skill/outputs/transcript.md`
 - `desloppify-workspace/iteration-2/sloppy-code-check/without_skill/timing.json`
 - `docs/DOCUMENTATION_SUMMARY.txt`
-- `docs/SPECIFICATION.md` in [10. Wails Bindings (Go → Svelte API)](/modules/10-wails-bindings-go-svelte-api.md)
+- `docs/SPECIFICATION.md` in [SetEditorSettings](/modules/seteditorsettings.md)
 - `docs/agent_reports/skill-rectification-use-repo-code-2026-04-12.md`
 - `docs/agent_reports/skill-validation-team-sprint-2026-04-12.md`
 - `docs/agent_reports/skill-validation-use-repo-code-2026-04-12.md`
@@ -300,28 +300,28 @@ Success measure (done means all of):
 - `docs/repomixer/desloppify/desloppify.xml`
 - `docs/repomixer/wails/wails.xml`
 - `docs/repomixer/xyflow/xyflow.xml`
-- `docs/reports/pty-fork-exec-investigation.md`
+- `docs/reports/pty-fork-exec-investigation.md` in [SpawnAgent](/modules/spawnagent.md)
 - `docs/stories/backlog.md`
-- `docs/stories/markdown-toolbar-01-backend-config.md` in [SetEditorSettings](/modules/seteditorsettings.md)
-- `docs/stories/markdown-toolbar-02-frontend-store.md` in [clearMarkdownMenuDirty](/modules/clearmarkdownmenudirty.md)
+- `docs/stories/markdown-toolbar-01-backend-config.md` in [SetMarkdownMenuSettings](/modules/setmarkdownmenusettings.md)
+- `docs/stories/markdown-toolbar-02-frontend-store.md` in [applyTheme](/modules/applytheme.md)
 - `docs/stories/markdown-toolbar-03-toolbar-builder.md` in [markdownToolbarBuilder.test.ts](/modules/markdowntoolbarbuilder-test-ts.md)
 - `docs/stories/markdown-toolbar-04-settings-layout-refactor.md`
-- `docs/stories/markdown-toolbar-05-markdown-editor-panel.md` in [clearMarkdownMenuDirty](/modules/clearmarkdownmenudirty.md)
+- `docs/stories/markdown-toolbar-05-markdown-editor-panel.md`
 - `docs/stories/markdown-toolbar-06-editor-wiring.md` in [MarkdownEditor.test.ts](/modules/markdowneditor-test-ts.md)
-- `docs/stories/markdown-toolbar-07-app-hydration.md`
-- `docs/stories/markdown-toolbar-08-e2e-verification.md` in [clearMarkdownMenuDirty](/modules/clearmarkdownmenudirty.md)
+- `docs/stories/markdown-toolbar-07-app-hydration.md` in [GetConfig](/modules/getconfig.md)
+- `docs/stories/markdown-toolbar-08-e2e-verification.md`
 - `docs/stories/old_stories/bmad-sprint-backlog.md`
 - `docs/stories/old_stories/bridge-01-descriptive-session-names.md`
 - `docs/stories/old_stories/bridge-02-tmux-adapter.md`
 - `docs/stories/old_stories/lefthook-backlog.md`
-- `docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md` in [StreamScopedAdvice](/modules/streamscopedadvice.md)
+- `docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md` in [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
 - `docs/stories/old_stories/review-scoped-02-file-selection-ui.md`
-- `docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md` in [StreamScopedAdvice](/modules/streamscopedadvice.md)
+- `docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md` in [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
 - `docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md` in [CreateFromTemplate](/modules/createfromtemplate.md)
 - `docs/stories/old_stories/sprint2-04-repo-context-flow.md` in [CreateFromTemplate](/modules/createfromtemplate.md)
 - `docs/stories/old_stories/sprint2-06-execution-bar-simplification.md`
 - `docs/stories/old_stories/sprint2-08-repo-context-header.md`
-- `docs/stories/old_stories/theme-01-backend-scanner.md` in [SetTheme](/modules/settheme.md)
+- `docs/stories/old_stories/theme-01-backend-scanner.md` in [GetConfig](/modules/getconfig.md)
 - `docs/stories/old_stories/theme-02-converter.md` in [themeConverter.ts](/modules/themeconverter-ts.md)
 - `docs/stories/old_stories/theme-03-store-refactor.md` in [applyTheme](/modules/applytheme.md)
 - `docs/stories/old_stories/theme-04-settings-activation.md` in [activateImportedTheme](/modules/activateimportedtheme.md)
@@ -362,18 +362,18 @@ Success measure (done means all of):
 - `frontend/coverage/sorter.js`
 - `frontend/dist/.gitkeep`
 - `frontend/package-lock.json`
-- `frontend/package.json` in [frontend/package.json](/modules/frontend-package-json.md)
+- `frontend/package.json` in [interactiveInput.ts](/modules/interactiveinput-ts.md)
 - `frontend/package.json.md5`
 - `frontend/src/__tests__/entry-animations.test.ts` in [entry-animations.test.ts](/modules/entry-animations-test-ts.md)
 - `frontend/src/__tests__/rgba-migration.test.ts` in [rgba-migration.test.ts](/modules/rgba-migration-test-ts.md)
-- `frontend/src/__tests__/signature-moments.test.ts` in [signature-moments.test.ts](/modules/signature-moments-test-ts.md)
+- `frontend/src/__tests__/signature-moments.test.ts` in [ref_node_fs](/modules/ref-node-fs.md)
 - `frontend/src/__tests__/sparkline-render.test.ts` in [ref_node_fs](/modules/ref-node-fs.md)
 - `frontend/src/__tests__/token-normalization.test.ts` in [token-normalization.test.ts](/modules/token-normalization-test-ts.md)
 - `frontend/src/__tests__/vite-keep-dist.test.ts`
 - `frontend/src/components/EditorRouter.svelte` in [markdownMenuSettings.ts](/modules/markdownmenusettings-ts.md)
 - `frontend/src/components/MarkdownEditor.svelte` in [markdownMenuSettings.ts](/modules/markdownmenusettings-ts.md)
 - `frontend/src/components/MonacoEditor.svelte` in [MonacoEditor.svelte](/modules/monacoeditor-svelte.md)
-- `frontend/src/components/Terminal.svelte` in [Story: pty-06 — Frontend Terminal and Session Cleanup](/modules/story-pty-06-frontend-terminal-and-session-cleanup.md)
+- `frontend/src/components/Terminal.svelte` in [TakeScreenshot](/modules/takescreenshot.md)
 - `frontend/src/components/__tests__/EditorRouter.lazy.test.ts`
 - `frontend/src/components/__tests__/MarkdownEditor.guard.test.ts`
 - `frontend/src/components/__tests__/MonacoEditor.guard.test.ts`
@@ -400,7 +400,7 @@ Success measure (done means all of):
 - `frontend/src/lib/workflowBuilder/canvasHandlers.js`
 - `frontend/src/lib/workflowBuilder/execEvents.js`
 - `frontend/src/lib/workflowBuilder/leaveIntercept.js`
-- `frontend/src/views/AgentDetail.svelte` in [App.js](/modules/app-js.md)
+- `frontend/src/views/AgentDetail.svelte` in [svelte](/modules/svelte.md)
 - `frontend/src/views/NotificationFeed.svelte` in [svelte](/modules/svelte.md)
 - `frontend/src/views/Settings.svelte` in [svelte](/modules/svelte.md)
 - `frontend/src/views/WorkflowBuilder.svelte` in [svelte](/modules/svelte.md)
@@ -408,9 +408,9 @@ Success measure (done means all of):
 - `frontend/wailsjs/go/main/App.d.ts` in [models.ts](/modules/models-ts.md)
 - `frontend/wailsjs/go/main/App.js` in [hydrate](/modules/hydrate.md)
 - `frontend/wailsjs/go/models.ts` in [WorktreeInfo](/modules/worktreeinfo.md)
-- `internal/bmad/artifacts_test.go` in [ResolveArtifactPath](/modules/resolveartifactpath.md)
+- `internal/bmad/artifacts_test.go` in [artifacts_test.go](/modules/artifacts-test-go.md)
 - `internal/bmad/assets_write_test.go` in [assets_test.go](/modules/assets-test-go.md)
-- `internal/bmad/executor.go` in [appendUpstreamContext](/modules/appendupstreamcontext.md)
+- `internal/bmad/executor.go` in [.resumeInteractiveNode](/modules/resumeinteractivenode.md)
 - `internal/bmad/executor_command.go`
 - `internal/bmad/executor_inputs.go`
 - `internal/bmad/executor_interactive.go`
@@ -426,7 +426,7 @@ Success measure (done means all of):
 - `internal/bmad/question_test.go` in [question_test.go](/modules/question-test-go.md)
 - `internal/bmad/session_naming_test.go` in [session_naming_test.go](/modules/session-naming-test-go.md)
 - `internal/bmad/skillgen_test.go` in [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
-- `internal/bmad/storage.go` in [BmadAgentConfig](/modules/bmadagentconfig.md)
+- `internal/bmad/storage.go` in [Storage](/modules/storage.md)
 - `internal/bmad/testdata/exec_verify/verify1_slash_injection.txt`
 - `internal/bmad/testdata/exec_verify/verify2_idle_stable_pane.txt`
 - `internal/bmad/testutil_root_test.go`
@@ -442,14 +442,14 @@ Success measure (done means all of):
 - `internal/git/refs_test.go`
 - `internal/git/remote.go`
 - `internal/git/remote_test.go`
-- `internal/pathguard/pathguard.go`
-- `internal/pathguard/pathguard_test.go`
-- `internal/scanner/claude.go` in [ClaudeCodeProvider](/modules/claudecodeprovider.md)
+- `internal/pathguard/pathguard.go` in [pathguard.go](/modules/pathguard-go.md)
+- `internal/pathguard/pathguard_test.go` in [pathguard.go](/modules/pathguard-go.md)
+- `internal/scanner/claude.go` in [question.go](/modules/question-go.md)
 - `internal/scanner/watcher.go` in [AssetWatcher](/modules/assetwatcher.md)
-- `internal/terminal/bridge.go` in [mockTmuxSession](/modules/mocktmuxsession.md)
+- `internal/terminal/bridge.go` in [mockTmuxAttacher](/modules/mocktmuxattacher.md)
 - `internal/terminal/bridge_auth_dev_test.go`
 - `internal/terminal/bridge_auth_test.go`
-- `internal/terminal/bridge_test.go` in [mockTmuxSession](/modules/mocktmuxsession.md)
+- `internal/terminal/bridge_test.go` in [mockTmuxAttacher](/modules/mocktmuxattacher.md)
 - `internal/terminal/manager.go` in [manager_test.go](/modules/manager-test-go.md)
 - `internal/terminal/manager_argv_test.go`
 - `internal/terminal/origins_dev.go`
@@ -462,12 +462,13 @@ Success measure (done means all of):
 - `main_embed_test.go`
 - `main_socket_test.go`
 - `markdown_menu_test.go` in [setupTestConfig](/modules/setuptestconfig.md)
-- `repo_hygiene_test.go`
+- `repo_hygiene_test.go` in [repo_hygiene_test.go](/modules/repo-hygiene-test-go.md)
 - `scripts/api-diff.sh`
 - `scripts/check-entry-chunk.mjs`
 - `scripts/test-all.sh`
-- `theme_scanner.go` in [bundled_themes_test.go](/modules/bundled-themes-test-go.md)
-- `theme_scanner_test.go` in [bundled_themes_test.go](/modules/bundled-themes-test-go.md)
+- `testutil_git_test.go` in [app_review_scoped_test.go](/modules/app-review-scoped-test-go.md)
+- `theme_scanner.go` in [.ReadThemeFile](/modules/readthemefile.md)
+- `theme_scanner_test.go` in [.ReadThemeFile](/modules/readthemefile.md)
 - `themes/JuanLias.ultra-instinct-theme-0.1.4.vsix`
 - `themes/LhacenMed.cursor-noir-1.0.1.vsix`
 - `themes/RINDAMAN2426.ubuntu-aubergine-theme-1.0.1.vsix`

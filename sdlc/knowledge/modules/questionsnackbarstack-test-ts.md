@@ -1,35 +1,38 @@
 ---
 type: Module
 title: QuestionSnackbarStack.test.ts
-description: "Graphify community 137: frontend/src/components/bmad/QuestionResponseModal.svelte, frontend/src/components/bmad/QuestionResponseModal.test.ts, frontend/src/components/bmad/QuestionSnackbarStack.test.t"
-resource: frontend/src/components/bmad
+description: "Graphify community 36: docs/stories/bmad-interactive-06-frontend-modal.md, docs/stories/old_stories/question-03-snackbar-stack.md, frontend/src/components/bmad/QuestionResponseModal.svelte, frontend/s"
+resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
+  - { id: bmad-interactive-06-frontend-modal, resource: docs/stories/bmad-interactive-06-frontend-modal.md, last_modified: "2026-04-20T14:57:51+10:00", digest: 1b80ffd59d82265b }
+  - { id: question-03-snackbar-stack, resource: docs/stories/old_stories/question-03-snackbar-stack.md, last_modified: "2026-04-12T10:43:48+10:00", digest: c9e217081e4ca99f }
   - { id: QuestionResponseModal, resource: frontend/src/components/bmad/QuestionResponseModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 5672933bac7b8d06 }
   - { id: QuestionResponseModal.test, resource: frontend/src/components/bmad/QuestionResponseModal.test.ts, last_modified: "2026-04-10T14:16:40+10:00", digest: a798f0e107780ec5 }
   - { id: QuestionSnackbarStack.test, resource: frontend/src/components/bmad/QuestionSnackbarStack.test.ts, last_modified: "2026-04-11T19:45:53+10:00", digest: 2521496fc654bb79 }
-  - { id: SkillEditorModal, resource: frontend/src/components/bmad/SkillEditorModal.svelte, last_modified: "2026-04-22T20:18:54+10:00", digest: 72aca99565eade35 }
   - { id: questionSnackbarUtils, resource: frontend/src/components/bmad/questionSnackbarUtils.ts, last_modified: "2026-04-11T19:45:53+10:00", digest: 7c6697429c616053 }
 ---
 
 # Files
+- `docs/stories/bmad-interactive-06-frontend-modal.md`
+- `docs/stories/old_stories/question-03-snackbar-stack.md`
 - `frontend/src/components/bmad/QuestionResponseModal.svelte`
 - `frontend/src/components/bmad/QuestionResponseModal.test.ts`
 - `frontend/src/components/bmad/QuestionSnackbarStack.test.ts`
-- `frontend/src/components/bmad/SkillEditorModal.svelte`
 - `frontend/src/components/bmad/questionSnackbarUtils.ts`
 
 # Symbols
+- 6. Snackbar redesign (`NodeInputSnackbarStack.svelte`) (docs/stories/bmad-interactive-06-frontend-modal.md:L431)
+- Tasks / Subtasks (docs/stories/old_stories/question-03-snackbar-stack.md:L219)
 - QuestionResponseModal.svelte (frontend/src/components/bmad/QuestionResponseModal.svelte:L1)
 - repoLabel() (frontend/src/components/bmad/QuestionResponseModal.svelte:L39)
 - submit() (frontend/src/components/bmad/QuestionResponseModal.svelte:L45)
 - handleSend() (frontend/src/components/bmad/QuestionResponseModal.svelte:L60)
 - handleOption() (frontend/src/components/bmad/QuestionResponseModal.svelte:L66)
-- handleCancel() (frontend/src/components/bmad/QuestionResponseModal.svelte:L71)
 - handleOverlayClick() (frontend/src/components/bmad/QuestionResponseModal.svelte:L75)
 - handleKeydown() (frontend/src/components/bmad/QuestionResponseModal.svelte:L80)
 - QuestionResponseModal.test.ts (frontend/src/components/bmad/QuestionResponseModal.test.ts:L1)
@@ -46,7 +49,6 @@ sources:
 - makeEvent() (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L53)
 - makeIdle() (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L69)
 - asQuestion() (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L83)
-- if() (frontend/src/components/bmad/SkillEditorModal.svelte:L55)
 - questionSnackbarUtils.ts (frontend/src/components/bmad/questionSnackbarUtils.ts:L1)
 - MAX_VISIBLE (frontend/src/components/bmad/questionSnackbarUtils.ts:L10)
 - IdleEventLike (frontend/src/components/bmad/questionSnackbarUtils.ts:L103)
@@ -72,7 +74,7 @@ sources:
 - [vitest](/modules/vitest.md)
 
 # Inferred
-- no INFERRED edges; treat any that appear as hints
+- [svelte](/modules/svelte.md)
 
 # Features
 - no feature plan names these files

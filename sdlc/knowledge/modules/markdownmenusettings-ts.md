@@ -1,17 +1,17 @@
 ---
 type: Module
 title: markdownMenuSettings.ts
-description: "Graphify community 70: @milkdown/crepe, @milkdown/crepe/theme/classic-dark.css, @milkdown/plugin-listener, frontend/src/App.test.ts, frontend/src/components/EditorRouter.svelte, frontend/src/component"
+description: "Graphify community 74: @milkdown/crepe, @milkdown/crepe/theme/classic-dark.css, @milkdown/plugin-listener, frontend/src/App.test.ts, frontend/src/components/EditorRouter.svelte, frontend/src/component"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
-  - { id: crepe, resource: "@milkdown/crepe", last_modified: "2026-09-29T12:23:14Z", digest: missing }
-  - { id: classic-dark, resource: "@milkdown/crepe/theme/classic-dark.css", last_modified: "2026-09-29T12:23:14Z", digest: missing }
-  - { id: plugin-listener, resource: "@milkdown/plugin-listener", last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: crepe, resource: "@milkdown/crepe", last_modified: "2026-09-29T14:46:21Z", digest: missing }
+  - { id: classic-dark, resource: "@milkdown/crepe/theme/classic-dark.css", last_modified: "2026-09-29T14:46:21Z", digest: missing }
+  - { id: plugin-listener, resource: "@milkdown/plugin-listener", last_modified: "2026-09-29T14:46:21Z", digest: missing }
   - { id: App.test, resource: frontend/src/App.test.ts, last_modified: "2026-04-23T11:09:52+10:00", digest: 260d2fa32bf35b5d }
   - { id: EditorRouter, resource: frontend/src/components/EditorRouter.svelte, last_modified: "2026-04-22T20:18:54+10:00", digest: 86fac6035745e901 }
   - { id: ImageViewer, resource: frontend/src/components/ImageViewer.svelte, last_modified: "2026-04-22T19:23:56+10:00", digest: 4abd3a97e70be2b9 }
@@ -21,7 +21,7 @@ sources:
   - { id: markdownMenuSettings.test, resource: frontend/src/lib/stores/markdownMenuSettings.test.ts, last_modified: "2026-04-23T11:02:33+10:00", digest: 440326bc7b010a88 }
   - { id: markdownMenuSettings, resource: frontend/src/lib/stores/markdownMenuSettings.ts, last_modified: "2026-04-23T11:02:33+10:00", digest: 5fd83b95073decb2 }
   - { id: Settings.test, resource: frontend/src/views/Settings.test.ts, last_modified: "2026-04-23T11:09:52+10:00", digest: 96215b23cac7f643 }
-  - { id: panzoom, resource: panzoom, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: panzoom, resource: panzoom, last_modified: "2026-09-29T14:46:21Z", digest: missing }
 ---
 
 # Files
@@ -72,12 +72,14 @@ sources:
 
 # Depends on
 - [App.js](/modules/app-js.md)
-- [clearMarkdownMenuDirty](/modules/clearmarkdownmenudirty.md)
+- [GetConfig](/modules/getconfig.md)
+- [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
 - [interactiveInput.ts](/modules/interactiveinput-ts.md)
 - [MarkdownEditor.test.ts](/modules/markdowneditor-test-ts.md)
 - [markdownToolbarBuilder.test.ts](/modules/markdowntoolbarbuilder-test-ts.md)
 - [models.ts](/modules/models-ts.md)
 - [MonacoEditor.svelte](/modules/monacoeditor-svelte.md)
+- [SetMarkdownMenuSettings](/modules/setmarkdownmenusettings.md)
 - [Story: meditor-01 — EditorRouter -- Extension-Based Editor Switching](/modules/story-meditor-01-editorrouter-extension-based-editor-switching.md)
 - [svelte](/modules/svelte.md)
 - [vitest](/modules/vitest.md)

@@ -1,34 +1,33 @@
 ---
 type: Module
 title: ref_node_fs
-description: "Graphify community 176: frontend/src/__tests__/focus-keyboard-nav.test.ts, frontend/src/__tests__/sparkline-render.test.ts, frontend/src/components/__tests__/tokens.test.ts, tests/ac/skills-cmd-03-fai"
+description: "Graphify community 162: frontend/src/__tests__/signature-moments.test.ts, frontend/src/__tests__/sparkline-render.test.ts, frontend/src/components/__tests__/tokens.test.ts, tests/ac/skills-cmd-02-drop"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
-  - { id: focus-keyboard-nav.test, resource: frontend/src/__tests__/focus-keyboard-nav.test.ts, last_modified: "2026-04-11T16:58:15+10:00", digest: c7bd5ee8c4bf6821 }
+  - { id: signature-moments.test, resource: frontend/src/__tests__/signature-moments.test.ts, last_modified: "2026-04-11T17:15:56+10:00", digest: d18fbcbe1be2db64 }
   - { id: sparkline-render.test, resource: frontend/src/__tests__/sparkline-render.test.ts, last_modified: "2026-04-22T19:23:56+10:00", digest: 484d421145705e87 }
   - { id: tokens.test, resource: frontend/src/components/__tests__/tokens.test.ts, last_modified: "2026-04-10T16:43:30+10:00", digest: a6d54f70c94206c3 }
-  - { id: skills-cmd-03-fail.spec, resource: tests/ac/skills-cmd-03-fail.spec.ts, last_modified: "2026-04-12T11:45:37+10:00", digest: 998680b69aac6c32 }
+  - { id: skills-cmd-02-drop.spec, resource: tests/ac/skills-cmd-02-drop.spec.ts, last_modified: "2026-04-12T11:29:01+10:00", digest: 6d8caaecffe655bd }
 ---
 
 # Files
-- `frontend/src/__tests__/focus-keyboard-nav.test.ts`
+- `frontend/src/__tests__/signature-moments.test.ts`
 - `frontend/src/__tests__/sparkline-render.test.ts`
 - `frontend/src/components/__tests__/tokens.test.ts`
-- `tests/ac/skills-cmd-03-fail.spec.ts`
+- `tests/ac/skills-cmd-02-drop.spec.ts`
 
 # Symbols
-- focus-keyboard-nav.test.ts (frontend/src/__tests__/focus-keyboard-nav.test.ts:L1)
-- FRONTEND_SRC (frontend/src/__tests__/focus-keyboard-nav.test.ts:L10)
-- STYLE_CSS (frontend/src/__tests__/focus-keyboard-nav.test.ts:L11)
-- CANVAS_PANE (frontend/src/__tests__/focus-keyboard-nav.test.ts:L12)
-- read() (frontend/src/__tests__/focus-keyboard-nav.test.ts:L14)
-- scriptBlock() (frontend/src/__tests__/focus-keyboard-nav.test.ts:L16)
-- templateOnly() (frontend/src/__tests__/focus-keyboard-nav.test.ts:L21)
+- signature-moments.test.ts (frontend/src/__tests__/signature-moments.test.ts:L1)
+- FRONTEND_SRC (frontend/src/__tests__/signature-moments.test.ts:L15)
+- STYLE_CSS (frontend/src/__tests__/signature-moments.test.ts:L16)
+- NOTIFICATION_FEED (frontend/src/__tests__/signature-moments.test.ts:L17)
+- read() (frontend/src/__tests__/signature-moments.test.ts:L19)
+- motionGuardedBlocks() (frontend/src/__tests__/signature-moments.test.ts:L26)
 - sparkline-render.test.ts (frontend/src/__tests__/sparkline-render.test.ts:L1)
 - FRONTEND_SRC (frontend/src/__tests__/sparkline-render.test.ts:L11)
 - NOTIFICATION_FEED (frontend/src/__tests__/sparkline-render.test.ts:L12)
@@ -38,9 +37,9 @@ sources:
 - STYLE_CSS_PATH (frontend/src/components/__tests__/tokens.test.ts:L12)
 - DESIGN_MD_PATH (frontend/src/components/__tests__/tokens.test.ts:L13)
 - getToken() (frontend/src/components/__tests__/tokens.test.ts:L27)
-- skills-cmd-03-fail.spec.ts (tests/ac/skills-cmd-03-fail.spec.ts:L1)
-- FIXTURE_PATH (tests/ac/skills-cmd-03-fail.spec.ts:L31)
-- FIXTURE (tests/ac/skills-cmd-03-fail.spec.ts:L35)
+- skills-cmd-02-drop.spec.ts (tests/ac/skills-cmd-02-drop.spec.ts:L1)
+- FIXTURE_PATH (tests/ac/skills-cmd-02-drop.spec.ts:L28)
+- FIXTURE (tests/ac/skills-cmd-02-drop.spec.ts:L32)
 
 # Depends on
 - [@playwright/test](/modules/playwright-test.md)

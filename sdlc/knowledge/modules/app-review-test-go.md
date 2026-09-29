@@ -1,13 +1,13 @@
 ---
 type: Module
 title: app_review_test.go
-description: "Graphify community 161: app_models.go, app_review.go, app_review_test.go"
+description: "Graphify community 165: app_models.go, app_review.go, app_review_test.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: app_models, resource: app_models.go, last_modified: "2026-04-10T11:36:27+10:00", digest: cf387264112e9ff8 }
   - { id: app_review, resource: app_review.go, last_modified: "2026-05-07T18:18:02+10:00", digest: f186f322bd66e914 }
@@ -40,8 +40,8 @@ sources:
 - TestReviewConcurrencyGuard() (app_review_test.go:L92)
 
 # Depends on
-- [App](/modules/app-348.md)
 - [ModelInfo](/modules/modelinfo.md)
+- [refactorPlanFilename](/modules/refactorplanfilename.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

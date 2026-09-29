@@ -1,27 +1,24 @@
 ---
 type: Module
 title: status.ts
-description: "Graphify community 342: frontend/src/__tests__/status-token.test.ts, frontend/src/components/StatusBadge.svelte, frontend/src/types/status.ts"
+description: "Graphify community 431: frontend/src/__tests__/status-token.test.ts, frontend/src/types/status.ts"
 resource: frontend/src
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: status-token.test, resource: frontend/src/__tests__/status-token.test.ts, last_modified: "2026-04-22T18:25:48+10:00", digest: 1a2f08d41d9861de }
-  - { id: StatusBadge, resource: frontend/src/components/StatusBadge.svelte, last_modified: "2026-04-22T18:25:48+10:00", digest: adf6af8794b8416c }
   - { id: status, resource: frontend/src/types/status.ts, last_modified: "2026-04-22T18:25:48+10:00", digest: 396d5990d2eddad1 }
 ---
 
 # Files
 - `frontend/src/__tests__/status-token.test.ts`
-- `frontend/src/components/StatusBadge.svelte`
 - `frontend/src/types/status.ts`
 
 # Symbols
 - status-token.test.ts (frontend/src/__tests__/status-token.test.ts:L1)
-- StatusBadge.svelte (frontend/src/components/StatusBadge.svelte:L1)
 - status.ts (frontend/src/types/status.ts:L1)
 - AgentStatusToken (frontend/src/types/status.ts:L31)
 - EventTypeToken (frontend/src/types/status.ts:L46)

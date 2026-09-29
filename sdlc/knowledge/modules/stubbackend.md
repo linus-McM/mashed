@@ -1,13 +1,13 @@
 ---
 type: Module
 title: StubBackend
-description: "Graphify community 323: internal/uiadapter/backend/backend.go, internal/uiadapter/backend/claudeapi/client.go, internal/uiadapter/backend/claudecli/client.go, internal/uiadapter/backend/lifecycle_test"
+description: "Graphify community 240: internal/uiadapter/backend/backend.go, internal/uiadapter/backend/claudeapi/client.go, internal/uiadapter/backend/claudecli/client.go, internal/uiadapter/backend/lifecycle_test"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: backend, resource: internal/uiadapter/backend/backend.go, last_modified: "2026-04-23T11:09:52+10:00", digest: d0eac5646b5c1ef3 }
   - { id: client, resource: internal/uiadapter/backend/claudeapi/client.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 3e20643bf928e2f2 }
@@ -42,7 +42,7 @@ sources:
 - .Counts() (internal/uiadapter/eval/scorecard_v3.go:L296)
 
 # Depends on
-- [claudeapi/client.go](/modules/claudeapi-client-go.md)
+- [DefaultConfig](/modules/defaultconfig.md)
 - [mashed/internal/uiadapter.UIAST](/modules/mashed-internal-uiadapter-uiast.md)
 - [ScorecardV3](/modules/scorecardv3.md)
 

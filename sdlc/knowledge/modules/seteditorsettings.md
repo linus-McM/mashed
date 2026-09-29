@@ -1,13 +1,13 @@
 ---
 type: Module
 title: SetEditorSettings
-description: "Graphify community 117: docs/SPECIFICATION.md, docs/stories/markdown-toolbar-01-backend-config.md, docs/stories/old_stories/edset-01-backend-editor-settings.md, docs/stories/old_stories/edset-02-edito"
+description: "Graphify community 71: docs/SPECIFICATION.md, docs/stories/markdown-toolbar-01-backend-config.md, docs/stories/old_stories/edset-01-backend-editor-settings.md, docs/stories/old_stories/edset-02-editor"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: SPECIFICATION, resource: docs/SPECIFICATION.md, last_modified: "2026-04-12T09:58:35+10:00", digest: 2150575fba9a1ee2 }
   - { id: markdown-toolbar-01-backend-config, resource: docs/stories/markdown-toolbar-01-backend-config.md, last_modified: "2026-04-23T10:53:25+10:00", digest: 14619a436e67dd63 }
@@ -50,7 +50,6 @@ sources:
 - Reference Files (docs/stories/old_stories/edset-02-editor-settings-ui.md:L59)
 - Acceptance Criteria (docs/stories/old_stories/edset-02-editor-settings-ui.md:L66)
 - Description (docs/stories/old_stories/edset-02-editor-settings-ui.md:L9)
-- initEditorSettings() (frontend/src/lib/stores/editorSettings.js:L29)
 - updateEditorSetting() (frontend/src/lib/stores/editorSettings.js:L51)
 - DefaultEditorSettings() (frontend/wailsjs/go/main/App.js:L13)
 - PickFile() (frontend/wailsjs/go/main/App.js:L269)
@@ -62,9 +61,8 @@ sources:
 - no EXTRACTED edges to other modules
 
 # Inferred
-- [applyTheme](/modules/applytheme.md)
-- [mashedConfig](/modules/mashedconfig.md)
-- [SetTheme](/modules/settheme.md)
+- [GetConfig](/modules/getconfig.md)
+- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

@@ -1,13 +1,13 @@
 ---
 type: Module
 title: domain/types.go
-description: "Graphify community 75: internal/agent/engine.go, internal/agent/engine_test.go, internal/domain/types.go"
+description: "Graphify community 164: internal/agent/engine.go, internal/agent/engine_test.go, internal/domain/types.go"
 resource: internal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: engine, resource: internal/agent/engine.go, last_modified: "2026-04-11T17:08:28+10:00", digest: 1042190db571e4e7 }
   - { id: engine_test, resource: internal/agent/engine_test.go, last_modified: "2026-04-07T10:03:32+10:00", digest: 745feda4505cf50c }
@@ -20,10 +20,12 @@ sources:
 - `internal/domain/types.go`
 
 # Symbols
+- .GetAgentStatus() (internal/agent/engine.go:L185)
 - priorityFor() (internal/agent/engine.go:L197)
 - statusToEventType() (internal/agent/engine.go:L218)
 - buildSummary() (internal/agent/engine.go:L241)
 - lastActivity() (internal/agent/engine.go:L266)
+- agentState (internal/agent/engine.go:L41)
 - .ProcessAgentUpdate() (internal/agent/engine.go:L75)
 - TestPriorityOrdering() (internal/agent/engine_test.go:L145)
 - domain/types.go (internal/domain/types.go:L1)
@@ -38,12 +40,11 @@ sources:
 - Repo (internal/domain/types.go:L77)
 
 # Depends on
-- [App](/modules/app-349.md)
+- [App](/modules/app-355.md)
 - [AssetWatcher](/modules/assetwatcher.md)
+- [diff.go](/modules/diff-go.md)
 - [NotificationEngine](/modules/notificationengine.md)
-- [ScopedDiff](/modules/scopeddiff.md)
 - [SessionData](/modules/sessiondata.md)
-- [sessions.go](/modules/sessions-go.md)
 - [time.Time](/modules/time-time.md)
 - [worktree.go](/modules/worktree-go.md)
 

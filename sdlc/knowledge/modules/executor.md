@@ -1,20 +1,22 @@
 ---
 type: Module
 title: Executor
-description: "Graphify community 19: internal/bmad/executor.go, internal/bmad/question.go"
+description: "Graphify community 17: internal/bmad/executor.go, internal/bmad/fixture_verify_test.go, internal/bmad/question.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
+  - { id: fixture_verify_test, resource: internal/bmad/fixture_verify_test.go, last_modified: "2026-04-11T19:45:53+10:00", digest: 6c143c3418c90221 }
   - { id: question, resource: internal/bmad/question.go, last_modified: "2026-04-17T20:58:29+10:00", digest: 81034d253e6ceb12 }
 ---
 
 # Files
 - `internal/bmad/executor.go`
+- `internal/bmad/fixture_verify_test.go`
 - `internal/bmad/question.go`
 
 # Symbols
@@ -41,10 +43,14 @@ sources:
 - .executeFileLoader() (internal/bmad/executor.go:L2021)
 - .recordNodeError() (internal/bmad/executor.go:L2107)
 - .monitorSessionLiveness() (internal/bmad/executor.go:L229)
+- resolvedInputs (internal/bmad/executor.go:L2358)
 - .executeInteractiveNode() (internal/bmad/executor.go:L2382)
 - .setStatus() (internal/bmad/executor.go:L2596)
 - .sendToSession() (internal/bmad/executor.go:L2609)
 - .captureRoundOutput() (internal/bmad/executor.go:L2633)
+- .resolveInputs() (internal/bmad/executor.go:L2649)
+- firstDirectPredecessor() (internal/bmad/executor.go:L2749)
+- envValue() (internal/bmad/executor.go:L2773)
 - .PauseWorkflow() (internal/bmad/executor.go:L286)
 - .verifyOutputs() (internal/bmad/executor.go:L3017)
 - .ResumeWorkflow() (internal/bmad/executor.go:L304)
@@ -62,27 +68,33 @@ sources:
 - Executor (internal/bmad/executor.go:L82)
 - .executeControlNode() (internal/bmad/executor.go:L854)
 - .executeLoopNode() (internal/bmad/executor.go:L916)
+- fixture_verify_test.go (internal/bmad/fixture_verify_test.go:L1)
+- TestDetectIdlePrompt_RealFixture() (internal/bmad/fixture_verify_test.go:L26)
 - hashQuestion() (internal/bmad/question.go:L159)
+- detectIdlePrompt() (internal/bmad/question.go:L191)
 - hashCapturedOutput() (internal/bmad/question.go:L212)
 
 # Depends on
-- [App](/modules/app-76.md)
+- [App](/modules/app.md)
 - [bmad/types.go](/modules/bmad-types-go.md)
-- [executor_command_test.go](/modules/executor-command-test-go.md)
 - [executor_fileloader_test.go](/modules/executor-fileloader-test-go.md)
-- [go_pkg_testing](/modules/go-pkg-testing.md)
+- [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
+- [go_pkg_strings](/modules/go-pkg-strings.md)
 - [newHarness](/modules/newharness.md)
 - [ProcessByID](/modules/processbyid.md)
-- [ResolveArtifactPath](/modules/resolveartifactpath.md)
+- [question_test.go](/modules/question-test-go.md)
+- [.resumeInteractiveNode](/modules/resumeinteractivenode.md)
+- [Storage](/modules/storage.md)
+- [.suspendForSpecWithPane](/modules/suspendforspecwithpane.md)
 - [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 - [wait_idle_test.go](/modules/wait-idle-test-go.md)
 
 # Inferred
+- [artifacts_test.go](/modules/artifacts-test-go.md)
 - [gate.go](/modules/gate-go.md)
 - [LoadExecutionFromDisk](/modules/loadexecutionfromdisk.md)
 - [ProcessByID](/modules/processbyid.md)
 - [question_test.go](/modules/question-test-go.md)
-- [ResolveArtifactPath](/modules/resolveartifactpath.md)
 - [session_naming_test.go](/modules/session-naming-test-go.md)
 - [sprint_test.go](/modules/sprint-test-go.md)
 - [.suspendForSpecWithPane](/modules/suspendforspecwithpane.md)

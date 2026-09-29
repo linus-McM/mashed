@@ -1,47 +1,51 @@
 ---
 type: Module
 title: App.js
-description: "Graphify community 4: docs/SPECIFICATION.md, frontend/src/lib/stores/sessions.ts, frontend/src/types/session.ts, frontend/src/views/AgentDetail.svelte, frontend/src/views/SwitchBranchModal.svelte, fro"
+description: "Graphify community 24: docs/SPECIFICATION.md, docs/stories/old_stories/bmad-07-custom-nodes-components.md, docs/stories/old_stories/bmad-08-execution-integration.md, frontend/src/lib/stores/sessions.t"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: SPECIFICATION, resource: docs/SPECIFICATION.md, last_modified: "2026-04-12T09:58:35+10:00", digest: 2150575fba9a1ee2 }
+  - { id: bmad-07-custom-nodes-components, resource: docs/stories/old_stories/bmad-07-custom-nodes-components.md, last_modified: "2026-04-08T10:23:03+10:00", digest: 0706808ed6acd792 }
+  - { id: bmad-08-execution-integration, resource: docs/stories/old_stories/bmad-08-execution-integration.md, last_modified: "2026-04-08T10:23:03+10:00", digest: 84e85833652d77c6 }
   - { id: sessions, resource: frontend/src/lib/stores/sessions.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 0fa9462ed476c629 }
   - { id: session, resource: frontend/src/types/session.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 0b3fa196502eba06 }
-  - { id: AgentDetail, resource: frontend/src/views/AgentDetail.svelte, last_modified: "2026-05-07T18:18:02+10:00", digest: ae357b7360448f38 }
-  - { id: SwitchBranchModal, resource: frontend/src/views/SwitchBranchModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 501e05cfd7841900 }
   - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
 ---
 
 # Files
 - `docs/SPECIFICATION.md`
+- `docs/stories/old_stories/bmad-07-custom-nodes-components.md`
+- `docs/stories/old_stories/bmad-08-execution-integration.md`
 - `frontend/src/lib/stores/sessions.ts`
 - `frontend/src/types/session.ts`
-- `frontend/src/views/AgentDetail.svelte`
-- `frontend/src/views/SwitchBranchModal.svelte`
 - `frontend/wailsjs/go/main/App.js`
 
 # Symbols
+- 10. Wails Bindings (Go → Svelte API) (docs/SPECIFICATION.md:L828)
 - Font Discovery (docs/SPECIFICATION.md:L864)
+- Agents, Sessions & Terminals (docs/SPECIFICATION.md:L872)
+- Git Operations (docs/SPECIFICATION.md:L890)
+- Files & Editor I/O (docs/SPECIFICATION.md:L911)
+- Review, Explain & Advice (streaming) (docs/SPECIFICATION.md:L921)
+- BMAD Agents (docs/SPECIFICATION.md:L962)
+- Sprint Management (docs/SPECIFICATION.md:L969)
+- NodeConfigPanel.svelte (docs/stories/old_stories/bmad-07-custom-nodes-components.md:L108)
+- Terminal Access for Running Nodes (docs/stories/old_stories/bmad-08-execution-integration.md:L103)
+- Reference Files (docs/stories/old_stories/bmad-08-execution-integration.md:L164)
 - sessions.ts (frontend/src/lib/stores/sessions.ts:L1)
 - repoSessions (frontend/src/lib/stores/sessions.ts:L11)
 - removeSessionByName() (frontend/src/lib/stores/sessions.ts:L42)
 - session.ts (frontend/src/types/session.ts:L1)
 - DataFields (frontend/src/types/session.ts:L19)
 - Session (frontend/src/types/session.ts:L40)
-- AgentDetail.svelte (frontend/src/views/AgentDetail.svelte:L1)
-- active (frontend/src/views/AgentDetail.svelte:L457)
-- if() (frontend/src/views/AgentDetail.svelte:L70)
-- SwitchBranchModal.svelte (frontend/src/views/SwitchBranchModal.svelte:L1)
-- switchBranch() (frontend/src/views/SwitchBranchModal.svelte:L42)
-- cancel() (frontend/src/views/SwitchBranchModal.svelte:L55)
-- handleKeydown() (frontend/src/views/SwitchBranchModal.svelte:L60)
 - App.js (frontend/wailsjs/go/main/App.js:L1)
 - GetScopedDiff() (frontend/wailsjs/go/main/App.js:L105)
+- GetTerminalPort() (frontend/wailsjs/go/main/App.js:L113)
 - GetWorktrees() (frontend/wailsjs/go/main/App.js:L117)
 - GitCommit() (frontend/wailsjs/go/main/App.js:L121)
 - GitCommitAndPush() (frontend/wailsjs/go/main/App.js:L125)
@@ -51,8 +55,11 @@ sources:
 - GitMergeInto() (frontend/wailsjs/go/main/App.js:L149)
 - GitPull() (frontend/wailsjs/go/main/App.js:L153)
 - GitPush() (frontend/wailsjs/go/main/App.js:L157)
-- GitSwitchBranch() (frontend/wailsjs/go/main/App.js:L161)
+- IsExplainAvailable() (frontend/wailsjs/go/main/App.js:L165)
+- ListAllAgents() (frontend/wailsjs/go/main/App.js:L181)
+- ListBmadAgents() (frontend/wailsjs/go/main/App.js:L193)
 - ListLocalFonts() (frontend/wailsjs/go/main/App.js:L217)
+- ListModels() (frontend/wailsjs/go/main/App.js:L221)
 - ListNerdFonts() (frontend/wailsjs/go/main/App.js:L225)
 - ListRepoFiles() (frontend/wailsjs/go/main/App.js:L237)
 - MarkRead() (frontend/wailsjs/go/main/App.js:L253)
@@ -63,34 +70,27 @@ sources:
 - SaveMashedAssetFrontmatter() (frontend/wailsjs/go/main/App.js:L333)
 - SetFontSize() (frontend/wailsjs/go/main/App.js:L365)
 - SetSidebarWidth() (frontend/wailsjs/go/main/App.js:L393)
-- SpawnPRReview() (frontend/wailsjs/go/main/App.js:L425)
 - WriteConsoleLog() (frontend/wailsjs/go/main/App.js:L465)
 - GetFontsDir() (frontend/wailsjs/go/main/App.js:L81)
+- GetNotifications() (frontend/wailsjs/go/main/App.js:L97)
 
 # Depends on
-- [10. Wails Bindings (Go → Svelte API)](/modules/10-wails-bindings-go-svelte-api.md)
-- [applyTheme](/modules/applytheme.md)
-- [clearMarkdownMenuDirty](/modules/clearmarkdownmenudirty.md)
+- [13. Edge Cases and Failure Modes](/modules/13-edge-cases-and-failure-modes.md)
 - [CodeEditor.svelte](/modules/codeeditor-svelte.md)
 - [CreateFromTemplate](/modules/createfromtemplate.md)
-- [FileTree.svelte](/modules/filetree-svelte.md)
-- [GetTerminalPort](/modules/getterminalport.md)
+- [GetConfig](/modules/getconfig.md)
 - [hydrate](/modules/hydrate.md)
 - [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
 - [interactiveInput.ts](/modules/interactiveinput-ts.md)
 - [ListOllamaModels](/modules/listollamamodels.md)
 - [ListRepoSessions](/modules/listreposessions.md)
-- [markdownMenuSettings.ts](/modules/markdownmenusettings-ts.md)
-- [mashedConfig](/modules/mashedconfig.md)
 - [MonacoEditor.svelte](/modules/monacoeditor-svelte.md)
-- [runtime.js](/modules/runtime-js.md)
 - [SetEditorSettings](/modules/seteditorsettings.md)
-- [SetTheme](/modules/settheme.md)
+- [SetMarkdownMenuSettings](/modules/setmarkdownmenusettings.md)
 - [SpawnAgent](/modules/spawnagent.md)
-- [status.ts](/modules/status-ts.md)
 - [Story 18 — Title-bar Dynamic UI model selector](/modules/story-18-title-bar-dynamic-ui-model-selector.md)
 - [Story 2: Code Review Summary & Advice Streaming Backend](/modules/story-2-code-review-summary-advice-streaming-backend.md)
-- [StreamScopedAdvice](/modules/streamscopedadvice.md)
+- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
 - [svelte](/modules/svelte.md)
 - [TakeScreenshot](/modules/takescreenshot.md)
 - [Tasks / Subtasks](/modules/tasks-subtasks.md)
@@ -101,7 +101,8 @@ sources:
 - [WriteFile](/modules/writefile.md)
 
 # Inferred
-- [svelte](/modules/svelte.md)
+- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
+- [TakeScreenshot](/modules/takescreenshot.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

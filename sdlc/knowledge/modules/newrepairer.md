@@ -1,13 +1,13 @@
 ---
 type: Module
 title: NewRepairer
-description: "Graphify community 202: internal/uiadapter/repair.go, internal/uiadapter/repair_test.go"
+description: "Graphify community 185: internal/uiadapter/repair.go, internal/uiadapter/repair_test.go"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: repair, resource: internal/uiadapter/repair.go, last_modified: "2026-04-26T10:43:55+10:00", digest: cc21726252779f85 }
   - { id: repair_test, resource: internal/uiadapter/repair_test.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 7d95d0c21f4ee4e3 }
@@ -18,6 +18,7 @@ sources:
 - `internal/uiadapter/repair_test.go`
 
 # Symbols
+- repair.go (internal/uiadapter/repair.go:L1)
 - NewRepairer() (internal/uiadapter/repair.go:L109)
 - .MaxRetries() (internal/uiadapter/repair.go:L118)
 - .Run() (internal/uiadapter/repair.go:L124)
@@ -36,13 +37,12 @@ sources:
 - TestRepair_Gated_PerBackend() (internal/uiadapter/repair_test.go:L92)
 
 # Depends on
-- [Config](/modules/config.md)
-- [nilSafeLogger](/modules/nilsafelogger.md)
+- [log/slog.Logger](/modules/log-slog-logger.md)
 - [testLogBuffer](/modules/testlogbuffer.md)
 
 # Inferred
 - [DefaultConfig](/modules/defaultconfig.md)
-- [nilSafeLogger](/modules/nilsafelogger.md)
+- [log/slog.Logger](/modules/log-slog-logger.md)
 
 # Features
 - no feature plan names these files

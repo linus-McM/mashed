@@ -1,13 +1,13 @@
 ---
 type: Module
 title: bundled_themes_test.go
-description: "Graphify community 122: bundled_themes_test.go, theme_scanner.go, theme_scanner_test.go"
+description: "Graphify community 68: bundled_themes_test.go, theme_scanner.go, theme_scanner_test.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: bundled_themes_test, resource: bundled_themes_test.go, last_modified: "2026-04-10T09:28:28+10:00", digest: 7521e18fece03e1e }
   - { id: theme_scanner, resource: theme_scanner.go, last_modified: "2026-04-10T09:28:28+10:00", digest: d02c5e5c45d34f49 }
@@ -41,10 +41,18 @@ sources:
 - TestScanVSIXDirectory_AC6_CorruptVSIX() (bundled_themes_test.go:L89)
 - scanVSIXDirectory() (theme_scanner.go:L205)
 - makeVSIXThemePath() (theme_scanner.go:L34)
+- TestReadThemeFile_VSIX_PathTraversal() (theme_scanner_test.go:L1040)
+- TestReadThemeFile_VSIX_SizeLimit() (theme_scanner_test.go:L1070)
+- TestReadThemeFile_VSIX_FileNotFound() (theme_scanner_test.go:L1100)
 - createMockVSIX() (theme_scanner_test.go:L78)
+- TestReadThemeFile_VSIX_HappyPath() (theme_scanner_test.go:L797)
+- TestReadThemeFile_VSIX_JSONCStripped() (theme_scanner_test.go:L830)
+- TestReadThemeFile_VSIX_IncludeResolution() (theme_scanner_test.go:L870)
+- TestReadThemeFile_VSIX_IncludeMultiLevel() (theme_scanner_test.go:L942)
+- TestReadThemeFile_VSIX_IncludeDepthLimit() (theme_scanner_test.go:L988)
 
 # Depends on
-- [theme_scanner.go](/modules/theme-scanner-go.md)
+- [.ReadThemeFile](/modules/readthemefile.md)
 
 # Inferred
 - [loadConfig](/modules/loadconfig.md)

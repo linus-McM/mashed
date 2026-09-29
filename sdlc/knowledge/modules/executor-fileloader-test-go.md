@@ -1,13 +1,13 @@
 ---
 type: Module
 title: executor_fileloader_test.go
-description: "Graphify community 49: internal/bmad/executor.go, internal/bmad/executor_fileloader_test.go, internal/bmad/executor_multifileloader_test.go, internal/bmad/prompts.go"
+description: "Graphify community 56: internal/bmad/executor.go, internal/bmad/executor_fileloader_test.go, internal/bmad/executor_multifileloader_test.go, internal/bmad/prompts.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: executor_fileloader_test, resource: internal/bmad/executor_fileloader_test.go, last_modified: "2026-04-20T20:17:58+10:00", digest: 5c7c8dfad64509c9 }
@@ -42,21 +42,23 @@ sources:
 - TestExtractModalQuestion_UnclosedSentinel_FallsBackToTail() (internal/bmad/executor_fileloader_test.go:L294)
 - TestFileLoader_HappyPath_PopulatesOutputsAndPaths() (internal/bmad/executor_fileloader_test.go:L44)
 - TestFileLoader_RelativePath_ResolvedAgainstRepo() (internal/bmad/executor_fileloader_test.go:L88)
+- executor_multifileloader_test.go (internal/bmad/executor_multifileloader_test.go:L1)
 - TestMultiFileLoader_AC3_MissingFileTolerated() (internal/bmad/executor_multifileloader_test.go:L122)
 - TestMultiFileLoader_AC4_DuplicateLabelsRejected() (internal/bmad/executor_multifileloader_test.go:L153)
 - TestMultiFileLoader_TooManyEntries_Rejected() (internal/bmad/executor_multifileloader_test.go:L184)
 - TestMultiFileLoader_RelativePath_ResolvedAgainstRepo() (internal/bmad/executor_multifileloader_test.go:L209)
 - saveMultiFileWorkflow() (internal/bmad/executor_multifileloader_test.go:L25)
 - waitForTerminal() (internal/bmad/executor_multifileloader_test.go:L52)
+- TestMultiFileLoader_AC1_NodeTypeRoundTrip() (internal/bmad/executor_multifileloader_test.go:L64)
 - TestMultiFileLoader_AC2_LabeledAndPositional_EmitsOutputPaths() (internal/bmad/executor_multifileloader_test.go:L84)
 - extractModalQuestion() (internal/bmad/prompts.go:L75)
 
 # Depends on
-- [appendUpstreamContext](/modules/appendupstreamcontext.md)
+- [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
 - [Executor](/modules/executor.md)
-- [executor_command_test.go](/modules/executor-command-test-go.md)
+- [go_pkg_strings](/modules/go-pkg-strings.md)
 - [newHarness](/modules/newharness.md)
-- [ResolveArtifactPath](/modules/resolveartifactpath.md)
+- [Storage](/modules/storage.md)
 
 # Inferred
 - [newHarness](/modules/newharness.md)

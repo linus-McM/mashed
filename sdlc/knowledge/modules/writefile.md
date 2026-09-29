@@ -1,15 +1,14 @@
 ---
 type: Module
 title: WriteFile
-description: "Graphify community 73: docs/feasibility-multi-editor.md, docs/plans/repo-health-remediation.md, docs/stories/old_stories/meditor-02-readfilebase64-binding.md, docs/stories/old_stories/meditor-04-markd"
+description: "Graphify community 81: docs/plans/repo-health-remediation.md, docs/stories/old_stories/meditor-02-readfilebase64-binding.md, docs/stories/old_stories/meditor-04-markdown-editor.md, frontend/wailsjs/go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
-  - { id: feasibility-multi-editor, resource: docs/feasibility-multi-editor.md, last_modified: "2026-04-09T21:06:37+10:00", digest: d1cc54cadf1483b3 }
   - { id: repo-health-remediation, resource: docs/plans/repo-health-remediation.md, last_modified: "2026-09-29T06:03:48Z", digest: f5a96b797d990d0e }
   - { id: meditor-02-readfilebase64-binding, resource: docs/stories/old_stories/meditor-02-readfilebase64-binding.md, last_modified: "2026-04-12T10:43:48+10:00", digest: c3e539f11ac58af8 }
   - { id: meditor-04-markdown-editor, resource: docs/stories/old_stories/meditor-04-markdown-editor.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 2c11f30e526240e8 }
@@ -17,20 +16,12 @@ sources:
 ---
 
 # Files
-- `docs/feasibility-multi-editor.md`
 - `docs/plans/repo-health-remediation.md`
 - `docs/stories/old_stories/meditor-02-readfilebase64-binding.md`
 - `docs/stories/old_stories/meditor-04-markdown-editor.md`
 - `frontend/wailsjs/go/main/App.js`
 
 # Symbols
-- Decision: **Milkdown Crepe** (`@milkdown/crepe`) (docs/feasibility-multi-editor.md:L101)
-- Why Crepe (docs/feasibility-multi-editor.md:L105)
-- Integration Pattern (docs/feasibility-multi-editor.md:L123)
-- Theme Integration (docs/feasibility-multi-editor.md:L141)
-- No Raw Source View Needed (docs/feasibility-multi-editor.md:L145)
-- Getting Content for Auto-Save (docs/feasibility-multi-editor.md:L149)
-- 3. Markdown Editor: Milkdown Crepe (DECIDED) (docs/feasibility-multi-editor.md:L99)
 - Phase 1 — Security *(P0)* (docs/plans/repo-health-remediation.md:L30)
 - Task 1.1 — Lock down the terminal WebSocket (docs/plans/repo-health-remediation.md:L32)
 - Task 1.2 — Stop git option injection (docs/plans/repo-health-remediation.md:L39)
@@ -63,7 +54,8 @@ sources:
 - no EXTRACTED edges to other modules
 
 # Inferred
-- [applyTheme](/modules/applytheme.md)
+- [GetConfig](/modules/getconfig.md)
+- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
 - [themeInit.js](/modules/themeinit-js.md)
 
 # Features

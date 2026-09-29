@@ -1,13 +1,13 @@
 ---
 type: Module
 title: mashed/internal/uiadapter.UIAST
-description: "Graphify community 25: internal/bmad/executor_adapter_test.go, internal/uiadapter/backend/stubs.go, internal/uiadapter/eval/corpus.go, internal/uiadapter/eval/corpus_test.go, internal/uiadapter/eval/s"
+description: "Graphify community 38: internal/bmad/executor_adapter_test.go, internal/uiadapter/backend/stubs.go, internal/uiadapter/eval/corpus.go, internal/uiadapter/eval/corpus_test.go, internal/uiadapter/eval/s"
 resource: internal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: executor_adapter_test, resource: internal/bmad/executor_adapter_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f79102c9f400d28f }
   - { id: stubs, resource: internal/uiadapter/backend/stubs.go, last_modified: "2026-04-23T11:09:52+10:00", digest: 60bb478e1146d7a5 }
@@ -35,7 +35,6 @@ sources:
 - .Generate() (internal/uiadapter/backend/stubs.go:L39)
 - .GenerateSingleShot() (internal/uiadapter/backend/stubs.go:L44)
 - synthUIAST() (internal/uiadapter/backend/stubs.go:L77)
-- corpus.go (internal/uiadapter/eval/corpus.go:L1)
 - Fixture (internal/uiadapter/eval/corpus.go:L21)
 - Expected (internal/uiadapter/eval/corpus.go:L30)
 - LoadCorpus() (internal/uiadapter/eval/corpus.go:L55)
@@ -69,7 +68,7 @@ sources:
 - PromptVersion() (internal/uiadapter/prompt.go:L17)
 
 # Depends on
-- [Config](/modules/config.md)
+- [DefaultConfig](/modules/defaultconfig.md)
 - [go_pkg_log_slog](/modules/go-pkg-log-slog.md)
 - [time.Duration](/modules/time-duration.md)
 - [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)

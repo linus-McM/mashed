@@ -1,13 +1,13 @@
 ---
 type: Module
 title: CodeEditor.svelte
-description: "Graphify community 248: frontend/src/components/CodeEditor.svelte, frontend/wailsjs/go/main/App.js"
+description: "Graphify community 257: frontend/src/components/CodeEditor.svelte, frontend/wailsjs/go/main/App.js"
 resource: frontend
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: CodeEditor, resource: frontend/src/components/CodeEditor.svelte, last_modified: "2026-04-22T20:32:12+10:00", digest: 1bb474a9cd8f0465 }
   - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
@@ -35,9 +35,9 @@ sources:
 - ExplainDiffHunk() (frontend/wailsjs/go/main/App.js:L29)
 
 # Depends on
-- [10. Wails Bindings (Go → Svelte API)](/modules/10-wails-bindings-go-svelte-api.md)
 - [App.js](/modules/app-js.md)
 - [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
+- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
 - [svelte](/modules/svelte.md)
 - [WriteFile](/modules/writefile.md)
 

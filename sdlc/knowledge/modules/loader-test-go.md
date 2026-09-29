@@ -1,50 +1,30 @@
 ---
 type: Module
 title: loader_test.go
-description: "Graphify community 15: app_review_scoped.go, app_review_scoped_test.go, internal/advice/loader.go, internal/advice/loader_test.go"
+description: "Graphify community 20: app_review.go, internal/advice/loader.go, internal/advice/loader_test.go, internal/advice/types.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
-  - { id: app_review_scoped, resource: app_review_scoped.go, last_modified: "2026-04-10T13:49:09+10:00", digest: 83c692114f39a0c9 }
-  - { id: app_review_scoped_test, resource: app_review_scoped_test.go, last_modified: "2026-04-10T13:49:09+10:00", digest: 495a403ad8cace57 }
+  - { id: app_review, resource: app_review.go, last_modified: "2026-05-07T18:18:02+10:00", digest: f186f322bd66e914 }
   - { id: loader, resource: internal/advice/loader.go, last_modified: "2026-04-12T20:21:26+10:00", digest: 8dbc36587dafa6a5 }
   - { id: loader_test, resource: internal/advice/loader_test.go, last_modified: "2026-04-10T10:10:32+10:00", digest: 99b099c62c602a3e }
+  - { id: types, resource: internal/advice/types.go, last_modified: "2026-04-10T10:10:32+10:00", digest: 91b5fd3d9c0081b2 }
 ---
 
 # Files
-- `app_review_scoped.go`
-- `app_review_scoped_test.go`
+- `app_review.go`
 - `internal/advice/loader.go`
 - `internal/advice/loader_test.go`
+- `internal/advice/types.go`
 
 # Symbols
-- scopedAdviceEvent() (app_review_scoped.go:L108)
-- App (app_review_scoped.go:L121)
-- .StreamScopedAdvice() (app_review_scoped.go:L121)
-- buildScopedDiff() (app_review_scoped.go:L24)
-- containedPath() (app_review_scoped.go:L68)
-- listTrackedFiles() (app_review_scoped.go:L82)
-- assembleScopedPayload() (app_review_scoped.go:L99)
-- app_review_scoped_test.go (app_review_scoped_test.go:L1)
-- TestBuildScopedDiff_MixedTrackedUntracked() (app_review_scoped_test.go:L121)
-- TestBuildScopedDiff_AC4_EmptyInput() (app_review_scoped_test.go:L147)
-- TestBuildScopedDiff_AllFilesUnchanged() (app_review_scoped_test.go:L178)
-- TestBuildScopedDiff_RejectsPathTraversal() (app_review_scoped_test.go:L197)
-- initTestGitRepo() (app_review_scoped_test.go:L20)
-- TestBuildScopedDiff_SeparatorBetweenFiles() (app_review_scoped_test.go:L235)
-- TestAssembleScopedPayload_AC3_AdditionalContextPrepended() (app_review_scoped_test.go:L253)
-- TestAssembleScopedPayload_EmptyContext() (app_review_scoped_test.go:L310)
-- TestScopedAdviceEvent_AC5_MatchesStreamAdviceShape() (app_review_scoped_test.go:L331)
-- gitRun() (app_review_scoped_test.go:L34)
-- commitFile() (app_review_scoped_test.go:L43)
-- modifyTrackedFile() (app_review_scoped_test.go:L52)
-- createUntrackedFile() (app_review_scoped_test.go:L59)
-- TestBuildScopedDiff_AC1_OnlySelectedFiles() (app_review_scoped_test.go:L69)
-- TestBuildScopedDiff_AC2_UntrackedFallback() (app_review_scoped_test.go:L99)
+- App (app_review.go:L105)
+- .ListAdviceModes() (app_review.go:L105)
+- .StreamAdvice() (app_review.go:L237)
 - loader.go (internal/advice/loader.go:L1)
 - loadModesFromDir() (internal/advice/loader.go:L103)
 - LoadAdviceBody() (internal/advice/loader.go:L127)
@@ -87,12 +67,15 @@ sources:
 - TestSplitFrontmatter_OpeningCRLF() (internal/advice/loader_test.go:L637)
 - TestGlobalAdviceDir() (internal/advice/loader_test.go:L645)
 - TestLocalAdviceDir() (internal/advice/loader_test.go:L652)
+- advice/types.go (internal/advice/types.go:L1)
+- AdviceMode (internal/advice/types.go:L4)
 
 # Depends on
-- no EXTRACTED edges to other modules
+- [go_pkg_strings](/modules/go-pkg-strings.md)
+- [refactorPlanFilename](/modules/refactorplanfilename.md)
 
 # Inferred
-- [App](/modules/app-63.md)
+- [App](/modules/app-73.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

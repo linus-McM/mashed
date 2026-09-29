@@ -1,13 +1,13 @@
 ---
 type: Module
 title: session_naming_test.go
-description: "Graphify community 101: internal/bmad/executor_test.go, internal/bmad/session_naming.go, internal/bmad/session_naming_test.go"
+description: "Graphify community 122: internal/bmad/executor_test.go, internal/bmad/session_naming.go, internal/bmad/session_naming_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: executor_test, resource: internal/bmad/executor_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 4449efba985daebc }
   - { id: session_naming, resource: internal/bmad/session_naming.go, last_modified: "2026-04-10T15:50:15+10:00", digest: acbdad6853f5eaed }
@@ -20,7 +20,6 @@ sources:
 - `internal/bmad/session_naming_test.go`
 
 # Symbols
-- sessionLabelFromArgs() (internal/bmad/executor_test.go:L1175)
 - runExecuteNodeSessionCase() (internal/bmad/executor_test.go:L852)
 - TestExecuteNode_AC7_UsesDescriptiveName() (internal/bmad/executor_test.go:L904)
 - TestExecuteNode_AC8_BranchLookupFailureFallsBackToDetached() (internal/bmad/executor_test.go:L922)
@@ -45,7 +44,7 @@ sources:
 - TestBuildSessionName_AC2_SlugificationRules() (internal/bmad/session_naming_test.go:L74)
 
 # Depends on
-- [executor_command_test.go](/modules/executor-command-test-go.md)
+- [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
 - [newHarness](/modules/newharness.md)
 
 # Inferred

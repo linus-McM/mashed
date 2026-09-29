@@ -1,13 +1,13 @@
 ---
 type: Module
 title: 13. Edge Cases and Failure Modes
-description: "Graphify community 141: docs/bmad-interactive-process-schema.md, docs/stories/bmad-interactive-03-suspension-respond.md, docs/stories/old_stories/bmad-08-execution-integration.md, frontend/wailsjs/go/"
+description: "Graphify community 111: docs/bmad-interactive-process-schema.md, docs/stories/bmad-interactive-03-suspension-respond.md, docs/stories/old_stories/bmad-08-execution-integration.md, frontend/wailsjs/go/"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
+stale_after: "2026-10-13T14:46:21Z"
+source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
 sources:
   - { id: bmad-interactive-process-schema, resource: docs/bmad-interactive-process-schema.md, last_modified: "2026-04-21T09:23:33+10:00", digest: d2e33d14af66141f }
   - { id: bmad-interactive-03-suspension-respond, resource: docs/stories/bmad-interactive-03-suspension-respond.md, last_modified: "2026-04-20T13:50:13+10:00", digest: 55cfc56e60c669f1 }
@@ -49,7 +49,7 @@ sources:
 - no EXTRACTED edges to other modules
 
 # Inferred
-- [Developer Notes](/modules/developer-notes-355.md)
+- [App.js](/modules/app-js.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)
