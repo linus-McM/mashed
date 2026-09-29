@@ -5,14 +5,19 @@ package main
 
 import (
 	"crypto/md5"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 )
 
 // repoRoot returns the absolute path of the repository root (this file's dir).
@@ -114,6 +119,89 @@ func TestRepo_SinglePackageManager(t *testing.T) {
 	sum := md5.Sum([]byte(pkgJSON))
 	if got := strings.TrimSpace(readRepoFile(t, "frontend/package.json.md5")); got != hex.EncodeToString(sum[:]) {
 		t.Errorf("frontend/package.json.md5 = %s, want %x", got, sum)
+	}
+}
+
+// ciWorkflow is the subset of a GitHub Actions workflow the tests inspect.
+type ciWorkflow struct {
+	On struct {
+		Push        struct{ Branches []string } `yaml:"push"`
+		PullRequest struct{ Branches []string } `yaml:"pull_request"`
+	} `yaml:"on"`
+	Permissions map[string]string `yaml:"permissions"`
+	Jobs        map[string]struct {
+		Steps []struct {
+			Uses string            `yaml:"uses"`
+			Run  string            `yaml:"run"`
+			With map[string]any    `yaml:"with"`
+			Env  map[string]string `yaml:"env"`
+		} `yaml:"steps"`
+	} `yaml:"jobs"`
+}
+
+// svelteCheckSHA256 pins .github/workflows/svelte-check.yml at the PR 3 base
+// so its required-check name and behaviour survive (R24).
+const svelteCheckSHA256 = "41f55a9f1eb0cddf4383e53cd5594a6c0c50f350dc2536723dcda2b43c0a9a19"
+
+// R24: ci.yml runs the Go and frontend gates on push and PR to main and dev,
+// read-only, with actions pinned by SHA and LFS off.
+func TestRepo_CIWorkflow(t *testing.T) {
+	var wf ciWorkflow
+	if err := yaml.Unmarshal([]byte(readRepoFile(t, ".github/workflows/ci.yml")), &wf); err != nil {
+		t.Fatalf("ci.yml: %v", err)
+	}
+	for _, br := range []string{"main", "dev"} {
+		if !slices.Contains(wf.On.Push.Branches, br) || !slices.Contains(wf.On.PullRequest.Branches, br) {
+			t.Errorf("ci.yml must run on push and pull_request to %s", br)
+		}
+	}
+	if len(wf.Permissions) != 1 || wf.Permissions["contents"] != "read" {
+		t.Errorf("permissions = %v, want only contents: read", wf.Permissions)
+	}
+
+	pinned := regexp.MustCompile(`@[0-9a-f]{40}$`)
+	runs := map[string]string{}
+	for _, job := range []string{"go", "frontend"} {
+		j, ok := wf.Jobs[job]
+		if !ok {
+			t.Fatalf("ci.yml has no %q job", job)
+		}
+		var all strings.Builder
+		for _, s := range j.Steps {
+			if s.Uses != "" {
+				if !pinned.MatchString(s.Uses) {
+					t.Errorf("%s: %q is not pinned to a 40-hex SHA", job, s.Uses)
+				}
+				if strings.HasPrefix(s.Uses, "actions/checkout@") && s.With["lfs"] != false {
+					t.Errorf("%s: checkout must set lfs: false", job)
+				}
+			}
+			all.WriteString(s.Run + "\n")
+		}
+		runs[job] = all.String()
+	}
+
+	for _, want := range []string{
+		"test -f frontend/dist/.gitkeep",
+		"go build ./...",
+		"go vet ./...",
+		"go test -race ./...",
+		"go test -count=50 -run 'AC2|LateClient' ./internal/terminal/", // R20 on ubuntu
+		"sudo -E env \"PATH=$PATH\" go test ./internal/bmad/",           // R23 as root
+	} {
+		if !strings.Contains(runs["go"], want) {
+			t.Errorf("go job lacks %q", want)
+		}
+	}
+	for _, want := range []string{"npm ci", "npm run lint:tokens", "npx vitest run", "npm run build", "git status --porcelain"} {
+		if !strings.Contains(runs["frontend"], want) {
+			t.Errorf("frontend job lacks %q", want)
+		}
+	}
+
+	sum := sha256.Sum256([]byte(readRepoFile(t, ".github/workflows/svelte-check.yml")))
+	if got := hex.EncodeToString(sum[:]); got != svelteCheckSHA256 {
+		t.Errorf("svelte-check.yml changed (sha256 %s); keep it as is so the required check survives", got)
 	}
 }
 

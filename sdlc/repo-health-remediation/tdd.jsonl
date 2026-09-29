@@ -45,3 +45,5 @@
 {"phase": "green", "step": "s3.1-dist-placeholder", "exit": 0, "ts": "2026-09-29"}
 {"phase": "red", "step": "s3.2-npm-only", "exit": 1, "ts": "2026-09-29"}
 {"phase": "green", "step": "s3.2-npm-only", "exit": 0, "ts": "2026-09-29"}
+{"phase": "red", "step": "s3.4-ci", "exit": 1, "ts": "2026-09-29"}
+{"phase": "green", "step": "s3.4-ci", "exit": 0, "ts": "2026-09-29"}
