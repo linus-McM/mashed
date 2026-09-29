@@ -20,7 +20,8 @@ scorecard.png
 build/bin
 mashed
 node_modules
-frontend/dist
+frontend/dist/*
+!frontend/dist/.gitkeep
 graphify-out/
 images/*
 # macOS Finder metadata — ignore at any depth

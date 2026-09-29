@@ -4,6 +4,7 @@ package main
 // sdlc/repo-health-remediation/spec.md so config changes get a red/green cycle.
 
 import (
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -32,6 +33,43 @@ func trackedFiles(t *testing.T, pathspecs ...string) []string {
 		t.Fatalf("git ls-files: %v", err)
 	}
 	return strings.Fields(string(out))
+}
+
+// readRepoFile returns a repo file's contents.
+func readRepoFile(t *testing.T, rel string) string {
+	t.Helper()
+	b, err := os.ReadFile(filepath.Join(repoRoot(t), rel))
+	if err != nil {
+		t.Fatalf("read %s: %v", rel, err)
+	}
+	return string(b)
+}
+
+// hasLine reports whether text contains line as a whole line.
+func hasLine(text, line string) bool {
+	for _, l := range strings.Split(text, "\n") {
+		if strings.TrimSpace(l) == line {
+			return true
+		}
+	}
+	return false
+}
+
+// R21: a fresh clone can `go build` because frontend/dist/.gitkeep is
+// tracked, so `//go:embed all:frontend/dist` always matches a file.
+func TestRepo_DistPlaceholderTracked(t *testing.T) {
+	if got := trackedFiles(t, "frontend/dist/.gitkeep"); len(got) != 1 {
+		t.Fatalf("frontend/dist/.gitkeep is not tracked (got %v)", got)
+	}
+	gi := readRepoFile(t, ".gitignore")
+	for _, want := range []string{"frontend/dist/*", "!frontend/dist/.gitkeep"} {
+		if !hasLine(gi, want) {
+			t.Errorf(".gitignore lacks %q", want)
+		}
+	}
+	if hasLine(gi, "frontend/dist") || hasLine(gi, "frontend/dist/") {
+		t.Error(".gitignore still ignores the whole frontend/dist directory")
+	}
 }
 
 func TestRepo_GraphifyOutIgnored(t *testing.T) {

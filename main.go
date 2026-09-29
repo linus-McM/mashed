@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"io/fs"
 	"fmt"
 	"log"
 	"os"
@@ -117,6 +118,15 @@ func resolveHelperPath() string {
 	return ""
 }
 
+// warnIfDistMissing logs a warning when the embedded frontend has no
+// index.html — e.g. `go build` on a fresh clone embeds only the tracked
+// frontend/dist/.gitkeep placeholder (R21).
+func warnIfDistMissing(fsys fs.FS, logf func(string, ...any)) {
+	if _, err := fs.Stat(fsys, "frontend/dist/index.html"); err != nil {
+		logf("WARNING: frontend/dist/index.html is not embedded; run `npm run build` in frontend/ (or `wails build`) before building the app")
+	}
+}
+
 // setupHelperSocketDir creates a private (0700) directory for the PTY helper
 // socket and returns a cleanup func that removes it (R12).
 func setupHelperSocketDir() (string, func(), error) {
@@ -159,6 +169,8 @@ func waitForSocket(path string, timeout time.Duration) bool {
 }
 
 func main() {
+	warnIfDistMissing(assets, log.Printf)
+
 	// Resolve and launch PTY helper.
 	helperPath := resolveHelperPath()
 	var helperClient *helper.Client
