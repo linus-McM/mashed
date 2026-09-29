@@ -367,9 +367,18 @@ func (a *App) SpawnRefactorPlan(repoPath, adviceText string, filePaths []string)
 - Be specific: include file paths, function names, line references
 - Order by priority (critical first, cosmetic last)`, planPath, adviceText)
 
+	// R16 / C3: one argv element for the prompt; read-only tools plus a Write
+	// rule for exactly this plan file (relative to the session cwd, repoPath).
+	// Plan filenames are slugified to [A-Za-z0-9_+-], so the rule needs no
+	// quoting inside the comma-separated list.
+	rel, err := filepath.Rel(repoPath, planPath)
+	if err != nil {
+		return "", fmt.Errorf("plan path: %w", err)
+	}
+	allowed := "Read,Grep,Glob,Edit(./" + filepath.ToSlash(rel) + ")"
 	defaultModel := domain.DefaultAlias(a.ListModels())
-	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s -p %q", defaultModel, prompt)
-	_, err := a.spawnSession("refactor", repoPath, cmd, domain.SessionAgent, defaultModel, 0, 0)
+	argv := []string{"claude", "--model", defaultModel, "--allowedTools", allowed, "-p", prompt}
+	_, err = a.spawnSessionArgv("refactor", repoPath, argv, domain.SessionAgent, defaultModel)
 	if err != nil {
 		return "", fmt.Errorf("spawn refactor plan agent: %w", err)
 	}

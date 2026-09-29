@@ -368,6 +368,30 @@ func TestSpawnRefactorPlan_InputValidation(t *testing.T) {
 	}
 }
 
+// R16: the refactor prompt reaches claude as one argv element, the spawn no
+// longer skips permissions, and Write is limited to the returned plan file.
+func TestSpawnRefactorPlan_ArgvExact(t *testing.T) {
+	app, fake, repo := spawnFixture(t)
+	advice := "Split \"big\" funcs;\n  don't touch `x` or $(y)"
+
+	planPath, err := app.SpawnRefactorPlan(repo, advice, []string{"main.go"})
+	require.NoError(t, err)
+
+	argvs := fake.spawnedArgvs()
+	require.Len(t, argvs, 1)
+	argv := argvs[0]
+	require.Len(t, argv, 7)
+	rel, err := filepath.Rel(repo, planPath)
+	require.NoError(t, err)
+	wantTools := "Read,Grep,Glob,Edit(./" + filepath.ToSlash(rel) + ")"
+	model := domain.DefaultAlias(app.ListModels())
+	assert.Equal(t, []string{"claude", "--model", model, "--allowedTools", wantTools, "-p"}, argv[:6])
+	assert.True(t, strings.HasPrefix(filepath.ToSlash(rel), ".claude/plans/"), rel)
+	assert.Contains(t, argv[6], advice, "advice passes through verbatim inside the single prompt element")
+	assert.Contains(t, argv[6], planPath)
+	assert.NotContains(t, strings.Join(argv, " "), "--dangerously-skip-permissions")
+}
+
 func TestSpawnRefactorPlan_PlanPathFormat(t *testing.T) {
 	tmpDir := t.TempDir()
 	plansDir := filepath.Join(tmpDir, ".claude", "plans")

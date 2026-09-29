@@ -46,6 +46,22 @@ type fakeSessionManager struct {
 	killed    []string
 	shutdown  bool
 	pidToSess map[int]*terminal.ManagedSession
+	argvs     [][]string // every SpawnArgv call, in order
+}
+
+func (f *fakeSessionManager) SpawnArgv(_ context.Context, name, _ string, argv []string, _, _ uint16) (*terminal.ManagedSession, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.alive[name] = true
+	f.argvs = append(f.argvs, append([]string(nil), argv...))
+	return nil, nil
+}
+
+// spawnedArgvs returns a copy of the recorded SpawnArgv calls.
+func (f *fakeSessionManager) spawnedArgvs() [][]string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([][]string(nil), f.argvs...)
 }
 
 func newFakeManager(aliveNames ...string) *fakeSessionManager {

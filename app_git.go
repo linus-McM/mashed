@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"os"
@@ -1017,16 +1018,16 @@ func (a *App) SpawnPRReview(repoPath string) (string, error) {
 	if _, err := a.repoDir(repoPath); err != nil {
 		return "", err
 	}
-	// Find the latest PR number for this repo
-	ghCmd := exec.CommandContext(a.ctx, "gh", "pr", "list", "--state", "open", "--limit", "1", "--json", "number", "--jq", ".[0].number")
-	ghCmd.Dir = repoPath
-	prOut, err := ghCmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("no open PRs found: %w", err)
+	findPR := a.prNumber
+	if findPR == nil {
+		findPR = latestOpenPR
 	}
-	prNumber := strings.TrimSpace(string(prOut))
-	if prNumber == "" {
-		return "", fmt.Errorf("no open PRs found")
+	prNumber, err := findPR(a.ctx, repoPath)
+	if err != nil {
+		return "", err
+	}
+	if !isPRNumber(prNumber) {
+		return "", fmt.Errorf("invalid PR number %q", prNumber)
 	}
 
 	prompt := fmt.Sprintf(`You are an adversarial code reviewer. Review PR #%s in this repo thoroughly.
@@ -1035,7 +1036,40 @@ missing error handling, breaking changes, and any code that could fail in produc
 Be specific — cite file names and line numbers. Don't be nice, be thorough.
 Start by running: gh pr diff %s`, prNumber, prNumber)
 
+	// R16 / C3: the prompt is one argv element, and the agent gets read-only
+	// tools plus the gh/git commands it needs, instead of skipping permissions.
 	defaultModel := domain.DefaultAlias(a.ListModels())
-	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s -p %q", defaultModel, prompt)
-	return a.spawnSession("review", repoPath, cmd, domain.SessionAgent, defaultModel, 0, 0)
+	argv := []string{"claude", "--model", defaultModel, "--allowedTools", reviewAllowedTools, "-p", prompt}
+	return a.spawnSessionArgv("review", repoPath, argv, domain.SessionAgent, defaultModel)
+}
+
+// reviewAllowedTools is the --allowedTools list for SpawnPRReview.
+const reviewAllowedTools = "Read,Grep,Glob,Bash(gh pr diff *),Bash(gh pr view *),Bash(git diff *),Bash(git log *),Bash(git show *)"
+
+// latestOpenPR returns the number of the most recent open PR in repoPath.
+func latestOpenPR(ctx context.Context, repoPath string) (string, error) {
+	ghCmd := exec.CommandContext(ctx, "gh", "pr", "list", "--state", "open", "--limit", "1", "--json", "number", "--jq", ".[0].number")
+	ghCmd.Dir = repoPath
+	prOut, err := ghCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("no open PRs found: %w", err)
+	}
+	n := strings.TrimSpace(string(prOut))
+	if n == "" {
+		return "", fmt.Errorf("no open PRs found")
+	}
+	return n, nil
+}
+
+// isPRNumber reports whether s is a non-empty string of ASCII digits.
+func isPRNumber(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
 }

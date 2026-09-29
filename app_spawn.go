@@ -42,6 +42,35 @@ func (a *App) spawnSession(prefix, repoPath, command string, sessionType domain.
 	return sessionName, nil
 }
 
+// spawnSessionArgv is spawnSession for a pre-split argv: every element
+// reaches the process unchanged (R15/R16). Use it for commands built in code,
+// such as claude with a multi-line prompt.
+func (a *App) spawnSessionArgv(prefix, repoPath string, argv []string, sessionType domain.SessionType, model string) (string, error) {
+	now := time.Now()
+	repoName := repoNameFromDir(repoPath)
+	sessionName := fmt.Sprintf("%s-%s-%d", prefix, repoName, now.Unix())
+
+	if _, err := a.manager.SpawnArgv(a.ctx, sessionName, repoPath, argv, 0, 0); err != nil {
+		return "", fmt.Errorf("spawn session failed: %w", err)
+	}
+
+	session := domain.TerminalSession{
+		SessionName: sessionName,
+		PaneTarget:  sessionName,
+		RepoPath:    repoPath,
+		RepoName:    repoName,
+		SessionType: sessionType,
+		Model:       model,
+		SpawnedAt:   now,
+		IsAlive:     true,
+	}
+	a.registerSession(session)
+	a.emitEvent(eventSessionAdded, session)
+
+	log.Printf("spawned session %s at %s", sessionName, repoPath)
+	return sessionName, nil
+}
+
 // SpawnAgent starts a new Claude session in a managed PTY for the given repo.
 // Returns the session name for the terminal bridge.
 // cols/rows set the initial PTY winsize so claude's first paint matches the

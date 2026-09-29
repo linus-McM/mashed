@@ -36,6 +36,7 @@ type paneDiscoverer interface {
 // sessionManager abstracts PTY session lifecycle for testability.
 type sessionManager interface {
 	Spawn(ctx context.Context, name, repoPath, command string, cols, rows uint16) (*terminal.ManagedSession, error)
+	SpawnArgv(ctx context.Context, name, repoPath string, argv []string, cols, rows uint16) (*terminal.ManagedSession, error)
 	Kill(name string) error
 	IsAlive(name string) bool
 	FindByPID(pid int) (*terminal.ManagedSession, bool)
@@ -51,6 +52,9 @@ type App struct {
 	engine           *agent.NotificationEngine
 	bridge           *terminal.Bridge
 	manager          sessionManager
+	// prNumber finds the PR SpawnPRReview reviews; nil means latestOpenPR.
+	// Tests replace it to avoid calling gh.
+	prNumber func(ctx context.Context, repoPath string) (string, error)
 	panes            paneDiscoverer
 	explainer        *explain.Explainer
 	mu               sync.Mutex
