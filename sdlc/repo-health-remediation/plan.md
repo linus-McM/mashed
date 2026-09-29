@@ -156,7 +156,7 @@ From: spec.md (2026-09-29). Status: accepted. Risk: high.
 - internal/bmad/executor_lifecycle_test.go (new)
 - internal/bmad/executor_schedule_test.go (new)
 - internal/bmad/executor_loaders_test.go (new)
-- internal/bmad/question_fixtures_test.go (new)
+- internal/bmad/question_idle_test.go (new; idle-detection tests moved from question_test.go)
 - frontend/src/views/NotificationFeed.svelte
 - frontend/src/components/feed/RepoHeader.svelte (new)
 - frontend/src/components/feed/AgentList.svelte (new)

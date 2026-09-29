@@ -427,6 +427,26 @@ func TestRepo_Basics(t *testing.T) {
 	}
 }
 
+// lineCount returns the number of lines in a repo file.
+func lineCount(t *testing.T, rel string) int {
+	t.Helper()
+	return strings.Count(readRepoFile(t, rel), "\n")
+}
+
+// R30: no Go file in internal/bmad (tests included) exceeds 1000 lines.
+func TestRepo_BmadFilesUnder1000Lines(t *testing.T) {
+	files, err := filepath.Glob(filepath.Join(repoRoot(t), "internal", "bmad", "*.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range files {
+		rel, _ := filepath.Rel(repoRoot(t), f)
+		if n := lineCount(t, rel); n > 1000 {
+			t.Errorf("%s has %d lines (max 1000)", rel, n)
+		}
+	}
+}
+
 func TestRepo_GraphifyOutIgnored(t *testing.T) {
 	cmd := exec.Command("git", "check-ignore", "-q", "graphify-out/x")
 	cmd.Dir = repoRoot(t)
