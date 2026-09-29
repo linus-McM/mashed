@@ -478,19 +478,14 @@ Conventions for every step:
     - The fault-injection test has its own `if os.Geteuid() == 0 { t.Skip("read-only dir is ineffective as root") }`.
     - Implement `internal/fsutil/atomic.go` `WriteFileAtomic(path string, data []byte, perm os.FileMode) error`: CreateTemp in the same directory, write, fsync, chmod, rename, and remove the temp file on error.
     - Make `internal/bmad/storage.go:225` `atomicWriteJSON` marshal the value and call it. The existing bmad storage tests must stay green.
-12. **s1.12a-loadconfig-signature (refactor, green only).** Change `loadConfig` to `(mashedConfig, error)`. It returns defaults with a nil error for both a missing and a malformed file, so behaviour does not change yet. Update every caller:
-    - Production: `app.go`, `app_uiadapter.go:70-117`, `app_uiadapter_v3.go:45-86` and `theme_scanner.go:271, 408, 522`.
-    - Tests: `app_config_test.go`, `editor_settings_test.go`, `app_uiadapter_bindings_test.go`, `app_uiadapter_v3_test.go`, `markdown_menu_test.go` and `bundled_themes_test.go`.
-    - Green is the unchanged suite (`sdlc build green` is not available without a red, so record the passing `bash scripts/test-all.sh` output in the commit message).
+12. **s1.12a-loadconfig-signature: superseded during build (2026-09-30).** Every config setter already serialises its load-modify-save on `a.mu`, so there is no lost-update race to fix. The real R13/R14 gaps (torn reads, file modes, overwriting a malformed file) all sit in `saveConfig`. `loadConfig()` keeps its signature, which avoids about 106 call-site edits. There is no `cfgMu` and no `updateConfig`.
 13. **s1.12b-config-lock (R13, R14).** Write these in `app_config_test.go` first:
-    - TestConfig_ConcurrentSetters_NoLostUpdate: 50 goroutines, each setting a distinct key (a theme name) through the public setters. It includes at least one setter from `app_uiadapter.go` and one from `app_uiadapter_v3.go`, and asserts that all 50 are present after `wg.Wait`. Red: `go test -race -count=20 -run Config_Concurrent .`.
-    - TestConfig_FilesAre0600In0700Dir: `saveConfig` and `SaveTheme` under a temp HOME; stat the modes.
-    - Add `cfgMu` and one helper, `a.updateConfig(func(*mashedConfig) error) error`, which takes `cfgMu`. Route every load-modify-save setter through it (`app.go:507-681`, `app_uiadapter.go`, `app_uiadapter_v3.go`, `theme_scanner.go`).
-    - `saveConfig`, `SaveTheme`, `RemoveTheme` and `WriteFile` write through `fsutil.WriteFileAtomic`, with files at 0600 in a 0700 directory.
-    - Never hold `a.mu` while taking `cfgMu`.
+    - TestConfig_FilesAre0600In0700Dir: `SetTheme` and `SaveTheme` under a temp HOME with a pre-existing 0755 `~/.mashed`; stat the modes. Red today: 0644 files in a 0755 dir.
+    - TestConfig_ReadsNeverSeeTornWrite: a setter loop races 2000 `GetConfig` reads that must always see the stored theme. Red today: the non-atomic `os.WriteFile` exposes a truncated file.
+    - TestConfig_ConcurrentSetters_NoLostUpdate: 50 concurrent `SaveTheme` calls with distinct ids all survive. This is a regression guard; it passes today because of `a.mu`.
+    - `saveConfig`, `SaveTheme` and `RemoveTheme` write through `writePrivateFile` (`fsutil.WriteFileAtomic`, 0600 file, 0700 dir). The `WriteFile` binding writes through `fsutil.WriteFileAtomic` on the resolved target.
 14. **s1.12c-config-quarantine (R14).** Write TestConfig_MalformedIsQuarantinedNotOverwritten first. It asserts the original bytes are in `config.json.corrupt-<unix>`, and that a captured emit func received `config:recovered` with `quarantinedPath`.
-    - In the same step, rewrite TestU1_AC4_MashedConfig_MalformedJSON_ReturnsDefaults (`app_config_test.go:67`) to expect `ErrConfigCorrupt`.
-    - Add `ErrConfigCorrupt` and the quarantine to the first mutator.
+    - `TestU1_AC4_MashedConfig_MalformedJSON_ReturnsDefaults` stays as is: reads still fall back to defaults. The quarantine happens in `saveConfig`, before the first write over a malformed file.
     - Then run `/security-review` and open draft PR 1.
 
 ### PR 2: Broken features and races (branch `repo-health/pr2-features`)

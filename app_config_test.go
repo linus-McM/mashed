@@ -2,7 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -103,4 +106,68 @@ func TestU5_LoadConfig_InvalidModelFallsBackToDefault(t *testing.T) {
 				"invalid on-disk OllamaModel must fall back to default, not surface to bindings")
 		})
 	}
+}
+
+// R13: config and theme files are owner-only (0600) in an owner-only (0700)
+// directory, including a pre-existing 0755 directory.
+func TestConfig_FilesAre0600In0700Dir(t *testing.T) {
+	app := setupTestConfig(t, `{}`) // creates ~/.mashed as 0755
+	require.NoError(t, app.SetTheme("dark"))
+	require.NoError(t, app.SaveTheme("t1", `{"label":"x"}`))
+
+	home, _ := os.UserHomeDir()
+	for _, p := range []string{configPath(), themesPath()} {
+		fi, err := os.Stat(p)
+		require.NoError(t, err)
+		assert.Equal(t, os.FileMode(0o600), fi.Mode().Perm(), p)
+	}
+	fi, err := os.Stat(filepath.Join(home, ".mashed"))
+	require.NoError(t, err)
+	assert.Equal(t, os.FileMode(0o700), fi.Mode().Perm(), "config dir")
+}
+
+// R14 regression guard: 50 concurrent SaveTheme calls with distinct ids all
+// survive (setters serialise on a.mu; this must stay true).
+func TestConfig_ConcurrentSetters_NoLostUpdate(t *testing.T) {
+	app := setupTestConfig(t, "")
+	var wg sync.WaitGroup
+	for i := 0; i < 50; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			assert.NoError(t, app.SaveTheme(fmt.Sprintf("theme-%d", i), `{}`))
+		}(i)
+	}
+	wg.Wait()
+	var all map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal([]byte(app.GetSavedThemes()), &all))
+	assert.Len(t, all, 50)
+}
+
+// R13: readers never observe a half-written config.json while setters write.
+func TestConfig_ReadsNeverSeeTornWrite(t *testing.T) {
+	app := setupTestConfig(t, `{"theme":"theme-A","sidebarWidth":300}`)
+	stop := make(chan struct{})
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := 0; ; i++ {
+			select {
+			case <-stop:
+				return
+			default:
+			}
+			_ = app.SetSidebarWidth(300 + i%7)
+		}
+	}()
+	for i := 0; i < 2000; i++ {
+		if got := app.GetConfig().Theme; got != "theme-A" {
+			close(stop)
+			wg.Wait()
+			t.Fatalf("read %d saw Theme=%q (torn write)", i, got)
+		}
+	}
+	close(stop)
+	wg.Wait()
 }

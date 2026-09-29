@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"mashed/internal/domain"
+	"mashed/internal/fsutil"
 	"mashed/internal/git"
 	"mashed/internal/pathguard"
 
@@ -857,7 +858,7 @@ func (a *App) WriteFile(path, content string) error {
 			return fmt.Errorf("write file: %w", err)
 		}
 	}
-	return os.WriteFile(resolved, []byte(content), 0644)
+	return fsutil.WriteFileAtomic(resolved, []byte(content), 0644)
 }
 
 // ReadFile returns the contents of a file as a string. The path must

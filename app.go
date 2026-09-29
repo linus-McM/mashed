@@ -17,6 +17,7 @@ import (
 	"mashed/internal/bmad"
 	"mashed/internal/domain"
 	"mashed/internal/explain"
+	"mashed/internal/fsutil"
 	"mashed/internal/scanner"
 	"mashed/internal/terminal"
 	"mashed/internal/terminal/helper"
@@ -209,17 +210,32 @@ func defaultConfig() mashedConfig {
 	}
 }
 
-// saveConfig persists the config to disk.
-func saveConfig(cfg mashedConfig) error {
-	dir := filepath.Dir(configPath())
-	if err := os.MkdirAll(dir, 0755); err != nil {
+// ensurePrivateDir creates dir if needed and makes it owner-only (R13).
+func ensurePrivateDir(dir string) error {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return err
+	}
+	return os.Chmod(dir, 0o700)
+}
+
+// writePrivateFile writes data atomically as an owner-only file (R13).
+func writePrivateFile(path string, data []byte) error {
+	if err := ensurePrivateDir(filepath.Dir(path)); err != nil {
 		return fmt.Errorf("creating config dir: %w", err)
 	}
+	if err := fsutil.WriteFileAtomic(path, data, 0o600); err != nil {
+		return err
+	}
+	return os.Chmod(path, 0o600)
+}
+
+// saveConfig persists the config to disk atomically, owner-only.
+func saveConfig(cfg mashedConfig) error {
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshaling config: %w", err)
 	}
-	return os.WriteFile(configPath(), data, 0644)
+	return writePrivateFile(configPath(), data)
 }
 
 // NewApp creates a new App instance. The helperClient may be nil; Spawn will
@@ -709,15 +725,11 @@ func (a *App) SaveTheme(id string, themeJSON string) error {
 
 	all[id] = json.RawMessage(themeJSON)
 
-	dir := filepath.Dir(themesPath())
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("creating themes dir: %w", err)
-	}
 	data, err := json.MarshalIndent(all, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshaling themes: %w", err)
 	}
-	return os.WriteFile(themesPath(), data, 0644)
+	return writePrivateFile(themesPath(), data)
 }
 
 // RemoveTheme removes a saved theme from ~/.mashed/themes.json.
@@ -736,7 +748,7 @@ func (a *App) RemoveTheme(id string) error {
 	if err != nil {
 		return fmt.Errorf("marshaling themes: %w", err)
 	}
-	return os.WriteFile(themesPath(), data, 0644)
+	return writePrivateFile(themesPath(), data)
 }
 
 // GetNotifications returns the current notification list sorted by priority.
