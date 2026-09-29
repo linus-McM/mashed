@@ -1,0 +1,6 @@
+sdlc/*/references/
+sdlc/*/docs/
+sdlc/docs/
+sdlc/knowledge/
+graphify-out/
+.venv/
