@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"mashed/internal/agent"
@@ -45,23 +46,33 @@ type sessionManager interface {
 
 // App is the main application struct bound to the Wails frontend.
 type App struct {
-	ctx              context.Context
-	cancel           context.CancelFunc
-	provider         *scanner.ClaudeCodeProvider
-	repoScanner      *scanner.RepoScanner
-	engine           *agent.NotificationEngine
-	bridge           *terminal.Bridge
-	manager          sessionManager
+	ctx     context.Context
+	cancel  context.CancelFunc
+	engine  *agent.NotificationEngine
+	bridge  *terminal.Bridge
+	manager sessionManager
 	// prNumber finds the PR SpawnPRReview reviews; nil means latestOpenPR.
 	// Tests replace it to avoid calling gh.
-	prNumber func(ctx context.Context, repoPath string) (string, error)
+	prNumber         func(ctx context.Context, repoPath string) (string, error)
 	panes            paneDiscoverer
 	explainer        *explain.Explainer
 	mu               sync.Mutex
 	activeRepoPath   string
 	activePaneTarget string
 
-	devDir        string // root directory to scan for repos
+	// scan holds devDir, provider and repoScanner as one immutable snapshot;
+	// readers call scanSnapshot() once per operation (R17). Restarts are
+	// serialised by scanMu; scanCancel/scanWG stop the previous goroutines.
+	scan       atomic.Pointer[scanState]
+	scanMu     sync.Mutex
+	scanCancel context.CancelFunc
+	scanWG     sync.WaitGroup
+	// newProvider builds the session provider; nil means
+	// scanner.NewClaudeCodeProvider. Tests inject failures.
+	newProvider func(dir string) (*scanner.ClaudeCodeProvider, error)
+	// Running goroutine counters (tests assert at most one of each).
+	scanLoops, sessionWatchers, engineConsumers atomic.Int32
+
 	notifications []domain.NotificationEvent
 	// tokenSamples is a per-agent rolling window of token counts powering
 	// the notification-feed sparkline (uiqa-09). Keyed by agentID. Reads and
@@ -141,10 +152,10 @@ type mashedConfig struct {
 	UIAdapterUntrustedExpanded bool                  `json:"uiAdapterUntrustedExpanded"`
 
 	// Plan v3 Story 18 — dynamic backend/router selection (runtime pick).
-	Backend      string `json:"backend,omitempty"`       // "ollama" | "claude-api" | "claude-cli"
-	ClaudeModel  string `json:"claudeModel,omitempty"`   // for backend=claude-api
-	CLIModel     string `json:"cliModel,omitempty"`      // for backend=claude-cli
-	RouterPolicy string `json:"routerPolicy,omitempty"`  // enum — see Plan §3 Story 16
+	Backend      string `json:"backend,omitempty"`      // "ollama" | "claude-api" | "claude-cli"
+	ClaudeModel  string `json:"claudeModel,omitempty"`  // for backend=claude-api
+	CLIModel     string `json:"cliModel,omitempty"`     // for backend=claude-cli
+	RouterPolicy string `json:"routerPolicy,omitempty"` // enum — see Plan §3 Story 16
 }
 
 const (
@@ -318,6 +329,7 @@ func (a *App) startup(ctx context.Context) {
 
 	// Engine needs Wails context for event emission
 	a.engine = agent.NewNotificationEngine(a.ctx)
+	go a.consumeEngineEvents() // once per app, not per SetDevDir (R17)
 
 	// Start the terminal WebSocket bridge
 	if err := a.bridge.Start(a.ctx); err != nil {
@@ -335,7 +347,7 @@ func (a *App) startup(ctx context.Context) {
 	// Restore devDir from config so GetDevDir() works even if scanning fails.
 	cfg := loadConfig()
 	if cfg.DevDir != "" {
-		a.devDir = cfg.DevDir
+		a.scan.Store(&scanState{devDir: cfg.DevDir})
 		if err := a.initScanning(cfg.DevDir); err != nil {
 			log.Printf("scanning failed for %s: %v — app will show feed but may be empty", cfg.DevDir, err)
 		}
@@ -440,6 +452,7 @@ func (a *App) shutdown(ctx context.Context) {
 	if a.cancel != nil {
 		a.cancel()
 	}
+	a.stopScanning()
 	if a.manager != nil {
 		a.manager.Shutdown()
 	}
@@ -564,23 +577,26 @@ func (a *App) SetDevDir(dir string) error {
 		return fmt.Errorf("path is not a directory: %s", dir)
 	}
 
+	// Start scanning first: if the provider fails, the previous scanners and
+	// the persisted DevDir stay as they were (R18).
+	if err := a.initScanning(dir); err != nil {
+		return err
+	}
+
 	// Persist (load-modify-save to preserve Theme/VSCodiumExtPath)
 	a.mu.Lock()
 	cfg := loadConfig()
 	cfg.DevDir = dir
 	if err := saveConfig(cfg); err != nil {
-		a.mu.Unlock()
 		log.Printf("failed to save config: %v", err)
-	} else {
-		a.mu.Unlock()
 	}
-
-	return a.initScanning(dir)
+	a.mu.Unlock()
+	return nil
 }
 
 // GetDevDir returns the current development directory.
 func (a *App) GetDevDir() string {
-	return a.devDir
+	return a.scanSnapshot().devDir
 }
 
 // GetConfig returns the full persisted config for the frontend.

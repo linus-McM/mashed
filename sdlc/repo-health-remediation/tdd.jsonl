@@ -33,3 +33,5 @@
 {"phase": "green", "step": "s2.1-spawn-argv", "exit": 0, "ts": "2026-09-29"}
 {"phase": "red", "step": "s2.2-spawn-callers", "exit": 1, "ts": "2026-09-29"}
 {"phase": "green", "step": "s2.2-spawn-callers", "exit": 0, "ts": "2026-09-29"}
+{"phase": "red", "step": "s2.3-scan-lifecycle", "exit": 1, "ts": "2026-09-29"}
+{"phase": "green", "step": "s2.3-scan-lifecycle", "exit": 0, "ts": "2026-09-29"}

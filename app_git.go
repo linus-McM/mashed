@@ -62,10 +62,11 @@ func (a *App) RepoMtimes(repoPath string) (map[string]int64, error) {
 
 // ListRepoChoices returns the repos available for spawning agents.
 func (a *App) ListRepoChoices() []RepoChoice {
-	if a.repoScanner == nil {
+	st := a.scanSnapshot()
+	if st.repoScanner == nil {
 		return nil
 	}
-	repos, err := a.repoScanner.ScanRepos(nil)
+	repos, err := st.repoScanner.ScanRepos(nil)
 	if err != nil {
 		return nil
 	}
@@ -92,17 +93,18 @@ func (a *App) CreateRepo(name string, isPublic bool, installBmad bool) {
 		})
 	}
 
+	st := a.scanSnapshot() // one snapshot for the whole operation (R17)
 	go func() {
 		// Validate name
 		if name == "" || strings.ContainsAny(name, "/\\. ") {
 			emit("validate", "", "Invalid repo name: must be non-empty with no spaces, dots, or slashes", true)
 			return
 		}
-		if a.devDir == "" {
+		if st.devDir == "" {
 			emit("validate", "", "No development directory configured — set it in Settings first", true)
 			return
 		}
-		targetDir := filepath.Join(a.devDir, name)
+		targetDir := filepath.Join(st.devDir, name)
 		if _, err := os.Stat(targetDir); err == nil {
 			emit("validate", "", fmt.Sprintf("Directory %q already exists", name), true)
 			return
@@ -122,7 +124,7 @@ func (a *App) CreateRepo(name string, isPublic bool, installBmad bool) {
 		}
 		emit("gh-create", fmt.Sprintf("Creating %s repo %q...", visibility[2:], name), "", false)
 		ghCmd := exec.CommandContext(a.ctx, "gh", "repo", "create", name, visibility, "--clone")
-		ghCmd.Dir = a.devDir
+		ghCmd.Dir = st.devDir
 		if out, err := ghCmd.CombinedOutput(); err != nil {
 			emit("gh-create", "", fmt.Sprintf("gh repo create failed: %s", strings.TrimSpace(string(out))), true)
 			return
@@ -160,9 +162,9 @@ func (a *App) CreateRepo(name string, isPublic bool, installBmad bool) {
 		}
 
 		// Refresh repo list — rescan and emit the same "repos" event the feed listens for
-		if a.repoScanner != nil {
-			a.repoScanner.InvalidateCache(targetDir)
-			if repos, err := a.repoScanner.ScanRepos(nil); err == nil {
+		if st.repoScanner != nil {
+			st.repoScanner.InvalidateCache(targetDir)
+			if repos, err := st.repoScanner.ScanRepos(nil); err == nil {
 				runtime.EventsEmit(a.ctx, "repos", repos)
 			}
 		}

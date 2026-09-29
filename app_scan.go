@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os/exec"
@@ -12,50 +13,93 @@ import (
 	"mashed/internal/agent"
 	"mashed/internal/domain"
 	"mashed/internal/scanner"
-
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// initScanning starts all background goroutines for a given dev directory.
-// Returns an error if the provider fails to initialize so callers can react.
+// scanState is one immutable snapshot of what scanning works against.
+// provider and repoScanner are nil when scanning could not start.
+type scanState struct {
+	devDir      string // root directory to scan for repos (symlink-resolved)
+	provider    *scanner.ClaudeCodeProvider
+	repoScanner *scanner.RepoScanner
+}
+
+// scanSnapshot returns the current scan state; never nil.
+func (a *App) scanSnapshot() *scanState {
+	if st := a.scan.Load(); st != nil {
+		return st
+	}
+	return &scanState{}
+}
+
+// initScanning (re)starts the background scanners for devDir. It is safe to
+// call repeatedly (R17): the new provider is built first — on failure the
+// previous scanners keep running (R18) — then the old goroutines are
+// cancelled and waited for before the new ones start.
 func (a *App) initScanning(devDir string) error {
 	// Canonicalize devDir so the symlink-vs-real-path comparison in doScan
-	// (line ~108) matches what `git rev-parse --show-toplevel` returns.
+	// matches what `git rev-parse --show-toplevel` returns.
 	if resolved, err := filepath.EvalSymlinks(devDir); err == nil {
 		devDir = resolved
 	}
-	a.devDir = devDir
 
-	provider, err := scanner.NewClaudeCodeProvider(devDir)
+	newProvider := a.newProvider
+	if newProvider == nil {
+		newProvider = scanner.NewClaudeCodeProvider
+	}
+	provider, err := newProvider(devDir)
 	if err != nil {
 		log.Printf("failed to init claude provider: %v", err)
 		return fmt.Errorf("init claude provider: %w", err)
 	}
-	a.provider = provider
-	a.repoScanner = scanner.NewRepoScanner(devDir)
+	st := &scanState{devDir: devDir, provider: provider, repoScanner: scanner.NewRepoScanner(devDir)}
 
-	go a.scanLoop()
-	go a.watchSessions()
-	go a.consumeEngineEvents()
+	a.scanMu.Lock()
+	defer a.scanMu.Unlock()
+	a.stopScanningLocked()
+	a.scan.Store(st)
+
+	ctx, cancel := context.WithCancel(a.ctx)
+	a.scanCancel = cancel
+	a.scanWG.Add(2)
+	go func() { defer a.scanWG.Done(); a.scanLoop(ctx, st) }()
+	go func() { defer a.scanWG.Done(); a.watchSessions(ctx, st) }()
 
 	// Tell frontend setup is done
-	runtime.EventsEmit(a.ctx, "needs-setup", false)
+	a.emitEvent("needs-setup", false)
 	return nil
 }
 
-// scanLoop polls for running processes every 5 seconds.
-func (a *App) scanLoop() {
+// stopScanning cancels the scanners and waits for them to exit.
+func (a *App) stopScanning() {
+	a.scanMu.Lock()
+	defer a.scanMu.Unlock()
+	a.stopScanningLocked()
+}
+
+func (a *App) stopScanningLocked() {
+	if a.scanCancel != nil {
+		a.scanCancel()
+		a.scanCancel = nil
+	}
+	a.scanWG.Wait()
+}
+
+// scanLoop polls for running processes every 5 seconds until ctx ends.
+func (a *App) scanLoop(ctx context.Context, st *scanState) {
+	a.scanLoops.Add(1)
+	defer a.scanLoops.Add(-1)
+
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
-	a.doScan()
+	a.doScan(st)
 
 	for {
 		select {
-		case <-a.ctx.Done():
+		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			a.doScan()
+			a.doScan(st)
 		}
 	}
 }
@@ -74,15 +118,18 @@ func (a *App) resolveTmuxTarget(pid int) string {
 }
 
 // doScan performs one round of process scanning and feeds updates to the engine.
-func (a *App) doScan() {
-	sessions, err := a.provider.ScanProcesses()
+func (a *App) doScan(st *scanState) {
+	if st.provider == nil || st.repoScanner == nil {
+		return
+	}
+	sessions, err := st.provider.ScanProcesses()
 	if err != nil {
 		log.Printf("process scan error: %v", err)
 		return
 	}
 
 	// Build repo info for branch lookups
-	repos, _ := a.repoScanner.ScanRepos(nil)
+	repos, _ := st.repoScanner.ScanRepos(nil)
 	repoBranch := make(map[string]string) // path -> branch
 	for _, r := range repos {
 		repoBranch[r.Path] = r.Branch
@@ -102,7 +149,7 @@ func (a *App) doScan() {
 	claimedSessions := make(map[string]bool) // sessionDir/sessionID -> true
 
 	for _, s := range sessions {
-		dir, err := a.provider.GetWorkingDir(s.PID)
+		dir, err := st.provider.GetWorkingDir(s.PID)
 		if err != nil {
 			continue
 		}
@@ -111,7 +158,7 @@ func (a *App) doScan() {
 			dir = strings.TrimSpace(string(out))
 		}
 		// Skip agents whose repo root is outside the configured dev directory
-		if !strings.HasPrefix(dir, a.devDir+"/") && dir != a.devDir {
+		if !strings.HasPrefix(dir, st.devDir+"/") && dir != st.devDir {
 			continue
 		}
 
@@ -123,16 +170,16 @@ func (a *App) doScan() {
 		}
 
 		// Parse session data — use the agent's specific session file if possible
-		sessionDir := a.provider.SessionDir(dir)
+		sessionDir := st.provider.SessionDir(dir)
 		var sessionData *domain.SessionData
 		if s.SessionID != "" {
-			sessionData = a.findSessionByID(sessionDir, s.SessionID)
+			sessionData = a.findSessionByID(st.provider, sessionDir, s.SessionID)
 			if sessionData != nil {
 				claimedSessions[sessionDir+"/"+s.SessionID] = true
 			}
 		}
 		if sessionData == nil {
-			sessionData = a.findUnclaimed(sessionDir, claimedSessions)
+			sessionData = a.findUnclaimed(st.provider, sessionDir, claimedSessions)
 		}
 
 		var tokensUsed int64
@@ -240,5 +287,5 @@ func (a *App) doScan() {
 	a.mu.Unlock()
 
 	// Emit repos to frontend
-	runtime.EventsEmit(a.ctx, "repos", repos)
+	a.emitEvent("repos", repos)
 }

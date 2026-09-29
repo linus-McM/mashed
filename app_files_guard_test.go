@@ -32,7 +32,7 @@ func guardFixture(t *testing.T) (app *App, home, dev, outside string) {
 	if err := os.Symlink(outside, filepath.Join(home, "proj", "outdir")); err != nil {
 		t.Fatal(err)
 	}
-	app = &App{devDir: dev}
+	app = appWithDevDir(dev)
 	return app, home, dev, outside
 }
 

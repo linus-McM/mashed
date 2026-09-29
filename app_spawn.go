@@ -106,11 +106,12 @@ func (a *App) SpawnTerminal(repoPath string, cols, rows uint16) (string, error) 
 
 // GetAgentLog returns the parsed log lines for an agent's latest session.
 func (a *App) GetAgentLog(repoPath string) []domain.LogLine {
-	if a.provider == nil || repoPath == "" {
+	provider := a.scanSnapshot().provider
+	if provider == nil || repoPath == "" {
 		return nil
 	}
-	sessionDir := a.provider.SessionDir(repoPath)
-	data := a.findLatestSession(sessionDir)
+	sessionDir := provider.SessionDir(repoPath)
+	data := a.findLatestSession(provider, sessionDir)
 	if data == nil {
 		return nil
 	}
