@@ -171,6 +171,9 @@ func (a *App) CreateRepo(name string, isPublic bool, installBmad bool) {
 
 // GitListBranches returns all local branches for a repo, with the current branch marked.
 func (a *App) GitListBranches(repoPath string) ([]BranchInfo, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return nil, err
+	}
 	if repoPath == "" {
 		return nil, fmt.Errorf("repo path is required")
 	}
@@ -198,8 +201,15 @@ func (a *App) GitListBranches(repoPath string) ([]BranchInfo, error) {
 
 // GitSwitchBranch switches to an existing branch with optional auto-commit.
 func (a *App) GitSwitchBranch(repoPath, branch string, autoCommit bool) error {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return err
+	}
 	if repoPath == "" || branch == "" {
 		return fmt.Errorf("repo path and branch name are required")
+	}
+	// R10: validate before any auto-commit or git process runs.
+	if err := git.ValidateBranchName(branch); err != nil {
+		return err
 	}
 
 	if autoCommit {
@@ -210,7 +220,7 @@ func (a *App) GitSwitchBranch(repoPath, branch string, autoCommit bool) error {
 		}
 	}
 
-	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", branch)
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", branch, "--")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("git checkout: %w (%s)", err, string(out))
 	}
@@ -220,6 +230,9 @@ func (a *App) GitSwitchBranch(repoPath, branch string, autoCommit bool) error {
 // GitCreateBranch creates a new branch with optional auto-commit of current changes.
 // prefix is e.g. "feature", "hotfix"; name is the branch slug.
 func (a *App) GitCreateBranch(repoPath, prefix, name string, autoCommit bool) error {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return err
+	}
 	if repoPath == "" || name == "" {
 		return fmt.Errorf("repo path and branch name are required")
 	}
@@ -227,6 +240,15 @@ func (a *App) GitCreateBranch(repoPath, prefix, name string, autoCommit bool) er
 	branchName := name
 	if prefix != "" {
 		branchName = prefix + "/" + name
+	}
+	// R10: validate each part and the composed name before auto-commit.
+	for _, part := range []string{prefix, name, branchName} {
+		if part == "" {
+			continue
+		}
+		if err := git.ValidateBranchName(part); err != nil {
+			return err
+		}
 	}
 
 	// Auto-commit current changes if requested
@@ -250,6 +272,9 @@ func (a *App) GitCreateBranch(repoPath, prefix, name string, autoCommit bool) er
 
 // RepoStatus returns git dirty state, open PR count, and ahead/behind counts for a repo.
 func (a *App) RepoStatus(repoPath string) RepoStatusInfo {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return RepoStatusInfo{}
+	}
 	result := RepoStatusInfo{}
 	if repoPath == "" {
 		return result
@@ -467,6 +492,9 @@ func (a *App) generateCommitMessage(repoPath, diffText, statSummary string, prog
 // GitCommit stages all changes, generates an AI commit message, and commits.
 // Returns the commit message used.
 func (a *App) GitCommit(repoPath string) (string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return "", err
+	}
 	return a.gitCommitCore(repoPath, nil)
 }
 
@@ -475,6 +503,12 @@ func (a *App) GitCommit(repoPath string) (string, error) {
 // auto-fixes errors via Claude and retries. If all attempts fail, Claude
 // explains the remaining issue to the user.
 func (a *App) GitCommitStreaming(repoPath string) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		runtime.EventsEmit(a.ctx, "git:commit:progress", map[string]interface{}{
+			"repoPath": repoPath, "step": "Error", "error": err.Error(), "done": true,
+		})
+		return
+	}
 	emit := func(step, output, errMsg, explanation string, done bool) {
 		runtime.EventsEmit(a.ctx, "git:commit:progress", map[string]interface{}{
 			"repoPath":    repoPath,
@@ -522,6 +556,9 @@ func (a *App) GitCommitStreaming(repoPath string) {
 // GitCommitAndPush commits (via GitCommit) then pushes to origin.
 // Creates the remote branch if it doesn't exist.
 func (a *App) GitCommitAndPush(repoPath string) (string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return "", err
+	}
 	msg, err := a.GitCommit(repoPath)
 	if err != nil {
 		return "", err
@@ -540,6 +577,9 @@ func (a *App) GitCommitAndPush(repoPath string) (string, error) {
 // Returns a structured result: "ok" on success, or "conflict:<message>" when
 // the push is rejected due to diverged history (non-fast-forward).
 func (a *App) GitPush(repoPath string) (string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return "", err
+	}
 	if repoPath == "" {
 		return "", fmt.Errorf("repo path is required")
 	}
@@ -562,6 +602,9 @@ func (a *App) GitPush(repoPath string) (string, error) {
 // GitForcePush force-pushes the current branch to origin with --force-with-lease
 // for safety (fails if someone else pushed since your last fetch).
 func (a *App) GitForcePush(repoPath string) (string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return "", err
+	}
 	if repoPath == "" {
 		return "", fmt.Errorf("repo path is required")
 	}
@@ -576,6 +619,9 @@ func (a *App) GitForcePush(repoPath string) (string, error) {
 
 // GitPull pulls remote changes into the current branch.
 func (a *App) GitPull(repoPath string) (string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return "", err
+	}
 	if repoPath == "" {
 		return "", fmt.Errorf("repo path is required")
 	}
@@ -591,8 +637,15 @@ func (a *App) GitPull(repoPath string) (string, error) {
 // If autoCommit is true, commits current changes before merging.
 // On merge failure, aborts the merge and checks out the original branch.
 func (a *App) GitMergeInto(repoPath, targetBranch string, autoCommit bool) (string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return "", err
+	}
 	if repoPath == "" || targetBranch == "" {
 		return "", fmt.Errorf("repo path and target branch are required")
+	}
+	// R10: validate before any auto-commit or git process runs.
+	if err := git.ValidateBranchName(targetBranch); err != nil {
+		return "", err
 	}
 
 	// Get current branch name
@@ -617,7 +670,7 @@ func (a *App) GitMergeInto(repoPath, targetBranch string, autoCommit bool) (stri
 	}
 
 	// Switch to target branch
-	checkoutCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", targetBranch)
+	checkoutCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", targetBranch, "--")
 	if out, err := checkoutCmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("checkout %s: %w (%s)", targetBranch, err, string(out))
 	}
@@ -638,6 +691,9 @@ func (a *App) GitMergeInto(repoPath, targetBranch string, autoCommit bool) (stri
 // GitCommitPushAndPR commits, pushes, and creates a PR with an extensive description.
 // Returns the PR URL.
 func (a *App) GitCommitPushAndPR(repoPath string) (string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return "", err
+	}
 	_, err := a.GitCommitAndPush(repoPath)
 	if err != nil {
 		return "", err
@@ -717,6 +773,9 @@ Keep it factual based on the diff.
 
 // GetScopedDiff returns the changed files for a directory.
 func (a *App) GetScopedDiff(dir string) (*domain.ScopedDiff, error) {
+	if _, err := a.repoDir(dir); err != nil {
+		return nil, err
+	}
 	if dir == "" {
 		return nil, fmt.Errorf("directory path is required")
 	}
@@ -725,6 +784,9 @@ func (a *App) GetScopedDiff(dir string) (*domain.ScopedDiff, error) {
 
 // GetWorktrees returns worktrees for a repo.
 func (a *App) GetWorktrees(repoPath string) ([]domain.WorktreeInfo, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return nil, err
+	}
 	if repoPath == "" {
 		return nil, fmt.Errorf("repo path is required")
 	}
@@ -733,6 +795,9 @@ func (a *App) GetWorktrees(repoPath string) ([]domain.WorktreeInfo, error) {
 
 // ListRepoFiles returns all tracked (and untracked non-ignored) files in a repo.
 func (a *App) ListRepoFiles(repoPath string) ([]string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return nil, err
+	}
 	if repoPath == "" {
 		return nil, fmt.Errorf("empty repo path")
 	}
@@ -758,6 +823,22 @@ func (a *App) ListRepoFiles(repoPath string) ([]string, error) {
 // the configured DevDir (spec R7, C1/C2).
 func (a *App) fileRoots() []string {
 	return pathguard.AllowedRoots(a.GetDevDir())
+}
+
+// repoDir validates a UI-supplied repository path: it must be an existing
+// directory inside $HOME or DevDir (spec R11). It returns the resolved path.
+func (a *App) repoDir(repoPath string) (string, error) {
+	if repoPath == "" {
+		return "", fmt.Errorf("repo path is required")
+	}
+	resolved, err := pathguard.ResolveExisting(a.fileRoots(), repoPath)
+	if err != nil {
+		return "", fmt.Errorf("repo: %w", err)
+	}
+	if fi, err := os.Stat(resolved); err != nil || !fi.IsDir() {
+		return "", fmt.Errorf("repo %q is not a directory", repoPath)
+	}
+	return resolved, nil
 }
 
 // WriteFile writes content to a file on disk. The path must resolve inside
@@ -865,6 +946,9 @@ func repoRelPath(filePath string) (string, error) {
 
 // ReadFileDiff returns the git diff for a specific file.
 func (a *App) ReadFileDiff(repoPath, filePath string) (string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return "", err
+	}
 	if repoPath == "" {
 		return "", fmt.Errorf("repo path is required")
 	}
@@ -893,6 +977,9 @@ func (a *App) ReadFileDiff(repoPath, filePath string) (string, error) {
 
 // ReadFileAtHead returns the content of a file at the HEAD commit.
 func (a *App) ReadFileAtHead(repoPath, filePath string) (string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return "", err
+	}
 	if repoPath == "" {
 		return "", fmt.Errorf("repo path is required")
 	}
@@ -926,6 +1013,9 @@ func (a *App) MarkRead(agentID string) {
 // SpawnPRReview spawns a Claude agent to do an adversarial review of the latest PR.
 // Returns the tmux pane target.
 func (a *App) SpawnPRReview(repoPath string) (string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return "", err
+	}
 	// Find the latest PR number for this repo
 	ghCmd := exec.CommandContext(a.ctx, "gh", "pr", "list", "--state", "open", "--limit", "1", "--json", "number", "--jq", ".[0].number")
 	ghCmd.Dir = repoPath

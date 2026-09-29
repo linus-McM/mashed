@@ -11,6 +11,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"mashed/internal/advice"
+	"mashed/internal/pathguard"
 )
 
 // diffSeparator joins per-file diff outputs in the scoped diff payload.
@@ -52,7 +53,13 @@ func buildScopedDiff(ctx context.Context, repoPath string, filePaths []string) (
 		// Untracked file: use --no-index fallback. git diff --no-index
 		// exits with code 1 when differences exist, but cmd.Output() still
 		// returns the captured stdout, so ignoring the error is safe.
-		noIdxOut, _ := exec.CommandContext(ctx, "git", "-C", repoPath, "diff", "--no-index", "/dev/null", absPath).Output()
+		// Resolve symlinks too: a lexically contained path can still reach
+		// outside the repo through a symlinked directory (R11).
+		resolved, err := pathguard.ResolveExisting([]string{absRepo}, absPath)
+		if err != nil {
+			continue
+		}
+		noIdxOut, _ := exec.CommandContext(ctx, "git", "-C", repoPath, "diff", "--no-index", "--", "/dev/null", resolved).Output()
 		if len(noIdxOut) > 0 {
 			parts = append(parts, string(noIdxOut))
 		}
@@ -119,6 +126,10 @@ func scopedAdviceEvent(repoPath, text string, done bool, errMsg string) map[stri
 // optional additionalContext that is prepended to the stdin payload. Events
 // are emitted on the "review:advice:progress" channel.
 func (a *App) StreamScopedAdvice(repoPath, modeName, model string, filePaths []string, additionalContext string) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		a.emitEvent("review:advice:progress", scopedAdviceEvent(repoPath, "", true, err.Error()))
+		return
+	}
 	if model == "" {
 		model = "sonnet"
 	}

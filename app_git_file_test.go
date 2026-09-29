@@ -22,7 +22,7 @@ func TestReadFileDiff_RejectsTraversal(t *testing.T) {
 	repo = initTestGitRepoAt(t, repo)
 	mustWrite(t, filepath.Join(base, "outside.txt"), "TOP-SECRET-CONTENT")
 
-	app := &App{ctx: context.Background()}
+	app := &App{ctx: context.Background(), devDir: repo} // repo is an allowed root
 	out, err := app.ReadFileDiff(repo, "../outside.txt")
 	if !errors.Is(err, pathguard.ErrOutsideRoot) {
 		t.Fatalf("ReadFileDiff err = %v, want ErrOutsideRoot", err)
@@ -34,7 +34,7 @@ func TestReadFileDiff_RejectsTraversal(t *testing.T) {
 
 func TestReadFileAtHead_RejectsAbsolute(t *testing.T) {
 	repo := initTestGitRepo(t)
-	app := &App{ctx: context.Background()}
+	app := &App{ctx: context.Background(), devDir: repo} // repo is an allowed root
 	for _, p := range []string{"/etc/passwd", "../x", "-p"} {
 		if _, err := app.ReadFileAtHead(repo, p); !errors.Is(err, pathguard.ErrOutsideRoot) {
 			t.Errorf("ReadFileAtHead(%q) err = %v, want ErrOutsideRoot", p, err)
@@ -48,7 +48,7 @@ func TestReadFileAtHead_DeletedTrackedFileStillReadable(t *testing.T) {
 	if err := os.Remove(filepath.Join(repo, "gone.txt")); err != nil {
 		t.Fatal(err)
 	}
-	app := &App{ctx: context.Background()}
+	app := &App{ctx: context.Background(), devDir: repo} // repo is an allowed root
 	out, err := app.ReadFileAtHead(repo, "gone.txt")
 	if err != nil || out != "was here\n" {
 		t.Fatalf("ReadFileAtHead(deleted) = %q, %v", out, err)
@@ -60,7 +60,7 @@ func TestReadFileAtHead_DeletedTrackedFileStillReadable(t *testing.T) {
 func TestReadFileDiff_DashPathCreatesNoFile(t *testing.T) {
 	repo := initTestGitRepo(t)
 	target := filepath.Join(t.TempDir(), "x")
-	app := &App{ctx: context.Background()}
+	app := &App{ctx: context.Background(), devDir: repo} // repo is an allowed root
 	_, _ = app.ReadFileDiff(repo, "--output="+target)
 	if _, err := os.Stat(target); !os.IsNotExist(err) {
 		t.Fatal("dash-prefixed filePath was treated as a git option")

@@ -115,6 +115,19 @@ func TestBuildScopedDiff_AC2_UntrackedFallback(t *testing.T) {
 	assert.Contains(t, diff, "NewFeature")
 }
 
+// R11: a path through a symlinked directory that points outside the repo is
+// skipped, so the untracked --no-index fallback cannot leak external files.
+func TestBuildScopedDiff_SymlinkEscapeSkipped(t *testing.T) {
+	t.Parallel()
+	repoPath := initTestGitRepo(t)
+	outside := t.TempDir()
+	createUntrackedFile(t, outside, "secret.txt", "TOP-SECRET-CONTENT\n")
+	require.NoError(t, os.Symlink(outside, filepath.Join(repoPath, "outdir")))
+
+	diff, _ := buildScopedDiff(context.Background(), repoPath, []string{"outdir/secret.txt"})
+	assert.NotContains(t, diff, "TOP-SECRET-CONTENT", "symlinked dir escape must not leak content")
+}
+
 // ---------------------------------------------------------------------------
 // buildScopedDiff — Mixed tracked and untracked
 // ---------------------------------------------------------------------------

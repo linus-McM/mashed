@@ -110,6 +110,12 @@ func (a *App) ListAdviceModes(repoPath string) ([]advice.AdviceMode, error) {
 // streams progress events to the frontend. Runs asynchronously.
 // The model parameter selects which Claude model to use (alias or full ID).
 func (a *App) StreamCodeReviewSummary(repoPath, model string) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		a.emitEvent("review:summary:done", map[string]interface{}{
+			"repoPath": repoPath, "summary": nil, "error": err.Error(),
+		})
+		return
+	}
 	if model == "" {
 		model = "sonnet" // fast model for per-file summaries
 	}
@@ -235,6 +241,12 @@ func (a *App) StreamCodeReviewSummary(repoPath, model string) {
 // line-by-line to the frontend.
 // The model parameter selects which Claude model to use (alias or full ID).
 func (a *App) StreamAdvice(repoPath, modeName, model string) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		a.emitEvent("review:advice:progress", map[string]interface{}{
+			"repoPath": repoPath, "text": "", "done": true, "error": err.Error(),
+		})
+		return
+	}
 	if model == "" {
 		model = "sonnet"
 	}
