@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"mashed/internal/domain"
@@ -149,13 +148,11 @@ func (a *App) CreateRepo(name string, isPublic bool, installBmad bool) {
 
 		// Git add + commit (best-effort)
 		emit("git-commit", "Committing initial scaffold...", "", false)
-		addCmd := exec.CommandContext(a.ctx, "git", "-C", targetDir, "add", "-A")
-		if out, err := addCmd.CombinedOutput(); err != nil {
-			emit("git-commit", fmt.Sprintf("git add warning: %s", strings.TrimSpace(string(out))), "", false)
+		if out, err := git.StageAll(a.ctx, targetDir); err != nil {
+			emit("git-commit", fmt.Sprintf("git add warning: %s", strings.TrimSpace(out)), "", false)
 		} else {
-			commitCmd := exec.CommandContext(a.ctx, "git", "-C", targetDir, "commit", "-m", "feat: initial BMAD method scaffold")
-			if out, err := commitCmd.CombinedOutput(); err != nil {
-				emit("git-commit", fmt.Sprintf("git commit warning: %s", strings.TrimSpace(string(out))), "", false)
+			if out, err := git.Commit(a.ctx, targetDir, "feat: initial BMAD method scaffold"); err != nil {
+				emit("git-commit", fmt.Sprintf("git commit warning: %s", strings.TrimSpace(out)), "", false)
 			} else {
 				emit("git-commit", "Initial commit created", "", false)
 			}
@@ -181,26 +178,30 @@ func (a *App) GitListBranches(repoPath string) ([]BranchInfo, error) {
 	if repoPath == "" {
 		return nil, fmt.Errorf("repo path is required")
 	}
-	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "branch", "--format=%(refname:short)\t%(HEAD)")
-	out, err := cmd.Output()
+	list, err := git.ListBranches(a.ctx, repoPath)
 	if err != nil {
 		return nil, fmt.Errorf("git branch: %w", err)
 	}
 
 	var branches []BranchInfo
-	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
-		if line == "" {
-			continue
-		}
-		parts := strings.SplitN(line, "\t", 2)
-		name := parts[0]
-		current := len(parts) > 1 && strings.TrimSpace(parts[1]) == "*"
-		branches = append(branches, BranchInfo{
-			Name:    name,
-			Current: current,
-		})
+	for _, b := range list {
+		branches = append(branches, BranchInfo{Name: b.Name, Current: b.Current})
 	}
 	return branches, nil
+}
+
+// autoCommitIfRequested commits pending changes via GitCommit when
+// autoCommit is set. "nothing to commit" is not an error.
+func (a *App) autoCommitIfRequested(repoPath string, autoCommit bool) error {
+	if !autoCommit {
+		return nil
+	}
+	if _, err := a.GitCommit(repoPath); err != nil {
+		if !strings.Contains(err.Error(), "nothing to commit") {
+			return fmt.Errorf("auto-commit failed: %w", err)
+		}
+	}
+	return nil
 }
 
 // GitSwitchBranch switches to an existing branch with optional auto-commit.
@@ -216,17 +217,12 @@ func (a *App) GitSwitchBranch(repoPath, branch string, autoCommit bool) error {
 		return err
 	}
 
-	if autoCommit {
-		if _, err := a.GitCommit(repoPath); err != nil {
-			if !strings.Contains(err.Error(), "nothing to commit") {
-				return fmt.Errorf("auto-commit failed: %w", err)
-			}
-		}
+	if err := a.autoCommitIfRequested(repoPath, autoCommit); err != nil {
+		return err
 	}
 
-	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", branch, "--")
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("git checkout: %w (%s)", err, string(out))
+	if out, err := git.Checkout(a.ctx, repoPath, branch); err != nil {
+		return fmt.Errorf("git checkout: %w (%s)", err, out)
 	}
 	return nil
 }
@@ -256,19 +252,13 @@ func (a *App) GitCreateBranch(repoPath, prefix, name string, autoCommit bool) er
 	}
 
 	// Auto-commit current changes if requested
-	if autoCommit {
-		if _, err := a.GitCommit(repoPath); err != nil {
-			// Ignore "nothing to commit" — that's fine
-			if !strings.Contains(err.Error(), "nothing to commit") {
-				return fmt.Errorf("auto-commit failed: %w", err)
-			}
-		}
+	if err := a.autoCommitIfRequested(repoPath, autoCommit); err != nil {
+		return err
 	}
 
 	// Create and checkout the new branch
-	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", "-b", branchName)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("git checkout -b: %w (%s)", err, string(out))
+	if out, err := git.CreateBranch(a.ctx, repoPath, branchName); err != nil {
+		return fmt.Errorf("git checkout -b: %w (%s)", err, out)
 	}
 
 	return nil
@@ -285,16 +275,13 @@ func (a *App) RepoStatus(repoPath string) RepoStatusInfo {
 	}
 
 	// Check dirty (uncommitted changes including untracked files)
-	statusCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "status", "--porcelain")
-	if out, err := statusCmd.Output(); err == nil && len(out) > 0 {
+	if out, err := git.PorcelainStatus(a.ctx, repoPath); err == nil && len(out) > 0 {
 		result.Dirty = true
 	}
 
 	// Check open PRs for the current branch
-	branchCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD")
-	branchOut, err := branchCmd.Output()
+	branch, err := git.CurrentBranch(a.ctx, repoPath)
 	if err == nil {
-		branch := strings.TrimSpace(string(branchOut))
 		ghCmd := exec.CommandContext(a.ctx, "gh", "pr", "list",
 			"--state", "open",
 			"--head", branch,
@@ -312,17 +299,9 @@ func (a *App) RepoStatus(repoPath string) RepoStatusInfo {
 		}
 
 		// Check ahead/behind remote tracking branch
-		revCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath,
-			"rev-list", "--left-right", "--count", "HEAD...@{upstream}")
-		if revOut, err := revCmd.Output(); err == nil {
-			parts := strings.Fields(strings.TrimSpace(string(revOut)))
-			if len(parts) == 2 {
-				var ahead, behind int
-				fmt.Sscanf(parts[0], "%d", &ahead)
-				fmt.Sscanf(parts[1], "%d", &behind)
-				result.Ahead = ahead
-				result.Behind = behind
-			}
+		if ahead, behind, err := git.AheadBehind(a.ctx, repoPath); err == nil {
+			result.Ahead = ahead
+			result.Behind = behind
 		}
 
 		// Check branch protection rules via gh API
@@ -355,43 +334,38 @@ func (a *App) gitCommitCore(repoPath string, onProgress func(step, detail string
 
 	// Stage all changes
 	progress("Staging changes...", "")
-	addCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "add", "-A")
-	if out, err := addCmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("git add: %w (%s)", err, string(out))
+	if out, err := git.StageAll(a.ctx, repoPath); err != nil {
+		return "", fmt.Errorf("git add: %w (%s)", err, out)
 	}
 	progress("Staged all changes", "")
 
 	// Check there's something to commit
-	statusCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--cached", "--stat")
-	statusOut, err := statusCmd.Output()
+	statusOut, err := git.StagedStat(a.ctx, repoPath)
 	if err != nil || len(statusOut) == 0 {
 		return "", fmt.Errorf("nothing to commit")
 	}
-	progress("Changes found", strings.TrimSpace(string(statusOut)))
+	progress("Changes found", strings.TrimSpace(statusOut))
 
 	// Get the diff for the AI to summarize
 	progress("Generating commit message...", "")
-	diffCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--cached")
-	diffOut, _ := diffCmd.Output()
-	diffText := string(diffOut)
+	diffText, _ := git.StagedDiff(a.ctx, repoPath)
 	if len(diffText) > 8000 {
 		diffText = diffText[:8000] + "\n... (truncated)"
 	}
 
 	// Generate commit message using Claude CLI — retry with simpler prompt before falling back
-	commitMsg := a.generateCommitMessage(repoPath, diffText, strings.TrimSpace(string(statusOut)), progress)
+	commitMsg := a.generateCommitMessage(repoPath, diffText, strings.TrimSpace(statusOut), progress)
 
 	// Attempt commit — on failure, auto-fix with Claude and retry
 	const maxFixAttempts = 2
 	for attempt := 0; attempt <= maxFixAttempts; attempt++ {
 		progress("Committing...", "")
-		commitCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "commit", "-m", commitMsg)
-		commitOut, commitErr := commitCmd.CombinedOutput()
+		commitOut, commitErr := git.Commit(a.ctx, repoPath, commitMsg)
 		if commitErr == nil {
 			return commitMsg, nil
 		}
 
-		errText := strings.TrimSpace(string(commitOut))
+		errText := strings.TrimSpace(commitOut)
 
 		// Don't retry "nothing to commit"
 		if strings.Contains(errText, "nothing to commit") {
@@ -428,23 +402,19 @@ func (a *App) gitCommitCore(repoPath string, onProgress func(step, detail string
 		}
 
 		// Re-stage everything (including Claude's fixes)
-		reAddCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "add", "-A")
-		if out, err := reAddCmd.CombinedOutput(); err != nil {
-			progress("Re-staging failed", strings.TrimSpace(string(out)))
+		if out, err := git.StageAll(a.ctx, repoPath); err != nil {
+			progress("Re-staging failed", strings.TrimSpace(out))
 		}
 
 		// Regenerate commit message to cover the fixes
 		progress("Regenerating commit message...", "")
-		reDiffCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--cached")
-		reDiffOut, _ := reDiffCmd.Output()
-		reDiffText := string(reDiffOut)
+		reDiffText, _ := git.StagedDiff(a.ctx, repoPath)
 		if len(reDiffText) > 8000 {
 			reDiffText = reDiffText[:8000] + "\n... (truncated)"
 		}
-		reStatCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--cached", "--stat")
-		reStatOut, _ := reStatCmd.Output()
+		reStatOut, _ := git.StagedStat(a.ctx, repoPath)
 
-		commitMsg = a.generateCommitMessage(repoPath, reDiffText, strings.TrimSpace(string(reStatOut)), progress)
+		commitMsg = a.generateCommitMessage(repoPath, reDiffText, strings.TrimSpace(reStatOut), progress)
 	}
 
 	return commitMsg, nil
@@ -569,9 +539,8 @@ func (a *App) GitCommitAndPush(repoPath string) (string, error) {
 	}
 
 	// Push with -u to set upstream, creating branch if needed
-	pushCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "push", "-u", "origin", "HEAD")
-	if out, err := pushCmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("git push: %w (%s)", err, string(out))
+	if out, err := git.Push(a.ctx, repoPath); err != nil {
+		return "", fmt.Errorf("git push: %w (%s)", err, out)
 	}
 
 	return msg, nil
@@ -588,10 +557,8 @@ func (a *App) GitPush(repoPath string) (string, error) {
 		return "", fmt.Errorf("repo path is required")
 	}
 
-	pushCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "push", "-u", "origin", "HEAD")
-	out, err := pushCmd.CombinedOutput()
+	outStr, err := git.Push(a.ctx, repoPath)
 	if err != nil {
-		outStr := string(out)
 		// Detect non-fast-forward (diverged history) vs other errors
 		if strings.Contains(outStr, "non-fast-forward") ||
 			strings.Contains(outStr, "rejected") ||
@@ -613,12 +580,11 @@ func (a *App) GitForcePush(repoPath string) (string, error) {
 		return "", fmt.Errorf("repo path is required")
 	}
 
-	pushCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "push", "--force-with-lease", "-u", "origin", "HEAD")
-	out, err := pushCmd.CombinedOutput()
+	out, err := git.ForcePush(a.ctx, repoPath)
 	if err != nil {
-		return "", fmt.Errorf("git force push: %w (%s)", err, string(out))
+		return "", fmt.Errorf("git force push: %w (%s)", err, out)
 	}
-	return strings.TrimSpace(string(out)), nil
+	return strings.TrimSpace(out), nil
 }
 
 // GitPull pulls remote changes into the current branch.
@@ -629,12 +595,11 @@ func (a *App) GitPull(repoPath string) (string, error) {
 	if repoPath == "" {
 		return "", fmt.Errorf("repo path is required")
 	}
-	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "pull")
-	out, err := cmd.CombinedOutput()
+	out, err := git.Pull(a.ctx, repoPath)
 	if err != nil {
-		return "", fmt.Errorf("git pull: %w (%s)", err, string(out))
+		return "", fmt.Errorf("git pull: %w (%s)", err, out)
 	}
-	return strings.TrimSpace(string(out)), nil
+	return strings.TrimSpace(out), nil
 }
 
 // GitMergeInto merges the current branch into targetBranch.
@@ -653,40 +618,32 @@ func (a *App) GitMergeInto(repoPath, targetBranch string, autoCommit bool) (stri
 	}
 
 	// Get current branch name
-	branchCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD")
-	branchOut, err := branchCmd.Output()
+	sourceBranch, err := git.CurrentBranch(a.ctx, repoPath)
 	if err != nil {
 		return "", fmt.Errorf("get current branch: %w", err)
 	}
-	sourceBranch := strings.TrimSpace(string(branchOut))
 
 	if sourceBranch == targetBranch {
 		return "", fmt.Errorf("already on %s — nothing to merge", targetBranch)
 	}
 
 	// Auto-commit current changes if requested
-	if autoCommit {
-		if _, err := a.GitCommit(repoPath); err != nil {
-			if !strings.Contains(err.Error(), "nothing to commit") {
-				return "", fmt.Errorf("auto-commit failed: %w", err)
-			}
-		}
+	if err := a.autoCommitIfRequested(repoPath, autoCommit); err != nil {
+		return "", err
 	}
 
 	// Switch to target branch
-	checkoutCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", targetBranch, "--")
-	if out, err := checkoutCmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("checkout %s: %w (%s)", targetBranch, err, string(out))
+	if out, err := git.Checkout(a.ctx, repoPath, targetBranch); err != nil {
+		return "", fmt.Errorf("checkout %s: %w (%s)", targetBranch, err, out)
 	}
 
 	// Merge source into target
-	mergeCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "merge", sourceBranch)
-	mergeOut, mergeErr := mergeCmd.CombinedOutput()
+	mergeOut, mergeErr := git.Merge(a.ctx, repoPath, sourceBranch)
 	if mergeErr != nil {
 		// Abort the failed merge and return to the original branch
-		_ = exec.CommandContext(a.ctx, "git", "-C", repoPath, "merge", "--abort").Run()
-		_ = exec.CommandContext(a.ctx, "git", "-C", repoPath, "checkout", sourceBranch).Run()
-		return "", fmt.Errorf("merge %s into %s failed: %w (%s)", sourceBranch, targetBranch, mergeErr, string(mergeOut))
+		_ = git.MergeAbort(a.ctx, repoPath)
+		_ = git.CheckoutBranch(a.ctx, repoPath, sourceBranch)
+		return "", fmt.Errorf("merge %s into %s failed: %w (%s)", sourceBranch, targetBranch, mergeErr, mergeOut)
 	}
 
 	return fmt.Sprintf("Merged %s into %s", sourceBranch, targetBranch), nil
@@ -704,18 +661,15 @@ func (a *App) GitCommitPushAndPR(repoPath string) (string, error) {
 	}
 
 	// Get the current branch
-	branchCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD")
-	branchOut, err := branchCmd.Output()
+	branch, err := git.CurrentBranch(a.ctx, repoPath)
 	if err != nil {
 		return "", fmt.Errorf("get branch: %w", err)
 	}
-	branch := strings.TrimSpace(string(branchOut))
 
 	// Get the full diff against main/master for the PR body
 	var baseBranch string
 	for _, candidate := range []string{"main", "master"} {
-		checkCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "rev-parse", "--verify", candidate)
-		if checkCmd.Run() == nil {
+		if git.VerifyRef(a.ctx, repoPath, candidate) == nil {
 			baseBranch = candidate
 			break
 		}
@@ -724,9 +678,7 @@ func (a *App) GitCommitPushAndPR(repoPath string) (string, error) {
 		baseBranch = "main"
 	}
 
-	diffCmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", baseBranch+"...HEAD")
-	diffOut, _ := diffCmd.Output()
-	diffText := string(diffOut)
+	diffText, _ := git.BranchDiff(a.ctx, repoPath, baseBranch)
 	if len(diffText) > 12000 {
 		diffText = diffText[:12000] + "\n... (truncated)"
 	}
@@ -806,20 +758,10 @@ func (a *App) ListRepoFiles(repoPath string) ([]string, error) {
 		return nil, fmt.Errorf("empty repo path")
 	}
 	// git ls-files returns tracked files; --others --exclude-standard adds untracked non-ignored
-	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "ls-files", "--cached", "--others", "--exclude-standard")
-	out, err := cmd.Output()
+	files, err := git.ListFiles(a.ctx, repoPath)
 	if err != nil {
 		return nil, fmt.Errorf("git ls-files: %w", err)
 	}
-	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
-	var files []string
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line != "" {
-			files = append(files, line)
-		}
-	}
-	sort.Strings(files)
 	return files, nil
 }
 
@@ -960,8 +902,7 @@ func (a *App) ReadFileDiff(repoPath, filePath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("git diff: %w", err)
 	}
-	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "HEAD", "--", rel)
-	out, err := cmd.Output()
+	out, err := git.FileDiff(a.ctx, repoPath, rel)
 	if err != nil {
 		// Untracked file: diff against /dev/null. Resolve through symlinks so
 		// the fallback can never read outside the repo (R9).
@@ -969,14 +910,13 @@ func (a *App) ReadFileDiff(repoPath, filePath string) (string, error) {
 		if rerr != nil {
 			return "", fmt.Errorf("git diff: %w", rerr)
 		}
-		cmd2 := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--no-index", "--", "/dev/null", abs)
-		out2, _ := cmd2.Output()
+		out2, _ := git.NoIndexDiff(a.ctx, repoPath, abs)
 		if len(out2) > 0 {
-			return string(out2), nil
+			return out2, nil
 		}
 		return "", fmt.Errorf("git diff %s: %w", filePath, err)
 	}
-	return string(out), nil
+	return out, nil
 }
 
 // ReadFileAtHead returns the content of a file at the HEAD commit.
@@ -991,15 +931,14 @@ func (a *App) ReadFileAtHead(repoPath, filePath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("git show: %w", err)
 	}
-	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "show", "HEAD:"+filepath.ToSlash(rel))
-	out, err := cmd.Output()
+	out, err := git.ShowAtHead(a.ctx, repoPath, rel)
 	if err != nil {
 		return "", fmt.Errorf("git show HEAD:%s: %w", filePath, err)
 	}
 	if len(out) > 1024*1024 {
-		return string(out[:1024*1024]) + "\n... (truncated at 1MB)", nil
+		return out[:1024*1024] + "\n... (truncated at 1MB)", nil
 	}
-	return string(out), nil
+	return out, nil
 }
 
 // MarkRead marks a notification as read.

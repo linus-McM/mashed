@@ -67,3 +67,5 @@
 {"phase": "green", "step": "s5.4-settings-split", "exit": 0, "ts": "2026-09-29"}
 {"phase": "red", "step": "s5.5-agentdetail-split", "exit": 1, "ts": "2026-09-29"}
 {"phase": "green", "step": "s5.5-agentdetail-split", "exit": 0, "ts": "2026-09-29"}
+{"phase": "red", "step": "s5.6-git-shellouts", "exit": 1, "ts": "2026-09-29"}
+{"phase": "green", "step": "s5.6-git-shellouts", "exit": 0, "ts": "2026-09-29"}

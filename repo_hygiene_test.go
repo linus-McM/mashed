@@ -463,6 +463,22 @@ func TestRepo_SettingsUnder1000Lines(t *testing.T) { viewUnder1000(t, "Settings.
 
 func TestRepo_AgentDetailUnder1000Lines(t *testing.T) { viewUnder1000(t, "AgentDetail.svelte") }
 
+// R31: app_git.go delegates every git invocation to internal/git and has a
+// single auto-commit helper instead of three copies.
+func TestRepo_AppGitNoDirectGitExec(t *testing.T) {
+	src := readRepoFile(t, "app_git.go")
+	direct := regexp.MustCompile(`exec\.Command(Context)?\([^)]*"git"`)
+	if m := direct.FindAllString(src, -1); len(m) > 0 {
+		t.Errorf("app_git.go still runs git directly (%d sites), e.g. %q", len(m), m[0])
+	}
+	if n := strings.Count(src, "if autoCommit {"); n > 1 {
+		t.Errorf("auto-commit block appears %d times; use autoCommitIfRequested", n)
+	}
+	if !strings.Contains(src, "func (a *App) autoCommitIfRequested(") {
+		t.Error("app_git.go lacks autoCommitIfRequested")
+	}
+}
+
 func TestRepo_GraphifyOutIgnored(t *testing.T) {
 	cmd := exec.Command("git", "check-ignore", "-q", "graphify-out/x")
 	cmd.Dir = repoRoot(t)
