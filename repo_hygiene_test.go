@@ -4,6 +4,9 @@ package main
 // sdlc/repo-health-remediation/spec.md so config changes get a red/green cycle.
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -69,6 +72,48 @@ func TestRepo_DistPlaceholderTracked(t *testing.T) {
 	}
 	if hasLine(gi, "frontend/dist") || hasLine(gi, "frontend/dist/") {
 		t.Error(".gitignore still ignores the whole frontend/dist directory")
+	}
+}
+
+// R22: npm is the only frontend package manager, pinned to Node 22, and
+// every install path uses the lockfile (`npm ci`).
+func TestRepo_SinglePackageManager(t *testing.T) {
+	root := repoRoot(t)
+	if _, err := os.Stat(filepath.Join(root, "frontend", "bun.lock")); !os.IsNotExist(err) {
+		t.Error("frontend/bun.lock must be removed (npm is the package manager)")
+	}
+	if got := strings.TrimSpace(readRepoFile(t, ".nvmrc")); got != "22" {
+		t.Errorf(".nvmrc = %q, want 22", got)
+	}
+
+	var pkg struct {
+		Engines map[string]string `json:"engines"`
+	}
+	pkgJSON := readRepoFile(t, "frontend/package.json")
+	if err := json.Unmarshal([]byte(pkgJSON), &pkg); err != nil {
+		t.Fatalf("package.json: %v", err)
+	}
+	if got := pkg.Engines["node"]; got != ">=22 <23" {
+		t.Errorf("package.json engines.node = %q, want \">=22 <23\"", got)
+	}
+
+	var wails map[string]any
+	if err := json.Unmarshal([]byte(readRepoFile(t, "wails.json")), &wails); err != nil {
+		t.Fatalf("wails.json: %v", err)
+	}
+	if got := wails["frontend:install"]; got != "npm ci" {
+		t.Errorf("wails.json frontend:install = %v, want \"npm ci\"", got)
+	}
+	just := readRepoFile(t, "justfile")
+	if strings.Contains(just, "npm install") || !strings.Contains(just, "npm ci") {
+		t.Error("justfile must install with `npm ci`, never `npm install`")
+	}
+
+	// Wails tracks package.json by hash; keep it in sync so builds don't
+	// dirty the tree.
+	sum := md5.Sum([]byte(pkgJSON))
+	if got := strings.TrimSpace(readRepoFile(t, "frontend/package.json.md5")); got != hex.EncodeToString(sum[:]) {
+		t.Errorf("frontend/package.json.md5 = %s, want %x", got, sum)
 	}
 }
 

@@ -49,7 +49,7 @@ build-helper:
 
 # Full build: helper + wails + bundle + sign
 build: build-helper
-    cd frontend && npm install && cd ..
+    cd frontend && npm ci && cd ..
     PATH="$HOME/go/bin:$PATH" wails build
     cp -r fonts build/bin/mashed.app/Contents/Resources/fonts
     cp build/bin/mashed-pty-helper "build/bin/mashed.app/Contents/MacOS/mashed-pty-helper"
