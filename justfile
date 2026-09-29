@@ -50,8 +50,23 @@ build-helper:
     go build -o build/bin/mashed-pty-helper ./cmd/pty-helper
     codesign --force --options runtime --sign "{{sign_identity}}" --entitlements build/darwin/entitlements.plist build/bin/mashed-pty-helper
 
+# Fail if a bundled asset is still a Git LFS pointer (run `git lfs pull`).
+# MASHED_ASSET_DIRS overrides the directories checked (tests use it).
+check-lfs:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for d in ${MASHED_ASSET_DIRS:-themes fonts}; do
+        for f in "$d"/*; do
+            [ -f "$f" ] || continue
+            if head -c 64 "$f" | grep -q '^version https://git-lfs.github.com/spec/'; then
+                echo "error: $f is a Git LFS pointer; run 'git lfs pull' before building" >&2
+                exit 1
+            fi
+        done
+    done
+
 # Full build: helper + wails + bundle + sign
-build: build-helper
+build: build-helper check-lfs
     cd frontend && npm ci && cd ..
     PATH="$HOME/go/bin:$PATH" wails build
     cp -r fonts build/bin/mashed.app/Contents/Resources/fonts

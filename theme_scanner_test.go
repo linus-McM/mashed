@@ -1375,6 +1375,28 @@ func TestListVSCodiumThemes_ExtensionID(t *testing.T) {
 	}
 }
 
+// R28 regression guard: a bundled .vsix that is still an LFS pointer is
+// skipped without error (it is not a zip).
+func TestScanBundledThemes_SkipsLFSPointer(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "pointer.vsix"), []byte(lfsPointer), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	createMockVSIX(t, dir, "real.vsix", map[string]string{
+		"extension/package.json":     `{"name":"real","contributes":{"themes":[{"label":"Real","uiTheme":"vs-dark","path":"./themes/real.json"}]}}`,
+		"extension/themes/real.json": `{"name":"Real"}`,
+	})
+	themes, err := scanVSIXDirectory(dir)
+	if err != nil {
+		t.Fatalf("scanVSIXDirectory: %v", err)
+	}
+	for _, th := range themes {
+		if strings.Contains(th.ThemePath, "pointer.vsix") {
+			t.Fatalf("pointer vsix produced a theme: %+v", th)
+		}
+	}
+}
+
 // useBundledThemesDir points ReadBundledThemeFile at dir for one test.
 func useBundledThemesDir(t *testing.T, dir string) {
 	t.Helper()

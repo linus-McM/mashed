@@ -312,6 +312,50 @@ func TestRepo_NoPersonalData(t *testing.T) {
 	}
 }
 
+// R28: bundled themes and fonts are stored with Git LFS going forward.
+func TestRepo_LFSAttributes(t *testing.T) {
+	ga := readRepoFile(t, ".gitattributes")
+	for _, pat := range []string{"themes/*.vsix", "fonts/*.ttf"} {
+		if !hasLine(ga, pat+" filter=lfs diff=lfs merge=lfs -text") {
+			t.Errorf(".gitattributes does not route %s through LFS", pat)
+		}
+	}
+}
+
+// R28: `just build` refuses to bundle an asset that is still an LFS pointer.
+func TestRepo_JustfileLFSGuard(t *testing.T) {
+	justBin, err := exec.LookPath("just")
+	if err != nil {
+		t.Skip("just not installed")
+	}
+	run := func(dir string) error {
+		cmd := exec.Command(justBin, "--justfile", filepath.Join(repoRoot(t), "justfile"),
+			"--working-directory", repoRoot(t), "check-lfs")
+		cmd.Env = append(cleanGitEnv(), "MASHED_ASSET_DIRS="+dir)
+		return cmd.Run()
+	}
+
+	pointerDir := t.TempDir()
+	pointer := "version https://git-lfs.github.com/spec/v1\noid sha256:00\nsize 1\n"
+	if err := os.WriteFile(filepath.Join(pointerDir, "x.ttf"), []byte(pointer), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := run(pointerDir); err == nil {
+		t.Error("check-lfs passed on an LFS pointer file")
+	}
+
+	realDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(realDir, "x.ttf"), []byte{0, 1, 0, 0}, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := run(realDir); err != nil {
+		t.Errorf("check-lfs failed on a real binary: %v", err)
+	}
+	if !strings.Contains(readRepoFile(t, "justfile"), "build: build-helper check-lfs") {
+		t.Error("just build must depend on check-lfs")
+	}
+}
+
 func TestRepo_GraphifyOutIgnored(t *testing.T) {
 	cmd := exec.Command("git", "check-ignore", "-q", "graphify-out/x")
 	cmd.Dir = repoRoot(t)
