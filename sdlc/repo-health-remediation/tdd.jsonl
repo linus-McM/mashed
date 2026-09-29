@@ -37,3 +37,5 @@
 {"phase": "green", "step": "s2.3-scan-lifecycle", "exit": 0, "ts": "2026-09-29"}
 {"phase": "red", "step": "s2.4-asset-follow", "exit": 1, "ts": "2026-09-29"}
 {"phase": "green", "step": "s2.4-asset-follow", "exit": 0, "ts": "2026-09-29"}
+{"phase": "red", "step": "s2.5-late-scrollback", "exit": 1, "ts": "2026-09-29"}
+{"phase": "green", "step": "s2.5-late-scrollback", "exit": 0, "ts": "2026-09-29"}

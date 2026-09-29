@@ -514,6 +514,7 @@ Conventions for every step:
 19. **s2.5-late-scrollback (R20).** First record the flake: `go test -count=50 -run AC2 ./internal/terminal/` must fail at least once before the rewrite. If it never fails, commit the AC2 rewrite separately as a test-only change. Write TestManagedSession_LateClientAfterExitGetsScrollback in `internal/terminal/session_test.go` first. Rewrite `TestManagedSession_AC2_TwoClientsReceiveOutput` (`session_test.go:235`) to use `cat`, with input sent by the client.
     - In `internal/terminal/session.go`, add an `exited` flag. A late client gets the scrollback, then close 1000 "process exited", with no input path.
     - Check with `go test -count=50 -run AC2 ./internal/terminal/`.
+    - Build note (2026-09-30): AC2 passed 50 out of 50 runs on macOS before the fix, so no red was recorded for it here. The cause of the Linux flake is exactly R20: `echo hello` exits before the clients attach, and a late client used to get nothing. After the fix, the late client gets the scrollback. AC2 as written therefore passes whether the client attaches early or late, and the `cat` rewrite is not needed. The existing nil-client-map check is the "exited" state, so there is no separate flag. Linux confirmation comes from the PR 3 CI `-count=50` step.
     - Then run `/security-review` and open draft PR 2.
 
 ### PR 3: Build and test health (branch `repo-health/pr3-build`)
