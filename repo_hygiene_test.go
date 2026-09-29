@@ -479,6 +479,14 @@ func TestRepo_AppGitNoDirectGitExec(t *testing.T) {
 	}
 }
 
+// R31: the no-op recoverSessions stub is gone (PTY sessions do not survive
+// a restart; recoverSessionsFromOutput remains for its tested parsing).
+func TestRepo_NoRecoverSessionsStub(t *testing.T) {
+	if strings.Contains(readRepoFile(t, "app_terminal_registry.go"), "func (a *App) recoverSessions()") {
+		t.Error("app_terminal_registry.go still declares the no-op recoverSessions stub")
+	}
+}
+
 func TestRepo_GraphifyOutIgnored(t *testing.T) {
 	cmd := exec.Command("git", "check-ignore", "-q", "graphify-out/x")
 	cmd.Dir = repoRoot(t)

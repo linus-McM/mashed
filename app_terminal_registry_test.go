@@ -586,20 +586,6 @@ func TestStory1_RegisterSessionConcurrent(t *testing.T) {
 	assert.Greater(t, count, 0)
 }
 
-// ── Story 4: AC-7 recoverSessions is a no-op ──
-
-func TestStory4_AC7_RecoverSessionsIsNoOp(t *testing.T) {
-	app := testApp()
-
-	// recoverSessions should be a no-op — no tmux shell-out, no sessions added
-	app.recoverSessions()
-
-	app.mu.Lock()
-	count := len(app.terminalSessions)
-	app.mu.Unlock()
-	assert.Equal(t, 0, count, "recoverSessions must be a no-op")
-}
-
 // ── Story 5: Dual PID Lookup in Scan ──
 
 func TestStory5_ResolveTmuxTarget(t *testing.T) {
