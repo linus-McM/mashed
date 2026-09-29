@@ -5,9 +5,9 @@ description: "Graphify community 101: internal/bmad/executor_test.go, internal/b
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: executor_test, resource: internal/bmad/executor_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 4449efba985daebc }
   - { id: session_naming, resource: internal/bmad/session_naming.go, last_modified: "2026-04-10T15:50:15+10:00", digest: acbdad6853f5eaed }
@@ -44,7 +44,7 @@ sources:
 - TestBuildSessionName_AC2_SlugificationRules() (internal/bmad/session_naming_test.go:L74)
 
 # Depends on
-- [executor_command_test.go](/modules/executor-command-test-go.md)
+- [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
 - [newHarness](/modules/newharness.md)
 
 # Inferred

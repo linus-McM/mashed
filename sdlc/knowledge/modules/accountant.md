@@ -1,16 +1,16 @@
 ---
 type: Module
 title: Accountant
-description: "Graphify community 159: internal/uiadapter/accountant.go, internal/uiadapter/accountant_test.go"
+description: "Graphify community 255: internal/uiadapter/accountant.go, internal/uiadapter/accountant_test.go"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T07:07:25Z" }
-stale_after: "2026-10-13T07:07:25Z"
-source_commit: ""
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
-  - { id: accountant, resource: internal/uiadapter/accountant.go, last_modified: "2026-09-29T07:07:25Z", digest: ae4389c89ff37e93 }
-  - { id: accountant_test, resource: internal/uiadapter/accountant_test.go, last_modified: "2026-09-29T07:07:25Z", digest: 60c344b0cdff2ce8 }
+  - { id: accountant, resource: internal/uiadapter/accountant.go, last_modified: "2026-04-23T11:29:34+10:00", digest: ae4389c89ff37e93 }
+  - { id: accountant_test, resource: internal/uiadapter/accountant_test.go, last_modified: "2026-04-23T11:29:34+10:00", digest: 60c344b0cdff2ce8 }
 ---
 
 # Files

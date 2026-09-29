@@ -5,15 +5,14 @@ description: "Graphify community 73: docs/plans/repo-health-remediation.md, docs
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:08Z" }
-stale_after: "2026-10-13T11:16:08Z"
-source_commit: 85e7124b5a77a2f29bd9db818781712ea7a1049b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: repo-health-remediation, resource: docs/plans/repo-health-remediation.md, last_modified: "2026-09-29T06:03:48Z", digest: f5a96b797d990d0e }
   - { id: meditor-02-readfilebase64-binding, resource: docs/stories/old_stories/meditor-02-readfilebase64-binding.md, last_modified: "2026-04-12T10:43:48+10:00", digest: c3e539f11ac58af8 }
   - { id: meditor-04-markdown-editor, resource: docs/stories/old_stories/meditor-04-markdown-editor.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 2c11f30e526240e8 }
   - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
-  - { id: intent, resource: sdlc/repo-health-remediation/intent.md, last_modified: "2026-09-29T20:00:59+10:00", digest: 476d74d6341cb18a }
 ---
 
 # Files
@@ -21,7 +20,6 @@ sources:
 - `docs/stories/old_stories/meditor-02-readfilebase64-binding.md`
 - `docs/stories/old_stories/meditor-04-markdown-editor.md`
 - `frontend/wailsjs/go/main/App.js`
-- `sdlc/repo-health-remediation/intent.md`
 
 # Symbols
 - Phase 1 — Security *(P0)* (docs/plans/repo-health-remediation.md:L30)
@@ -34,6 +32,7 @@ sources:
 - Technical Considerations (docs/stories/old_stories/meditor-02-readfilebase64-binding.md:L21)
 - Risks & Edge Cases (docs/stories/old_stories/meditor-02-readfilebase64-binding.md:L28)
 - Reference Files (docs/stories/old_stories/meditor-02-readfilebase64-binding.md:L34)
+- meditor-04-markdown-editor.md (docs/stories/old_stories/meditor-04-markdown-editor.md:L1)
 - Story 4: MarkdownEditor with Milkdown Crepe WYSIWYG (docs/stories/old_stories/meditor-04-markdown-editor.md:L1)
 - Scenario 2: Auto-save behavior (docs/stories/old_stories/meditor-04-markdown-editor.md:L117)
 - Developer Notes (docs/stories/old_stories/meditor-04-markdown-editor.md:L13)
@@ -51,20 +50,13 @@ sources:
 - ReadFile() (frontend/wailsjs/go/main/App.js:L281)
 - ReadFileAtHead() (frontend/wailsjs/go/main/App.js:L285)
 - WriteFile() (frontend/wailsjs/go/main/App.js:L469)
-- intent.md (sdlc/repo-health-remediation/intent.md:L1)
-- Intent: Repo health remediation (sdlc/repo-health-remediation/intent.md:L1)
-- Proposed outcome (sdlc/repo-health-remediation/intent.md:L19)
-- Affected users and systems (sdlc/repo-health-remediation/intent.md:L32)
-- Problem (sdlc/repo-health-remediation/intent.md:L4)
-- Constraints (sdlc/repo-health-remediation/intent.md:L47)
-- Open questions (sdlc/repo-health-remediation/intent.md:L58)
 
 # Depends on
 - no EXTRACTED edges to other modules
 
 # Inferred
 - [GetConfig](/modules/getconfig.md)
-- [SpawnRefactorPlan](/modules/spawnrefactorplan.md)
+- [ReadFileBase64](/modules/readfilebase64.md)
 - [themeInit.js](/modules/themeinit-js.md)
 
 # Features

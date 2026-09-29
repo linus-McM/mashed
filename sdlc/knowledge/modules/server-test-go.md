@@ -5,9 +5,9 @@ description: "Graphify community 5: cmd/pty-helper/main.go, internal/terminal/he
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: main, resource: cmd/pty-helper/main.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 5b417efc875ee944 }
   - { id: client, resource: internal/terminal/helper/client.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 46fc572e21238bfb }
@@ -66,7 +66,6 @@ sources:
 - KillRequest (internal/terminal/helper/protocol.go:L53)
 - WriteMessage() (internal/terminal/helper/protocol.go:L60)
 - ReadMessage() (internal/terminal/helper/protocol.go:L91)
-- protocol_test.go (internal/terminal/helper/protocol_test.go:L1)
 - TestWriteReadMessage_SpawnResponse() (internal/terminal/helper/protocol_test.go:L110)
 - TestWriteReadMessage_LargePayload() (internal/terminal/helper/protocol_test.go:L143)
 - TestWriteReadMessage_SpawnRequest() (internal/terminal/helper/protocol_test.go:L17)
@@ -77,10 +76,7 @@ sources:
 - TestWriteMessage_MultipleMessages() (internal/terminal/helper/protocol_test.go:L216)
 - TestSendRecvFd() (internal/terminal/helper/protocol_test.go:L235)
 - TestRecvFd_ClosedConn() (internal/terminal/helper/protocol_test.go:L286)
-- TestSentinelErrors() (internal/terminal/helper/protocol_test.go:L307)
 - TestMessageTypeConstants() (internal/terminal/helper/protocol_test.go:L313)
-- TestEnvelopeJSONTags() (internal/terminal/helper/protocol_test.go:L318)
-- TestSpawnResponseOmitEmpty() (internal/terminal/helper/protocol_test.go:L329)
 - createSocketPair() (internal/terminal/helper/protocol_test.go:L342)
 - TestWriteReadMessage_KillRequest() (internal/terminal/helper/protocol_test.go:L72)
 - .handleKill() (internal/terminal/helper/server.go:L162)

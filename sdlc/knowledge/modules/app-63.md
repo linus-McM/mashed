@@ -1,38 +1,31 @@
 ---
 type: Module
 title: App
-description: "Graphify community 63: app_claude.go, app_git.go"
-resource: ""
+description: "Graphify community 63: app_git.go"
+resource: .
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
-  - { id: app_claude, resource: app_claude.go, last_modified: "2026-04-10T11:36:27+10:00", digest: aff648c4f900ca53 }
   - { id: app_git, resource: app_git.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 6abf9d08d507b1db }
 ---
 
 # Files
-- `app_claude.go`
 - `app_git.go`
 
 # Symbols
-- claudeCommand() (app_claude.go:L13)
-- envWithoutKey() (app_claude.go:L20)
 - .GitListBranches() (app_git.go:L172)
 - BranchInfo (app_git.go:L19)
 - .GitSwitchBranch() (app_git.go:L199)
 - .GitCreateBranch() (app_git.go:L221)
 - RepoStatusInfo (app_git.go:L25)
 - .RepoStatus() (app_git.go:L251)
-- .gitCommitCore() (app_git.go:L319)
 - RepoChoice (app_git.go:L34)
 - App (app_git.go:L42)
 - .RepoMtimes() (app_git.go:L42)
-- .generateCommitMessage() (app_git.go:L425)
 - .GitCommit() (app_git.go:L468)
-- .GitCommitStreaming() (app_git.go:L476)
 - .GitCommitAndPush() (app_git.go:L523)
 - .GitPush() (app_git.go:L541)
 - .GitForcePush() (app_git.go:L563)
@@ -50,12 +43,14 @@ sources:
 - .SpawnPRReview() (app_git.go:L876)
 
 # Depends on
-- [go_pkg_testing](/modules/go-pkg-testing.md)
+- [claudeCommand](/modules/claudecommand.md)
+- [mimeForExt](/modules/mimeforext.md)
 - [ModelInfo](/modules/modelinfo.md)
 - [ScopedDiff](/modules/scopeddiff.md)
 - [worktree.go](/modules/worktree-go.md)
 
 # Inferred
+- [claudeCommand](/modules/claudecommand.md)
 - [Executor](/modules/executor.md)
 
 # Features

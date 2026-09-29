@@ -5,9 +5,9 @@ description: "Graphify community 141: docs/bmad-interactive-process-schema.md, d
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: bmad-interactive-process-schema, resource: docs/bmad-interactive-process-schema.md, last_modified: "2026-04-21T09:23:33+10:00", digest: d2e33d14af66141f }
   - { id: bmad-interactive-03-suspension-respond, resource: docs/stories/bmad-interactive-03-suspension-respond.md, last_modified: "2026-04-20T13:50:13+10:00", digest: 55cfc56e60c669f1 }
@@ -49,7 +49,7 @@ sources:
 - no EXTRACTED edges to other modules
 
 # Inferred
-- [App.js](/modules/app-js.md)
+- [Developer Notes](/modules/developer-notes-355.md)
 
 # Features
 - no feature plan names these files

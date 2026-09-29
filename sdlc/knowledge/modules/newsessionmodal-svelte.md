@@ -5,9 +5,9 @@ description: "Graphify community 249: frontend/src/views/NewSessionModal.svelte"
 resource: frontend/src/views
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: NewSessionModal, resource: frontend/src/views/NewSessionModal.svelte, last_modified: "2026-05-07T11:13:58+10:00", digest: 800ee3ff24898e95 }
 ---
@@ -32,7 +32,7 @@ sources:
 - toggleSection() (frontend/src/views/NewSessionModal.svelte:L70)
 
 # Depends on
-- [svelte](/modules/svelte.md)
+- no EXTRACTED edges to other modules
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

@@ -5,9 +5,9 @@ description: "Graphify community 84: internal/terminal/manager.go, internal/term
 resource: internal/terminal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: manager, resource: internal/terminal/manager.go, last_modified: "2026-05-07T20:55:09+10:00", digest: 4c7107fb7905c1b1 }
   - { id: manager_test, resource: internal/terminal/manager_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 8a61b932bfb6bc29 }
@@ -35,7 +35,6 @@ sources:
 - TestSessionManager_List_All() (internal/terminal/manager_test.go:L265)
 - TestSessionManager_List_WithFilter() (internal/terminal/manager_test.go:L277)
 - TestSessionManager_List_Empty() (internal/terminal/manager_test.go:L291)
-- TestSessionManager_ConcurrentInjectAndKill() (internal/terminal/manager_test.go:L301)
 - injectRemoteSession() (internal/terminal/manager_test.go:L34)
 - TestRemoteSession_KillNoCmdWait() (internal/terminal/manager_test.go:L352)
 - TestSessionManager_NilClient_SpawnReturnsErrHelperNotRunning() (internal/terminal/manager_test.go:L57)
@@ -47,6 +46,7 @@ sources:
 # Depends on
 - [ManagedSession](/modules/managedsession.md)
 - [server_test.go](/modules/server-test-go.md)
+- [SessionManager](/modules/sessionmanager.md)
 
 # Inferred
 - [ManagedSession](/modules/managedsession.md)

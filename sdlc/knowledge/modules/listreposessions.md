@@ -5,14 +5,15 @@ description: "Graphify community 55: docs/stories/old_stories/sessions-04-svelte
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: sessions-04-svelte-sessions-store, resource: docs/stories/old_stories/sessions-04-svelte-sessions-store.md, last_modified: "2026-04-09T10:03:44+10:00", digest: b0dcba8f3a115e70 }
   - { id: sessions-05-session-tab-bar, resource: docs/stories/old_stories/sessions-05-session-tab-bar.md, last_modified: "2026-04-09T10:03:44+10:00", digest: 73a79624d6dddc2a }
   - { id: sessions-backlog, resource: docs/stories/old_stories/sessions-backlog.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 033f2f719354ebab }
   - { id: sessions, resource: frontend/src/lib/stores/sessions.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 0fa9462ed476c629 }
+  - { id: session, resource: frontend/src/types/session.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 0b3fa196502eba06 }
   - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
 ---
 
@@ -21,6 +22,7 @@ sources:
 - `docs/stories/old_stories/sessions-05-session-tab-bar.md`
 - `docs/stories/old_stories/sessions-backlog.md`
 - `frontend/src/lib/stores/sessions.ts`
+- `frontend/src/types/session.ts`
 - `frontend/wailsjs/go/main/App.js`
 
 # Symbols
@@ -44,19 +46,31 @@ sources:
 - Reference Files (docs/stories/old_stories/sessions-05-session-tab-bar.md:L131)
 - Architecture (docs/stories/old_stories/sessions-05-session-tab-bar.md:L15)
 - AgentDetail.svelte Changes (docs/stories/old_stories/sessions-05-session-tab-bar.md:L21)
-- Tasks / Subtasks (docs/stories/old_stories/sessions-05-session-tab-bar.md:L253)
 - NotificationFeed.svelte Changes (docs/stories/old_stories/sessions-05-session-tab-bar.md:L87)
+- sessions-backlog.md (docs/stories/old_stories/sessions-backlog.md:L1)
+- Sprint Backlog: Persistent Terminal Sessions (docs/stories/old_stories/sessions-backlog.md:L1)
+- Dependency Graph (docs/stories/old_stories/sessions-backlog.md:L17)
+- Parallelization Notes (docs/stories/old_stories/sessions-backlog.md:L27)
+- Sprint Backlog (docs/stories/old_stories/sessions-backlog.md:L3)
 - Files Created/Modified (docs/stories/old_stories/sessions-backlog.md:L34)
+- sessions.ts (frontend/src/lib/stores/sessions.ts:L1)
+- repoSessions (frontend/src/lib/stores/sessions.ts:L11)
 - refreshSessions() (frontend/src/lib/stores/sessions.ts:L17)
 - addSession() (frontend/src/lib/stores/sessions.ts:L25)
 - removeSession() (frontend/src/lib/stores/sessions.ts:L34)
+- removeSessionByName() (frontend/src/lib/stores/sessions.ts:L42)
+- session.ts (frontend/src/types/session.ts:L1)
+- DataFields (frontend/src/types/session.ts:L19)
+- Session (frontend/src/types/session.ts:L40)
+- SessionState (frontend/src/types/session.ts:L48)
 - ListRepoSessions() (frontend/wailsjs/go/main/App.js:L241)
 
 # Depends on
-- no EXTRACTED edges to other modules
+- [App.js](/modules/app-js.md)
+- [vitest](/modules/vitest.md)
 
 # Inferred
-- [SpawnAgent](/modules/spawnagent.md)
+- no INFERRED edges; treat any that appear as hints
 
 # Features
 - no feature plan names these files

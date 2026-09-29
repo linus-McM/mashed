@@ -1,17 +1,17 @@
 ---
 type: Module
 title: NewMock
-description: "Graphify community 414: internal/uiadapter/logging_plumbing_mock_test.go, internal/uiadapter/mock.go, internal/uiadapter/mock_test.go"
+description: "Graphify community 391: internal/uiadapter/logging_plumbing_mock_test.go, internal/uiadapter/mock.go, internal/uiadapter/mock_test.go"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T07:07:25Z" }
-stale_after: "2026-10-13T07:07:25Z"
-source_commit: ""
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
-  - { id: logging_plumbing_mock_test, resource: internal/uiadapter/logging_plumbing_mock_test.go, last_modified: "2026-09-29T07:07:25Z", digest: bce0a1e9685e2603 }
-  - { id: mock, resource: internal/uiadapter/mock.go, last_modified: "2026-09-29T07:07:25Z", digest: ee77ed81915c20b0 }
-  - { id: mock_test, resource: internal/uiadapter/mock_test.go, last_modified: "2026-09-29T07:07:25Z", digest: e6b7941070a1bd3a }
+  - { id: logging_plumbing_mock_test, resource: internal/uiadapter/logging_plumbing_mock_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: bce0a1e9685e2603 }
+  - { id: mock, resource: internal/uiadapter/mock.go, last_modified: "2026-04-26T11:30:52+10:00", digest: ee77ed81915c20b0 }
+  - { id: mock_test, resource: internal/uiadapter/mock_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: e6b7941070a1bd3a }
 ---
 
 # Files
@@ -30,10 +30,10 @@ sources:
 - TestU2_AC8_MockAdapter_NilReturnsFallback() (internal/uiadapter/mock_test.go:L33)
 
 # Depends on
-- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
+- [NewDefault](/modules/newdefault.md)
 
 # Inferred
-- [FallbackAST](/modules/fallbackast.md)
+- [mashed/internal/uiadapter.UIAST](/modules/mashed-internal-uiadapter-uiast.md)
 - [nilSafeLogger](/modules/nilsafelogger.md)
 
 # Features

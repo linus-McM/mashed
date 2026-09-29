@@ -1,15 +1,15 @@
 ---
 type: Module
 title: app_terminal_registry_test.go
-description: "Graphify community 46: app_terminal_registry_test.go"
+description: "Graphify community 90: app_terminal_registry_test.go"
 resource: .
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T07:07:25Z" }
-stale_after: "2026-10-13T07:07:25Z"
-source_commit: ""
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
-  - { id: app_terminal_registry_test, resource: app_terminal_registry_test.go, last_modified: "2026-09-29T07:07:25Z", digest: 2f85a0b04c1b8ba7 }
+  - { id: app_terminal_registry_test, resource: app_terminal_registry_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 2f85a0b04c1b8ba7 }
 ---
 
 # Files
@@ -35,7 +35,6 @@ sources:
 - TestStory2_AC4_IdempotentRecovery() (app_terminal_registry_test.go:L385)
 - TestStory2_ParsesRepoNameFromSessionName() (app_terminal_registry_test.go:L400)
 - TestStory2_NoTimestampSuffix() (app_terminal_registry_test.go:L429)
-- fakeSessionManager (app_terminal_registry_test.go:L43)
 - TestStory2_EmptyAndWhitespaceLines() (app_terminal_registry_test.go:L441)
 - TestStory3_AC1_SpawnRegistersAgentSession() (app_terminal_registry_test.go:L454)
 - TestStory3_AC2_SpawnRegistersTerminalSession() (app_terminal_registry_test.go:L481)
@@ -45,14 +44,11 @@ sources:
 - TestStory1_RegisterSessionConcurrent() (app_terminal_registry_test.go:L549)
 - TestStory4_AC7_RecoverSessionsIsNoOp() (app_terminal_registry_test.go:L575)
 - TestStory5_ResolveTmuxTarget() (app_terminal_registry_test.go:L589)
-- .Kill() (app_terminal_registry_test.go:L69)
-- .IsAlive() (app_terminal_registry_test.go:L80)
-- .Shutdown() (app_terminal_registry_test.go:L93)
 
 # Depends on
-- [main.go](/modules/main-go.md)
 - [ManagedSession](/modules/managedsession.md)
-- [sync.Mutex](/modules/sync-mutex.md)
+- [NewApp](/modules/newapp.md)
+- [TmuxPane](/modules/tmuxpane.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

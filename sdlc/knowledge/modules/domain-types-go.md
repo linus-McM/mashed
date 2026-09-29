@@ -5,9 +5,9 @@ description: "Graphify community 75: app_spawn.go, internal/agent/engine.go, int
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: app_spawn, resource: app_spawn.go, last_modified: "2026-05-07T18:18:02+10:00", digest: cbe44d5e06097d50 }
   - { id: engine, resource: internal/agent/engine.go, last_modified: "2026-04-11T17:08:28+10:00", digest: 1042190db571e4e7 }
@@ -23,12 +23,10 @@ sources:
 
 # Symbols
 - .GetAgentLog() (app_spawn.go:L79)
-- .GetAgentStatus() (internal/agent/engine.go:L185)
 - priorityFor() (internal/agent/engine.go:L197)
 - statusToEventType() (internal/agent/engine.go:L218)
 - buildSummary() (internal/agent/engine.go:L241)
 - lastActivity() (internal/agent/engine.go:L266)
-- agentState (internal/agent/engine.go:L41)
 - .ProcessAgentUpdate() (internal/agent/engine.go:L75)
 - TestPriorityOrdering() (internal/agent/engine_test.go:L145)
 - domain/types.go (internal/domain/types.go:L1)
@@ -46,10 +44,10 @@ sources:
 - [App](/modules/app-349.md)
 - [AssetWatcher](/modules/assetwatcher.md)
 - [NotificationEngine](/modules/notificationengine.md)
-- [RepoScanner](/modules/reposcanner.md)
 - [ScopedDiff](/modules/scopeddiff.md)
 - [SessionData](/modules/sessiondata.md)
 - [sessions.go](/modules/sessions-go.md)
+- [time.Time](/modules/time-time.md)
 - [worktree.go](/modules/worktree-go.md)
 
 # Inferred

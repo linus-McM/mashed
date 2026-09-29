@@ -5,9 +5,9 @@ description: "Graphify community 254: app_models.go, app_review_test.go, interna
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: app_models, resource: app_models.go, last_modified: "2026-04-10T11:36:27+10:00", digest: cf387264112e9ff8 }
   - { id: app_review_test, resource: app_review_test.go, last_modified: "2026-04-10T15:03:59+10:00", digest: cd3cd948419c464e }
@@ -38,7 +38,7 @@ sources:
 - [app_review_test.go](/modules/app-review-test-go.md)
 
 # Inferred
-- [App](/modules/app-63.md)
+- [claudeCommand](/modules/claudecommand.md)
 
 # Features
 - no feature plan names these files

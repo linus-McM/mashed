@@ -1,98 +1,27 @@
 ---
 type: Module
 title: SummarisationModal.svelte
-description: "Graphify community 10: docs/SPECIFICATION.md, docs/stories/old_stories/review-03-summarisation-modal.md, docs/stories/old_stories/review-04-refactor-plan-agent.md, docs/stories/old_stories/review-06-g"
+description: "Graphify community 305: docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md, frontend/src/views/SummarisationModal.svelte, frontend/wailsjs/runtime/runtime.js"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T07:07:25Z" }
-stale_after: "2026-10-13T07:07:25Z"
-source_commit: ""
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
-  - { id: SPECIFICATION, resource: docs/SPECIFICATION.md, last_modified: "2026-09-29T07:07:25Z", digest: 2150575fba9a1ee2 }
-  - { id: review-03-summarisation-modal, resource: docs/stories/old_stories/review-03-summarisation-modal.md, last_modified: "2026-09-29T07:07:25Z", digest: 81afe9ff7b51b451 }
-  - { id: review-04-refactor-plan-agent, resource: docs/stories/old_stories/review-04-refactor-plan-agent.md, last_modified: "2026-09-29T07:07:25Z", digest: 209b70908e44c963 }
-  - { id: review-06-gitpanel-integration, resource: docs/stories/old_stories/review-06-gitpanel-integration.md, last_modified: "2026-09-29T07:07:25Z", digest: 05598baa95b4f568 }
-  - { id: review-scoped-01-backend-scoped-advice, resource: docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md, last_modified: "2026-09-29T07:07:25Z", digest: 24ac699c8ee46519 }
-  - { id: review-scoped-03-wired-scoped-flow, resource: docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md, last_modified: "2026-09-29T07:07:25Z", digest: 0702d010516c97b3 }
-  - { id: SummarisationModal, resource: frontend/src/views/SummarisationModal.svelte, last_modified: "2026-09-29T07:07:25Z", digest: 1b621514b92c549f }
-  - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-09-29T07:07:25Z", digest: bdc3ffd8e98df7d8 }
+  - { id: review-scoped-03-wired-scoped-flow, resource: docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 0702d010516c97b3 }
+  - { id: SummarisationModal, resource: frontend/src/views/SummarisationModal.svelte, last_modified: "2026-04-22T20:32:12+10:00", digest: 1b621514b92c549f }
+  - { id: runtime, resource: frontend/wailsjs/runtime/runtime.js, last_modified: "2026-05-07T09:55:31+10:00", digest: e25fe86d3c590de7 }
 ---
 
 # Files
-- `docs/SPECIFICATION.md`
-- `docs/stories/old_stories/review-03-summarisation-modal.md`
-- `docs/stories/old_stories/review-04-refactor-plan-agent.md`
-- `docs/stories/old_stories/review-06-gitpanel-integration.md`
-- `docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md`
 - `docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md`
 - `frontend/src/views/SummarisationModal.svelte`
-- `frontend/wailsjs/go/main/App.js`
+- `frontend/wailsjs/runtime/runtime.js`
 
 # Symbols
-- 9. UI Views (docs/SPECIFICATION.md:L776)
-- Setup View (`Setup.svelte`) (docs/SPECIFICATION.md:L778)
-- Notification Feed (`NotificationFeed.svelte`) (docs/SPECIFICATION.md:L781)
-- Agent Detail (`AgentDetail.svelte`) (docs/SPECIFICATION.md:L788)
-- Workflow Builder (`WorkflowBuilder.svelte`) (docs/SPECIFICATION.md:L797)
-- Settings (`Settings.svelte`) (docs/SPECIFICATION.md:L812)
-- Summarisation (`SummarisationModal.svelte`) (docs/SPECIFICATION.md:L820)
-- About (`AboutModal.svelte`) (docs/SPECIFICATION.md:L823)
-- Technical Considerations (docs/stories/old_stories/review-03-summarisation-modal.md:L53)
-- Acceptance Criteria (docs/stories/old_stories/review-03-summarisation-modal.md:L80)
-- review-04-refactor-plan-agent.md (docs/stories/old_stories/review-04-refactor-plan-agent.md:L1)
-- Story 4: Refactor Plan Agent (docs/stories/old_stories/review-04-refactor-plan-agent.md:L1)
-- BDD Test Scenarios (docs/stories/old_stories/review-04-refactor-plan-agent.md:L123)
-- Scenario 1: Plan creation happy path (docs/stories/old_stories/review-04-refactor-plan-agent.md:L125)
-- Developer Notes (docs/stories/old_stories/review-04-refactor-plan-agent.md:L13)
-- Scenario 2: Input validation (docs/stories/old_stories/review-04-refactor-plan-agent.md:L145)
-- Architecture (docs/stories/old_stories/review-04-refactor-plan-agent.md:L15)
-- Scenario 3: Frontend interaction (docs/stories/old_stories/review-04-refactor-plan-agent.md:L161)
-- Tasks / Subtasks (docs/stories/old_stories/review-04-refactor-plan-agent.md:L182)
-- Backend: SpawnRefactorPlan (docs/stories/old_stories/review-04-refactor-plan-agent.md:L20)
-- Definition of Done (docs/stories/old_stories/review-04-refactor-plan-agent.md:L204)
-- Frontend Changes (docs/stories/old_stories/review-04-refactor-plan-agent.md:L60)
-- Technical Considerations (docs/stories/old_stories/review-04-refactor-plan-agent.md:L70)
-- Risks & Edge Cases (docs/stories/old_stories/review-04-refactor-plan-agent.md:L78)
-- Reference Files (docs/stories/old_stories/review-04-refactor-plan-agent.md:L86)
-- Description (docs/stories/old_stories/review-04-refactor-plan-agent.md:L9)
-- Acceptance Criteria (docs/stories/old_stories/review-04-refactor-plan-agent.md:L92)
-- Tasks / Subtasks (docs/stories/old_stories/review-06-gitpanel-integration.md:L179)
-- Technical Considerations (docs/stories/old_stories/review-06-gitpanel-integration.md:L66)
-- review-scoped-01-backend-scoped-advice.md (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L1)
-- Story 1: StreamScopedAdvice Backend Method (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L1)
-- Scenario 2: Context prepend (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L115)
-- Developer Notes (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L13)
-- Scenario 3: Validation and error handling (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L136)
-- Architecture (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L15)
-- Tasks / Subtasks (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L153)
-- Definition of Done (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L172)
-- Technical Considerations (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L31)
-- Risks & Edge Cases (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L41)
-- Reference Files (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L49)
-- Acceptance Criteria (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L57)
-- BDD Test Scenarios (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L89)
-- Description (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L9)
-- Scenario 1: Scoped diff assembly (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L91)
-- review-scoped-03-wired-scoped-flow.md (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L1)
-- Story 3: Wire Selection to Scoped Advice and Enriched Plan (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L1)
-- Import Changes (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L115)
-- Technical Considerations (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L124)
-- Developer Notes (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L13)
-- Risks & Edge Cases (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L131)
-- Reference Files (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L137)
-- Acceptance Criteria (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L143)
-- Architecture (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L15)
-- BDD Test Scenarios (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L177)
-- Scenario 1: Scoped advice call (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L179)
-- Scenario 2: Incremental re-generation (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L202)
-- State Changes (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L21)
-- Scenario 3: Enriched plan (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L226)
-- Scenario 4: End-to-end flow (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L244)
 - Tasks / Subtasks (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L268)
-- Definition of Done (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L291)
 - Function Changes (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L30)
-- Description (docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md:L9)
 - SummarisationModal.svelte (frontend/src/views/SummarisationModal.svelte:L1)
 - close() (frontend/src/views/SummarisationModal.svelte:L127)
 - handleKeydown() (frontend/src/views/SummarisationModal.svelte:L131)
@@ -102,20 +31,14 @@ sources:
 - buildAdditionalContext() (frontend/src/views/SummarisationModal.svelte:L163)
 - buildEnrichedAdvice() (frontend/src/views/SummarisationModal.svelte:L178)
 - getAdvice() (frontend/src/views/SummarisationModal.svelte:L193)
-- ListAdviceModes() (frontend/wailsjs/go/main/App.js:L177)
-- ReadFileDiff() (frontend/wailsjs/go/main/App.js:L293)
-- SpawnPRReview() (frontend/wailsjs/go/main/App.js:L425)
-- SpawnRefactorPlan() (frontend/wailsjs/go/main/App.js:L429)
-- StreamAdvice() (frontend/wailsjs/go/main/App.js:L445)
-- StreamCodeReviewSummary() (frontend/wailsjs/go/main/App.js:L449)
-- StreamScopedAdvice() (frontend/wailsjs/go/main/App.js:L453)
+- EventsOff() (frontend/wailsjs/runtime/runtime.js:L47)
 
 # Depends on
 - [App.js](/modules/app-js.md)
-- [MonacoEditor.svelte](/modules/monacoeditor-svelte.md)
+- [mashedConfig](/modules/mashedconfig.md)
 - [runtime.js](/modules/runtime-js.md)
 - [Story 2: Code Review Summary & Advice Streaming Backend](/modules/story-2-code-review-summary-advice-streaming-backend.md)
-- [svelte](/modules/svelte.md)
+- [Terminal.svelte](/modules/terminal-svelte.md)
 
 # Inferred
 - [svelte](/modules/svelte.md)

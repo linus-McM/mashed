@@ -1,39 +1,34 @@
 ---
 type: Module
 title: main.go
-description: "Graphify community 64: app.go, app_terminal_registry_test.go, internal/terminal/panes.go, internal/terminal/tmux_adapter_coverage_test.go, internal/terminal/tmux_escape.go, main.go, main_test.go"
+description: "Graphify community 64: app_uiadapter.go, internal/bmad/registry_fs.go, internal/uiadapter/encode.go, main.go, main_test.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T07:07:25Z" }
-stale_after: "2026-10-13T07:07:25Z"
-source_commit: ""
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
-  - { id: app, resource: app.go, last_modified: "2026-09-29T07:07:25Z", digest: 295875db4f0bdc1e }
-  - { id: app_terminal_registry_test, resource: app_terminal_registry_test.go, last_modified: "2026-09-29T07:07:25Z", digest: 2f85a0b04c1b8ba7 }
-  - { id: panes, resource: internal/terminal/panes.go, last_modified: "2026-09-29T07:07:25Z", digest: 45986d36cbef9af3 }
-  - { id: tmux_adapter_coverage_test, resource: internal/terminal/tmux_adapter_coverage_test.go, last_modified: "2026-09-29T07:07:25Z", digest: 24b353b6c1480a46 }
-  - { id: tmux_escape, resource: internal/terminal/tmux_escape.go, last_modified: "2026-09-29T07:07:25Z", digest: d61b1108f3251770 }
-  - { id: main, resource: main.go, last_modified: "2026-09-29T07:07:25Z", digest: c9962291a4cdea89 }
-  - { id: main_test, resource: main_test.go, last_modified: "2026-09-29T07:07:25Z", digest: e65839083faadcd9 }
+  - { id: app_uiadapter, resource: app_uiadapter.go, last_modified: "2026-04-21T21:06:39+10:00", digest: eebf36a959a4ef0e }
+  - { id: registry_fs, resource: internal/bmad/registry_fs.go, last_modified: "2026-04-20T15:36:58+10:00", digest: 144ec4b753400fe8 }
+  - { id: encode, resource: internal/uiadapter/encode.go, last_modified: "2026-04-26T11:30:52+10:00", digest: bf82e888f12311d6 }
+  - { id: main, resource: main.go, last_modified: "2026-04-26T09:22:14+10:00", digest: c9962291a4cdea89 }
+  - { id: main_test, resource: main_test.go, last_modified: "2026-04-08T23:16:35+10:00", digest: e65839083faadcd9 }
 ---
 
 # Files
-- `app.go`
-- `app_terminal_registry_test.go`
-- `internal/terminal/panes.go`
-- `internal/terminal/tmux_adapter_coverage_test.go`
-- `internal/terminal/tmux_escape.go`
+- `app_uiadapter.go`
+- `internal/bmad/registry_fs.go`
+- `internal/uiadapter/encode.go`
 - `main.go`
 - `main_test.go`
 
 # Symbols
-- NewApp() (app.go:L232)
-- TestStory1_NewAppInitializesMap() (app_terminal_registry_test.go:L327)
-- NewPaneDiscovery() (internal/terminal/panes.go:L67)
-- TestIsTmuxAvailable_ReturnsBoolWithoutPanic() (internal/terminal/tmux_adapter_coverage_test.go:L55)
-- tmux_escape.go (internal/terminal/tmux_escape.go:L1)
-- IsTmuxAvailable() (internal/terminal/tmux_escape.go:L67)
+- app_uiadapter.go (app_uiadapter.go:L1)
+- tagsListResponse (app_uiadapter.go:L141)
+- init() (app_uiadapter.go:L34)
+- registry_fs.go (internal/bmad/registry_fs.go:L1)
+- encode.go (internal/uiadapter/encode.go:L1)
 - main.go (main.go:L1)
 - resolveHelperPath() (main.go:L103)
 - waitForSocket() (main.go:L121)
@@ -49,15 +44,14 @@ sources:
 - TestBuildMenu_AC2_FileSubmenu() (main_test.go:L94)
 
 # Depends on
-- [App](/modules/app.md)
-- [Bridge](/modules/bridge.md)
-- [manager_test.go](/modules/manager-test-go.md)
+- [loadConfig](/modules/loadconfig.md)
+- [nilSafeLogger](/modules/nilsafelogger.md)
+- [SanitizeCapture](/modules/sanitizecapture.md)
 - [server_test.go](/modules/server-test-go.md)
-- [sync.Mutex](/modules/sync-mutex.md)
-- [tmux_adapter_coverage_test.go](/modules/tmux-adapter-coverage-test-go.md)
+- [setupTestConfig](/modules/setuptestconfig.md)
 
 # Inferred
-- no INFERRED edges; treat any that appear as hints
+- [NewApp](/modules/newapp.md)
 
 # Features
 - no feature plan names these files

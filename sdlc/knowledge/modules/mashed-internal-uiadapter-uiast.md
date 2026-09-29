@@ -1,78 +1,111 @@
 ---
 type: Module
 title: mashed/internal/uiadapter.UIAST
-description: "Graphify community 25: internal/bmad/executor_adapter_test.go, internal/uiadapter/backend/stubs.go, internal/uiadapter/eval/corpus.go, internal/uiadapter/eval/corpus_test.go, internal/uiadapter/eval/s"
-resource: internal
+description: "Graphify community 85: app_uiadapter_claudecli.go, internal/bmad/executor_adapter_test.go, internal/uiadapter/backend/backend.go, internal/uiadapter/backend/claudeapi/client.go, internal/uiadapter/bac"
+resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
+  - { id: app_uiadapter_claudecli, resource: app_uiadapter_claudecli.go, last_modified: "2026-04-28T12:36:05+10:00", digest: 9c423a0a128af5b2 }
   - { id: executor_adapter_test, resource: internal/bmad/executor_adapter_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f79102c9f400d28f }
+  - { id: backend, resource: internal/uiadapter/backend/backend.go, last_modified: "2026-04-23T11:09:52+10:00", digest: d0eac5646b5c1ef3 }
+  - { id: client, resource: internal/uiadapter/backend/claudeapi/client.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 3e20643bf928e2f2 }
+  - { id: client_test, resource: internal/uiadapter/backend/claudeapi/client_test.go, last_modified: "2026-04-23T11:34:52+10:00", digest: e3e3d9c28e77effe }
+  - { id: client, resource: internal/uiadapter/backend/claudecli/client.go, last_modified: "2026-04-28T12:36:05+10:00", digest: 414128d39b8e1d31 }
+  - { id: client_test, resource: internal/uiadapter/backend/claudecli/client_test.go, last_modified: "2026-04-23T11:34:52+10:00", digest: 4342fc0ff1e40237 }
+  - { id: lifecycle_test, resource: internal/uiadapter/backend/lifecycle_test.go, last_modified: "2026-04-23T11:34:52+10:00", digest: 7f78d92ee9e83203 }
   - { id: stubs, resource: internal/uiadapter/backend/stubs.go, last_modified: "2026-04-23T11:09:52+10:00", digest: 60bb478e1146d7a5 }
-  - { id: corpus, resource: internal/uiadapter/eval/corpus.go, last_modified: "2026-04-22T14:13:03+10:00", digest: be80b9817e3d70f3 }
-  - { id: corpus_test, resource: internal/uiadapter/eval/corpus_test.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 2df8e716d6d0fee2 }
-  - { id: scorecard, resource: internal/uiadapter/eval/scorecard.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 478867f290bdf6a9 }
   - { id: scorecard_test, resource: internal/uiadapter/eval/scorecard_test.go, last_modified: "2026-04-22T14:13:03+10:00", digest: c10507f5ef6c8f7b }
-  - { id: eval_test, resource: internal/uiadapter/eval_test.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 170e442f3eb11320 }
+  - { id: fallback, resource: internal/uiadapter/fallback.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 187709266229767c }
+  - { id: fallback_test, resource: internal/uiadapter/fallback_test.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 2fa70a931cc96a6b }
 ---
 
 # Files
+- `app_uiadapter_claudecli.go`
 - `internal/bmad/executor_adapter_test.go`
+- `internal/uiadapter/backend/backend.go`
+- `internal/uiadapter/backend/claudeapi/client.go`
+- `internal/uiadapter/backend/claudeapi/client_test.go`
+- `internal/uiadapter/backend/claudecli/client.go`
+- `internal/uiadapter/backend/claudecli/client_test.go`
+- `internal/uiadapter/backend/lifecycle_test.go`
 - `internal/uiadapter/backend/stubs.go`
-- `internal/uiadapter/eval/corpus.go`
-- `internal/uiadapter/eval/corpus_test.go`
-- `internal/uiadapter/eval/scorecard.go`
 - `internal/uiadapter/eval/scorecard_test.go`
-- `internal/uiadapter/eval_test.go`
+- `internal/uiadapter/fallback.go`
+- `internal/uiadapter/fallback_test.go`
 
 # Symbols
+- truncReason() (app_uiadapter_claudecli.go:L105)
+- splitHeadTail() (app_uiadapter_claudecli.go:L118)
+- dumpRawIfRequested() (app_uiadapter_claudecli.go:L129)
+- capModel() (app_uiadapter_claudecli.go:L150)
+- claudeCLIAdapter (app_uiadapter_claudecli.go:L21)
+- .Translate() (app_uiadapter_claudecli.go:L39)
 - delayAdapter (internal/bmad/executor_adapter_test.go:L34)
 - .Translate() (internal/bmad/executor_adapter_test.go:L39)
+- Kind (internal/uiadapter/backend/backend.go:L17)
+- Capabilities (internal/uiadapter/backend/backend.go:L45)
+- .Generate() (internal/uiadapter/backend/claudeapi/client.go:L114)
+- .GenerateSingleShot() (internal/uiadapter/backend/claudeapi/client.go:L139)
+- .call() (internal/uiadapter/backend/claudeapi/client.go:L211)
+- Client (internal/uiadapter/backend/claudeapi/client.go:L23)
+- waitRetryAfter() (internal/uiadapter/backend/claudeapi/client.go:L270)
+- sanitiseErrorBody() (internal/uiadapter/backend/claudeapi/client.go:L284)
+- anthropicVersion() (internal/uiadapter/backend/claudeapi/client.go:L292)
+- apiKey (internal/uiadapter/backend/claudeapi/client.go:L34)
+- .String() (internal/uiadapter/backend/claudeapi/client.go:L36)
+- NewClient() (internal/uiadapter/backend/claudeapi/client.go:L41)
+- .Name() (internal/uiadapter/backend/claudeapi/client.go:L62)
+- .Capabilities() (internal/uiadapter/backend/claudeapi/client.go:L65)
+- .WarmUp() (internal/uiadapter/backend/claudeapi/client.go:L80)
+- .Health() (internal/uiadapter/backend/claudeapi/client.go:L89)
+- TestClaudeAPI_AnthropicVersionHeader() (internal/uiadapter/backend/claudeapi/client_test.go:L122)
+- TestClaudeAPI_StopReasonNotToolUseErrors() (internal/uiadapter/backend/claudeapi/client_test.go:L142)
+- TestClaudeAPI_ToolUseRoundtrip() (internal/uiadapter/backend/claudeapi/client_test.go:L22)
+- TestClaudeAPI_RetryAfter429() (internal/uiadapter/backend/claudeapi/client_test.go:L53)
+- TestClaudeAPI_KeyNotLogged() (internal/uiadapter/backend/claudeapi/client_test.go:L89)
+- TestClaudeAPI_WarmUpMissingKeyErrors() (internal/uiadapter/backend/claudeapi/client_test.go:L99)
+- .GenerateSingleShot() (internal/uiadapter/backend/claudecli/client.go:L116)
+- .TranslateWithFullPrompt() (internal/uiadapter/backend/claudecli/client.go:L132)
+- .runRaw() (internal/uiadapter/backend/claudecli/client.go:L152)
+- Client (internal/uiadapter/backend/claudecli/client.go:L21)
+- extractFencedJSON() (internal/uiadapter/backend/claudecli/client.go:L326)
+- .Name() (internal/uiadapter/backend/claudecli/client.go:L41)
+- .Capabilities() (internal/uiadapter/backend/claudecli/client.go:L44)
+- TestClaudeCLI_ParsingHandlesShapes() (internal/uiadapter/backend/claudecli/client_test.go:L27)
+- slowBackend (internal/uiadapter/backend/lifecycle_test.go:L16)
+- .WarmUp() (internal/uiadapter/backend/lifecycle_test.go:L22)
+- StubBackend (internal/uiadapter/backend/stubs.go:L14)
+- .Name() (internal/uiadapter/backend/stubs.go:L32)
+- .Classify() (internal/uiadapter/backend/stubs.go:L34)
 - .Generate() (internal/uiadapter/backend/stubs.go:L39)
 - .GenerateSingleShot() (internal/uiadapter/backend/stubs.go:L44)
+- .WarmUp() (internal/uiadapter/backend/stubs.go:L52)
+- .Health() (internal/uiadapter/backend/stubs.go:L57)
+- .Capabilities() (internal/uiadapter/backend/stubs.go:L62)
+- .Calls() (internal/uiadapter/backend/stubs.go:L66)
 - synthUIAST() (internal/uiadapter/backend/stubs.go:L77)
-- corpus.go (internal/uiadapter/eval/corpus.go:L1)
-- Fixture (internal/uiadapter/eval/corpus.go:L21)
-- Expected (internal/uiadapter/eval/corpus.go:L30)
-- LoadCorpus() (internal/uiadapter/eval/corpus.go:L55)
-- collectFixtureIDs() (internal/uiadapter/eval/corpus.go:L69)
-- loadFixture() (internal/uiadapter/eval/corpus.go:L89)
-- TestEval_Corpus_MinimumCount() (internal/uiadapter/eval/corpus_test.go:L13)
-- .recordPreservation() (internal/uiadapter/eval/scorecard.go:L112)
-- classifyGeneratedBy() (internal/uiadapter/eval/scorecard.go:L246)
-- inferModel() (internal/uiadapter/eval/scorecard.go:L259)
-- widgetTypesFrom() (internal/uiadapter/eval/scorecard.go:L267)
-- renderedText() (internal/uiadapter/eval/scorecard.go:L280)
-- Score() (internal/uiadapter/eval/scorecard.go:L53)
-- .record() (internal/uiadapter/eval/scorecard.go:L73)
-- scorecard_test.go (internal/uiadapter/eval/scorecard_test.go:L1)
-- TestEval_PerWidgetPrecisionRecall() (internal/uiadapter/eval/scorecard_test.go:L104)
-- TestEval_Scorecard_PrettyPrint() (internal/uiadapter/eval/scorecard_test.go:L153)
-- TestEval_MeetsThresholds_Table() (internal/uiadapter/eval/scorecard_test.go:L178)
 - sequentialMockAdapter (internal/uiadapter/eval/scorecard_test.go:L19)
 - .Translate() (internal/uiadapter/eval/scorecard_test.go:L24)
-- TestEval_Preservation_URLAndCodeBlockCounts() (internal/uiadapter/eval/scorecard_test.go:L249)
-- TestEval_ScorecardRates_EmptyCorpus() (internal/uiadapter/eval/scorecard_test.go:L302)
-- TestEval_PrettyPrint_IncludesPerWidgetLines() (internal/uiadapter/eval/scorecard_test.go:L313)
-- newSynthFixture() (internal/uiadapter/eval/scorecard_test.go:L33)
-- uniformLatencies() (internal/uiadapter/eval/scorecard_test.go:L331)
-- astOllama() (internal/uiadapter/eval/scorecard_test.go:L44)
-- astValidatorFailed() (internal/uiadapter/eval/scorecard_test.go:L53)
-- astMalformed() (internal/uiadapter/eval/scorecard_test.go:L62)
-- TestEval_Scorecard_Metrics() (internal/uiadapter/eval/scorecard_test.go:L72)
-- TestEval_FullCorpus_MeetsThresholds() (internal/uiadapter/eval_test.go:L52)
+- FallbackAST() (internal/uiadapter/fallback.go:L23)
+- firstLine() (internal/uiadapter/fallback.go:L47)
+- TestFallbackAST_LiteralShape() (internal/uiadapter/fallback_test.go:L14)
+- TestFallbackAST_TurnSummaryTruncates() (internal/uiadapter/fallback_test.go:L38)
+- TestFallbackAST_EmptyRawIsSafe() (internal/uiadapter/fallback_test.go:L51)
 
 # Depends on
-- [claudeapi/client.go](/modules/claudeapi-client-go.md)
-- [log/slog.Logger](/modules/log-slog-logger.md)
-- [time.Duration](/modules/time-duration.md)
-- [time.Time](/modules/time-time.md)
-- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
+- [Accountant](/modules/accountant.md)
+- [context.Context](/modules/context-context.md)
+- [DefaultConfig](/modules/defaultconfig.md)
+- [nilSafeLogger](/modules/nilsafelogger.md)
+- [prompt_test.go](/modules/prompt-test-go.md)
+- [SanitizeCapture](/modules/sanitizecapture.md)
 
 # Inferred
-- no INFERRED edges; treat any that appear as hints
+- [nilSafeLogger](/modules/nilsafelogger.md)
 
 # Features
 - no feature plan names these files

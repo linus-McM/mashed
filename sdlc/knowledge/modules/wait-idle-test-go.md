@@ -1,24 +1,27 @@
 ---
 type: Module
 title: wait_idle_test.go
-description: "Graphify community 329: internal/bmad/mock_helpers_test.go, internal/bmad/wait_idle_test.go"
+description: "Graphify community 329: internal/bmad/executor.go, internal/bmad/mock_helpers_test.go, internal/bmad/wait_idle_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
+  - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: mock_helpers_test, resource: internal/bmad/mock_helpers_test.go, last_modified: "2026-04-12T16:42:48+10:00", digest: dd7b5edf17e36713 }
   - { id: wait_idle_test, resource: internal/bmad/wait_idle_test.go, last_modified: "2026-04-23T13:05:14+10:00", digest: 1dda9adef91d1698 }
 ---
 
 # Files
+- `internal/bmad/executor.go`
 - `internal/bmad/mock_helpers_test.go`
 - `internal/bmad/wait_idle_test.go`
 
 # Symbols
-- mock_helpers_test.go (internal/bmad/mock_helpers_test.go:L1)
+- .SetCommandRunner() (internal/bmad/executor.go:L123)
+- CommandRunner (internal/bmad/executor.go:L31)
 - makeIdleOutput() (internal/bmad/mock_helpers_test.go:L117)
 - idleMockRunner() (internal/bmad/mock_helpers_test.go:L86)
 - wait_idle_test.go (internal/bmad/wait_idle_test.go:L1)
@@ -31,10 +34,9 @@ sources:
 - TestWaitForIdleCompletion_PaneDeath() (internal/bmad/wait_idle_test.go:L81)
 
 # Depends on
-- [newHarness](/modules/newharness.md)
+- no EXTRACTED edges to other modules
 
 # Inferred
-- [Executor](/modules/executor.md)
 - [newHarness](/modules/newharness.md)
 
 # Features

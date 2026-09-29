@@ -1,36 +1,40 @@
 ---
 type: Module
 title: bmad/registry_test.go
-description: "Graphify community 62: app_bmad.go, internal/bmad/executor_multifileloader_test.go, internal/bmad/registry.go, internal/bmad/registry_interactive_phase2_test.go, internal/bmad/registry_test.go, intern"
-resource: ""
+description: "Graphify community 62: internal/bmad/artifacts.go, internal/bmad/artifacts_test.go, internal/bmad/executor_multifileloader_test.go, internal/bmad/registry.go, internal/bmad/registry_interactive_phase2"
+resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
-  - { id: app_bmad, resource: app_bmad.go, last_modified: "2026-04-28T12:36:05+10:00", digest: fca7c61a439c150e }
+  - { id: artifacts, resource: internal/bmad/artifacts.go, last_modified: "2026-04-12T20:21:26+10:00", digest: 0fcf7b7f19ac0972 }
+  - { id: artifacts_test, resource: internal/bmad/artifacts_test.go, last_modified: "2026-04-08T20:52:15+10:00", digest: d50e7198f73eb5fe }
   - { id: executor_multifileloader_test, resource: internal/bmad/executor_multifileloader_test.go, last_modified: "2026-04-14T19:25:01+10:00", digest: 32a16dc3fc140e25 }
   - { id: registry, resource: internal/bmad/registry.go, last_modified: "2026-04-21T09:23:33+10:00", digest: df9f16ce4aa6d2e3 }
   - { id: registry_interactive_phase2_test, resource: internal/bmad/registry_interactive_phase2_test.go, last_modified: "2026-04-28T11:16:27+10:00", digest: 145cf97aa6278c93 }
   - { id: registry_test, resource: internal/bmad/registry_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: c231191d71cc2f84 }
-  - { id: skillgen, resource: internal/bmad/skillgen.go, last_modified: "2026-04-09T22:26:45+10:00", digest: 925f4004ca59e699 }
-  - { id: skillgen_test, resource: internal/bmad/skillgen_test.go, last_modified: "2026-04-09T22:26:45+10:00", digest: 421c997fe09f72e2 }
-  - { id: types, resource: internal/bmad/types.go, last_modified: "2026-04-28T09:29:49+10:00", digest: 05a3e7d01f5f08c2 }
 ---
 
 # Files
-- `app_bmad.go`
+- `internal/bmad/artifacts.go`
+- `internal/bmad/artifacts_test.go`
 - `internal/bmad/executor_multifileloader_test.go`
 - `internal/bmad/registry.go`
 - `internal/bmad/registry_interactive_phase2_test.go`
 - `internal/bmad/registry_test.go`
-- `internal/bmad/skillgen.go`
-- `internal/bmad/skillgen_test.go`
-- `internal/bmad/types.go`
 
 # Symbols
-- .GetBmadProcessesByPhase() (app_bmad.go:L73)
+- VerifyArtifacts() (internal/bmad/artifacts.go:L75)
+- artifacts_test.go (internal/bmad/artifacts_test.go:L1)
+- TestAC3_VerifyArtifacts_EdgeCases() (internal/bmad/artifacts_test.go:L110)
+- TestAC3_VerifyArtifacts_NoBmadOutputDir() (internal/bmad/artifacts_test.go:L126)
+- TestAC5_VerifyArtifacts_DirectoryArtifact() (internal/bmad/artifacts_test.go:L137)
+- TestAC3_VerifyArtifacts_StatErrorNotNotExist() (internal/bmad/artifacts_test.go:L149)
+- TestAC5_VerifyArtifacts_DirectoryMissing() (internal/bmad/artifacts_test.go:L168)
+- TestAC1_RegistryCompleteness() (internal/bmad/artifacts_test.go:L18)
+- TestAC3_VerifyArtifacts_MixedFoundMissing() (internal/bmad/artifacts_test.go:L97)
 - TestMultiFileLoader_AC5_RegistrySurface() (internal/bmad/executor_multifileloader_test.go:L233)
 - bmad/registry.go (internal/bmad/registry.go:L1)
 - init() (internal/bmad/registry.go:L13)
@@ -60,25 +64,10 @@ sources:
 - TestProcessByID_Existing() (internal/bmad/registry_test.go:L82)
 - TestProcessByID_Missing() (internal/bmad/registry_test.go:L90)
 - TestProcessesByModule_Core() (internal/bmad/registry_test.go:L95)
-- GenerateSkillFiles() (internal/bmad/skillgen.go:L67)
-- skillgen_test.go (internal/bmad/skillgen_test.go:L1)
-- TestGenerateSkillFiles_OutputPathsResolved() (internal/bmad/skillgen_test.go:L109)
-- TestGenerateSkillFiles_NoInputsFallback() (internal/bmad/skillgen_test.go:L123)
-- TestGenerateSkillFiles_CreatesAllDirectories() (internal/bmad/skillgen_test.go:L13)
-- TestGenerateSkillFiles_UnmappedOutputFallback() (internal/bmad/skillgen_test.go:L137)
-- TestGenerateSkillFiles_ErrorOnInvalidBaseDir() (internal/bmad/skillgen_test.go:L155)
-- TestGenerateSkillFiles_ErrorOnReadOnlyDir() (internal/bmad/skillgen_test.go:L166)
-- TestGenerateSkillFiles_MixedMappedAndUnmappedOutputs() (internal/bmad/skillgen_test.go:L179)
-- TestGenerateSkillFiles_Idempotent() (internal/bmad/skillgen_test.go:L196)
-- TestGenerateSkillFiles_DirectoryNamesMatchSkillNames() (internal/bmad/skillgen_test.go:L32)
-- TestGenerateSkillFiles_FrontmatterCorrect() (internal/bmad/skillgen_test.go:L58)
-- TestGenerateSkillFiles_InputPathsResolved() (internal/bmad/skillgen_test.go:L95)
-- BmadPhase (internal/bmad/types.go:L57)
 
 # Depends on
 - [ProcessByID](/modules/processbyid.md)
 - [ProcessDef](/modules/processdef.md)
-- [skillgen.go](/modules/skillgen-go.md)
 
 # Inferred
 - [ProcessByID](/modules/processbyid.md)

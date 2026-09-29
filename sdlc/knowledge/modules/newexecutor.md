@@ -5,9 +5,9 @@ description: "Graphify community 36: internal/bmad/executor.go, internal/bmad/ex
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: executor_gate_test, resource: internal/bmad/executor_gate_test.go, last_modified: "2026-04-20T14:19:27+10:00", digest: 9071d4934689a274 }
@@ -59,29 +59,22 @@ sources:
 - TestGetInteractiveTranscript_SkipsMissingClaudeRoundButKeepsUser() (internal/bmad/executor_resume_test.go:L809)
 - TestGetInteractiveTranscript_ExecNotFound() (internal/bmad/executor_resume_test.go:L840)
 - TestSnapshotVersionField() (internal/bmad/executor_resume_test.go:L98)
-- executor_session_test.go (internal/bmad/executor_session_test.go:L1)
 - TestResolveCommandSession_ZeroLiveParents() (internal/bmad/executor_session_test.go:L141)
 - TestResolveCommandSession_OneLiveParent() (internal/bmad/executor_session_test.go:L167)
-- capturedArgv (internal/bmad/executor_session_test.go:L18)
 - TestResolveCommandSession_StaleParent() (internal/bmad/executor_session_test.go:L197)
 - TestResolveCommandSession_MultiParentPicksMostRecent() (internal/bmad/executor_session_test.go:L226)
-- .record() (internal/bmad/executor_session_test.go:L23)
 - TestResolveCommandSession_SessionGoneError() (internal/bmad/executor_session_test.go:L262)
-- .last() (internal/bmad/executor_session_test.go:L31)
 - newSessionState() (internal/bmad/executor_session_test.go:L42)
-- TestSpawnCommandSession_RegressionFromRefactor() (internal/bmad/executor_session_test.go:L81)
 - NewStorage() (internal/bmad/storage.go:L24)
 - TestNewStorage_CreatesDirectories() (internal/bmad/storage_test.go:L221)
 
 # Depends on
 - [Executor](/modules/executor.md)
-- [executor_command_test.go](/modules/executor-command-test-go.md)
-- [.resumeInteractiveNode](/modules/resumeinteractivenode.md)
+- [Storage](/modules/storage.md)
 
 # Inferred
-- [gate.go](/modules/gate-go.md)
-- [newHarness](/modules/newharness.md)
-- [registerTestProcess](/modules/registertestprocess.md)
+- [.executeInteractiveNode](/modules/executeinteractivenode.md)
+- [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
 
 # Features
 - no feature plan names these files

@@ -1,16 +1,16 @@
 ---
 type: Module
 title: skillgen_test.go
-description: "Graphify community 305: internal/bmad/skillgen.go, internal/bmad/skillgen_test.go"
+description: "Graphify community 397: internal/bmad/skillgen.go, internal/bmad/skillgen_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T07:07:25Z" }
-stale_after: "2026-10-13T07:07:25Z"
-source_commit: ""
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
-  - { id: skillgen, resource: internal/bmad/skillgen.go, last_modified: "2026-09-29T07:07:25Z", digest: 925f4004ca59e699 }
-  - { id: skillgen_test, resource: internal/bmad/skillgen_test.go, last_modified: "2026-09-29T07:07:25Z", digest: 421c997fe09f72e2 }
+  - { id: skillgen, resource: internal/bmad/skillgen.go, last_modified: "2026-04-09T22:26:45+10:00", digest: 925f4004ca59e699 }
+  - { id: skillgen_test, resource: internal/bmad/skillgen_test.go, last_modified: "2026-04-09T22:26:45+10:00", digest: 421c997fe09f72e2 }
 ---
 
 # Files
@@ -18,7 +18,11 @@ sources:
 - `internal/bmad/skillgen_test.go`
 
 # Symbols
+- skillgen.go (internal/bmad/skillgen.go:L1)
+- skillTemplateData (internal/bmad/skillgen.go:L11)
+- artifactPathSpec (internal/bmad/skillgen.go:L21)
 - GenerateSkillFiles() (internal/bmad/skillgen.go:L67)
+- buildSkillData() (internal/bmad/skillgen.go:L97)
 - skillgen_test.go (internal/bmad/skillgen_test.go:L1)
 - TestGenerateSkillFiles_OutputPathsResolved() (internal/bmad/skillgen_test.go:L109)
 - TestGenerateSkillFiles_NoInputsFallback() (internal/bmad/skillgen_test.go:L123)
@@ -33,10 +37,11 @@ sources:
 - TestGenerateSkillFiles_InputPathsResolved() (internal/bmad/skillgen_test.go:L95)
 
 # Depends on
-- [go_pkg_os](/modules/go-pkg-os.md)
+- no EXTRACTED edges to other modules
 
 # Inferred
 - [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
+- [ProcessByID](/modules/processbyid.md)
 
 # Features
 - no feature plan names these files

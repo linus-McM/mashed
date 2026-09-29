@@ -5,9 +5,9 @@ description: "Graphify community 208: docs/stories/old_stories/bridge-04-stale-c
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: bridge-04-stale-cleanup-and-frontend-polish, resource: docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 22d252e5a0750c99 }
   - { id: bmadSessionName.test, resource: frontend/src/lib/bmadSessionName.test.ts, last_modified: "2026-04-10T17:42:20+10:00", digest: 2fc81ab01d253ac2 }
@@ -23,7 +23,11 @@ sources:
 - bridge-04-stale-cleanup-and-frontend-polish.md (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L1)
 - Story bridge-04: Stale Session Cleanup and Frontend Polish (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L1)
 - Developer Notes (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L13)
+- BDD Test Scenarios (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L140)
+- Scenario 1: Cleanup behaviour (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L142)
 - Architecture (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L15)
+- Scenario 2: Frontend parser (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L172)
+- Scenario 3: Modal title (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L193)
 - Tasks / Subtasks (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L209)
 - Definition of Done (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L245)
 - AC Validation Table (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L259)

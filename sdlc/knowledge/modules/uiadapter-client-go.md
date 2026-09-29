@@ -1,15 +1,15 @@
 ---
 type: Module
 title: uiadapter/client.go
-description: "Graphify community 476: internal/uiadapter/client.go"
+description: "Graphify community 428: internal/uiadapter/client.go"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T07:07:25Z" }
-stale_after: "2026-10-13T07:07:25Z"
-source_commit: ""
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
-  - { id: client, resource: internal/uiadapter/client.go, last_modified: "2026-09-29T07:07:25Z", digest: 07a2280966b51366 }
+  - { id: client, resource: internal/uiadapter/client.go, last_modified: "2026-04-26T10:14:41+10:00", digest: 07a2280966b51366 }
 ---
 
 # Files
@@ -25,8 +25,8 @@ sources:
 - tagsResponse (internal/uiadapter/client.go:L80)
 
 # Depends on
-- [time.Duration](/modules/time-duration.md)
-- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
+- [context.Context](/modules/context-context.md)
+- [NewDefault](/modules/newdefault.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

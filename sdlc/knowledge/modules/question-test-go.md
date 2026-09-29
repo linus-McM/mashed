@@ -1,26 +1,30 @@
 ---
 type: Module
 title: question_test.go
-description: "Graphify community 41: internal/bmad/executor_iteration_test.go, internal/bmad/question.go, internal/bmad/question_test.go"
+description: "Graphify community 41: internal/bmad/executor_iteration_test.go, internal/bmad/fixture_verify_test.go, internal/bmad/question.go, internal/bmad/question_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: executor_iteration_test, resource: internal/bmad/executor_iteration_test.go, last_modified: "2026-04-20T14:19:27+10:00", digest: 57d32c63707a4432 }
+  - { id: fixture_verify_test, resource: internal/bmad/fixture_verify_test.go, last_modified: "2026-04-11T19:45:53+10:00", digest: 6c143c3418c90221 }
   - { id: question, resource: internal/bmad/question.go, last_modified: "2026-04-17T20:58:29+10:00", digest: 81034d253e6ceb12 }
   - { id: question_test, resource: internal/bmad/question_test.go, last_modified: "2026-04-28T12:02:57+10:00", digest: 08a2a97c930cca46 }
 ---
 
 # Files
 - `internal/bmad/executor_iteration_test.go`
+- `internal/bmad/fixture_verify_test.go`
 - `internal/bmad/question.go`
 - `internal/bmad/question_test.go`
 
 # Symbols
 - TestSendToSessionTwoTmuxCalls() (internal/bmad/executor_iteration_test.go:L620)
+- TestDetectIdlePrompt_RealFixture() (internal/bmad/fixture_verify_test.go:L26)
+- detectIdlePrompt() (internal/bmad/question.go:L191)
 - hasRecentQuestion() (internal/bmad/question.go:L238)
 - escapeTmuxLiteral() (internal/bmad/question.go:L276)
 - stripANSI() (internal/bmad/question.go:L87)

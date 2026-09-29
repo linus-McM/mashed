@@ -5,9 +5,9 @@ description: "Graphify community 128: frontend/wailsjs/go/main/App.d.ts, fronten
 resource: frontend/wailsjs/go
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: App.d, resource: frontend/wailsjs/go/main/App.d.ts, last_modified: "2026-05-07T18:18:02+10:00", digest: 387fa120a3b86417 }
   - { id: models, resource: frontend/wailsjs/go/models.ts, last_modified: "2026-04-28T12:36:05+10:00", digest: 921deb8fd959e9dc }
@@ -42,7 +42,7 @@ sources:
 
 # Depends on
 - [AgentInfo](/modules/agentinfo.md)
-- [BmadAgentConfig](/modules/bmadagentconfig.md)
+- [BmadAgentConfig](/modules/bmadagentconfig-537.md)
 - [BranchInfo](/modules/branchinfo.md)
 - [ControlFlowNodeDef](/modules/controlflownodedef.md)
 - [.convertValues](/modules/convertvalues.md)
@@ -53,6 +53,7 @@ sources:
 - [IterationGate](/modules/iterationgate.md)
 - [LocalFontFile](/modules/localfontfile.md)
 - [MarkdownMenuSettings](/modules/markdownmenusettings.md)
+- [mashedConfig](/modules/mashedconfig.md)
 - [ModuleDef](/modules/moduledef.md)
 - [NerdFontEntry](/modules/nerdfontentry.md)
 - [NodeInputEntry](/modules/nodeinputentry.md)
@@ -67,7 +68,7 @@ sources:
 - [TerminalSession](/modules/terminalsession.md)
 - [ValidationIssue](/modules/validationissue.md)
 - [WorkflowEdge](/modules/workflowedge.md)
-- [WorkflowExecution](/modules/workflowexecution.md)
+- [WorkflowExecution](/modules/workflowexecution-529.md)
 - [WorktreeInfo](/modules/worktreeinfo.md)
 
 # Inferred

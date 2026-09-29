@@ -1,15 +1,16 @@
 ---
 type: Module
 title: ProcessByID
-description: "Graphify community 2: internal/bmad/artifacts.go, internal/bmad/executor.go, internal/bmad/executor_outputpaths_test.go, internal/bmad/executor_test.go, internal/bmad/registry.go, internal/bmad/regist"
+description: "Graphify community 2: internal/bmad/artifacts.go, internal/bmad/artifacts_test.go, internal/bmad/executor.go, internal/bmad/executor_outputpaths_test.go, internal/bmad/executor_test.go, internal/bmad/"
 resource: internal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: artifacts, resource: internal/bmad/artifacts.go, last_modified: "2026-04-12T20:21:26+10:00", digest: 0fcf7b7f19ac0972 }
+  - { id: artifacts_test, resource: internal/bmad/artifacts_test.go, last_modified: "2026-04-08T20:52:15+10:00", digest: d50e7198f73eb5fe }
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: executor_outputpaths_test, resource: internal/bmad/executor_outputpaths_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 8d577df9f438ee41 }
   - { id: executor_test, resource: internal/bmad/executor_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 4449efba985daebc }
@@ -22,12 +23,12 @@ sources:
   - { id: registry_interactive_phase4_test, resource: internal/bmad/registry_interactive_phase4_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 85bea3b0aca5ce36 }
   - { id: registry_interactive_phase5_test, resource: internal/bmad/registry_interactive_phase5_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: b7a284fda88c6382 }
   - { id: registry_interactive_test, resource: internal/bmad/registry_interactive_test.go, last_modified: "2026-04-20T15:36:58+10:00", digest: 2394d3c33e43a481 }
-  - { id: testutil_interactive_test, resource: internal/bmad/testutil_interactive_test.go, last_modified: "2026-04-20T15:36:58+10:00", digest: f165a17bd64570bc }
   - { id: allowlist, resource: internal/uiadapter/allowlist.go, last_modified: "2026-04-26T11:30:52+10:00", digest: ec96ab6a3976170d }
 ---
 
 # Files
 - `internal/bmad/artifacts.go`
+- `internal/bmad/artifacts_test.go`
 - `internal/bmad/executor.go`
 - `internal/bmad/executor_outputpaths_test.go`
 - `internal/bmad/executor_test.go`
@@ -40,16 +41,17 @@ sources:
 - `internal/bmad/registry_interactive_phase4_test.go`
 - `internal/bmad/registry_interactive_phase5_test.go`
 - `internal/bmad/registry_interactive_test.go`
-- `internal/bmad/testutil_interactive_test.go`
 - `internal/uiadapter/allowlist.go`
 
 # Symbols
 - ResolveArtifactPath() (internal/bmad/artifacts.go:L44)
-- GetArtifactStatus() (internal/bmad/artifacts.go:L59)
+- TestAC2_ResolveArtifactPath() (internal/bmad/artifacts_test.go:L39)
 - resolveOutputPaths() (internal/bmad/executor.go:L1660)
 - buildContextStringV3() (internal/bmad/executor.go:L2191)
 - buildNodeIndex() (internal/bmad/executor.go:L2302)
 - topoSort() (internal/bmad/executor.go:L2312)
+- nodeIterKey() (internal/bmad/executor.go:L26)
+- nodeItemKey() (internal/bmad/executor.go:L27)
 - TestAC2_UnmappedArtifacts_SkippedFromOutputPaths() (internal/bmad/executor_outputpaths_test.go:L83)
 - TestTopoSort_Sequential() (internal/bmad/executor_test.go:L133)
 - TestTopoSort_Parallel() (internal/bmad/executor_test.go:L149)
@@ -67,9 +69,6 @@ sources:
 - TestBuildContextStringV3_EdgeBasedContext_NoDuplicates() (internal/bmad/executor_test.go:L2006)
 - TestBuildContextStringV3_EdgeBasedContext_NonConnectedNodeIgnored() (internal/bmad/executor_test.go:L2027)
 - TestBuildContextStringV3_EdgeBasedContext_SkipsNonCompleteUpstream() (internal/bmad/executor_test.go:L2044)
-- TestGetArtifactStatus_Exists() (internal/bmad/executor_test.go:L2506)
-- TestGetArtifactStatus_Missing() (internal/bmad/executor_test.go:L2517)
-- TestGetArtifactStatus_UnmappedArtifact() (internal/bmad/executor_test.go:L2525)
 - ProcessByID() (internal/bmad/registry.go:L510)
 - registry_interactive_phase2_test.go (internal/bmad/registry_interactive_phase2_test.go:L1)
 - expectedAcceptTokens() (internal/bmad/registry_interactive_phase2_test.go:L101)
@@ -137,11 +136,8 @@ sources:
 - TestStoryRollout08_AC2_TopicAndMessageInputs() (internal/bmad/registry_interactive_phase5_test.go:L61)
 - TestStoryRollout08_AC3_IterationInputIsMessage() (internal/bmad/registry_interactive_phase5_test.go:L81)
 - TestStoryRollout08_AC4_GateDefaults() (internal/bmad/registry_interactive_phase5_test.go:L95)
-- registry_interactive_test.go (internal/bmad/registry_interactive_test.go:L1)
 - TestInteractiveRegistryIterationInput() (internal/bmad/registry_interactive_test.go:L110)
-- TestOptionsRefResolution() (internal/bmad/registry_interactive_test.go:L138)
 - TestInteractiveRegistryShape() (internal/bmad/registry_interactive_test.go:L18)
-- .writeArtifact() (internal/bmad/testutil_interactive_test.go:L262)
 - allowlist.go (internal/uiadapter/allowlist.go:L1)
 - joinAllowlist() (internal/uiadapter/allowlist.go:L78)
 
@@ -149,11 +145,9 @@ sources:
 - [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
 - [bmad/types.go](/modules/bmad-types-go.md)
 - [DefaultConfig](/modules/defaultconfig.md)
-- [Executor](/modules/executor.md)
 
 # Inferred
-- [go_pkg_strings](/modules/go-pkg-strings.md)
-- [.suspendForSpecWithPane](/modules/suspendforspecwithpane.md)
+- no INFERRED edges; treat any that appear as hints
 
 # Features
 - no feature plan names these files

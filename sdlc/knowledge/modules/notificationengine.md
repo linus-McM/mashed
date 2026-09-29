@@ -5,9 +5,9 @@ description: "Graphify community 343: app.go, internal/agent/engine.go, internal
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
   - { id: app, resource: app.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 295875db4f0bdc1e }
   - { id: engine, resource: internal/agent/engine.go, last_modified: "2026-04-11T17:08:28+10:00", digest: 1042190db571e4e7 }
@@ -28,6 +28,8 @@ sources:
 - SortByPriority() (internal/agent/engine.go:L156)
 - .RemoveAgent() (internal/agent/engine.go:L171)
 - .ActiveAgentCount() (internal/agent/engine.go:L178)
+- .GetAgentStatus() (internal/agent/engine.go:L185)
+- agentState (internal/agent/engine.go:L41)
 - NotificationEngine (internal/agent/engine.go:L50)
 - NewNotificationEngine() (internal/agent/engine.go:L60)
 - .Events() (internal/agent/engine.go:L69)

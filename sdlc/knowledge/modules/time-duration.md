@@ -1,48 +1,56 @@
 ---
 type: Module
 title: time.Duration
-description: "Graphify community 90: app_review.go, internal/uiadapter/eval/scorecard.go, internal/uiadapter/eval/scorecard_v3.go"
-resource: ""
+description: "Graphify community 323: internal/uiadapter/eval/scorecard_v3.go, internal/uiadapter/eval/scorecard_v3_test.go"
+resource: internal/uiadapter/eval
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
+stale_after: "2026-10-13T11:16:15Z"
+source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
 sources:
-  - { id: app_review, resource: app_review.go, last_modified: "2026-05-07T18:18:02+10:00", digest: f186f322bd66e914 }
-  - { id: scorecard, resource: internal/uiadapter/eval/scorecard.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 478867f290bdf6a9 }
   - { id: scorecard_v3, resource: internal/uiadapter/eval/scorecard_v3.go, last_modified: "2026-04-23T11:36:37+10:00", digest: 43f9103bcabd6620 }
+  - { id: scorecard_v3_test, resource: internal/uiadapter/eval/scorecard_v3_test.go, last_modified: "2026-04-23T11:36:37+10:00", digest: cd219473982ce8b5 }
 ---
 
 # Files
-- `app_review.go`
-- `internal/uiadapter/eval/scorecard.go`
 - `internal/uiadapter/eval/scorecard_v3.go`
+- `internal/uiadapter/eval/scorecard_v3_test.go`
 
 # Symbols
-- .StreamCodeReviewSummary() (app_review.go:L112)
-- runClaudePrompt() (app_review.go:L459)
-- isReviewableFile() (app_review.go:L84)
-- .ValidJSONRate() (internal/uiadapter/eval/scorecard.go:L131)
-- .ValidatorPassRate() (internal/uiadapter/eval/scorecard.go:L138)
-- .P95Latency() (internal/uiadapter/eval/scorecard.go:L149)
-- .PerWidgetPrecision() (internal/uiadapter/eval/scorecard.go:L168)
-- .PerWidgetRecall() (internal/uiadapter/eval/scorecard.go:L177)
-- Scorecard (internal/uiadapter/eval/scorecard.go:L19)
-- .MeetsThresholds() (internal/uiadapter/eval/scorecard.go:L190)
-- .PrettyPrint() (internal/uiadapter/eval/scorecard.go:L207)
-- toSet() (internal/uiadapter/eval/scorecard.go:L300)
-- sortedWidgetNames() (internal/uiadapter/eval/scorecard.go:L311)
-- .recordWidgets() (internal/uiadapter/eval/scorecard.go:L95)
+- scorecard_v3.go (internal/uiadapter/eval/scorecard_v3.go:L1)
+- .AggregateByBackend() (internal/uiadapter/eval/scorecard_v3.go:L113)
+- percentileIdx() (internal/uiadapter/eval/scorecard_v3.go:L170)
+- .MeetsThresholds() (internal/uiadapter/eval/scorecard_v3.go:L183)
 - BackendThresholds (internal/uiadapter/eval/scorecard_v3.go:L20)
+- .PrettyPrint() (internal/uiadapter/eval/scorecard_v3.go:L215)
+- .CrossBackendDelta() (internal/uiadapter/eval/scorecard_v3.go:L230)
+- joinBackends() (internal/uiadapter/eval/scorecard_v3.go:L251)
+- ShadowSampler (internal/uiadapter/eval/scorecard_v3.go:L262)
+- NewShadowSampler() (internal/uiadapter/eval/scorecard_v3.go:L270)
+- .ShouldSample() (internal/uiadapter/eval/scorecard_v3.go:L274)
+- .Counts() (internal/uiadapter/eval/scorecard_v3.go:L296)
+- Row (internal/uiadapter/eval/scorecard_v3.go:L48)
+- ScorecardV3 (internal/uiadapter/eval/scorecard_v3.go:L73)
+- NewScorecardV3() (internal/uiadapter/eval/scorecard_v3.go:L79)
+- .Add() (internal/uiadapter/eval/scorecard_v3.go:L82)
+- .Rows() (internal/uiadapter/eval/scorecard_v3.go:L89)
+- Aggregate (internal/uiadapter/eval/scorecard_v3.go:L99)
+- scorecard_v3_test.go (internal/uiadapter/eval/scorecard_v3_test.go:L1)
+- TestScorecardV3_ClaudeAPIModelSpecificThreshold() (internal/uiadapter/eval/scorecard_v3_test.go:L113)
+- TestScorecardV3_AggregateByBackend() (internal/uiadapter/eval/scorecard_v3_test.go:L14)
+- TestScorecardV3_MeetsThresholds() (internal/uiadapter/eval/scorecard_v3_test.go:L29)
+- TestScorecardV3_MeetsThresholds_Pass() (internal/uiadapter/eval/scorecard_v3_test.go:L46)
+- TestScorecardV3_PrettyPrint_GroupsByBackend() (internal/uiadapter/eval/scorecard_v3_test.go:L57)
+- TestScorecardV3_CrossBackendDelta() (internal/uiadapter/eval/scorecard_v3_test.go:L71)
+- TestShadowSampler_Rate() (internal/uiadapter/eval/scorecard_v3_test.go:L82)
+- TestShadowSampler_Extremes() (internal/uiadapter/eval/scorecard_v3_test.go:L99)
 
 # Depends on
-- [app_review_test.go](/modules/app-review-test-go.md)
-- [mashed/internal/uiadapter.UIAST](/modules/mashed-internal-uiadapter-uiast.md)
-- [ScopedDiff](/modules/scopeddiff.md)
+- no EXTRACTED edges to other modules
 
 # Inferred
-- [App](/modules/app-63.md)
+- no INFERRED edges; treat any that appear as hints
 
 # Features
 - no feature plan names these files
