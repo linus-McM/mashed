@@ -1,13 +1,13 @@
 ---
 type: Module
 title: codegen_test.go
-description: "Graphify community 303: internal/uiadapter/codegen_test.go"
+description: "Graphify community 290: internal/uiadapter/codegen_test.go"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: codegen_test, resource: internal/uiadapter/codegen_test.go, last_modified: "2026-04-23T11:04:07+10:00", digest: a4cb53187a0fa90c }
 ---

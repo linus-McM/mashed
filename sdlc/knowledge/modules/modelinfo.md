@@ -5,9 +5,9 @@ description: "Graphify community 206: app_git.go, app_models.go, app_review_test
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: app_git, resource: app_git.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 6abf9d08d507b1db }
   - { id: app_models, resource: app_models.go, last_modified: "2026-04-10T11:36:27+10:00", digest: cf387264112e9ff8 }

@@ -5,9 +5,9 @@ description: "Graphify community 254: frontend/src/lib/bmad/__tests__/autoFill.t
 resource: frontend/src/lib/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: autoFill.test, resource: frontend/src/lib/bmad/__tests__/autoFill.test.ts, last_modified: "2026-04-14T22:25:44+10:00", digest: 3e52ebc13815c6b3 }
   - { id: autoFillMultiFile.test, resource: frontend/src/lib/bmad/__tests__/autoFillMultiFile.test.ts, last_modified: "2026-04-14T22:25:44+10:00", digest: 6a0d5c1968d377a2 }

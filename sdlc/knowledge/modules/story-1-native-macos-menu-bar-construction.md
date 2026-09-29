@@ -5,9 +5,9 @@ description: "Graphify community 146: docs/stories/old_stories/menu-01-native-me
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: menu-01-native-menu-bar, resource: docs/stories/old_stories/menu-01-native-menu-bar.md, last_modified: "2026-04-09T10:03:44+10:00", digest: 3f698c07181d3e5e }
   - { id: runtime, resource: frontend/wailsjs/runtime/runtime.js, last_modified: "2026-05-07T09:55:31+10:00", digest: e25fe86d3c590de7 }

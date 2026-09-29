@@ -5,9 +5,9 @@ description: "Graphify community 284: docs/playwright_cli_US_validate/meditor-ba
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: meditor-backlog-report, resource: docs/playwright_cli_US_validate/meditor-backlog-report.md, last_modified: "2026-04-09T21:07:51+10:00", digest: 2c8cdc16c1b25dab }
   - { id: meditor-01-editor-router, resource: docs/stories/old_stories/meditor-01-editor-router.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 079a0c0ea2e2767b }

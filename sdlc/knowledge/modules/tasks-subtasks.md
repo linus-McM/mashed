@@ -1,13 +1,13 @@
 ---
 type: Module
 title: Tasks / Subtasks
-description: "Graphify community 35: docs/SPECIFICATION.md, docs/stories/breadcrumbs-06-downstream-autofill.md, docs/stories/old_stories/bmad-05-wails-bindings.md, docs/stories/old_stories/bmad-06-workflow-view-can"
+description: "Graphify community 13: docs/SPECIFICATION.md, docs/stories/breadcrumbs-06-downstream-autofill.md, docs/stories/old_stories/bmad-05-wails-bindings.md, docs/stories/old_stories/bmad-06-workflow-view-can"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: SPECIFICATION, resource: docs/SPECIFICATION.md, last_modified: "2026-04-12T09:58:35+10:00", digest: 2150575fba9a1ee2 }
   - { id: breadcrumbs-06-downstream-autofill, resource: docs/stories/breadcrumbs-06-downstream-autofill.md, last_modified: "2026-04-14T16:10:56+10:00", digest: 9c851abd94d1be99 }

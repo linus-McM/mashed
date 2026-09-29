@@ -5,9 +5,9 @@ description: "Graphify community 302: frontend/src/components/bmad/__tests__/ass
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: assetWatcher.test, resource: frontend/src/components/bmad/__tests__/assetWatcher.test.ts, last_modified: "2026-04-22T20:01:25+10:00", digest: 7e3d38fa6259b754 }
   - { id: domain-driven-design, resource: internal/advice/defaults/domain-driven-design.md, last_modified: "2026-04-10T10:10:32+10:00", digest: 8005d882d7367d6b }

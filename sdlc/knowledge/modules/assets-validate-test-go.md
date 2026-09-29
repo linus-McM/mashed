@@ -1,13 +1,13 @@
 ---
 type: Module
 title: assets_validate_test.go
-description: "Graphify community 112: internal/bmad/assets_validate.go, internal/bmad/assets_validate_test.go"
+description: "Graphify community 46: internal/bmad/assets_validate.go, internal/bmad/assets_validate_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: assets_validate, resource: internal/bmad/assets_validate.go, last_modified: "2026-04-12T16:58:02+10:00", digest: 3f68a2fbf7ac70cf }
   - { id: assets_validate_test, resource: internal/bmad/assets_validate_test.go, last_modified: "2026-04-12T16:58:02+10:00", digest: 0a7f087220505ed4 }

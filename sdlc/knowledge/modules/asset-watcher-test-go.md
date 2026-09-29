@@ -5,9 +5,9 @@ description: "Graphify community 250: internal/bmad/asset_watcher.go, internal/b
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: asset_watcher, resource: internal/bmad/asset_watcher.go, last_modified: "2026-04-12T16:58:02+10:00", digest: 25909dc6b81603ba }
   - { id: asset_watcher_test, resource: internal/bmad/asset_watcher_test.go, last_modified: "2026-04-12T16:58:02+10:00", digest: 4e1bcbed1fab098b }

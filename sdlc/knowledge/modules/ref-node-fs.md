@@ -5,9 +5,9 @@ description: "Graphify community 176: frontend/src/__tests__/focus-keyboard-nav.
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: focus-keyboard-nav.test, resource: frontend/src/__tests__/focus-keyboard-nav.test.ts, last_modified: "2026-04-11T16:58:15+10:00", digest: c7bd5ee8c4bf6821 }
   - { id: sparkline-render.test, resource: frontend/src/__tests__/sparkline-render.test.ts, last_modified: "2026-04-22T19:23:56+10:00", digest: 484d421145705e87 }

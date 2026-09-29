@@ -5,9 +5,9 @@ description: "Graphify community 133: docs/stories/breadcrumbs-09-ollama-setting
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: breadcrumbs-09-ollama-settings-lifecycle, resource: docs/stories/breadcrumbs-09-ollama-settings-lifecycle.md, last_modified: "2026-04-13T12:33:54+10:00", digest: 9bd7cd4c64d71466 }
   - { id: ui-ast-U1-ollama-client-config, resource: docs/stories/ui-ast-U1-ollama-client-config.md, last_modified: "2026-04-21T10:01:31+10:00", digest: 8ae3ba773fd23c32 }

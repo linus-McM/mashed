@@ -1,6 +1,48 @@
 # Knowledge Update Log
 
 ## 2026-09-29
+* **Update**: [Repo health remediation](/features/repo-health-remediation.md).
+* **Update**: [vitest](/modules/vitest.md).
+* **Update**: [svelte](/modules/svelte.md).
+* **Update**: [go_pkg_testing](/modules/go-pkg-testing.md).
+* **Update**: [Tasks / Subtasks](/modules/tasks-subtasks.md).
+* **Update**: [loadConfig](/modules/loadconfig.md).
+* **Update**: [MonacoEditor.svelte](/modules/monacoeditor-svelte.md).
+* **Update**: [theme_scanner.go](/modules/theme-scanner-go.md).
+* **Update**: [App](/modules/app.md).
+* **Update**: [assets_validate_test.go](/modules/assets-validate-test-go.md).
+* **Update**: [manager_test.go](/modules/manager-test-go.md).
+* **Update**: [markdownMenuSettings.ts](/modules/markdownmenusettings-ts.md).
+* **Update**: [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md).
+* **Update**: [bundled_themes_test.go](/modules/bundled-themes-test-go.md).
+* **Update**: [models.ts](/modules/models-ts.md).
+* **Update**: [wait_idle_test.go](/modules/wait-idle-test-go.md).
+* **Update**: [ClaudeCodeProvider](/modules/claudecodeprovider.md).
+* **Update**: [codegen_test.go](/modules/codegen-test-go.md).
+* **Update**: [App](/modules/app-296.md).
+* **Update**: [status.ts](/modules/status-ts.md).
+* **Update**: [package.json](/modules/package-json.md).
+* **Creation**: [App](/modules/app-355.md).
+* **Creation**: [App](/modules/app-361.md).
+* **Update**: [entry-animations.test.ts](/modules/entry-animations-test-ts.md).
+* **Update**: [validate.go](/modules/validate-go.md).
+* **Update**: [hydrate](/modules/hydrate.md).
+* **Update**: [signature-moments.test.ts](/modules/signature-moments-test-ts.md).
+* **Update**: [sync.Once](/modules/sync-once.md).
+* **Update**: [SprintEpic](/modules/sprintepic.md).
+* **Update**: [WorkflowNode](/modules/workflownode.md).
+* **Update**: [appendUpstreamContext](/modules/appendupstreamcontext.md).
+* **Update**: [ensureGitignoreEntry](/modules/ensuregitignoreentry.md).
+* **Update**: [mimeForExt](/modules/mimeforext.md).
+* **Update**: [Condition](/modules/condition.md).
+* **Update**: [repoPalette.ts](/modules/repopalette-ts.md).
+* **Update**: [AdviceMode](/modules/advicemode.md).
+* **Creation**: [ModelInfo](/modules/modelinfo-496.md).
+* **Update**: [PendingPrompt](/modules/pendingprompt.md).
+* **Update**: [VSCodeThemeEntry](/modules/vscodethemeentry.md).
+* **Update**: [testing.T](/hubs/testing-t.md).
+* **Update**: [context.Context](/hubs/context-context.md).
+* **Update**: [log/slog.Logger](/hubs/log-slog-logger.md).
 * **Update**: [Repo health remediation](/features/repo-health-remediation.md) verified by human:linus-mcmanamey.
 * **Update**: [Repo health remediation](/features/repo-health-remediation.md).
 * **Update**: [testing.T](/modules/testing-t.md).

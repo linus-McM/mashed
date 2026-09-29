@@ -1,13 +1,13 @@
 ---
 type: Module
 title: status.ts
-description: "Graphify community 355: frontend/src/__tests__/status-token.test.ts, frontend/src/components/StatusBadge.svelte, frontend/src/types/status.ts"
+description: "Graphify community 342: frontend/src/__tests__/status-token.test.ts, frontend/src/components/StatusBadge.svelte, frontend/src/types/status.ts"
 resource: frontend/src
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: status-token.test, resource: frontend/src/__tests__/status-token.test.ts, last_modified: "2026-04-22T18:25:48+10:00", digest: 1a2f08d41d9861de }
   - { id: StatusBadge, resource: frontend/src/components/StatusBadge.svelte, last_modified: "2026-04-22T18:25:48+10:00", digest: adf6af8794b8416c }

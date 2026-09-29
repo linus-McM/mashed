@@ -5,9 +5,9 @@ description: "Graphify community 137: frontend/src/components/bmad/QuestionRespo
 resource: frontend/src/components/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: QuestionResponseModal, resource: frontend/src/components/bmad/QuestionResponseModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 5672933bac7b8d06 }
   - { id: QuestionResponseModal.test, resource: frontend/src/components/bmad/QuestionResponseModal.test.ts, last_modified: "2026-04-10T14:16:40+10:00", digest: a798f0e107780ec5 }

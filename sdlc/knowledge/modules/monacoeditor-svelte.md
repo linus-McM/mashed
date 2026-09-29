@@ -5,13 +5,13 @@ description: "Graphify community 17: @xterm/addon-fit, @xterm/xterm, @xterm/xter
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
-  - { id: addon-fit, resource: "@xterm/addon-fit", last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: xterm, resource: "@xterm/xterm", last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: xterm, resource: "@xterm/xterm/css/xterm.css", last_modified: "2026-09-29T12:23:00Z", digest: missing }
+  - { id: addon-fit, resource: "@xterm/addon-fit", last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: xterm, resource: "@xterm/xterm", last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: xterm, resource: "@xterm/xterm/css/xterm.css", last_modified: "2026-09-29T12:23:14Z", digest: missing }
   - { id: package, resource: frontend/package.json, last_modified: "2026-04-22T16:28:45+10:00", digest: 5a2c6b5e36bbccae }
   - { id: MonacoEditor, resource: frontend/src/components/MonacoEditor.svelte, last_modified: "2026-04-22T18:59:31+10:00", digest: 7ea6153fc5c063fa }
   - { id: Terminal, resource: frontend/src/components/Terminal.svelte, last_modified: "2026-05-07T21:00:01+10:00", digest: a8e6e1c9090de774 }
@@ -22,22 +22,22 @@ sources:
   - { id: themes, resource: frontend/src/lib/themes.js, last_modified: "2026-04-07T10:03:32+10:00", digest: b15d9cf4598628ae }
   - { id: pty, resource: frontend/src/types/pty.ts, last_modified: "2026-04-22T19:23:56+10:00", digest: 44628db4a836ad08 }
   - { id: runtime, resource: frontend/wailsjs/runtime/runtime.js, last_modified: "2026-05-07T09:55:31+10:00", digest: e25fe86d3c590de7 }
-  - { id: monaco-editor, resource: monaco-editor, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: css.contribution, resource: monaco-editor/esm/vs/basic-languages/css/css.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: go.contribution, resource: monaco-editor/esm/vs/basic-languages/go/go.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: html.contribution, resource: monaco-editor/esm/vs/basic-languages/html/html.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: javascript.contribution, resource: monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: markdown.contribution, resource: monaco-editor/esm/vs/basic-languages/markdown/markdown.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: python.contribution, resource: monaco-editor/esm/vs/basic-languages/python/python.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: rust.contribution, resource: monaco-editor/esm/vs/basic-languages/rust/rust.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: shell.contribution, resource: monaco-editor/esm/vs/basic-languages/shell/shell.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: sql.contribution, resource: monaco-editor/esm/vs/basic-languages/sql/sql.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: typescript.contribution, resource: monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: xml.contribution, resource: monaco-editor/esm/vs/basic-languages/xml/xml.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: yaml.contribution, resource: monaco-editor/esm/vs/basic-languages/yaml/yaml.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: editor, resource: monaco-editor/esm/vs/editor/editor.api, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: editor.api, resource: monaco-editor/esm/vs/editor/editor.api.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: monaco.contribution, resource: monaco-editor/esm/vs/language/json/monaco.contribution.js, last_modified: "2026-09-29T12:23:00Z", digest: missing }
+  - { id: monaco-editor, resource: monaco-editor, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: css.contribution, resource: monaco-editor/esm/vs/basic-languages/css/css.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: go.contribution, resource: monaco-editor/esm/vs/basic-languages/go/go.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: html.contribution, resource: monaco-editor/esm/vs/basic-languages/html/html.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: javascript.contribution, resource: monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: markdown.contribution, resource: monaco-editor/esm/vs/basic-languages/markdown/markdown.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: python.contribution, resource: monaco-editor/esm/vs/basic-languages/python/python.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: rust.contribution, resource: monaco-editor/esm/vs/basic-languages/rust/rust.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: shell.contribution, resource: monaco-editor/esm/vs/basic-languages/shell/shell.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: sql.contribution, resource: monaco-editor/esm/vs/basic-languages/sql/sql.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: typescript.contribution, resource: monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: xml.contribution, resource: monaco-editor/esm/vs/basic-languages/xml/xml.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: yaml.contribution, resource: monaco-editor/esm/vs/basic-languages/yaml/yaml.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: editor, resource: monaco-editor/esm/vs/editor/editor.api, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: editor.api, resource: monaco-editor/esm/vs/editor/editor.api.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: monaco.contribution, resource: monaco-editor/esm/vs/language/json/monaco.contribution.js, last_modified: "2026-09-29T12:23:14Z", digest: missing }
 ---
 
 # Files

@@ -5,9 +5,9 @@ description: "Graphify community 157: internal/scanner/processes.go, internal/sc
 resource: internal/scanner
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: processes, resource: internal/scanner/processes.go, last_modified: "2026-04-07T10:03:32+10:00", digest: f095332194a18619 }
   - { id: processes_test, resource: internal/scanner/processes_test.go, last_modified: "2026-04-02T07:38:07+11:00", digest: 8b2996785426d5fd }

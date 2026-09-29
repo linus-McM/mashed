@@ -5,12 +5,12 @@ description: "Graphify community 6: @xyflow/svelte/dist/style.css, @xyflow/syste
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
-  - { id: style, resource: "@xyflow/svelte/dist/style.css", last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: system, resource: "@xyflow/system", last_modified: "2026-09-29T12:23:00Z", digest: missing }
+  - { id: style, resource: "@xyflow/svelte/dist/style.css", last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: system, resource: "@xyflow/system", last_modified: "2026-09-29T12:23:14Z", digest: missing }
   - { id: App, resource: frontend/src/App.svelte, last_modified: "2026-04-23T11:09:52+10:00", digest: 10db755a7a0e5abe }
   - { id: AboutModal, resource: frontend/src/components/AboutModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 4371891538f83733 }
   - { id: NewRepoModal, resource: frontend/src/components/NewRepoModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 88f99d701a9fb7ec }
@@ -46,7 +46,7 @@ sources:
   - { id: nodeUtils, resource: frontend/src/components/bmad/nodeUtils.js, last_modified: "2026-04-10T12:50:28+10:00", digest: 37206f78b45ce6ed }
   - { id: errorMessage, resource: frontend/src/lib/errorMessage.ts, last_modified: "2026-04-22T17:53:53+10:00", digest: 01d52ec3146aae0e }
   - { id: ptySize, resource: frontend/src/lib/ptySize.ts, last_modified: "2026-05-07T18:18:02+10:00", digest: 819faf79772ff83a }
-  - { id: wails, resource: frontend/src/lib/types/wails, last_modified: "2026-09-29T12:23:00Z", digest: missing }
+  - { id: wails, resource: frontend/src/lib/types/wails, last_modified: "2026-09-29T12:23:14Z", digest: missing }
   - { id: workflow, resource: frontend/src/types/workflow.ts, last_modified: "2026-04-23T13:05:14+10:00", digest: dde86e2d10f68917 }
   - { id: BranchModal, resource: frontend/src/views/BranchModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 6d3c58fc0fa1902c }
   - { id: ForcePushModal, resource: frontend/src/views/ForcePushModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 6f35f823b43cd232 }
@@ -57,10 +57,10 @@ sources:
   - { id: SpawnAgent, resource: frontend/src/views/SpawnAgent.svelte, last_modified: "2026-05-07T18:18:02+10:00", digest: b9e9afd8fe710518 }
   - { id: SummarisationModal, resource: frontend/src/views/SummarisationModal.svelte, last_modified: "2026-04-22T20:32:12+10:00", digest: 1b621514b92c549f }
   - { id: WorkflowBuilder, resource: frontend/src/views/WorkflowBuilder.svelte, last_modified: "2026-04-27T10:45:20+10:00", digest: 40a1956dcdb95828 }
-  - { id: lucide-svelte, resource: lucide-svelte, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: animate, resource: svelte/animate, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: easing, resource: svelte/easing, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: transition, resource: svelte/transition, last_modified: "2026-09-29T12:23:00Z", digest: missing }
+  - { id: lucide-svelte, resource: lucide-svelte, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: animate, resource: svelte/animate, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: easing, resource: svelte/easing, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: transition, resource: svelte/transition, last_modified: "2026-09-29T12:23:14Z", digest: missing }
 ---
 
 # Files

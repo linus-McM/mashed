@@ -5,9 +5,9 @@ description: "Graphify community 60: docs/stories/old_stories/bmad-05-wails-bind
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: bmad-05-wails-bindings, resource: docs/stories/old_stories/bmad-05-wails-bindings.md, last_modified: "2026-04-08T10:23:03+10:00", digest: d868ae2882f2c29b }
   - { id: pty-04-app-integration-and-frontend-cleanup, resource: docs/stories/old_stories/pty-04-app-integration-and-frontend-cleanup.md, last_modified: "2026-04-12T10:43:48+10:00", digest: f0f69a09af0aa8d1 }

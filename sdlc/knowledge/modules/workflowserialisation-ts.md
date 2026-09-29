@@ -5,9 +5,9 @@ description: "Graphify community 78: docs/stories/skills-cmd-03-canvas-integrati
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: skills-cmd-03-canvas-integration, resource: docs/stories/skills-cmd-03-canvas-integration.md, last_modified: "2026-04-12T11:45:37+10:00", digest: 7b560cdd8c7cab67 }
   - { id: svelte-check-01-js-stores-to-ts, resource: docs/stories/svelte-check-01-js-stores-to-ts.md, last_modified: "2026-04-22T17:06:36+10:00", digest: 3cdcd1064aabe570 }

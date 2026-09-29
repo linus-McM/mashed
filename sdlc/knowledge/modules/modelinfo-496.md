@@ -1,7 +1,7 @@
 ---
 type: Module
-title: PendingPrompt
-description: "Graphify community 497: frontend/wailsjs/go/models.ts"
+title: ModelInfo
+description: "Graphify community 496: frontend/wailsjs/go/models.ts"
 resource: frontend/wailsjs/go
 tags: [module, graphify]
 status: draft
@@ -16,9 +16,9 @@ sources:
 - `frontend/wailsjs/go/models.ts`
 
 # Symbols
-- PendingPrompt (frontend/wailsjs/go/models.ts:L359)
-- .createFrom() (frontend/wailsjs/go/models.ts:L372)
-- .constructor() (frontend/wailsjs/go/models.ts:L376)
+- ModelInfo (frontend/wailsjs/go/models.ts:L796)
+- .createFrom() (frontend/wailsjs/go/models.ts:L804)
+- .constructor() (frontend/wailsjs/go/models.ts:L808)
 
 # Depends on
 - no EXTRACTED edges to other modules

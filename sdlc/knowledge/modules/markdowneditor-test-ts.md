@@ -5,9 +5,9 @@ description: "Graphify community 97: docs/stories/markdown-toolbar-06-editor-wir
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: markdown-toolbar-06-editor-wiring, resource: docs/stories/markdown-toolbar-06-editor-wiring.md, last_modified: "2026-04-23T11:20:33+10:00", digest: 125c03e40f91a85b }
   - { id: MarkdownEditor.test, resource: frontend/src/components/__tests__/MarkdownEditor.test.ts, last_modified: "2026-04-23T11:20:33+10:00", digest: ce3fb0e409088000 }

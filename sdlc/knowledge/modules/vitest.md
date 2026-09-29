@@ -5,9 +5,9 @@ description: "Graphify community 3: docs/stories/breadcrumbs-03-file-loader-and-
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: breadcrumbs-03-file-loader-and-command-node, resource: docs/stories/breadcrumbs-03-file-loader-and-command-node.md, last_modified: "2026-04-14T13:39:40+10:00", digest: 8f2c02d072a3252e }
   - { id: breadcrumbs-08-multifileloader-frontend, resource: docs/stories/breadcrumbs-08-multifileloader-frontend.md, last_modified: "2026-04-14T22:25:44+10:00", digest: 9fdd7b61d9225714 }
@@ -36,8 +36,8 @@ sources:
   - { id: nodePath.test, resource: frontend/src/lib/bmad/nodePath.test.ts, last_modified: "2026-04-13T21:36:37+10:00", digest: b2c2bb290e7211d4 }
   - { id: nodePath, resource: frontend/src/lib/bmad/nodePath.ts, last_modified: "2026-04-14T15:34:02+10:00", digest: f1bfd3275f8ed702 }
   - { id: uiAst, resource: frontend/src/types/uiAst.ts, last_modified: "2026-04-22T20:27:37+10:00", digest: 67c7b5fc9513892e }
-  - { id: markdown-it, resource: markdown-it, last_modified: "2026-09-29T12:23:00Z", digest: missing }
-  - { id: store, resource: svelte/store, last_modified: "2026-09-29T12:23:00Z", digest: missing }
+  - { id: markdown-it, resource: markdown-it, last_modified: "2026-09-29T12:23:14Z", digest: missing }
+  - { id: store, resource: svelte/store, last_modified: "2026-09-29T12:23:14Z", digest: missing }
 ---
 
 # Files

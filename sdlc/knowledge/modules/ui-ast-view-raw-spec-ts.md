@@ -5,9 +5,9 @@ description: "Graphify community 322: docs/stories/ui-ast-U8-view-raw-diagnostic
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: ui-ast-U8-view-raw-diagnostics, resource: docs/stories/ui-ast-U8-view-raw-diagnostics.md, last_modified: "2026-04-22T12:56:23+10:00", digest: 5f903d3926d8d0e0 }
   - { id: DynamicUiSelector, resource: frontend/src/components/titlebar/DynamicUiSelector.svelte, last_modified: "2026-04-23T13:17:59+10:00", digest: 5665ff6cccbc963c }

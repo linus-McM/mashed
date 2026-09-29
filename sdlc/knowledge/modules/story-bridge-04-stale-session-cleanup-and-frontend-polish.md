@@ -5,9 +5,9 @@ description: "Graphify community 208: docs/stories/old_stories/bridge-04-stale-c
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: bridge-04-stale-cleanup-and-frontend-polish, resource: docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 22d252e5a0750c99 }
   - { id: bmadSessionName.test, resource: frontend/src/lib/bmadSessionName.test.ts, last_modified: "2026-04-10T17:42:20+10:00", digest: 2fc81ab01d253ac2 }

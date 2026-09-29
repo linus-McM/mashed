@@ -1,8 +1,8 @@
 {
-  "commit": "c111e9108518da0d6e68dc3fa508835faaebfd96",
-  "graph_commit": "c111e9108518da0d6e68dc3fa508835faaebfd96",
-  "updates": 5,
-  "ts": "2026-09-29T12:23:00Z",
+  "commit": "ab1f2eb4ec65fc2b1fce15503c11f0e310758404",
+  "graph_commit": "ab1f2eb4ec65fc2b1fce15503c11f0e310758404",
+  "updates": 1,
+  "ts": "2026-09-29T12:23:14Z",
   "files": {
     "app_bmad_question_test.go": [
       "modules/testing-t.md",
@@ -334,10 +334,10 @@
       "modules/uiadaptersettings-ts.md",
       "modules/clearmarkdownmenudirty.md",
       "modules/story-2-code-review-summary-advice-streaming-backend.md",
+      "modules/inputresponsemodal-svelte.md",
       "modules/seteditorsettings.md",
       "modules/mashedconfig.md",
       "modules/takescreenshot.md",
-      "modules/inputresponsemodal-svelte.md",
       "modules/listollamamodels.md",
       "modules/createfromtemplate.md",
       "modules/10-wails-bindings-go-svelte-api.md",
@@ -547,8 +547,8 @@
       "modules/app.md",
       "modules/context-context.md",
       "modules/claudecodeprovider.md",
-      "modules/app-296.md",
       "modules/notificationengine.md",
+      "modules/app-355.md",
       "modules/ensuregitignoreentry.md"
     ],
     "app_claude.go": [
@@ -592,7 +592,7 @@
     ],
     "app_spawn.go": [
       "modules/go-pkg-testing.md",
-      "modules/app-296.md"
+      "modules/app-355.md"
     ],
     "app_terminal_registry.go": [
       "modules/go-pkg-testing.md",
@@ -601,11 +601,11 @@
     "app_uiadapter.go": [
       "modules/go-pkg-testing.md",
       "modules/setuptestconfig.md",
-      "modules/app-312.md"
+      "modules/app-296.md"
     ],
     "app_uiadapter_v3.go": [
       "modules/go-pkg-testing.md",
-      "modules/app-363.md"
+      "modules/app-361.md"
     ],
     "internal/agent/engine.go": [
       "modules/go-pkg-testing.md",
@@ -937,8 +937,23 @@
     "internal/bmad/assets_write_test.go": [
       "modules/assets-test-go.md"
     ],
-    "internal/bmad/validate.go": [
-      "modules/validate-go.md"
+    "docs/stories/breadcrumbs-06-downstream-autofill.md": [
+      "modules/tasks-subtasks.md"
+    ],
+    "docs/stories/old_stories/bmad-06-workflow-view-canvas.md": [
+      "modules/tasks-subtasks.md"
+    ],
+    "docs/stories/old_stories/bmad-07-custom-nodes-components.md": [
+      "modules/tasks-subtasks.md",
+      "modules/10-wails-bindings-go-svelte-api.md"
+    ],
+    "docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md": [
+      "modules/tasks-subtasks.md",
+      "modules/createfromtemplate.md"
+    ],
+    "docs/stories/old_stories/sprint2-04-repo-context-flow.md": [
+      "modules/tasks-subtasks.md",
+      "modules/createfromtemplate.md"
     ],
     "internal/bmad/registry_fs.go": [
       "modules/stages-test-go.md"
@@ -973,8 +988,8 @@
     ],
     "theme_scanner_test.go": [
       "modules/loadconfig.md",
-      "modules/bundled-themes-test-go.md",
-      "modules/theme-scanner-go.md"
+      "modules/theme-scanner-go.md",
+      "modules/bundled-themes-test-go.md"
     ],
     "@xterm/addon-fit": [
       "modules/monacoeditor-svelte.md"
@@ -1289,23 +1304,13 @@
     "frontend/src/types/theme.ts": [
       "modules/themeconverter-ts.md"
     ],
-    "docs/stories/breadcrumbs-06-downstream-autofill.md": [
-      "modules/tasks-subtasks.md"
+    "bundled_themes_test.go": [
+      "modules/theme-scanner-go.md",
+      "modules/bundled-themes-test-go.md"
     ],
-    "docs/stories/old_stories/bmad-06-workflow-view-canvas.md": [
-      "modules/tasks-subtasks.md"
-    ],
-    "docs/stories/old_stories/bmad-07-custom-nodes-components.md": [
-      "modules/tasks-subtasks.md",
-      "modules/10-wails-bindings-go-svelte-api.md"
-    ],
-    "docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md": [
-      "modules/tasks-subtasks.md",
-      "modules/createfromtemplate.md"
-    ],
-    "docs/stories/old_stories/sprint2-04-repo-context-flow.md": [
-      "modules/tasks-subtasks.md",
-      "modules/createfromtemplate.md"
+    "theme_scanner.go": [
+      "modules/theme-scanner-go.md",
+      "modules/bundled-themes-test-go.md"
     ],
     "internal/bmad/executor_gate_test.go": [
       "modules/newexecutor.md"
@@ -1345,13 +1350,11 @@
     "repomix.config.json": [
       "modules/output.md"
     ],
-    "bundled_themes_test.go": [
-      "modules/bundled-themes-test-go.md",
-      "modules/theme-scanner-go.md"
+    "internal/bmad/assets_validate.go": [
+      "modules/assets-validate-test-go.md"
     ],
-    "theme_scanner.go": [
-      "modules/bundled-themes-test-go.md",
-      "modules/theme-scanner-go.md"
+    "internal/bmad/assets_validate_test.go": [
+      "modules/assets-validate-test-go.md"
     ],
     "frontend/wailsjs/go/models.ts": [
       "modules/convertvalues.md",
@@ -1360,7 +1363,7 @@
       "modules/sprintepic.md",
       "modules/workflownode.md",
       "modules/advicemode.md",
-      "modules/modelinfo-495.md",
+      "modules/modelinfo-496.md",
       "modules/pendingprompt.md",
       "modules/vscodethemeentry.md",
       "modules/scopeddiff-527.md",
@@ -1382,6 +1385,9 @@
     ],
     "internal/bmad/executor_fileloader_test.go": [
       "modules/executor-fileloader-test-go.md"
+    ],
+    "internal/terminal/manager_test.go": [
+      "modules/manager-test-go.md"
     ],
     "docs/stories/markdown-toolbar-03-toolbar-builder.md": [
       "modules/markdowntoolbarbuilder-test-ts.md"
@@ -1596,9 +1602,6 @@
       "modules/clearmarkdownmenudirty.md",
       "modules/playwright-test.md"
     ],
-    "internal/terminal/manager_test.go": [
-      "modules/manager-test-go.md"
-    ],
     "internal/uiadapter/backend/claudeapi/client.go": [
       "modules/config.md",
       "modules/context-context.md",
@@ -1642,11 +1645,23 @@
     "frontend/src/types/reviewEvents.ts": [
       "modules/story-2-code-review-summary-advice-streaming-backend.md"
     ],
-    "internal/bmad/assets_validate.go": [
-      "modules/assets-validate-test-go.md"
+    "docs/stories/ui-ast-U7-decision-group.md": [
+      "modules/inputresponsemodal-svelte.md"
     ],
-    "internal/bmad/assets_validate_test.go": [
-      "modules/assets-validate-test-go.md"
+    "docs/stories/ui-ast-U8-sprint-report.md": [
+      "modules/inputresponsemodal-svelte.md"
+    ],
+    "frontend/src/components/bmad/InputResponseModal.svelte": [
+      "modules/inputresponsemodal-svelte.md"
+    ],
+    "frontend/src/components/bmad/TranscriptPane.svelte": [
+      "modules/inputresponsemodal-svelte.md"
+    ],
+    "frontend/src/lib/errorMessage.test.ts": [
+      "modules/inputresponsemodal-svelte.md"
+    ],
+    "frontend/src/types/transcript.ts": [
+      "modules/inputresponsemodal-svelte.md"
     ],
     "docs/stories/markdown-toolbar-01-backend-config.md": [
       "modules/seteditorsettings.md"
@@ -1756,24 +1771,6 @@
       "modules/modelinfo.md",
       "modules/app-348.md"
     ],
-    "docs/stories/ui-ast-U7-decision-group.md": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "docs/stories/ui-ast-U8-sprint-report.md": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/components/bmad/InputResponseModal.svelte": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/components/bmad/TranscriptPane.svelte": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/lib/errorMessage.test.ts": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/types/transcript.ts": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
     "font_scanner.go": [
       "modules/font-scanner-go.md"
     ],
@@ -1845,6 +1842,9 @@
     "frontend/src/lib/stores/uiAdapterSettings.v3.test.ts": [
       "modules/uiadaptersettings-v3-test-ts.md"
     ],
+    "internal/bmad/wait_idle_test.go": [
+      "modules/wait-idle-test-go.md"
+    ],
     "internal/uiadapter/eval/scorecard_v3_test.go": [
       "modules/scorecard-v3-test-go.md"
     ],
@@ -1906,6 +1906,9 @@
     "frontend/src/components/editorUtils.ts": [
       "modules/story-meditor-01-editorrouter-extension-based-editor-switching.md"
     ],
+    "internal/uiadapter/codegen_test.go": [
+      "modules/codegen-test-go.md"
+    ],
     "internal/uiadapter/mock.go": [
       "modules/newmock.md"
     ],
@@ -1921,9 +1924,6 @@
     ],
     "internal/advice/defaults/domain-driven-design.md": [
       "modules/assetwatcher-test-ts.md"
-    ],
-    "internal/uiadapter/codegen_test.go": [
-      "modules/codegen-test-go.md"
     ],
     "internal/bmad/modules.go": [
       "modules/getmodules.md"
@@ -1955,9 +1955,6 @@
     "internal/explain/explain.go": [
       "modules/question-go.md"
     ],
-    "internal/bmad/wait_idle_test.go": [
-      "modules/wait-idle-test-go.md"
-    ],
     "internal/git/worktree.go": [
       "modules/worktree-go.md"
     ],
@@ -1966,12 +1963,6 @@
     ],
     "tests/ac/ui-ast-decision-group.spec.ts": [
       "modules/ui-ast-decision-group-spec-ts.md"
-    ],
-    "wails.json": [
-      "modules/wails-json.md"
-    ],
-    "internal/advice/types.go": [
-      "modules/app-348.md"
     ],
     "frontend/src/__tests__/status-token.test.ts": [
       "modules/status-ts.md"
@@ -1986,6 +1977,15 @@
       "modules/package-json.md",
       "modules/playwright-test.md"
     ],
+    "wails.json": [
+      "modules/wails-json.md"
+    ],
+    "internal/advice/types.go": [
+      "modules/app-348.md"
+    ],
+    "frontend/src/__tests__/entry-animations.test.ts": [
+      "modules/entry-animations-test-ts.md"
+    ],
     "app_bmad_resume_test.go": [
       "modules/app-bmad-resume-test-go.md"
     ],
@@ -1995,8 +1995,8 @@
     "docs/playwright_cli_US_validate/pty-06-frontend-cleanup-report.md": [
       "modules/story-pty-06-frontend-terminal-and-session-cleanup.md"
     ],
-    "frontend/src/__tests__/entry-animations.test.ts": [
-      "modules/entry-animations-test-ts.md"
+    "internal/bmad/validate.go": [
+      "modules/validate-go.md"
     ],
     "frontend/src/components/FileTree.svelte": [
       "modules/filetree-svelte.md"

@@ -5,9 +5,9 @@ description: "Graphify community 181: docs/stories/ui-ast-U5-settings-ui.md, fro
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: ui-ast-U5-settings-ui, resource: docs/stories/ui-ast-U5-settings-ui.md, last_modified: "2026-04-21T21:07:33+10:00", digest: 52cf1571c97b6ab5 }
   - { id: uiAdapterSettings, resource: frontend/src/lib/stores/uiAdapterSettings.ts, last_modified: "2026-04-23T11:43:31+10:00", digest: 439345ecd230d960 }

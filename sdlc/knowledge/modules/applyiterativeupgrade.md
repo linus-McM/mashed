@@ -5,20 +5,20 @@ description: "Graphify community 26: internal/bmad/interactive_defaults.go, inte
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T07:07:25Z" }
-stale_after: "2026-10-13T07:07:25Z"
-source_commit: ""
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
-  - { id: interactive_defaults, resource: internal/bmad/interactive_defaults.go, last_modified: "2026-09-29T07:07:25Z", digest: d72d23f8f4651178 }
-  - { id: interactive_defaults_test, resource: internal/bmad/interactive_defaults_test.go, last_modified: "2026-09-29T07:07:25Z", digest: 3238ce12f829fa21 }
-  - { id: registry_interactive_phase2, resource: internal/bmad/registry_interactive_phase2.go, last_modified: "2026-09-29T07:07:25Z", digest: 4e4d06a37c78b67b }
-  - { id: registry_interactive_phase2_helper_test, resource: internal/bmad/registry_interactive_phase2_helper_test.go, last_modified: "2026-09-29T07:07:25Z", digest: b442030b66b1e92a }
-  - { id: registry_interactive_phase3a, resource: internal/bmad/registry_interactive_phase3a.go, last_modified: "2026-09-29T07:07:25Z", digest: c79c3f4b9c008816 }
-  - { id: registry_interactive_phase3b, resource: internal/bmad/registry_interactive_phase3b.go, last_modified: "2026-09-29T07:07:25Z", digest: 57eb0e74dbdb175b }
-  - { id: registry_interactive_phase3c, resource: internal/bmad/registry_interactive_phase3c.go, last_modified: "2026-09-29T07:07:25Z", digest: 2ca78d7d99de3329 }
-  - { id: registry_interactive_phase3d, resource: internal/bmad/registry_interactive_phase3d.go, last_modified: "2026-09-29T07:07:25Z", digest: 1192a8ff19586453 }
-  - { id: registry_interactive_phase4, resource: internal/bmad/registry_interactive_phase4.go, last_modified: "2026-09-29T07:07:25Z", digest: 581736515ce5163f }
-  - { id: registry_interactive_phase5, resource: internal/bmad/registry_interactive_phase5.go, last_modified: "2026-09-29T07:07:25Z", digest: 81eb5eb463eb4c28 }
+  - { id: interactive_defaults, resource: internal/bmad/interactive_defaults.go, last_modified: "2026-04-28T11:16:27+10:00", digest: d72d23f8f4651178 }
+  - { id: interactive_defaults_test, resource: internal/bmad/interactive_defaults_test.go, last_modified: "2026-04-28T09:29:49+10:00", digest: 3238ce12f829fa21 }
+  - { id: registry_interactive_phase2, resource: internal/bmad/registry_interactive_phase2.go, last_modified: "2026-04-28T11:16:27+10:00", digest: 4e4d06a37c78b67b }
+  - { id: registry_interactive_phase2_helper_test, resource: internal/bmad/registry_interactive_phase2_helper_test.go, last_modified: "2026-04-28T11:16:27+10:00", digest: b442030b66b1e92a }
+  - { id: registry_interactive_phase3a, resource: internal/bmad/registry_interactive_phase3a.go, last_modified: "2026-04-28T12:02:57+10:00", digest: c79c3f4b9c008816 }
+  - { id: registry_interactive_phase3b, resource: internal/bmad/registry_interactive_phase3b.go, last_modified: "2026-04-28T12:11:01+10:00", digest: 57eb0e74dbdb175b }
+  - { id: registry_interactive_phase3c, resource: internal/bmad/registry_interactive_phase3c.go, last_modified: "2026-04-28T12:11:01+10:00", digest: 2ca78d7d99de3329 }
+  - { id: registry_interactive_phase3d, resource: internal/bmad/registry_interactive_phase3d.go, last_modified: "2026-04-28T12:11:01+10:00", digest: 1192a8ff19586453 }
+  - { id: registry_interactive_phase4, resource: internal/bmad/registry_interactive_phase4.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 581736515ce5163f }
+  - { id: registry_interactive_phase5, resource: internal/bmad/registry_interactive_phase5.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 81eb5eb463eb4c28 }
 ---
 
 # Files

@@ -5,17 +5,17 @@ description: "The Mashed desktop app (Wails, Go + Svelte, macOS) has security ho
 resource: sdlc/repo-health-remediation
 tags: [feature, accepted]
 status: stable
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
 verified:
   - { by: "human:linus-mcmanamey", at: "2026-09-29T11:16:08Z" }
   - { by: "human:linus-mcmanamey", at: "2026-09-29T11:35:20Z" }
   - { by: "human:linus-mcmanamey", at: "2026-09-29T12:23:00Z" }
-stale_after: "2026-10-13T12:23:00Z"
-source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
+stale_after: "2026-10-13T12:23:14Z"
+source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
 sources:
   - { id: intent, resource: sdlc/repo-health-remediation/intent.md, last_modified: "2026-09-29T21:16:08+10:00", digest: 476d74d6341cb18a }
   - { id: spec, resource: sdlc/repo-health-remediation/spec.md, last_modified: "2026-09-29T21:35:20+10:00", digest: 39c3836c2ae03762 }
-  - { id: plan, resource: sdlc/repo-health-remediation/plan.md, last_modified: "2026-09-29T12:23:00Z", digest: 630a4bebc7512078 }
+  - { id: plan, resource: sdlc/repo-health-remediation/plan.md, last_modified: "2026-09-29T22:23:00+10:00", digest: 630a4bebc7512078 }
 ---
 
 # Problem
@@ -225,14 +225,14 @@ Success measure (done means all of):
 - `app_scan.go` in [ClaudeCodeProvider](/modules/claudecodeprovider.md)
 - `app_scan_lifecycle_test.go`
 - `app_sessions.go` in [SessionData](/modules/sessiondata.md)
-- `app_spawn.go` in [App](/modules/app-296.md)
+- `app_spawn.go` in [App](/modules/app-355.md)
 - `app_terminal_registry.go` in [App](/modules/app-349.md)
 - `app_terminal_registry_test.go` in [app_terminal_registry_test.go](/modules/app-terminal-registry-test-go.md)
-- `app_uiadapter.go` in [App](/modules/app-312.md)
+- `app_uiadapter.go` in [App](/modules/app-296.md)
 - `app_uiadapter_bindings_test.go` in [setupTestConfig](/modules/setuptestconfig.md)
-- `app_uiadapter_v3.go` in [App](/modules/app-363.md)
+- `app_uiadapter_v3.go` in [App](/modules/app-361.md)
 - `app_uiadapter_v3_test.go` in [app_uiadapter_v3_test.go](/modules/app-uiadapter-v3-test-go.md)
-- `bundled_themes_test.go` in [theme_scanner.go](/modules/theme-scanner-go.md)
+- `bundled_themes_test.go` in [bundled_themes_test.go](/modules/bundled-themes-test-go.md)
 - `cmd/pty-helper/main.go` in [go_pkg_testing](/modules/go-pkg-testing.md)
 - `cmd/pty-helper/main_test.go`
 - `desloppify-workspace/iteration-1/benchmark.json`
@@ -466,8 +466,8 @@ Success measure (done means all of):
 - `scripts/api-diff.sh`
 - `scripts/check-entry-chunk.mjs`
 - `scripts/test-all.sh`
-- `theme_scanner.go` in [theme_scanner.go](/modules/theme-scanner-go.md)
-- `theme_scanner_test.go` in [theme_scanner.go](/modules/theme-scanner-go.md)
+- `theme_scanner.go` in [bundled_themes_test.go](/modules/bundled-themes-test-go.md)
+- `theme_scanner_test.go` in [bundled_themes_test.go](/modules/bundled-themes-test-go.md)
 - `themes/JuanLias.ultra-instinct-theme-0.1.4.vsix`
 - `themes/LhacenMed.cursor-noir-1.0.1.vsix`
 - `themes/RINDAMAN2426.ubuntu-aubergine-theme-1.0.1.vsix`
