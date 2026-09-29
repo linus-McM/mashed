@@ -5,9 +5,9 @@ description: "Graphify community 9: internal/terminal/tmux_adapter.go, internal/
 resource: internal/terminal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: tmux_adapter, resource: internal/terminal/tmux_adapter.go, last_modified: "2026-04-12T15:24:29+10:00", digest: 1a5bf00ab35bc698 }
   - { id: tmux_adapter_coverage_test, resource: internal/terminal/tmux_adapter_coverage_test.go, last_modified: "2026-04-11T19:58:57+10:00", digest: 24b353b6c1480a46 }
@@ -65,7 +65,6 @@ sources:
 - TestTmuxAdapter_FIFOPathWithSpaceInTempDir() (internal/terminal/tmux_adapter_coverage_test.go:L476)
 - TestNewTmuxAdapter_NilRunnerFallsBackToDefault() (internal/terminal/tmux_adapter_coverage_test.go:L48)
 - TestEscapeTmuxLiteral_TabPreserved() (internal/terminal/tmux_adapter_coverage_test.go:L516)
-- TestIsTmuxAvailable_ReturnsBoolWithoutPanic() (internal/terminal/tmux_adapter_coverage_test.go:L55)
 - TestEscapeTmuxLiteral_EmptyString() (internal/terminal/tmux_adapter_coverage_test.go:L62)
 - TestTmuxAdapter_AttachOnClosedAdapter() (internal/terminal/tmux_adapter_coverage_test.go:L70)
 - TestTmuxAdapter_AttachListPanesErrorWrapped() (internal/terminal/tmux_adapter_coverage_test.go:L83)
@@ -102,10 +101,10 @@ sources:
 - overrideMkfifo() (internal/terminal/tmux_adapter_testhelpers_test.go:L21)
 - attachmentIsPolling() (internal/terminal/tmux_adapter_testhelpers_test.go:L30)
 - EscapeTmuxLiteral() (internal/terminal/tmux_escape.go:L48)
-- IsTmuxAvailable() (internal/terminal/tmux_escape.go:L67)
 
 # Depends on
-- [mockTmuxAttacher](/modules/mocktmuxattacher.md)
+- [bridge_test.go](/modules/bridge-test-go.md)
+- [sync.Mutex](/modules/sync-mutex.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

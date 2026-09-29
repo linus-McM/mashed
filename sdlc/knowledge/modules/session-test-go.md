@@ -1,26 +1,23 @@
 ---
 type: Module
 title: session_test.go
-description: "Graphify community 237: internal/terminal/bridge_test.go, internal/terminal/session.go, internal/terminal/session_test.go"
+description: "Graphify community 237: internal/terminal/session.go, internal/terminal/session_test.go"
 resource: internal/terminal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
-  - { id: bridge_test, resource: internal/terminal/bridge_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: b13529690aa8d966 }
   - { id: session, resource: internal/terminal/session.go, last_modified: "2026-04-09T18:42:25+10:00", digest: 6213e8a0ece661b9 }
   - { id: session_test, resource: internal/terminal/session_test.go, last_modified: "2026-04-09T18:42:25+10:00", digest: 64fc12b5f28e698a }
 ---
 
 # Files
-- `internal/terminal/bridge_test.go`
 - `internal/terminal/session.go`
 - `internal/terminal/session_test.go`
 
 # Symbols
-- TestBridge_AC2_PTYSessionTakesPrecedence() (internal/terminal/bridge_test.go:L545)
 - newScrollBuffer() (internal/terminal/session.go:L44)
 - session_test.go (internal/terminal/session_test.go:L1)
 - readWSTimeout() (internal/terminal/session_test.go:L103)
@@ -38,7 +35,6 @@ sources:
 - startTestSession() (internal/terminal/session_test.go:L85)
 
 # Depends on
-- [bridge_test.go](/modules/bridge-test-go.md)
 - [ManagedSession](/modules/managedsession.md)
 
 # Inferred

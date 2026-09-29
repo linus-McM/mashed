@@ -5,9 +5,9 @@ description: "Graphify community 288: internal/bmad/executor_anyuseranswer_test.
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: executor_anyuseranswer_test, resource: internal/bmad/executor_anyuseranswer_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: c5b7c0a594991958 }
   - { id: executor_gate_test, resource: internal/bmad/executor_gate_test.go, last_modified: "2026-04-20T14:19:27+10:00", digest: 9071d4934689a274 }

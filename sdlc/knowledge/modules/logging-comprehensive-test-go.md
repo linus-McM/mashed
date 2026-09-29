@@ -1,17 +1,18 @@
 ---
 type: Module
 title: logging_comprehensive_test.go
-description: "Graphify community 105: internal/uiadapter/logging.go, internal/uiadapter/logging_comprehensive_test.go, internal/uiadapter/logging_handler_test.go, internal/uiadapter/logging_test.go"
+description: "Graphify community 105: internal/uiadapter/logging.go, internal/uiadapter/logging_comprehensive_test.go, internal/uiadapter/logging_handler_test.go, internal/uiadapter/logging_plumbing_test.go, intern"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: logging, resource: internal/uiadapter/logging.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f7d1f46bdb4ea215 }
   - { id: logging_comprehensive_test, resource: internal/uiadapter/logging_comprehensive_test.go, last_modified: "2026-04-26T12:39:41+10:00", digest: 446816f0c9fa2be3 }
   - { id: logging_handler_test, resource: internal/uiadapter/logging_handler_test.go, last_modified: "2026-04-26T09:22:14+10:00", digest: 998f6bb512a268ee }
+  - { id: logging_plumbing_test, resource: internal/uiadapter/logging_plumbing_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 688be06cdc267d83 }
   - { id: logging_test, resource: internal/uiadapter/logging_test.go, last_modified: "2026-04-26T09:22:14+10:00", digest: 744e5721d44f353b }
 ---
 
@@ -19,6 +20,7 @@ sources:
 - `internal/uiadapter/logging.go`
 - `internal/uiadapter/logging_comprehensive_test.go`
 - `internal/uiadapter/logging_handler_test.go`
+- `internal/uiadapter/logging_plumbing_test.go`
 - `internal/uiadapter/logging_test.go`
 
 # Symbols
@@ -35,23 +37,23 @@ sources:
 - TestStory6_AC1_FanoutToBothSinks_Comprehensive() (internal/uiadapter/logging_comprehensive_test.go:L57)
 - TestStory6_AC1_LevelFilter_BothSinks() (internal/uiadapter/logging_comprehensive_test.go:L95)
 - TestParseLogLevel_ExportedWrapper() (internal/uiadapter/logging_handler_test.go:L28)
+- TestStory2_AC3_NewDefaultNilParentSafe() (internal/uiadapter/logging_plumbing_test.go:L353)
 - logging_test.go (internal/uiadapter/logging_test.go:L1)
 - TestStory1_AC1_LevelFilter() (internal/uiadapter/logging_test.go:L110)
 - TestStory1_AC2_CloserIdempotent() (internal/uiadapter/logging_test.go:L145)
 - TestStory1_AC3_StdoutOnlyFallback() (internal/uiadapter/logging_test.go:L173)
 - TestStory1_AC4_ParseSlogLevel() (internal/uiadapter/logging_test.go:L208)
 - TestStory1_AC4_EnvVarBootLevel() (internal/uiadapter/logging_test.go:L241)
-- TestStory1_AC5_ConfigDefaults() (internal/uiadapter/logging_test.go:L260)
 - captureStdout() (internal/uiadapter/logging_test.go:L35)
 - expectedLogFile() (internal/uiadapter/logging_test.go:L57)
 - TestStory1_AC1_NewProductionLogger_FanoutToBothSinks() (internal/uiadapter/logging_test.go:L66)
 
 # Depends on
-- no EXTRACTED edges to other modules
+- [DefaultConfig](/modules/defaultconfig.md)
 
 # Inferred
 - [DefaultConfig](/modules/defaultconfig.md)
-- [log/slog.Logger](/modules/log-slog-logger.md)
+- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Features
 - no feature plan names these files

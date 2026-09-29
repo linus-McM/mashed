@@ -1,13 +1,13 @@
 ---
 type: Module
 title: executor_adapter_test.go
-description: "Graphify community 37: internal/bmad/executor.go, internal/bmad/executor_adapter_test.go, internal/bmad/executor_respond_test.go, internal/bmad/executor_suspend_test.go"
+description: "Graphify community 89: internal/bmad/executor.go, internal/bmad/executor_adapter_test.go, internal/bmad/executor_respond_test.go, internal/bmad/executor_suspend_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: executor_adapter_test, resource: internal/bmad/executor_adapter_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f79102c9f400d28f }
@@ -45,8 +45,8 @@ sources:
 - [executor_command_test.go](/modules/executor-command-test-go.md)
 - [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
 - [executor_respond_test.go](/modules/executor-respond-test-go.md)
-- [mashed/internal/uiadapter.UIAST](/modules/mashed-internal-uiadapter-uiast.md)
 - [NewMock](/modules/newmock.md)
+- [time.Duration](/modules/time-duration.md)
 - [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Inferred

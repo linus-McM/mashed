@@ -1,47 +1,23 @@
 ---
 type: Module
 title: QuestionSnackbarStack.test.ts
-description: "Graphify community 36: docs/stories/bmad-interactive-06-frontend-modal.md, docs/stories/old_stories/question-03-snackbar-stack.md, frontend/src/components/bmad/QuestionResponseModal.svelte, frontend/s"
-resource: ""
+description: "Graphify community 36: frontend/src/components/bmad/QuestionSnackbarStack.test.ts, frontend/src/components/bmad/questionSnackbarUtils.ts"
+resource: frontend/src/components/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
-  - { id: bmad-interactive-06-frontend-modal, resource: docs/stories/bmad-interactive-06-frontend-modal.md, last_modified: "2026-04-20T14:57:51+10:00", digest: 1b80ffd59d82265b }
-  - { id: question-03-snackbar-stack, resource: docs/stories/old_stories/question-03-snackbar-stack.md, last_modified: "2026-04-12T10:43:48+10:00", digest: c9e217081e4ca99f }
-  - { id: QuestionResponseModal, resource: frontend/src/components/bmad/QuestionResponseModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 5672933bac7b8d06 }
-  - { id: QuestionResponseModal.test, resource: frontend/src/components/bmad/QuestionResponseModal.test.ts, last_modified: "2026-04-10T14:16:40+10:00", digest: a798f0e107780ec5 }
   - { id: QuestionSnackbarStack.test, resource: frontend/src/components/bmad/QuestionSnackbarStack.test.ts, last_modified: "2026-04-11T19:45:53+10:00", digest: 2521496fc654bb79 }
   - { id: questionSnackbarUtils, resource: frontend/src/components/bmad/questionSnackbarUtils.ts, last_modified: "2026-04-11T19:45:53+10:00", digest: 7c6697429c616053 }
 ---
 
 # Files
-- `docs/stories/bmad-interactive-06-frontend-modal.md`
-- `docs/stories/old_stories/question-03-snackbar-stack.md`
-- `frontend/src/components/bmad/QuestionResponseModal.svelte`
-- `frontend/src/components/bmad/QuestionResponseModal.test.ts`
 - `frontend/src/components/bmad/QuestionSnackbarStack.test.ts`
 - `frontend/src/components/bmad/questionSnackbarUtils.ts`
 
 # Symbols
-- 6. Snackbar redesign (`NodeInputSnackbarStack.svelte`) (docs/stories/bmad-interactive-06-frontend-modal.md:L431)
-- Tasks / Subtasks (docs/stories/old_stories/question-03-snackbar-stack.md:L219)
-- QuestionResponseModal.svelte (frontend/src/components/bmad/QuestionResponseModal.svelte:L1)
-- repoLabel() (frontend/src/components/bmad/QuestionResponseModal.svelte:L39)
-- submit() (frontend/src/components/bmad/QuestionResponseModal.svelte:L45)
-- handleSend() (frontend/src/components/bmad/QuestionResponseModal.svelte:L60)
-- handleOption() (frontend/src/components/bmad/QuestionResponseModal.svelte:L66)
-- handleOverlayClick() (frontend/src/components/bmad/QuestionResponseModal.svelte:L75)
-- handleKeydown() (frontend/src/components/bmad/QuestionResponseModal.svelte:L80)
-- QuestionResponseModal.test.ts (frontend/src/components/bmad/QuestionResponseModal.test.ts:L1)
-- mount() (frontend/src/components/bmad/QuestionResponseModal.test.ts:L104)
-- $all() (frontend/src/components/bmad/QuestionResponseModal.test.ts:L122)
-- mockQuestion() (frontend/src/components/bmad/QuestionResponseModal.test.ts:L50)
-- memoryStore (frontend/src/components/bmad/QuestionResponseModal.test.ts:L67)
-- fakeStorage (frontend/src/components/bmad/QuestionResponseModal.test.ts:L68)
-- MountResult (frontend/src/components/bmad/QuestionResponseModal.test.ts:L98)
 - QuestionSnackbarStack.test.ts (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L1)
 - memoryStore (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L23)
 - fakeStorage (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L24)
@@ -62,19 +38,14 @@ sources:
 - partitionForDisplay() (frontend/src/components/bmad/questionSnackbarUtils.ts:L196)
 - truncate() (frontend/src/components/bmad/questionSnackbarUtils.ts:L22)
 - getBorderColor() (frontend/src/components/bmad/questionSnackbarUtils.ts:L40)
-- timeAgo() (frontend/src/components/bmad/questionSnackbarUtils.ts:L64)
 - DEFAULT_BORDER_COLOR (frontend/src/components/bmad/questionSnackbarUtils.ts:L7)
-- QuestionEventLike (frontend/src/components/bmad/questionSnackbarUtils.ts:L81)
 
 # Depends on
-- [App.js](/modules/app-js.md)
-- [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
-- [interactiveInput.ts](/modules/interactiveinput-ts.md)
-- [svelte](/modules/svelte.md)
+- [QuestionResponseModal.test.ts](/modules/questionresponsemodal-test-ts.md)
 - [vitest](/modules/vitest.md)
 
 # Inferred
-- [svelte](/modules/svelte.md)
+- no INFERRED edges; treat any that appear as hints
 
 # Features
 - no feature plan names these files

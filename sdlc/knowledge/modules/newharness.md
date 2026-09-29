@@ -1,47 +1,41 @@
 ---
 type: Module
 title: newHarness
-description: "Graphify community 1: internal/bmad/cleanup_test.go, internal/bmad/executor.go, internal/bmad/executor_cleanup_test.go, internal/bmad/executor_outputpaths_test.go, internal/bmad/executor_test.go, inte"
+description: "Graphify community 1: internal/bmad/artifacts.go, internal/bmad/executor.go, internal/bmad/executor_outputpaths_test.go, internal/bmad/executor_test.go, internal/bmad/mock_helpers_test.go, internal/bm"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
-  - { id: cleanup_test, resource: internal/bmad/cleanup_test.go, last_modified: "2026-05-07T09:52:03+10:00", digest: 322fffc24b5dcaad }
+  - { id: artifacts, resource: internal/bmad/artifacts.go, last_modified: "2026-04-12T20:21:26+10:00", digest: 0fcf7b7f19ac0972 }
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
-  - { id: executor_cleanup_test, resource: internal/bmad/executor_cleanup_test.go, last_modified: "2026-04-12T15:59:00+10:00", digest: b58becad5281bc85 }
   - { id: executor_outputpaths_test, resource: internal/bmad/executor_outputpaths_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 8d577df9f438ee41 }
   - { id: executor_test, resource: internal/bmad/executor_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 4449efba985daebc }
   - { id: mock_helpers_test, resource: internal/bmad/mock_helpers_test.go, last_modified: "2026-04-12T16:42:48+10:00", digest: dd7b5edf17e36713 }
+  - { id: wait_idle_test, resource: internal/bmad/wait_idle_test.go, last_modified: "2026-04-23T13:05:14+10:00", digest: 1dda9adef91d1698 }
 ---
 
 # Files
-- `internal/bmad/cleanup_test.go`
+- `internal/bmad/artifacts.go`
 - `internal/bmad/executor.go`
-- `internal/bmad/executor_cleanup_test.go`
 - `internal/bmad/executor_outputpaths_test.go`
 - `internal/bmad/executor_test.go`
 - `internal/bmad/mock_helpers_test.go`
+- `internal/bmad/wait_idle_test.go`
 
 # Symbols
-- cleanup_test.go (internal/bmad/cleanup_test.go:L1)
-- TestExecutor_CleanupStaleSessions_AC2_PreservesTrackedSessions() (internal/bmad/cleanup_test.go:L111)
-- TestExecutor_CleanupStaleSessions_AC3_SwallowsNoServerRunning() (internal/bmad/cleanup_test.go:L142)
-- TestExecutor_CleanupStaleSessions_AC3_SwallowsErrorConnectingTo() (internal/bmad/cleanup_test.go:L166)
-- TestExecutor_CleanupStaleSessions_AC4_ContinuesAfterIndividualKillFailure() (internal/bmad/cleanup_test.go:L191)
-- cleanupRunner() (internal/bmad/cleanup_test.go:L25)
-- killSessionTargets() (internal/bmad/cleanup_test.go:L61)
-- TestExecutor_CleanupStaleSessions_AC1_KillsOrphanedBmadSessions() (internal/bmad/cleanup_test.go:L80)
+- GetArtifactStatus() (internal/bmad/artifacts.go:L59)
+- .SetCommandRunner() (internal/bmad/executor.go:L123)
 - extractRegex() (internal/bmad/executor.go:L2118)
 - extractLines() (internal/bmad/executor.go:L2135)
-- TestKillWorkflowChainTails_NoTargets() (internal/bmad/executor_cleanup_test.go:L146)
-- TestKillWorkflowChainTails_Dedup() (internal/bmad/executor_cleanup_test.go:L21)
-- TestKillWorkflowChainTails_OnComplete() (internal/bmad/executor_cleanup_test.go:L55)
-- TestKillWorkflowChainTails_OnFailed() (internal/bmad/executor_cleanup_test.go:L91)
+- topoSort() (internal/bmad/executor.go:L2312)
+- CommandRunner (internal/bmad/executor.go:L31)
 - TestAC3_MissingFile_SkippedFromOutputPaths() (internal/bmad/executor_outputpaths_test.go:L101)
 - TestAC4_StartWorkflow_ClearsPriorOutputPaths() (internal/bmad/executor_outputpaths_test.go:L144)
+- TestAC5_ConcurrentCompletion_NoRace() (internal/bmad/executor_outputpaths_test.go:L188)
+- cloneStrMap() (internal/bmad/executor_outputpaths_test.go:L238)
 - TestAC1_OutputPathsPopulated_OnNodeComplete() (internal/bmad/executor_outputpaths_test.go:L28)
 - executor_test.go (internal/bmad/executor_test.go:L1)
 - seedExecState() (internal/bmad/executor_test.go:L1029)
@@ -59,9 +53,11 @@ sources:
 - TestDynamicExecutor_ConditionBranching_TrueBranch() (internal/bmad/executor_test.go:L1187)
 - TestDynamicExecutor_ConditionBranching_FalseBranch() (internal/bmad/executor_test.go:L1244)
 - TestDynamicExecutor_MergeAfterCondition() (internal/bmad/executor_test.go:L1299)
+- TestTopoSort_Sequential() (internal/bmad/executor_test.go:L133)
 - TestDynamicExecutor_AllBranchesSkipped() (internal/bmad/executor_test.go:L1357)
 - TestDynamicExecutor_SkippedStatus() (internal/bmad/executor_test.go:L1407)
 - TestExtractRegex_WithCaptureGroup() (internal/bmad/executor_test.go:L1462)
+- TestTopoSort_Parallel() (internal/bmad/executor_test.go:L149)
 - TestExtractRegex_WithoutCaptureGroup() (internal/bmad/executor_test.go:L1490)
 - TestExtractRegex_NoMatch() (internal/bmad/executor_test.go:L1518)
 - TestExtractRegex_InvalidRegex() (internal/bmad/executor_test.go:L1523)
@@ -73,8 +69,10 @@ sources:
 - TestExtractLines_StartBeyondLength() (internal/bmad/executor_test.go:L1571)
 - TestTransformNode_RegexExtraction() (internal/bmad/executor_test.go:L1579)
 - TestTransformNode_LinesExtraction() (internal/bmad/executor_test.go:L1631)
+- TestTopoSort_Cycle() (internal/bmad/executor_test.go:L164)
 - TestTransformNode_MissingSource() (internal/bmad/executor_test.go:L1670)
 - TestTransformNode_Passthrough() (internal/bmad/executor_test.go:L1706)
+- TestTopoSort_Diamond() (internal/bmad/executor_test.go:L174)
 - TestStartWorkflow_Sequential() (internal/bmad/executor_test.go:L197)
 - loopRunner() (internal/bmad/executor_test.go:L2068)
 - TestLoopNode_FixedCount() (internal/bmad/executor_test.go:L2092)
@@ -88,13 +86,15 @@ sources:
 - TestCompleteNode_ArtifactEvent_MissingArtifact() (internal/bmad/executor_test.go:L2422)
 - TestCompleteNode_NoArtifactEvent_ControlNode() (internal/bmad/executor_test.go:L2460)
 - TestStartWorkflow_CyclicWorkflow() (internal/bmad/executor_test.go:L248)
+- TestGetArtifactStatus_Exists() (internal/bmad/executor_test.go:L2506)
+- TestGetArtifactStatus_Missing() (internal/bmad/executor_test.go:L2517)
+- TestGetArtifactStatus_UnmappedArtifact() (internal/bmad/executor_test.go:L2525)
 - TestLoopNode_IteratesOverItems() (internal/bmad/executor_test.go:L2535)
 - TestLoopNode_ItemsCappedByMaxIterations() (internal/bmad/executor_test.go:L2590)
 - TestLoopNode_InvalidItemsJSON() (internal/bmad/executor_test.go:L2634)
 - TestLoopNode_EmptyItems() (internal/bmad/executor_test.go:L2679)
 - testHarness (internal/bmad/executor_test.go:L27)
 - TestStartWorkflow_ParallelBranches() (internal/bmad/executor_test.go:L272)
-- cmdCall (internal/bmad/executor_test.go:L2729)
 - responseRunner() (internal/bmad/executor_test.go:L2737)
 - findCall() (internal/bmad/executor_test.go:L2757)
 - seedResponseState() (internal/bmad/executor_test.go:L2780)
@@ -134,20 +134,31 @@ sources:
 - TestCaptureOutput_ParallelNodes() (internal/bmad/executor_test.go:L802)
 - TestGetExecution_CopiesNodeOutputs() (internal/bmad/executor_test.go:L954)
 - TestGetExecution_ReturnsCopy() (internal/bmad/executor_test.go:L998)
+- makeIdleOutput() (internal/bmad/mock_helpers_test.go:L117)
 - successRunner() (internal/bmad/mock_helpers_test.go:L35)
 - failRunner() (internal/bmad/mock_helpers_test.go:L49)
+- idleMockRunner() (internal/bmad/mock_helpers_test.go:L86)
+- wait_idle_test.go (internal/bmad/wait_idle_test.go:L1)
+- TestWaitForIdleCompletion_CtxCancel() (internal/bmad/wait_idle_test.go:L119)
+- newWaitIdleState() (internal/bmad/wait_idle_test.go:L17)
+- TestWaitForIdleCompletion_PaneDeathSessionGone() (internal/bmad/wait_idle_test.go:L184)
+- TestWaitForIdleCompletion_IdlePromptRequiresStableHash() (internal/bmad/wait_idle_test.go:L212)
+- TestWaitForIdleCompletion_HappyPath() (internal/bmad/wait_idle_test.go:L37)
+- TestWaitForIdleCompletion_NoWork_Timeout() (internal/bmad/wait_idle_test.go:L65)
+- TestWaitForIdleCompletion_PaneDeath() (internal/bmad/wait_idle_test.go:L81)
 
 # Depends on
-- [bmad/types.go](/modules/bmad-types-go.md)
+- [cleanup_test.go](/modules/cleanup-test-go.md)
+- [executor_command_test.go](/modules/executor-command-test-go.md)
+- [NodeType](/modules/nodetype.md)
 - [ProcessByID](/modules/processbyid.md)
 - [session_naming_test.go](/modules/session-naming-test-go.md)
-- [Storage](/modules/storage.md)
 
 # Inferred
 - [NewExecutor](/modules/newexecutor.md)
 - [session_naming_test.go](/modules/session-naming-test-go.md)
 - [sprint_test.go](/modules/sprint-test-go.md)
-- [storage_test.go](/modules/storage-test-go.md)
+- [testing.T](/modules/testing-t.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

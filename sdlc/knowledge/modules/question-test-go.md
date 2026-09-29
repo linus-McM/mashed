@@ -1,26 +1,23 @@
 ---
 type: Module
 title: question_test.go
-description: "Graphify community 50: internal/bmad/executor_iteration_test.go, internal/bmad/question.go, internal/bmad/question_test.go"
+description: "Graphify community 50: internal/bmad/question.go, internal/bmad/question_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
-  - { id: executor_iteration_test, resource: internal/bmad/executor_iteration_test.go, last_modified: "2026-04-20T14:19:27+10:00", digest: 57d32c63707a4432 }
   - { id: question, resource: internal/bmad/question.go, last_modified: "2026-04-17T20:58:29+10:00", digest: 81034d253e6ceb12 }
   - { id: question_test, resource: internal/bmad/question_test.go, last_modified: "2026-04-28T12:02:57+10:00", digest: 08a2a97c930cca46 }
 ---
 
 # Files
-- `internal/bmad/executor_iteration_test.go`
 - `internal/bmad/question.go`
 - `internal/bmad/question_test.go`
 
 # Symbols
-- TestSendToSessionTwoTmuxCalls() (internal/bmad/executor_iteration_test.go:L620)
 - hasRecentQuestion() (internal/bmad/question.go:L238)
 - escapeTmuxLiteral() (internal/bmad/question.go:L276)
 - stripANSI() (internal/bmad/question.go:L87)
@@ -59,7 +56,6 @@ sources:
 
 # Inferred
 - [Executor](/modules/executor.md)
-- [NewExecutor](/modules/newexecutor.md)
 - [newHarness](/modules/newharness.md)
 
 # Features

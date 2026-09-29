@@ -1,15 +1,14 @@
 ---
 type: Module
 title: server_test.go
-description: "Graphify community 7: cmd/pty-helper/main.go, internal/terminal/helper/client.go, internal/terminal/helper/client_test.go, internal/terminal/helper/integration_test.go, internal/terminal/helper/protoc"
-resource: ""
+description: "Graphify community 7: internal/terminal/helper/client.go, internal/terminal/helper/client_test.go, internal/terminal/helper/integration_test.go, internal/terminal/helper/protocol.go, internal/terminal"
+resource: internal/terminal/helper
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
-  - { id: main, resource: cmd/pty-helper/main.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 5b417efc875ee944 }
   - { id: client, resource: internal/terminal/helper/client.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 46fc572e21238bfb }
   - { id: client_test, resource: internal/terminal/helper/client_test.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 4004a3d885df1db3 }
   - { id: integration_test, resource: internal/terminal/helper/integration_test.go, last_modified: "2026-04-09T18:42:25+10:00", digest: 9d9c306c952e3df8 }
@@ -20,7 +19,6 @@ sources:
 ---
 
 # Files
-- `cmd/pty-helper/main.go`
 - `internal/terminal/helper/client.go`
 - `internal/terminal/helper/client_test.go`
 - `internal/terminal/helper/integration_test.go`
@@ -30,10 +28,8 @@ sources:
 - `internal/terminal/helper/server_test.go`
 
 # Symbols
-- main() (cmd/pty-helper/main.go:L15)
 - Dial() (internal/terminal/helper/client.go:L23)
 - .Spawn() (internal/terminal/helper/client.go:L34)
-- .Kill() (internal/terminal/helper/client.go:L98)
 - helper/client_test.go (internal/terminal/helper/client_test.go:L1)
 - TestClientSpawn_Serialization() (internal/terminal/helper/client_test.go:L111)
 - TestClientSpawn_ContextCancelled() (internal/terminal/helper/client_test.go:L171)
@@ -47,7 +43,6 @@ sources:
 - TestDial_Success() (internal/terminal/helper/client_test.go:L302)
 - TestClientSpawn_Success() (internal/terminal/helper/client_test.go:L44)
 - TestClientSpawn_Error() (internal/terminal/helper/client_test.go:L89)
-- integration_test.go (internal/terminal/helper/integration_test.go:L1)
 - TestIntegration_BidirectionalIO() (internal/terminal/helper/integration_test.go:L133)
 - TestIntegration_ConcurrentSpawnsFdIsolation() (internal/terminal/helper/integration_test.go:L174)
 - catSpawnReq() (internal/terminal/helper/integration_test.go:L22)
@@ -112,10 +107,10 @@ sources:
 - sendKill() (internal/terminal/helper/server_test.go:L94)
 
 # Depends on
-- [Client](/modules/client.md)
+- [sync.Mutex](/modules/sync-mutex.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints
 
 # Features
-- [Repo health remediation](/features/repo-health-remediation.md)
+- no feature plan names these files

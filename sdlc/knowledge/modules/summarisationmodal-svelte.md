@@ -1,32 +1,24 @@
 ---
 type: Module
 title: SummarisationModal.svelte
-description: "Graphify community 8: docs/SPECIFICATION.md, docs/stories/old_stories/S03-config-persistence.md, docs/stories/old_stories/review-03-summarisation-modal.md, docs/stories/old_stories/review-04-refactor-"
+description: "Graphify community 8: docs/stories/old_stories/review-04-refactor-plan-agent.md, docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md, docs/stories/old_stories/review-scoped-03-wired-sco"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
-  - { id: SPECIFICATION, resource: docs/SPECIFICATION.md, last_modified: "2026-04-12T09:58:35+10:00", digest: 2150575fba9a1ee2 }
-  - { id: S03-config-persistence, resource: docs/stories/old_stories/S03-config-persistence.md, last_modified: "2026-04-08T10:23:03+10:00", digest: d2003a3ed0a69d86 }
-  - { id: review-03-summarisation-modal, resource: docs/stories/old_stories/review-03-summarisation-modal.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 81afe9ff7b51b451 }
   - { id: review-04-refactor-plan-agent, resource: docs/stories/old_stories/review-04-refactor-plan-agent.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 209b70908e44c963 }
-  - { id: review-06-gitpanel-integration, resource: docs/stories/old_stories/review-06-gitpanel-integration.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 05598baa95b4f568 }
   - { id: review-scoped-01-backend-scoped-advice, resource: docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 24ac699c8ee46519 }
   - { id: review-scoped-03-wired-scoped-flow, resource: docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 0702d010516c97b3 }
   - { id: SummarisationModal, resource: frontend/src/views/SummarisationModal.svelte, last_modified: "2026-04-22T20:32:12+10:00", digest: 1b621514b92c549f }
-  - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
-  - { id: plan, resource: sdlc/repo-health-remediation/plan.md, last_modified: "2026-09-30T00:42:54+10:00", digest: 30682578017b97f7 }
+  - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-09-30T01:21:31+10:00", digest: 5d5b17a1b5164973 }
+  - { id: plan, resource: sdlc/repo-health-remediation/plan.md, last_modified: "2026-09-30T01:21:31+10:00", digest: a05fe85f9adc1fbd }
 ---
 
 # Files
-- `docs/SPECIFICATION.md`
-- `docs/stories/old_stories/S03-config-persistence.md`
-- `docs/stories/old_stories/review-03-summarisation-modal.md`
 - `docs/stories/old_stories/review-04-refactor-plan-agent.md`
-- `docs/stories/old_stories/review-06-gitpanel-integration.md`
 - `docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md`
 - `docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md`
 - `frontend/src/views/SummarisationModal.svelte`
@@ -34,18 +26,6 @@ sources:
 - `sdlc/repo-health-remediation/plan.md`
 
 # Symbols
-- 9. UI Views (docs/SPECIFICATION.md:L776)
-- Setup View (`Setup.svelte`) (docs/SPECIFICATION.md:L778)
-- Notification Feed (`NotificationFeed.svelte`) (docs/SPECIFICATION.md:L781)
-- Agent Detail (`AgentDetail.svelte`) (docs/SPECIFICATION.md:L788)
-- Workflow Builder (`WorkflowBuilder.svelte`) (docs/SPECIFICATION.md:L797)
-- Settings (`Settings.svelte`) (docs/SPECIFICATION.md:L812)
-- Summarisation (`SummarisationModal.svelte`) (docs/SPECIFICATION.md:L820)
-- About (`AboutModal.svelte`) (docs/SPECIFICATION.md:L823)
-- Frontend Changes (App.svelte) (docs/stories/old_stories/S03-config-persistence.md:L87)
-- Technical Considerations (docs/stories/old_stories/review-03-summarisation-modal.md:L53)
-- Acceptance Criteria (docs/stories/old_stories/review-03-summarisation-modal.md:L80)
-- review-04-refactor-plan-agent.md (docs/stories/old_stories/review-04-refactor-plan-agent.md:L1)
 - Story 4: Refactor Plan Agent (docs/stories/old_stories/review-04-refactor-plan-agent.md:L1)
 - BDD Test Scenarios (docs/stories/old_stories/review-04-refactor-plan-agent.md:L123)
 - Scenario 1: Plan creation happy path (docs/stories/old_stories/review-04-refactor-plan-agent.md:L125)
@@ -62,19 +42,12 @@ sources:
 - Reference Files (docs/stories/old_stories/review-04-refactor-plan-agent.md:L86)
 - Description (docs/stories/old_stories/review-04-refactor-plan-agent.md:L9)
 - Acceptance Criteria (docs/stories/old_stories/review-04-refactor-plan-agent.md:L92)
-- Tasks / Subtasks (docs/stories/old_stories/review-06-gitpanel-integration.md:L179)
-- Technical Considerations (docs/stories/old_stories/review-06-gitpanel-integration.md:L66)
 - review-scoped-01-backend-scoped-advice.md (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L1)
 - Story 1: StreamScopedAdvice Backend Method (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L1)
 - Scenario 2: Context prepend (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L115)
-- Developer Notes (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L13)
 - Scenario 3: Validation and error handling (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L136)
-- Architecture (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L15)
 - Tasks / Subtasks (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L153)
 - Definition of Done (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L172)
-- Technical Considerations (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L31)
-- Risks & Edge Cases (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L41)
-- Reference Files (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L49)
 - Acceptance Criteria (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L57)
 - BDD Test Scenarios (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L89)
 - Description (docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md:L9)
@@ -107,27 +80,22 @@ sources:
 - buildAdditionalContext() (frontend/src/views/SummarisationModal.svelte:L163)
 - buildEnrichedAdvice() (frontend/src/views/SummarisationModal.svelte:L178)
 - getAdvice() (frontend/src/views/SummarisationModal.svelte:L193)
-- ListAdviceModes() (frontend/wailsjs/go/main/App.js:L177)
-- ReadFileDiff() (frontend/wailsjs/go/main/App.js:L293)
-- SpawnPRReview() (frontend/wailsjs/go/main/App.js:L425)
-- SpawnRefactorPlan() (frontend/wailsjs/go/main/App.js:L429)
-- StreamAdvice() (frontend/wailsjs/go/main/App.js:L445)
-- StreamCodeReviewSummary() (frontend/wailsjs/go/main/App.js:L449)
-- StreamScopedAdvice() (frontend/wailsjs/go/main/App.js:L453)
-- GetDevDir() (frontend/wailsjs/go/main/App.js:L73)
-- PR 2: Broken features and races (branch `repo-health/pr2-features`) (sdlc/repo-health-remediation/plan.md:L494)
+- SpawnPRReview() (frontend/wailsjs/go/main/App.js:L429)
+- SpawnRefactorPlan() (frontend/wailsjs/go/main/App.js:L433)
+- StreamScopedAdvice() (frontend/wailsjs/go/main/App.js:L457)
+- PR 2: Broken features and races (branch `repo-health/pr2-features`) (sdlc/repo-health-remediation/plan.md:L493)
 
 # Depends on
 - [App.js](/modules/app-js.md)
-- [MonacoEditor.svelte](/modules/monacoeditor-svelte.md)
+- [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
 - [runtime.js](/modules/runtime-js.md)
-- [Story 2: Code Review Summary & Advice Streaming Backend](/modules/story-2-code-review-summary-advice-streaming-backend.md)
+- [StreamAdvice](/modules/streamadvice.md)
 - [svelte](/modules/svelte.md)
 
 # Inferred
-- [applyTheme](/modules/applytheme.md)
-- [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
-- [TakeScreenshot](/modules/takescreenshot.md)
+- [StreamAdvice](/modules/streamadvice.md)
+- [svelte](/modules/svelte.md)
+- [themeInit.js](/modules/themeinit-js.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

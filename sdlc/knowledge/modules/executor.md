@@ -5,9 +5,9 @@ description: "Graphify community 17: internal/bmad/executor.go, internal/bmad/fi
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: fixture_verify_test, resource: internal/bmad/fixture_verify_test.go, last_modified: "2026-04-11T19:45:53+10:00", digest: 6c143c3418c90221 }
@@ -43,23 +43,16 @@ sources:
 - .executeFileLoader() (internal/bmad/executor.go:L2021)
 - .recordNodeError() (internal/bmad/executor.go:L2107)
 - .monitorSessionLiveness() (internal/bmad/executor.go:L229)
-- resolvedInputs (internal/bmad/executor.go:L2358)
 - .executeInteractiveNode() (internal/bmad/executor.go:L2382)
 - .setStatus() (internal/bmad/executor.go:L2596)
 - .sendToSession() (internal/bmad/executor.go:L2609)
 - .captureRoundOutput() (internal/bmad/executor.go:L2633)
-- .resolveInputs() (internal/bmad/executor.go:L2649)
-- firstDirectPredecessor() (internal/bmad/executor.go:L2749)
-- envValue() (internal/bmad/executor.go:L2773)
 - .PauseWorkflow() (internal/bmad/executor.go:L286)
 - .verifyOutputs() (internal/bmad/executor.go:L3017)
 - .ResumeWorkflow() (internal/bmad/executor.go:L304)
 - .StopWorkflow() (internal/bmad/executor.go:L322)
 - .killWorkflowChainTails() (internal/bmad/executor.go:L340)
-- .GetExecution() (internal/bmad/executor.go:L365)
 - .GetInteractiveTranscript() (internal/bmad/executor.go:L394)
-- .GetCurrentExecution() (internal/bmad/executor.go:L478)
-- cloneExecution() (internal/bmad/executor.go:L514)
 - execState (internal/bmad/executor.go:L54)
 - .RespondToQuestionLegacy() (internal/bmad/executor.go:L548)
 - .getState() (internal/bmad/executor.go:L615)
@@ -68,7 +61,6 @@ sources:
 - Executor (internal/bmad/executor.go:L82)
 - .executeControlNode() (internal/bmad/executor.go:L854)
 - .executeLoopNode() (internal/bmad/executor.go:L916)
-- fixture_verify_test.go (internal/bmad/fixture_verify_test.go:L1)
 - TestDetectIdlePrompt_RealFixture() (internal/bmad/fixture_verify_test.go:L26)
 - hashQuestion() (internal/bmad/question.go:L159)
 - detectIdlePrompt() (internal/bmad/question.go:L191)
@@ -76,25 +68,22 @@ sources:
 
 # Depends on
 - [App](/modules/app.md)
-- [bmad/types.go](/modules/bmad-types-go.md)
-- [executor_fileloader_test.go](/modules/executor-fileloader-test-go.md)
-- [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
-- [go_pkg_strings](/modules/go-pkg-strings.md)
+- [executor_command_test.go](/modules/executor-command-test-go.md)
+- [go_pkg_testing](/modules/go-pkg-testing.md)
 - [newHarness](/modules/newharness.md)
+- [NodeType](/modules/nodetype.md)
 - [ProcessByID](/modules/processbyid.md)
 - [question_test.go](/modules/question-test-go.md)
-- [.resumeInteractiveNode](/modules/resumeinteractivenode.md)
-- [Storage](/modules/storage.md)
-- [.suspendForSpecWithPane](/modules/suspendforspecwithpane.md)
+- [.resolveInputs](/modules/resolveinputs.md)
 - [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
-- [wait_idle_test.go](/modules/wait-idle-test-go.md)
+- [WorkflowExecution](/modules/workflowexecution.md)
 
 # Inferred
 - [artifacts_test.go](/modules/artifacts-test-go.md)
 - [gate.go](/modules/gate-go.md)
-- [LoadExecutionFromDisk](/modules/loadexecutionfromdisk.md)
 - [ProcessByID](/modules/processbyid.md)
 - [question_test.go](/modules/question-test-go.md)
+- [resume_ghost_test.go](/modules/resume-ghost-test-go.md)
 - [session_naming_test.go](/modules/session-naming-test-go.md)
 - [sprint_test.go](/modules/sprint-test-go.md)
 - [.suspendForSpecWithPane](/modules/suspendforspecwithpane.md)

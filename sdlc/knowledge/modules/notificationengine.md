@@ -5,11 +5,11 @@ description: "Graphify community 187: app.go, internal/agent/engine.go, internal
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
-  - { id: app, resource: app.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 295875db4f0bdc1e }
+  - { id: app, resource: app.go, last_modified: "2026-09-30T01:21:31+10:00", digest: 774e87e5f070ece0 }
   - { id: engine, resource: internal/agent/engine.go, last_modified: "2026-04-11T17:08:28+10:00", digest: 1042190db571e4e7 }
   - { id: engine_test, resource: internal/agent/engine_test.go, last_modified: "2026-04-07T10:03:32+10:00", digest: 745feda4505cf50c }
   - { id: tokensamples_test, resource: internal/agent/tokensamples_test.go, last_modified: "2026-04-11T17:08:28+10:00", digest: e73f3aa2bb785df4 }
@@ -24,7 +24,7 @@ sources:
 - `internal/domain/types.go`
 
 # Symbols
-- .GetNotifications() (app.go:L743)
+- .GetNotifications() (app.go:L797)
 - SortByPriority() (internal/agent/engine.go:L156)
 - .RemoveAgent() (internal/agent/engine.go:L171)
 - .ActiveAgentCount() (internal/agent/engine.go:L178)

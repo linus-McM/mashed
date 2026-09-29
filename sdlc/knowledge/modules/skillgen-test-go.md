@@ -1,13 +1,13 @@
 ---
 type: Module
 title: skillgen_test.go
-description: "Graphify community 397: internal/bmad/skillgen.go, internal/bmad/skillgen_test.go"
+description: "Graphify community 451: internal/bmad/skillgen.go, internal/bmad/skillgen_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: skillgen, resource: internal/bmad/skillgen.go, last_modified: "2026-04-09T22:26:45+10:00", digest: 925f4004ca59e699 }
   - { id: skillgen_test, resource: internal/bmad/skillgen_test.go, last_modified: "2026-04-09T22:26:45+10:00", digest: 421c997fe09f72e2 }
@@ -41,7 +41,7 @@ sources:
 
 # Inferred
 - [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
-- [ResolveArtifactPath](/modules/resolveartifactpath.md)
+- [ProcessByID](/modules/processbyid.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

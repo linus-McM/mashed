@@ -5,9 +5,9 @@ description: "Graphify community 97: internal/terminal/manager.go, internal/term
 resource: internal/terminal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: manager, resource: internal/terminal/manager.go, last_modified: "2026-05-07T20:55:09+10:00", digest: 4c7107fb7905c1b1 }
   - { id: manager_test, resource: internal/terminal/manager_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 8a61b932bfb6bc29 }
@@ -45,8 +45,9 @@ sources:
 - TestRemoteSession_IsAlive() (internal/terminal/manager_test.go:L92)
 
 # Depends on
-- [Client](/modules/client.md)
+- [Bridge](/modules/bridge.md)
 - [ManagedSession](/modules/managedsession.md)
+- [sync.Mutex](/modules/sync-mutex.md)
 
 # Inferred
 - [ManagedSession](/modules/managedsession.md)

@@ -5,9 +5,9 @@ description: "Graphify community 339: frontend/src/__tests__/token-normalization
 resource: frontend/src/__tests__
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: token-normalization.test, resource: frontend/src/__tests__/token-normalization.test.ts, last_modified: "2026-04-11T16:52:02+10:00", digest: 6b30dbe842eff83c }
 ---

@@ -5,9 +5,9 @@ description: "Graphify community 234: internal/bmad/sprint.go, internal/bmad/spr
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: sprint, resource: internal/bmad/sprint.go, last_modified: "2026-05-07T21:14:42+10:00", digest: e3337099ff62a7c9 }
   - { id: sprint_test, resource: internal/bmad/sprint_test.go, last_modified: "2026-04-08T11:24:14+10:00", digest: 6c11bf041ab7601c }

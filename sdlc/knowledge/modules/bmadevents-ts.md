@@ -5,9 +5,9 @@ description: "Graphify community 182: frontend/src/app.d.ts, frontend/src/types/
 resource: frontend/src
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: app.d, resource: frontend/src/app.d.ts, last_modified: "2026-04-22T18:43:51+10:00", digest: 37e1ad6734d253dc }
   - { id: bmadEvents, resource: frontend/src/types/bmadEvents.ts, last_modified: "2026-04-27T10:45:20+10:00", digest: ae7acf7a5e2f56c3 }

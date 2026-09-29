@@ -1,32 +1,32 @@
 ---
 type: Module
 title: WriteFile
-description: "Graphify community 81: docs/plans/repo-health-remediation.md, docs/stories/old_stories/meditor-02-readfilebase64-binding.md, docs/stories/old_stories/meditor-04-markdown-editor.md, frontend/wailsjs/go"
+description: "Graphify community 81: docs/feasibility-multi-editor.md, docs/stories/old_stories/meditor-02-readfilebase64-binding.md, docs/stories/old_stories/meditor-04-markdown-editor.md, frontend/wailsjs/go/main"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
-  - { id: repo-health-remediation, resource: docs/plans/repo-health-remediation.md, last_modified: "2026-09-29T06:03:48Z", digest: f5a96b797d990d0e }
+  - { id: feasibility-multi-editor, resource: docs/feasibility-multi-editor.md, last_modified: "2026-04-09T21:06:37+10:00", digest: d1cc54cadf1483b3 }
   - { id: meditor-02-readfilebase64-binding, resource: docs/stories/old_stories/meditor-02-readfilebase64-binding.md, last_modified: "2026-04-12T10:43:48+10:00", digest: c3e539f11ac58af8 }
   - { id: meditor-04-markdown-editor, resource: docs/stories/old_stories/meditor-04-markdown-editor.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 2c11f30e526240e8 }
-  - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
+  - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-09-30T01:21:31+10:00", digest: 5d5b17a1b5164973 }
 ---
 
 # Files
-- `docs/plans/repo-health-remediation.md`
+- `docs/feasibility-multi-editor.md`
 - `docs/stories/old_stories/meditor-02-readfilebase64-binding.md`
 - `docs/stories/old_stories/meditor-04-markdown-editor.md`
 - `frontend/wailsjs/go/main/App.js`
 
 # Symbols
-- Phase 1 — Security *(P0)* (docs/plans/repo-health-remediation.md:L30)
-- Task 1.1 — Lock down the terminal WebSocket (docs/plans/repo-health-remediation.md:L32)
-- Task 1.2 — Stop git option injection (docs/plans/repo-health-remediation.md:L39)
-- Task 1.3 — Restrict file-access bindings (docs/plans/repo-health-remediation.md:L45)
-- Task 1.4 — Smaller hardening (docs/plans/repo-health-remediation.md:L51)
+- Getting Content for Auto-Save (docs/feasibility-multi-editor.md:L149)
+- 6. Implementation Phases (docs/feasibility-multi-editor.md:L257)
+- Phase 1: EditorRouter + Image Viewer (Low risk, high impact) (docs/feasibility-multi-editor.md:L259)
+- Phase 2: Markdown Editor with Crepe (Medium risk, medium effort) (docs/feasibility-multi-editor.md:L267)
+- Phase 3: Polish & Edge Cases (docs/feasibility-multi-editor.md:L276)
 - Developer Notes (docs/stories/old_stories/meditor-02-readfilebase64-binding.md:L13)
 - Architecture (docs/stories/old_stories/meditor-02-readfilebase64-binding.md:L15)
 - Technical Considerations (docs/stories/old_stories/meditor-02-readfilebase64-binding.md:L21)
@@ -46,17 +46,15 @@ sources:
 - Description (docs/stories/old_stories/meditor-04-markdown-editor.md:L9)
 - BDD Test Scenarios (docs/stories/old_stories/meditor-04-markdown-editor.md:L97)
 - Scenario 1: WYSIWYG rendering and editing (docs/stories/old_stories/meditor-04-markdown-editor.md:L99)
-- ReadFile() (frontend/wailsjs/go/main/App.js:L281)
-- ReadFileAtHead() (frontend/wailsjs/go/main/App.js:L285)
-- WriteFile() (frontend/wailsjs/go/main/App.js:L469)
+- ReadFile() (frontend/wailsjs/go/main/App.js:L285)
+- ReadFileAtHead() (frontend/wailsjs/go/main/App.js:L289)
+- WriteFile() (frontend/wailsjs/go/main/App.js:L473)
 
 # Depends on
 - no EXTRACTED edges to other modules
 
 # Inferred
-- [GetConfig](/modules/getconfig.md)
-- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
-- [themeInit.js](/modules/themeinit-js.md)
+- [StreamAdvice](/modules/streamadvice.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

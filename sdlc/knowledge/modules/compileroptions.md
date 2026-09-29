@@ -5,9 +5,9 @@ description: "Graphify community 232: frontend/jsconfig.json"
 resource: frontend
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: jsconfig, resource: frontend/jsconfig.json, last_modified: "2026-04-09T21:06:37+10:00", digest: 795196dba242c1da }
 ---

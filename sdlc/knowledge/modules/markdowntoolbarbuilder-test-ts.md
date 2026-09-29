@@ -5,9 +5,9 @@ description: "Graphify community 60: docs/stories/markdown-toolbar-03-toolbar-bu
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: markdown-toolbar-03-toolbar-builder, resource: docs/stories/markdown-toolbar-03-toolbar-builder.md, last_modified: "2026-04-23T11:09:52+10:00", digest: cd53aa97d7a4a9fc }
   - { id: markdownToolbarBuilder.test, resource: frontend/src/components/markdownToolbarBuilder.test.ts, last_modified: "2026-04-23T11:09:52+10:00", digest: 62b55dc6d26f714e }
@@ -56,7 +56,7 @@ sources:
 - markdownMenuSettings (frontend/src/lib/stores/markdownMenuSettings.ts:L22)
 
 # Depends on
-- [markdownMenuSettings.ts](/modules/markdownmenusettings-ts.md)
+- [App.js](/modules/app-js.md)
 - [vitest](/modules/vitest.md)
 
 # Inferred

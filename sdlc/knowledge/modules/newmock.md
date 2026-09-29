@@ -1,13 +1,13 @@
 ---
 type: Module
 title: NewMock
-description: "Graphify community 294: internal/uiadapter/logging_plumbing_mock_test.go, internal/uiadapter/mock.go, internal/uiadapter/mock_test.go"
+description: "Graphify community 305: internal/uiadapter/logging_plumbing_mock_test.go, internal/uiadapter/mock.go, internal/uiadapter/mock_test.go"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: logging_plumbing_mock_test, resource: internal/uiadapter/logging_plumbing_mock_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: bce0a1e9685e2603 }
   - { id: mock, resource: internal/uiadapter/mock.go, last_modified: "2026-04-26T11:30:52+10:00", digest: ee77ed81915c20b0 }
@@ -33,7 +33,7 @@ sources:
 - [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Inferred
-- [go_pkg_log_slog](/modules/go-pkg-log-slog.md)
+- [DefaultConfig](/modules/defaultconfig.md)
 
 # Features
 - no feature plan names these files

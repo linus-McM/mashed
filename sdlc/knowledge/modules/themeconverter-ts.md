@@ -5,16 +5,15 @@ description: "Graphify community 19: docs/stories/old_stories/theme-02-converter
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: theme-02-converter, resource: docs/stories/old_stories/theme-02-converter.md, last_modified: "2026-04-08T10:23:03+10:00", digest: f358caa9c259f69b }
   - { id: svelte-check-01-js-stores-to-ts, resource: docs/stories/svelte-check-01-js-stores-to-ts.md, last_modified: "2026-04-22T17:06:36+10:00", digest: 3cdcd1064aabe570 }
   - { id: svelte-check-complete-report, resource: docs/stories/svelte-check-complete-report.md, last_modified: "2026-04-22T20:20:54+10:00", digest: 19f8a1ad90aa5249 }
   - { id: themeConverter.test, resource: frontend/src/lib/themeConverter.test.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 687a4060b9b73676 }
   - { id: themeConverter, resource: frontend/src/lib/themeConverter.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: dccd00c61ec681ef }
-  - { id: session, resource: frontend/src/types/session.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 0b3fa196502eba06 }
   - { id: theme, resource: frontend/src/types/theme.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 0c70f7df33f92e72 }
 ---
 
@@ -24,26 +23,14 @@ sources:
 - `docs/stories/svelte-check-complete-report.md`
 - `frontend/src/lib/themeConverter.test.ts`
 - `frontend/src/lib/themeConverter.ts`
-- `frontend/src/types/session.ts`
 - `frontend/src/types/theme.ts`
 
 # Symbols
-- theme-02-converter.md (docs/stories/old_stories/theme-02-converter.md:L1)
-- Story 2: Frontend Theme Converter (B2 Hand-Rolled) (docs/stories/old_stories/theme-02-converter.md:L1)
 - Reference Files (docs/stories/old_stories/theme-02-converter.md:L107)
 - Acceptance Criteria (docs/stories/old_stories/theme-02-converter.md:L113)
 - Developer Notes (docs/stories/old_stories/theme-02-converter.md:L13)
 - Architecture (docs/stories/old_stories/theme-02-converter.md:L15)
-- BDD Test Scenarios (docs/stories/old_stories/theme-02-converter.md:L153)
-- Scenario 1: Full Dracula theme conversion (docs/stories/old_stories/theme-02-converter.md:L155)
-- Scenario 2: Token specificity ordering (docs/stories/old_stories/theme-02-converter.md:L182)
-- Scenario 3: Hex normalization edge cases (docs/stories/old_stories/theme-02-converter.md:L202)
-- Scenario 4: Light and high-contrast themes (docs/stories/old_stories/theme-02-converter.md:L224)
-- Scenario 5: Missing data graceful handling (docs/stories/old_stories/theme-02-converter.md:L241)
-- Tasks / Subtasks (docs/stories/old_stories/theme-02-converter.md:L259)
 - Technical Considerations (docs/stories/old_stories/theme-02-converter.md:L29)
-- Definition of Done (docs/stories/old_stories/theme-02-converter.md:L298)
-- Description (docs/stories/old_stories/theme-02-converter.md:L9)
 - Risks & Edge Cases (docs/stories/old_stories/theme-02-converter.md:L99)
 - Tasks / Subtasks (docs/stories/svelte-check-01-js-stores-to-ts.md:L156)
 - Architecture (docs/stories/svelte-check-01-js-stores-to-ts.md:L16)
@@ -68,7 +55,6 @@ sources:
 - normalizeHex() (frontend/src/lib/themeConverter.ts:L66)
 - stripAlpha() (frontend/src/lib/themeConverter.ts:L83)
 - dimColor() (frontend/src/lib/themeConverter.ts:L92)
-- SessionState (frontend/src/types/session.ts:L48)
 - theme.ts (frontend/src/types/theme.ts:L1)
 - ThemeColors (frontend/src/types/theme.ts:L108)
 - Theme (frontend/src/types/theme.ts:L114)
@@ -81,10 +67,11 @@ sources:
 - ThemeColorKey (frontend/src/types/theme.ts:L89)
 
 # Depends on
-- [themeInit.js](/modules/themeinit-js.md)
+- [loadBundledThemes](/modules/loadbundledthemes.md)
 - [vitest](/modules/vitest.md)
 
 # Inferred
+- [ListRepoSessions](/modules/listreposessions.md)
 - [workflowSerialisation.ts](/modules/workflowserialisation-ts.md)
 
 # Features

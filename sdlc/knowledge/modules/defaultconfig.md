@@ -1,75 +1,103 @@
 ---
 type: Module
 title: DefaultConfig
-description: "Graphify community 6: internal/uiadapter/accountant.go, internal/uiadapter/accountant_test.go, internal/uiadapter/allowlist.go, internal/uiadapter/allowlist_test.go, internal/uiadapter/backend/backend"
+description: "Graphify community 11: internal/uiadapter/allowlist.go, internal/uiadapter/allowlist_test.go, internal/uiadapter/backend/claudecli/client.go, internal/uiadapter/backend/claudecli/client_test.go, inter"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
-  - { id: accountant, resource: internal/uiadapter/accountant.go, last_modified: "2026-04-23T11:29:34+10:00", digest: ae4389c89ff37e93 }
-  - { id: accountant_test, resource: internal/uiadapter/accountant_test.go, last_modified: "2026-04-23T11:29:34+10:00", digest: 60c344b0cdff2ce8 }
   - { id: allowlist, resource: internal/uiadapter/allowlist.go, last_modified: "2026-04-26T11:30:52+10:00", digest: ec96ab6a3976170d }
   - { id: allowlist_test, resource: internal/uiadapter/allowlist_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 865e6c967ac886df }
-  - { id: backend, resource: internal/uiadapter/backend/backend.go, last_modified: "2026-04-23T11:09:52+10:00", digest: d0eac5646b5c1ef3 }
-  - { id: client, resource: internal/uiadapter/backend/claudeapi/client.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 3e20643bf928e2f2 }
-  - { id: client_test, resource: internal/uiadapter/backend/claudeapi/client_test.go, last_modified: "2026-04-23T11:34:52+10:00", digest: e3e3d9c28e77effe }
-  - { id: stub, resource: internal/uiadapter/backend/claudeapi/stub.go, last_modified: "2026-04-23T11:09:52+10:00", digest: 0c95368a8fcd18d3 }
-  - { id: stub, resource: internal/uiadapter/backend/claudecli/stub.go, last_modified: "2026-04-23T11:09:52+10:00", digest: 9d9685929a699a14 }
-  - { id: lifecycle, resource: internal/uiadapter/backend/lifecycle.go, last_modified: "2026-04-23T11:34:52+10:00", digest: e57a307fa43599dd }
-  - { id: lifecycle_test, resource: internal/uiadapter/backend/lifecycle_test.go, last_modified: "2026-04-23T11:34:52+10:00", digest: 7f78d92ee9e83203 }
-  - { id: stub, resource: internal/uiadapter/backend/ollama/stub.go, last_modified: "2026-04-23T11:09:52+10:00", digest: 82a69a451dac2ce8 }
-  - { id: registry, resource: internal/uiadapter/backend/registry.go, last_modified: "2026-04-23T11:09:52+10:00", digest: 34796db160eeb018 }
-  - { id: registry_test, resource: internal/uiadapter/backend/registry_test.go, last_modified: "2026-04-23T11:09:52+10:00", digest: aa5a14fdab76f8f6 }
-  - { id: router_test, resource: internal/uiadapter/backend/router_test.go, last_modified: "2026-04-23T11:34:52+10:00", digest: 0a276fac34b2f9ab }
-  - { id: stubs, resource: internal/uiadapter/backend/stubs.go, last_modified: "2026-04-23T11:09:52+10:00", digest: 60bb478e1146d7a5 }
+  - { id: client, resource: internal/uiadapter/backend/claudecli/client.go, last_modified: "2026-04-28T12:36:05+10:00", digest: 414128d39b8e1d31 }
+  - { id: client_test, resource: internal/uiadapter/backend/claudecli/client_test.go, last_modified: "2026-04-23T11:34:52+10:00", digest: 4342fc0ff1e40237 }
   - { id: breaker, resource: internal/uiadapter/breaker.go, last_modified: "2026-04-26T10:14:41+10:00", digest: ce7fb713c254dda5 }
   - { id: breaker_test, resource: internal/uiadapter/breaker_test.go, last_modified: "2026-04-26T10:14:41+10:00", digest: c08c33460a000e4b }
   - { id: cache, resource: internal/uiadapter/cache.go, last_modified: "2026-04-26T10:14:41+10:00", digest: 10b083d2f056ef95 }
   - { id: cache_test, resource: internal/uiadapter/cache_test.go, last_modified: "2026-04-26T10:14:41+10:00", digest: e8cf326b1dcc1d7a }
+  - { id: client_test, resource: internal/uiadapter/client_test.go, last_modified: "2026-04-26T10:14:41+10:00", digest: ae292f9785d96f43 }
   - { id: config, resource: internal/uiadapter/config.go, last_modified: "2026-04-26T09:22:14+10:00", digest: d9832db7180bc48b }
+  - { id: config_test, resource: internal/uiadapter/config_test.go, last_modified: "2026-04-23T11:43:31+10:00", digest: 748e88156e161a65 }
+  - { id: contextguard, resource: internal/uiadapter/contextguard.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 417a5e0974dc194b }
+  - { id: contextguard_test, resource: internal/uiadapter/contextguard_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 0cf07afee9915c31 }
+  - { id: encode, resource: internal/uiadapter/encode.go, last_modified: "2026-04-26T11:30:52+10:00", digest: bf82e888f12311d6 }
+  - { id: encode_test, resource: internal/uiadapter/encode_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: a0cd96e6b9f32bfb }
+  - { id: fallback, resource: internal/uiadapter/fallback.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 187709266229767c }
+  - { id: fallback_test, resource: internal/uiadapter/fallback_test.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 2fa70a931cc96a6b }
+  - { id: fallback_tiers_test, resource: internal/uiadapter/fallback_tiers_test.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 73bb2c32262274bd }
+  - { id: fastpath, resource: internal/uiadapter/fastpath.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 4ce7a34b961d63bc }
+  - { id: fastpath_test, resource: internal/uiadapter/fastpath_test.go, last_modified: "2026-04-26T10:43:55+10:00", digest: a7f912e39ab3f4b0 }
+  - { id: log_test_helper_test, resource: internal/uiadapter/log_test_helper_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: e2a6968886cbeb48 }
+  - { id: logging, resource: internal/uiadapter/logging.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f7d1f46bdb4ea215 }
   - { id: logging_plumbing_test, resource: internal/uiadapter/logging_plumbing_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 688be06cdc267d83 }
   - { id: logging_story3_sanitize_test, resource: internal/uiadapter/logging_story3_sanitize_test.go, last_modified: "2026-04-26T10:14:41+10:00", digest: a4de64483e766cb6 }
+  - { id: logging_story4_sanitize_test, resource: internal/uiadapter/logging_story4_sanitize_test.go, last_modified: "2026-04-26T10:43:55+10:00", digest: b4229ff1bc6c01ad }
+  - { id: logging_story5_sanitize_test, resource: internal/uiadapter/logging_story5_sanitize_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 49f3cb55ded4bd06 }
+  - { id: logging_test, resource: internal/uiadapter/logging_test.go, last_modified: "2026-04-26T09:22:14+10:00", digest: 744e5721d44f353b }
+  - { id: mock_test, resource: internal/uiadapter/mock_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: e6b7941070a1bd3a }
+  - { id: prefix_cache, resource: internal/uiadapter/prefix_cache.go, last_modified: "2026-04-26T10:14:41+10:00", digest: 8963dac6e4ff7cab }
   - { id: prefix_cache_test, resource: internal/uiadapter/prefix_cache_test.go, last_modified: "2026-04-26T10:14:41+10:00", digest: 448153a81ce2894c }
+  - { id: repair_test, resource: internal/uiadapter/repair_test.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 7d95d0c21f4ee4e3 }
+  - { id: sampling, resource: internal/uiadapter/sampling.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 372d2a2aa9064491 }
   - { id: sampling_test, resource: internal/uiadapter/sampling_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 10d6cf4c605c03f7 }
+  - { id: sanitize_test, resource: internal/uiadapter/sanitize_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: c90f1e17fbe3e70f }
+  - { id: schema_test, resource: internal/uiadapter/schema_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 706f4f8efc89d9d5 }
+  - { id: semaphore, resource: internal/uiadapter/semaphore.go, last_modified: "2026-04-26T10:14:41+10:00", digest: a0783d029000dab4 }
+  - { id: semaphore_test, resource: internal/uiadapter/semaphore_test.go, last_modified: "2026-04-26T10:14:41+10:00", digest: 8d59aeba4a59bab6 }
+  - { id: spotlight, resource: internal/uiadapter/spotlight.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 82f02eccfdc52095 }
+  - { id: spotlight_test, resource: internal/uiadapter/spotlight_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: f9f81a13aa4a0344 }
+  - { id: stages_test, resource: internal/uiadapter/stages_test.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 74ccbf42bffba71e }
+  - { id: translate_e2e_test, resource: internal/uiadapter/translate_e2e_test.go, last_modified: "2026-04-26T12:39:41+10:00", digest: 45f6254d2ea3d0bc }
+  - { id: validator_test, resource: internal/uiadapter/validator_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: ad90be2e31d6a4a0 }
 ---
 
 # Files
-- `internal/uiadapter/accountant.go`
-- `internal/uiadapter/accountant_test.go`
 - `internal/uiadapter/allowlist.go`
 - `internal/uiadapter/allowlist_test.go`
-- `internal/uiadapter/backend/backend.go`
-- `internal/uiadapter/backend/claudeapi/client.go`
-- `internal/uiadapter/backend/claudeapi/client_test.go`
-- `internal/uiadapter/backend/claudeapi/stub.go`
-- `internal/uiadapter/backend/claudecli/stub.go`
-- `internal/uiadapter/backend/lifecycle.go`
-- `internal/uiadapter/backend/lifecycle_test.go`
-- `internal/uiadapter/backend/ollama/stub.go`
-- `internal/uiadapter/backend/registry.go`
-- `internal/uiadapter/backend/registry_test.go`
-- `internal/uiadapter/backend/router_test.go`
-- `internal/uiadapter/backend/stubs.go`
+- `internal/uiadapter/backend/claudecli/client.go`
+- `internal/uiadapter/backend/claudecli/client_test.go`
 - `internal/uiadapter/breaker.go`
 - `internal/uiadapter/breaker_test.go`
 - `internal/uiadapter/cache.go`
 - `internal/uiadapter/cache_test.go`
+- `internal/uiadapter/client_test.go`
 - `internal/uiadapter/config.go`
+- `internal/uiadapter/config_test.go`
+- `internal/uiadapter/contextguard.go`
+- `internal/uiadapter/contextguard_test.go`
+- `internal/uiadapter/encode.go`
+- `internal/uiadapter/encode_test.go`
+- `internal/uiadapter/fallback.go`
+- `internal/uiadapter/fallback_test.go`
+- `internal/uiadapter/fallback_tiers_test.go`
+- `internal/uiadapter/fastpath.go`
+- `internal/uiadapter/fastpath_test.go`
+- `internal/uiadapter/log_test_helper_test.go`
+- `internal/uiadapter/logging.go`
 - `internal/uiadapter/logging_plumbing_test.go`
 - `internal/uiadapter/logging_story3_sanitize_test.go`
+- `internal/uiadapter/logging_story4_sanitize_test.go`
+- `internal/uiadapter/logging_story5_sanitize_test.go`
+- `internal/uiadapter/logging_test.go`
+- `internal/uiadapter/mock_test.go`
+- `internal/uiadapter/prefix_cache.go`
 - `internal/uiadapter/prefix_cache_test.go`
+- `internal/uiadapter/repair_test.go`
+- `internal/uiadapter/sampling.go`
 - `internal/uiadapter/sampling_test.go`
+- `internal/uiadapter/sanitize_test.go`
+- `internal/uiadapter/schema_test.go`
+- `internal/uiadapter/semaphore.go`
+- `internal/uiadapter/semaphore_test.go`
+- `internal/uiadapter/spotlight.go`
+- `internal/uiadapter/spotlight_test.go`
+- `internal/uiadapter/stages_test.go`
+- `internal/uiadapter/translate_e2e_test.go`
+- `internal/uiadapter/validator_test.go`
 
 # Symbols
-- NewAccountant() (internal/uiadapter/accountant.go:L84)
-- accountant_test.go (internal/uiadapter/accountant_test.go:L1)
-- TestAccountant_TripsBeforeHard429() (internal/uiadapter/accountant_test.go:L27)
-- TestAccountant_USDBudgetSoftLimit() (internal/uiadapter/accountant_test.go:L45)
-- TestAccountant_Snapshot() (internal/uiadapter/accountant_test.go:L59)
-- TestAccountant_SlidingWindow() (internal/uiadapter/accountant_test.go:L72)
 - CheckModelAllowlist() (internal/uiadapter/allowlist.go:L40)
 - allowlist_test.go (internal/uiadapter/allowlist_test.go:L1)
 - TestStory5_AC6_AllowlistNilLoggerStillSafe() (internal/uiadapter/allowlist_test.go:L110)
@@ -77,52 +105,17 @@ sources:
 - TestAllowlist_AllowsKnownModels() (internal/uiadapter/allowlist_test.go:L32)
 - TestAllowlist_OverrideFlag() (internal/uiadapter/allowlist_test.go:L44)
 - TestAllowlist_WarnsOnUnvettedClaude() (internal/uiadapter/allowlist_test.go:L57)
-- Kind (internal/uiadapter/backend/backend.go:L17)
-- apiKey (internal/uiadapter/backend/claudeapi/client.go:L34)
-- .String() (internal/uiadapter/backend/claudeapi/client.go:L36)
-- NewClient() (internal/uiadapter/backend/claudeapi/client.go:L41)
-- claudeapi/client_test.go (internal/uiadapter/backend/claudeapi/client_test.go:L1)
-- TestClaudeAPI_PromptCacheMarkers() (internal/uiadapter/backend/claudeapi/client_test.go:L111)
-- TestClaudeAPI_AnthropicVersionHeader() (internal/uiadapter/backend/claudeapi/client_test.go:L122)
-- TestClaudeAPI_StopReasonNotToolUseErrors() (internal/uiadapter/backend/claudeapi/client_test.go:L142)
-- TestClaudeAPI_ToolUseRoundtrip() (internal/uiadapter/backend/claudeapi/client_test.go:L22)
-- TestClaudeAPI_RetryAfter429() (internal/uiadapter/backend/claudeapi/client_test.go:L53)
-- TestClaudeAPI_KeyNotLogged() (internal/uiadapter/backend/claudeapi/client_test.go:L89)
-- TestClaudeAPI_WarmUpMissingKeyErrors() (internal/uiadapter/backend/claudeapi/client_test.go:L99)
-- claudeapi/stub.go (internal/uiadapter/backend/claudeapi/stub.go:L1)
-- init() (internal/uiadapter/backend/claudeapi/stub.go:L13)
-- claudecli/stub.go (internal/uiadapter/backend/claudecli/stub.go:L1)
-- init() (internal/uiadapter/backend/claudecli/stub.go:L12)
-- NewLifecycle() (internal/uiadapter/backend/lifecycle.go:L29)
-- lifecycle_test.go (internal/uiadapter/backend/lifecycle_test.go:L1)
-- TestLifecycle_WarmUpConcurrentSafe() (internal/uiadapter/backend/lifecycle_test.go:L102)
-- TestLifecycle_WarmUpAllInParallel() (internal/uiadapter/backend/lifecycle_test.go:L30)
-- TestLifecycle_WarmUpRecordsResults() (internal/uiadapter/backend/lifecycle_test.go:L49)
-- TestLifecycle_TickerDisableable() (internal/uiadapter/backend/lifecycle_test.go:L63)
-- TestLifecycle_HealthTickerFeedsRouter() (internal/uiadapter/backend/lifecycle_test.go:L80)
-- ollama/stub.go (internal/uiadapter/backend/ollama/stub.go:L1)
-- init() (internal/uiadapter/backend/ollama/stub.go:L13)
-- backend/registry.go (internal/uiadapter/backend/registry.go:L1)
-- Constructor (internal/uiadapter/backend/registry.go:L13)
-- Register() (internal/uiadapter/backend/registry.go:L24)
-- From() (internal/uiadapter/backend/registry.go:L41)
-- Available() (internal/uiadapter/backend/registry.go:L53)
-- reset() (internal/uiadapter/backend/registry.go:L67)
-- backend/registry_test.go (internal/uiadapter/backend/registry_test.go:L1)
-- TestBackend_SingleShotUnsupportedIsSentinel() (internal/uiadapter/backend/registry_test.go:L119)
-- TestBackend_Available() (internal/uiadapter/backend/registry_test.go:L132)
-- TestBackend_FromUnknownName() (internal/uiadapter/backend/registry_test.go:L22)
-- TestBackend_FromKnownName() (internal/uiadapter/backend/registry_test.go:L37)
-- TestBackend_InterfaceStressConcurrent() (internal/uiadapter/backend/registry_test.go:L53)
-- TestRouter_DefaultPolicyFallsBackToLocalWhenClaudeAbsent() (internal/uiadapter/backend/router_test.go:L59)
-- TestRouter_ConfigurablePrivacyPatterns() (internal/uiadapter/backend/router_test.go:L92)
-- NewStub() (internal/uiadapter/backend/stubs.go:L28)
+- TestStory5_AC6_AllowlistOK() (internal/uiadapter/allowlist_test.go:L71)
+- NewClient() (internal/uiadapter/backend/claudecli/client.go:L32)
+- TestClaudeCLI_VersionCheck() (internal/uiadapter/backend/claudecli/client_test.go:L15)
+- TestClaudeCLI_Capabilities() (internal/uiadapter/backend/claudecli/client_test.go:L56)
 - NewBreakerSet() (internal/uiadapter/breaker.go:L49)
 - breaker_test.go (internal/uiadapter/breaker_test.go:L1)
 - TestBreaker_TripsAfterThree() (internal/uiadapter/breaker_test.go:L16)
 - TestBreaker_PerBackendIsolation() (internal/uiadapter/breaker_test.go:L43)
 - TestBreaker_StateOnIdleIsClosed() (internal/uiadapter/breaker_test.go:L65)
 - TestBreaker_ConcurrentConstruction() (internal/uiadapter/breaker_test.go:L73)
+- TestStory3_AC4_BreakerTransitionAndReject() (internal/uiadapter/breaker_test.go:L99)
 - NewResponseCache() (internal/uiadapter/cache.go:L46)
 - Key() (internal/uiadapter/cache.go:L80)
 - cache_test.go (internal/uiadapter/cache_test.go:L1)
@@ -130,45 +123,155 @@ sources:
 - TestCache_SingleflightPropagatesError() (internal/uiadapter/cache_test.go:L139)
 - TestCache_KeyDeterministic() (internal/uiadapter/cache_test.go:L151)
 - TestCache_HashHit() (internal/uiadapter/cache_test.go:L17)
+- TestStory3_AC3_CacheLifecycle() (internal/uiadapter/cache_test.go:L174)
 - TestCache_SingleflightCoalesces() (internal/uiadapter/cache_test.go:L38)
 - TestCache_HashKeyIncludesBackendAndModel() (internal/uiadapter/cache_test.go:L71)
 - TestCache_DisabledWhenZeroCapacity() (internal/uiadapter/cache_test.go:L83)
+- TestStory3_AC1_ClientChatStartAndResponse_DebugRecords() (internal/uiadapter/client_test.go:L264)
+- TestStory3_AC2_ClientHttpError() (internal/uiadapter/client_test.go:L369)
+- config.go (internal/uiadapter/config.go:L1)
 - DefaultConfig() (internal/uiadapter/config.go:L10)
-- logging_plumbing_test.go (internal/uiadapter/logging_plumbing_test.go:L1)
-- TestStory2_AC3_NewDefaultScopesWithGroup() (internal/uiadapter/logging_plumbing_test.go:L300)
-- keysOf() (internal/uiadapter/logging_plumbing_test.go:L343)
-- TestStory2_AC3_NewDefaultNilParentSafe() (internal/uiadapter/logging_plumbing_test.go:L353)
+- mergeWithDefaults() (internal/uiadapter/config.go:L61)
+- TestConfig_PrivacyPatternsUsable() (internal/uiadapter/config_test.go:L113)
+- TestDefaultConfig_Bootable_AllBackends() (internal/uiadapter/config_test.go:L20)
+- TestDefaultConfig_MergeOntoZeroValued() (internal/uiadapter/config_test.go:L75)
+- NewContextGuard() (internal/uiadapter/contextguard.go:L41)
+- contextguard_test.go (internal/uiadapter/contextguard_test.go:L1)
+- TestStory5_AC3_ApplyOllamaUnderBudget() (internal/uiadapter/contextguard_test.go:L135)
+- TestContextGuard_TruncatesLongCapture_Ollama() (internal/uiadapter/contextguard_test.go:L15)
+- TestStory5_AC3_ApplyClaudeTruncated() (internal/uiadapter/contextguard_test.go:L163)
+- TestContextGuard_NoTruncationUnderBudget() (internal/uiadapter/contextguard_test.go:L30)
+- TestContextGuard_OllamaOptions() (internal/uiadapter/contextguard_test.go:L42)
+- TestContextGuard_RefusesLongCapture_Claude() (internal/uiadapter/contextguard_test.go:L53)
+- TestContextGuard_AcceptsShortClaude() (internal/uiadapter/contextguard_test.go:L68)
+- TestContextGuard_ZeroConfigDefaults() (internal/uiadapter/contextguard_test.go:L80)
+- TestStory5_AC3_ApplyOllamaTruncated() (internal/uiadapter/contextguard_test.go:L94)
+- ClaudeToolName() (internal/uiadapter/encode.go:L93)
+- TestStory5_AC5_EncodeClaudeToolName() (internal/uiadapter/encode_test.go:L114)
+- TestStory5_AC5_EncodeSchemaSelect() (internal/uiadapter/encode_test.go:L132)
+- TestClaudeToolName_StableShape() (internal/uiadapter/encode_test.go:L63)
+- TestStory5_AC5_EncodeOllamaFormat() (internal/uiadapter/encode_test.go:L72)
+- TestStory5_AC5_EncodeClaudeToolSchema() (internal/uiadapter/encode_test.go:L93)
+- fallback.go (internal/uiadapter/fallback.go:L1)
+- FallbackAST() (internal/uiadapter/fallback.go:L23)
+- firstLine() (internal/uiadapter/fallback.go:L47)
+- fallback_test.go (internal/uiadapter/fallback_test.go:L1)
+- TestStory4_AC6_FallbackASTTruncate() (internal/uiadapter/fallback_test.go:L108)
+- TestFallbackAST_LiteralShape() (internal/uiadapter/fallback_test.go:L14)
+- TestFallbackAST_TurnSummaryTruncates() (internal/uiadapter/fallback_test.go:L38)
+- TestFallbackAST_EmptyRawIsSafe() (internal/uiadapter/fallback_test.go:L51)
+- TestStory4_AC6_FallbackASTBuild() (internal/uiadapter/fallback_test.go:L76)
+- TestStory4_AC6_TierThirdSuccess() (internal/uiadapter/fallback_tiers_test.go:L124)
+- TestStory4_AC6_TierAllExhausted() (internal/uiadapter/fallback_tiers_test.go:L187)
+- NewFastPathClassifier() (internal/uiadapter/fastpath.go:L45)
+- fastpath_test.go (internal/uiadapter/fastpath_test.go:L1)
+- TestFastPath_FirstMatchWins() (internal/uiadapter/fastpath_test.go:L102)
+- BenchmarkFastPath() (internal/uiadapter/fastpath_test.go:L113)
+- TestFastPath_NoRuleMatches() (internal/uiadapter/fastpath_test.go:L130)
+- TestFastPath_CoversCommonCases() (internal/uiadapter/fastpath_test.go:L14)
+- TestStory4_AC1_FastpathHit() (internal/uiadapter/fastpath_test.go:L154)
+- TestStory4_AC1_FastpathSkip() (internal/uiadapter/fastpath_test.go:L194)
+- TestStory4_AC1_FastpathDisabled() (internal/uiadapter/fastpath_test.go:L219)
+- TestFastPath_DisabledReturnsMiss() (internal/uiadapter/fastpath_test.go:L45)
+- TestFastPath_HitRateAndCounters() (internal/uiadapter/fastpath_test.go:L55)
+- TestFastPath_NumberedMenuRequiresTwoItems() (internal/uiadapter/fastpath_test.go:L73)
+- TestFastPath_NumberedMenuExtractsOptions() (internal/uiadapter/fastpath_test.go:L84)
+- log_test_helper_test.go (internal/uiadapter/log_test_helper_test.go:L1)
+- testLogBuffer() (internal/uiadapter/log_test_helper_test.go:L28)
+- decodeRecords() (internal/uiadapter/log_test_helper_test.go:L41)
+- recordsByMsg() (internal/uiadapter/log_test_helper_test.go:L64)
+- recordMsgsWithPrefix() (internal/uiadapter/log_test_helper_test.go:L78)
+- nilSafeLogger() (internal/uiadapter/logging.go:L169)
+- TestStory2_AC2_FreeFunctionsAcceptNilLogger() (internal/uiadapter/logging_plumbing_test.go:L185)
 - TestStory2_AC5_NilSafeLogger() (internal/uiadapter/logging_plumbing_test.go:L40)
 - TestStory2_AC2_AC1_ConstructorsAcceptNilLogger() (internal/uiadapter/logging_plumbing_test.go:L98)
 - TestStory3_AC8_HotPathZeroAllocs_DebugOff() (internal/uiadapter/logging_story3_sanitize_test.go:L159)
+- randomPayload() (internal/uiadapter/logging_story3_sanitize_test.go:L34)
+- containsSlice() (internal/uiadapter/logging_story3_sanitize_test.go:L55)
+- TestStory3_AC7_SanitizeDisciplineAcrossFiles() (internal/uiadapter/logging_story3_sanitize_test.go:L73)
+- story4RandomPayload() (internal/uiadapter/logging_story4_sanitize_test.go:L67)
+- TestStory4_AC7_SanitizeDisciplineAcrossPipeline() (internal/uiadapter/logging_story4_sanitize_test.go:L90)
+- TestStory5_AC8_PerFileEmissionCoverage() (internal/uiadapter/logging_story5_sanitize_test.go:L102)
+- TestStory5_AC8_SanitizeDisciplineHolds() (internal/uiadapter/logging_story5_sanitize_test.go:L138)
+- TestStory5_AC9_HotPathZeroAllocs_DebugOff() (internal/uiadapter/logging_story5_sanitize_test.go:L173)
+- runStory5PayloadShapingSurface() (internal/uiadapter/logging_story5_sanitize_test.go:L56)
+- TestStory1_AC5_ConfigDefaults() (internal/uiadapter/logging_test.go:L260)
+- TestStory5_AC5_MockInit() (internal/uiadapter/mock_test.go:L64)
+- TestStory5_AC5_MockTranslate() (internal/uiadapter/mock_test.go:L99)
+- prefix_cache.go (internal/uiadapter/prefix_cache.go:L1)
+- ClaudeSystemBlock() (internal/uiadapter/prefix_cache.go:L20)
+- cacheControlType() (internal/uiadapter/prefix_cache.go:L53)
+- OllamaKeepAliveEncoded() (internal/uiadapter/prefix_cache.go:L65)
+- ClaudeSystemBlockJSON() (internal/uiadapter/prefix_cache.go:L86)
 - prefix_cache_test.go (internal/uiadapter/prefix_cache_test.go:L1)
+- TestStory3_AC6_OllamaKeepAlive() (internal/uiadapter/prefix_cache_test.go:L137)
 - TestClaudeSystemBlock_HasCacheControl() (internal/uiadapter/prefix_cache_test.go:L14)
 - TestClaudeSystemBlock_OffTTLSkipsMarker() (internal/uiadapter/prefix_cache_test.go:L26)
 - TestPrompt_StaticPrefix_ByteStable() (internal/uiadapter/prefix_cache_test.go:L39)
 - TestOllamaKeepAliveEncoded() (internal/uiadapter/prefix_cache_test.go:L59)
 - TestClaudeSystemBlock_EmptyPrefixNil() (internal/uiadapter/prefix_cache_test.go:L73)
-- sampling_test.go (internal/uiadapter/sampling_test.go:L1)
+- TestStory3_AC6_PrefixCacheBuildEvents() (internal/uiadapter/prefix_cache_test.go:L89)
+- TestStory4_AC2_RepairExhausted() (internal/uiadapter/repair_test.go:L175)
+- TestStory4_AC3_RepairSuccessOnFirstTry() (internal/uiadapter/repair_test.go:L237)
+- TestStory4_AC2_BuildRepairPromptEmits() (internal/uiadapter/repair_test.go:L281)
+- sampling.go (internal/uiadapter/sampling.go:L1)
+- OllamaSamplingOptions() (internal/uiadapter/sampling.go:L25)
+- ClaudeSamplingOptions() (internal/uiadapter/sampling.go:L52)
 - TestOllamaSamplingOptions_DeterministicDefaults() (internal/uiadapter/sampling_test.go:L13)
 - TestClaudeSamplingOptions_NoSeed() (internal/uiadapter/sampling_test.go:L24)
 - TestSamplingOptions_ConfigurableThroughConfig() (internal/uiadapter/sampling_test.go:L33)
+- TestStory5_AC5_SamplingOllama() (internal/uiadapter/sampling_test.go:L45)
+- TestStory5_AC5_SamplingClaude() (internal/uiadapter/sampling_test.go:L63)
+- TestStory5_AC1_SanitizeStartAndDone() (internal/uiadapter/sanitize_test.go:L110)
+- TestStory5_AC7_WidgetNodeUnmarshalEmits() (internal/uiadapter/schema_test.go:L197)
+- newSemaphore() (internal/uiadapter/semaphore.go:L25)
+- TestStory3_AC5_SemaphoreWaitAndAcquired() (internal/uiadapter/semaphore_test.go:L31)
+- TestStory3_AC5_SemaphoreCancelled() (internal/uiadapter/semaphore_test.go:L77)
+- spotlight.go (internal/uiadapter/spotlight.go:L1)
+- Unspotlight() (internal/uiadapter/spotlight.go:L100)
+- Spotlight() (internal/uiadapter/spotlight.go:L42)
+- spotlight_test.go (internal/uiadapter/spotlight_test.go:L1)
+- TestStory5_AC2_SpotlightDisabled() (internal/uiadapter/spotlight_test.go:L111)
+- TestSpotlight_ReplacesWhitespace() (internal/uiadapter/spotlight_test.go:L13)
+- TestStory5_AC2_UnspotlightRemoved() (internal/uiadapter/spotlight_test.go:L141)
+- TestSpotlight_DisabledBypass() (internal/uiadapter/spotlight_test.go:L21)
+- TestSpotlight_RoundTripLossless() (internal/uiadapter/spotlight_test.go:L29)
+- TestSpotlight_InjectionCorpus() (internal/uiadapter/spotlight_test.go:L39)
+- TestSpotlight_EmptyAndUnicode() (internal/uiadapter/spotlight_test.go:L65)
+- TestStory5_AC2_SpotlightAdded() (internal/uiadapter/spotlight_test.go:L75)
+- TestStory4_AC4_TwoStageHappyPath() (internal/uiadapter/stages_test.go:L167)
+- TestStory4_AC5_StagesParseError() (internal/uiadapter/stages_test.go:L226)
+- TestStory4_AC4_AssembleEmits() (internal/uiadapter/stages_test.go:L259)
+- TestStory4_AC4_ParseStageKindRejected() (internal/uiadapter/stages_test.go:L291)
+- translate_e2e_test.go (internal/uiadapter/translate_e2e_test.go:L1)
+- decodeOps() (internal/uiadapter/translate_e2e_test.go:L114)
+- hasOpPrefix() (internal/uiadapter/translate_e2e_test.go:L136)
+- TestStory6_AC2_Translate_HappyPath_AllPhasesLog() (internal/uiadapter/translate_e2e_test.go:L156)
+- TestStory6_AC2_Translate_RepairTriggered() (internal/uiadapter/translate_e2e_test.go:L200)
+- TestStory6_AC2_Translate_TierEscalation() (internal/uiadapter/translate_e2e_test.go:L253)
+- scanBufferForLeak() (internal/uiadapter/translate_e2e_test.go:L309)
+- TestStory6_AC3_TenMessageNoLeak() (internal/uiadapter/translate_e2e_test.go:L329)
+- driveLeakProbes() (internal/uiadapter/translate_e2e_test.go:L376)
+- drivePerPhaseHelpers() (internal/uiadapter/translate_e2e_test.go:L63)
+- TestStory5_AC4_ValidatorAggregateAndPerRule() (internal/uiadapter/validator_test.go:L375)
 
 # Depends on
-- [Accountant](/modules/accountant.md)
+- [BreakerSet](/modules/breakerset.md)
+- [Config](/modules/config.md)
+- [context.Context](/modules/context-context.md)
+- [fastpath.go](/modules/fastpath-go.md)
 - [log/slog.Logger](/modules/log-slog-logger.md)
 - [ProcessByID](/modules/processbyid.md)
-- [question.go](/modules/question-go.md)
-- [ResponseCache](/modules/responsecache.md)
-- [Router](/modules/router.md)
-- [StubBackend](/modules/stubbackend.md)
 - [testing.T](/modules/testing-t.md)
-- [testLogBuffer](/modules/testlogbuffer.md)
+- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Inferred
+- [Config](/modules/config.md)
+- [fastpath.go](/modules/fastpath-go.md)
 - [log/slog.Logger](/modules/log-slog-logger.md)
-- [logging_comprehensive_test.go](/modules/logging-comprehensive-test-go.md)
+- [NewMock](/modules/newmock.md)
 - [NewRepairer](/modules/newrepairer.md)
-- [Router](/modules/router.md)
-- [testLogBuffer](/modules/testlogbuffer.md)
+- [RunWithFallback](/modules/runwithfallback.md)
 - [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Features

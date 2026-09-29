@@ -5,9 +5,9 @@ description: "Graphify community 67: app_terminal_registry_test.go"
 resource: .
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: app_terminal_registry_test, resource: app_terminal_registry_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 2f85a0b04c1b8ba7 }
 ---
@@ -46,8 +46,8 @@ sources:
 - TestStory5_ResolveTmuxTarget() (app_terminal_registry_test.go:L589)
 
 # Depends on
-- [Client](/modules/client.md)
 - [ManagedSession](/modules/managedsession.md)
+- [sync.Mutex](/modules/sync-mutex.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

@@ -5,9 +5,9 @@ description: "Graphify community 28: frontend/src/lib/types/wails.d.ts"
 resource: frontend/src/lib/types
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: wails.d, resource: frontend/src/lib/types/wails.d.ts, last_modified: "2026-04-22T16:28:45+10:00", digest: 0445b409bdd5883e }
 ---

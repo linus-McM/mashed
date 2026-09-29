@@ -5,13 +5,13 @@ description: "Graphify community 101: bundled_themes_test.go, theme_scanner.go, 
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
-  - { id: bundled_themes_test, resource: bundled_themes_test.go, last_modified: "2026-04-10T09:28:28+10:00", digest: 7521e18fece03e1e }
-  - { id: theme_scanner, resource: theme_scanner.go, last_modified: "2026-04-10T09:28:28+10:00", digest: d02c5e5c45d34f49 }
-  - { id: theme_scanner_test, resource: theme_scanner_test.go, last_modified: "2026-04-07T10:03:32+10:00", digest: b5300960a22f33a8 }
+  - { id: bundled_themes_test, resource: bundled_themes_test.go, last_modified: "2026-09-30T00:54:22+10:00", digest: efea78a949fc9cff }
+  - { id: theme_scanner, resource: theme_scanner.go, last_modified: "2026-09-30T00:54:22+10:00", digest: ade5ed9563586e37 }
+  - { id: theme_scanner_test, resource: theme_scanner_test.go, last_modified: "2026-09-30T00:54:22+10:00", digest: f4deb15bb2bfe33c }
 ---
 
 # Files
@@ -20,31 +20,32 @@ sources:
 - `theme_scanner_test.go`
 
 # Symbols
-- TestBundledThemesDir_ReturnsPath() (bundled_themes_test.go:L490)
-- stripJSONC() (theme_scanner.go:L106)
-- stripTrailingCommas() (theme_scanner.go:L166)
-- isVSIXThemePath() (theme_scanner.go:L19)
-- parseVSIXThemePath() (theme_scanner.go:L25)
-- .ListVSCodiumThemes() (theme_scanner.go:L270)
-- App (theme_scanner.go:L270)
-- bundledThemesDir() (theme_scanner.go:L295)
-- .ListBundledThemes() (theme_scanner.go:L318)
-- .ReadBundledThemeFile() (theme_scanner.go:L329)
-- readAndResolveVSIXTheme() (theme_scanner.go:L346)
-- readFileFromZip() (theme_scanner.go:L39)
-- rawTheme (theme_scanner.go:L396)
-- .ReadThemeFile() (theme_scanner.go:L407)
-- .readThemeFileWithDepth() (theme_scanner.go:L426)
-- .readThemeFromVSIX() (theme_scanner.go:L501)
-- .SetImportedTheme() (theme_scanner.go:L519)
-- mergeThemes() (theme_scanner.go:L59)
-- expandTilde() (theme_scanner.go:L86)
-- TestStripJSONC() (theme_scanner_test.go:L104)
-- TestTildeExpansion() (theme_scanner_test.go:L1164)
-- TestStripJSONC_ResultIsValidJSON() (theme_scanner_test.go:L193)
+- TestBundledThemesDir_ReturnsPath() (bundled_themes_test.go:L494)
+- stripJSONC() (theme_scanner.go:L108)
+- stripTrailingCommas() (theme_scanner.go:L168)
+- isVSIXThemePath() (theme_scanner.go:L21)
+- parseVSIXThemePath() (theme_scanner.go:L27)
+- .ListVSCodiumThemes() (theme_scanner.go:L272)
+- App (theme_scanner.go:L272)
+- bundledThemesDir() (theme_scanner.go:L297)
+- .ListBundledThemes() (theme_scanner.go:L320)
+- .ReadBundledThemeFile() (theme_scanner.go:L331)
+- readAndResolveVSIXTheme() (theme_scanner.go:L362)
+- readFileFromZip() (theme_scanner.go:L41)
+- rawTheme (theme_scanner.go:L412)
+- .ReadThemeFile() (theme_scanner.go:L423)
+- .readThemeFileWithDepth() (theme_scanner.go:L442)
+- .readThemeFromVSIX() (theme_scanner.go:L517)
+- .SetImportedTheme() (theme_scanner.go:L535)
+- mergeThemes() (theme_scanner.go:L61)
+- expandTilde() (theme_scanner.go:L88)
+- TestStripJSONC() (theme_scanner_test.go:L107)
+- TestTildeExpansion() (theme_scanner_test.go:L1167)
+- TestStripJSONC_ResultIsValidJSON() (theme_scanner_test.go:L196)
 
 # Depends on
-- [bundled_themes_test.go](/modules/bundled-themes-test-go.md)
+- [App](/modules/app-73.md)
+- [createMockVSIX](/modules/createmockvsix.md)
 
 # Inferred
 - [loadConfig](/modules/loadconfig.md)

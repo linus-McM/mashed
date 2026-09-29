@@ -1,13 +1,13 @@
 ---
 type: Module
 title: RunWithFallback
-description: "Graphify community 181: internal/uiadapter/fallback_tiers.go, internal/uiadapter/fallback_tiers_test.go"
+description: "Graphify community 18: internal/uiadapter/fallback_tiers.go, internal/uiadapter/fallback_tiers_test.go"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: fallback_tiers, resource: internal/uiadapter/fallback_tiers.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 88e0c867731816cd }
   - { id: fallback_tiers_test, resource: internal/uiadapter/fallback_tiers_test.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 73bb2c32262274bd }
@@ -18,6 +18,7 @@ sources:
 - `internal/uiadapter/fallback_tiers_test.go`
 
 # Symbols
+- fallback_tiers.go (internal/uiadapter/fallback_tiers.go:L1)
 - tierFailureReason() (internal/uiadapter/fallback_tiers.go:L19)
 - FallbackTier (internal/uiadapter/fallback_tiers.go:L43)
 - RunWithFallback() (internal/uiadapter/fallback_tiers.go:L57)
@@ -29,10 +30,10 @@ sources:
 - TestFallback_ContextCancellation() (internal/uiadapter/fallback_tiers_test.go:L82)
 
 # Depends on
-- [testLogBuffer](/modules/testlogbuffer.md)
+- [DefaultConfig](/modules/defaultconfig.md)
 
 # Inferred
-- [nilSafeLogger](/modules/nilsafelogger.md)
+- [DefaultConfig](/modules/defaultconfig.md)
 
 # Features
 - no feature plan names these files

@@ -1,13 +1,13 @@
 ---
 type: Module
 title: backend/registry_test.go
-description: "Graphify community 8: internal/uiadapter/backend/backend.go, internal/uiadapter/backend/claudeapi/stub.go, internal/uiadapter/backend/claudecli/stub.go, internal/uiadapter/backend/lifecycle.go, intern"
+description: "Graphify community 6: internal/uiadapter/backend/backend.go, internal/uiadapter/backend/claudeapi/stub.go, internal/uiadapter/backend/claudecli/stub.go, internal/uiadapter/backend/lifecycle.go, intern"
 resource: internal/uiadapter/backend
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: backend, resource: internal/uiadapter/backend/backend.go, last_modified: "2026-04-23T11:09:52+10:00", digest: d0eac5646b5c1ef3 }
   - { id: stub, resource: internal/uiadapter/backend/claudeapi/stub.go, last_modified: "2026-04-23T11:09:52+10:00", digest: 0c95368a8fcd18d3 }
@@ -44,6 +44,7 @@ sources:
 - .healthProbeAll() (internal/uiadapter/backend/lifecycle.go:L115)
 - Lifecycle (internal/uiadapter/backend/lifecycle.go:L15)
 - NewLifecycle() (internal/uiadapter/backend/lifecycle.go:L29)
+- .WarmUpAll() (internal/uiadapter/backend/lifecycle.go:L42)
 - .WarmUpState() (internal/uiadapter/backend/lifecycle.go:L69)
 - .StartHealthTicker() (internal/uiadapter/backend/lifecycle.go:L86)
 - lifecycle_test.go (internal/uiadapter/backend/lifecycle_test.go:L1)
@@ -91,8 +92,9 @@ sources:
 
 # Depends on
 - [Config](/modules/config.md)
-- [context.Context](/modules/context-context.md)
 - [DefaultConfig](/modules/defaultconfig.md)
+- [mashed/internal/uiadapter.UIAST](/modules/mashed-internal-uiadapter-uiast.md)
+- [time.Duration](/modules/time-duration.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

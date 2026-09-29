@@ -1,15 +1,15 @@
 ---
 type: Module
 title: AdviceMode
-description: "Graphify community 495: frontend/wailsjs/go/models.ts"
+description: "Graphify community 473: frontend/wailsjs/go/models.ts"
 resource: frontend/wailsjs/go
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
-  - { id: models, resource: frontend/wailsjs/go/models.ts, last_modified: "2026-04-28T12:36:05+10:00", digest: 921deb8fd959e9dc }
+  - { id: models, resource: frontend/wailsjs/go/models.ts, last_modified: "2026-09-30T01:21:31+10:00", digest: 24f2d8ec34abf6b9 }
 ---
 
 # Files

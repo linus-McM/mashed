@@ -5,9 +5,9 @@ description: "Graphify community 21: frontend/package.json, frontend/svelte.conf
 resource: frontend
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: package, resource: frontend/package.json, last_modified: "2026-04-22T16:28:45+10:00", digest: 5a2c6b5e36bbccae }
   - { id: svelte.config, resource: frontend/svelte.config.js, last_modified: "2026-04-22T18:25:48+10:00", digest: 0c0daaf0e9f8f3b4 }

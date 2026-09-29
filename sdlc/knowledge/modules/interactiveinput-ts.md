@@ -1,17 +1,16 @@
 ---
 type: Module
 title: interactiveInput.ts
-description: "Graphify community 22: frontend/package.json, frontend/src/components/bmad/InputResponseModal.test.ts, frontend/src/components/bmad/inputWidgets/ApprovalWidget.svelte, frontend/src/components/bmad/inp"
+description: "Graphify community 22: frontend/package.json, frontend/src/components/bmad/InputResponseModal.test.ts, frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts, frontend/src/components/bmad/in"
 resource: frontend
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: package, resource: frontend/package.json, last_modified: "2026-04-22T16:28:45+10:00", digest: 5a2c6b5e36bbccae }
   - { id: InputResponseModal.test, resource: frontend/src/components/bmad/InputResponseModal.test.ts, last_modified: "2026-04-22T12:56:23+10:00", digest: dbef06f6be2ed227 }
-  - { id: ApprovalWidget, resource: frontend/src/components/bmad/inputWidgets/ApprovalWidget.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 0fc07df52f3669be }
   - { id: ApprovalWidget.test, resource: frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: dd83b6c89edd8eeb }
   - { id: ChoiceWidget.test, resource: frontend/src/components/bmad/inputWidgets/ChoiceWidget.test.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: 3d4ad8158db13456 }
   - { id: FileInputWidget.test, resource: frontend/src/components/bmad/inputWidgets/FileInputWidget.test.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: 85bc3c9b12efacd4 }
@@ -27,7 +26,6 @@ sources:
 # Files
 - `frontend/package.json`
 - `frontend/src/components/bmad/InputResponseModal.test.ts`
-- `frontend/src/components/bmad/inputWidgets/ApprovalWidget.svelte`
 - `frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts`
 - `frontend/src/components/bmad/inputWidgets/ChoiceWidget.test.ts`
 - `frontend/src/components/bmad/inputWidgets/FileInputWidget.test.ts`
@@ -46,7 +44,6 @@ sources:
 - astJson() (frontend/src/components/bmad/InputResponseModal.test.ts:L50)
 - dgNode() (frontend/src/components/bmad/InputResponseModal.test.ts:L53)
 - Mount (frontend/src/components/bmad/InputResponseModal.test.ts:L59)
-- ApprovalWidget.svelte (frontend/src/components/bmad/inputWidgets/ApprovalWidget.svelte:L1)
 - ApprovalWidget.test.ts (frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts:L1)
 - Mount (frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts:L24)
 - makePrompt() (frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts:L9)
@@ -75,6 +72,7 @@ sources:
 - openModal() (frontend/src/stores/interactiveInput.ts:L111)
 - closeModal() (frontend/src/stores/interactiveInput.ts:L115)
 - openModalForNode() (frontend/src/stores/interactiveInput.ts:L119)
+- pushToast() (frontend/src/stores/interactiveInput.ts:L127)
 - dismissNode() (frontend/src/stores/interactiveInput.ts:L133)
 - resetInteractiveInput() (frontend/src/stores/interactiveInput.ts:L142)
 - pendingPrompt (frontend/src/stores/interactiveInput.ts:L153)
@@ -86,6 +84,7 @@ sources:
 - initial (frontend/src/stores/interactiveInput.ts:L53)
 - interactiveInput (frontend/src/stores/interactiveInput.ts:L61)
 - validationKey() (frontend/src/stores/interactiveInput.ts:L63)
+- upsertPrompt() (frontend/src/stores/interactiveInput.ts:L67)
 - resolveInput() (frontend/src/stores/interactiveInput.ts:L76)
 - setValidationError() (frontend/src/stores/interactiveInput.ts:L91)
 
@@ -97,7 +96,7 @@ sources:
 - [vitest](/modules/vitest.md)
 
 # Inferred
-- [ui-ast-view-raw.spec.ts](/modules/ui-ast-view-raw-spec-ts.md)
+- [Design Brief](/modules/design-brief.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

@@ -5,9 +5,9 @@ description: "Graphify community 211: internal/bmad/testutil_interactive_test.go
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: testutil_interactive_test, resource: internal/bmad/testutil_interactive_test.go, last_modified: "2026-04-20T15:36:58+10:00", digest: f165a17bd64570bc }
 ---
@@ -32,9 +32,9 @@ sources:
 - .startSingleNodeWithOverrides() (internal/bmad/testutil_interactive_test.go:L92)
 
 # Depends on
+- [executor_command_test.go](/modules/executor-command-test-go.md)
 - [newHarness](/modules/newharness.md)
 - [ProcessByID](/modules/processbyid.md)
-- [Storage](/modules/storage.md)
 
 # Inferred
 - [executor_iteration_test.go](/modules/executor-iteration-test-go.md)

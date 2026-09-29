@@ -5,9 +5,9 @@ description: "Graphify community 26: internal/bmad/interactive_defaults.go, inte
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: interactive_defaults, resource: internal/bmad/interactive_defaults.go, last_modified: "2026-04-28T11:16:27+10:00", digest: d72d23f8f4651178 }
   - { id: interactive_defaults_test, resource: internal/bmad/interactive_defaults_test.go, last_modified: "2026-04-28T09:29:49+10:00", digest: 3238ce12f829fa21 }

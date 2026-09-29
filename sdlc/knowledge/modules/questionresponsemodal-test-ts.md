@@ -1,13 +1,13 @@
 ---
 type: Module
 title: QuestionResponseModal.test.ts
-description: "Graphify community 445: frontend/src/components/bmad/QuestionResponseModal.test.ts, frontend/src/components/bmad/questionSnackbarUtils.ts"
+description: "Graphify community 340: frontend/src/components/bmad/QuestionResponseModal.test.ts, frontend/src/components/bmad/questionSnackbarUtils.ts"
 resource: frontend/src/components/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: QuestionResponseModal.test, resource: frontend/src/components/bmad/QuestionResponseModal.test.ts, last_modified: "2026-04-10T14:16:40+10:00", digest: a798f0e107780ec5 }
   - { id: questionSnackbarUtils, resource: frontend/src/components/bmad/questionSnackbarUtils.ts, last_modified: "2026-04-11T19:45:53+10:00", digest: 7c6697429c616053 }
@@ -29,8 +29,9 @@ sources:
 
 # Depends on
 - [App.js](/modules/app-js.md)
+- [interactiveInput.ts](/modules/interactiveinput-ts.md)
+- [QuestionResponseModal.svelte](/modules/questionresponsemodal-svelte.md)
 - [QuestionSnackbarStack.test.ts](/modules/questionsnackbarstack-test-ts.md)
-- [svelte](/modules/svelte.md)
 - [vitest](/modules/vitest.md)
 
 # Inferred

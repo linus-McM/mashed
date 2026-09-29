@@ -1,13 +1,13 @@
 ---
 type: Module
 title: resume_ghost_test.go
-description: "Graphify community 233: internal/bmad/cleanup.go, internal/bmad/resume.go, internal/bmad/resume_ghost_test.go"
+description: "Graphify community 289: internal/bmad/cleanup.go, internal/bmad/resume.go, internal/bmad/resume_ghost_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: cleanup, resource: internal/bmad/cleanup.go, last_modified: "2026-05-07T09:52:03+10:00", digest: 78b71ea7a045636f }
   - { id: resume, resource: internal/bmad/resume.go, last_modified: "2026-04-28T12:36:05+10:00", digest: 0a2ce1f02fac5f5b }

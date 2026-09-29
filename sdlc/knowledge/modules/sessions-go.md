@@ -1,13 +1,13 @@
 ---
 type: Module
 title: sessions.go
-description: "Graphify community 93: internal/domain/types.go, internal/scanner/sessions.go, internal/uiadapter/backend/claudeapi/client.go"
+description: "Graphify community 190: internal/domain/types.go, internal/scanner/sessions.go, internal/uiadapter/backend/claudeapi/client.go"
 resource: internal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: types, resource: internal/domain/types.go, last_modified: "2026-04-11T17:08:28+10:00", digest: a6b057db991af9b4 }
   - { id: sessions, resource: internal/scanner/sessions.go, last_modified: "2026-04-07T10:03:32+10:00", digest: 4878f58d15bdc696 }
@@ -37,7 +37,7 @@ sources:
 - responseBody (internal/uiadapter/backend/claudeapi/client.go:L195)
 
 # Depends on
-- [ClaudeCodeProvider](/modules/claudecodeprovider.md)
+- [App](/modules/app-109.md)
 - [domain/types.go](/modules/domain-types-go.md)
 - [SessionData](/modules/sessiondata.md)
 

@@ -5,9 +5,9 @@ description: "Graphify community 37: app_terminal_registry_test.go, internal/ter
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: app_terminal_registry_test, resource: app_terminal_registry_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 2f85a0b04c1b8ba7 }
   - { id: server, resource: internal/terminal/helper/server.go, last_modified: "2026-04-09T21:03:43+10:00", digest: e54a6a9ea36ca59d }
@@ -15,6 +15,7 @@ sources:
   - { id: manager, resource: internal/terminal/manager.go, last_modified: "2026-05-07T20:55:09+10:00", digest: 4c7107fb7905c1b1 }
   - { id: session, resource: internal/terminal/session.go, last_modified: "2026-04-09T18:42:25+10:00", digest: 6213e8a0ece661b9 }
   - { id: stub, resource: internal/terminal/stub.go, last_modified: "2026-04-09T11:24:44+10:00", digest: 4e852c6c9f8e0735 }
+  - { id: logging, resource: internal/uiadapter/logging.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f7d1f46bdb4ea215 }
 ---
 
 # Files
@@ -24,6 +25,7 @@ sources:
 - `internal/terminal/manager.go`
 - `internal/terminal/session.go`
 - `internal/terminal/stub.go`
+- `internal/uiadapter/logging.go`
 
 # Symbols
 - fakeSessionManager (app_terminal_registry_test.go:L43)
@@ -36,13 +38,6 @@ sources:
 - loginShellPATH() (internal/terminal/login_path.go:L22)
 - resolveExecutable() (internal/terminal/login_path.go:L46)
 - applyLoginPATH() (internal/terminal/login_path.go:L69)
-- .Get() (internal/terminal/manager.go:L106)
-- .Kill() (internal/terminal/manager.go:L117)
-- .IsAlive() (internal/terminal/manager.go:L136)
-- .List() (internal/terminal/manager.go:L147)
-- .FindByPID() (internal/terminal/manager.go:L164)
-- .Shutdown() (internal/terminal/manager.go:L180)
-- SessionManager (internal/terminal/manager.go:L24)
 - .Spawn() (internal/terminal/manager.go:L43)
 - ManagedSession (internal/terminal/session.go:L104)
 - newManagedSession() (internal/terminal/session.go:L119)
@@ -61,9 +56,12 @@ sources:
 - .Snapshot() (internal/terminal/session.go:L78)
 - terminal/stub.go (internal/terminal/stub.go:L1)
 - NewStubSession() (internal/terminal/stub.go:L4)
+- fileCloser (internal/uiadapter/logging.go:L145)
+- .Close() (internal/uiadapter/logging.go:L152)
+- noopCloser (internal/uiadapter/logging.go:L159)
+- .Close() (internal/uiadapter/logging.go:L162)
 
 # Depends on
-- [Client](/modules/client.md)
 - [session_test.go](/modules/session-test-go.md)
 
 # Inferred

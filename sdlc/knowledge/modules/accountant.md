@@ -5,9 +5,9 @@ description: "Graphify community 314: internal/uiadapter/accountant.go, internal
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
+stale_after: "2026-10-13T15:22:13Z"
+source_commit: 918616f42268500be0e26faa9f92720109b96761
 sources:
   - { id: accountant, resource: internal/uiadapter/accountant.go, last_modified: "2026-04-23T11:29:34+10:00", digest: ae4389c89ff37e93 }
   - { id: accountant_test, resource: internal/uiadapter/accountant_test.go, last_modified: "2026-04-23T11:29:34+10:00", digest: 60c344b0cdff2ce8 }
@@ -28,16 +28,21 @@ sources:
 - CostUSD() (internal/uiadapter/accountant.go:L54)
 - Accountant (internal/uiadapter/accountant.go:L68)
 - tokenTick (internal/uiadapter/accountant.go:L77)
+- NewAccountant() (internal/uiadapter/accountant.go:L84)
 - .CheckPrecall() (internal/uiadapter/accountant.go:L91)
+- accountant_test.go (internal/uiadapter/accountant_test.go:L1)
 - TestAccountant_CostMatchesBilling() (internal/uiadapter/accountant_test.go:L13)
+- TestAccountant_TripsBeforeHard429() (internal/uiadapter/accountant_test.go:L27)
+- TestAccountant_USDBudgetSoftLimit() (internal/uiadapter/accountant_test.go:L45)
+- TestAccountant_Snapshot() (internal/uiadapter/accountant_test.go:L59)
+- TestAccountant_SlidingWindow() (internal/uiadapter/accountant_test.go:L72)
 - TestAccountant_UnknownModelIsFree() (internal/uiadapter/accountant_test.go:L90)
 
 # Depends on
-- [DefaultConfig](/modules/defaultconfig.md)
-- [log/slog.Logger](/modules/log-slog-logger.md)
+- [Config](/modules/config.md)
 
 # Inferred
-- no INFERRED edges; treat any that appear as hints
+- [DefaultConfig](/modules/defaultconfig.md)
 
 # Features
 - no feature plan names these files
