@@ -380,15 +380,16 @@ func TestSpawnRefactorPlan_ArgvExact(t *testing.T) {
 	argvs := fake.spawnedArgvs()
 	require.Len(t, argvs, 1)
 	argv := argvs[0]
-	require.Len(t, argv, 7)
+	require.Len(t, argv, 9)
 	rel, err := filepath.Rel(repo, planPath)
 	require.NoError(t, err)
 	wantTools := "Read,Grep,Glob,Edit(./" + filepath.ToSlash(rel) + ")"
 	model := domain.DefaultAlias(app.ListModels())
-	assert.Equal(t, []string{"claude", "--model", model, "--allowedTools", wantTools, "-p"}, argv[:6])
+	// No shell: auto-approved commands like `git log --output=` could write files.
+	assert.Equal(t, []string{"claude", "--model", model, "--allowedTools", wantTools, "--disallowedTools", "Bash", "-p"}, argv[:8])
 	assert.True(t, strings.HasPrefix(filepath.ToSlash(rel), ".claude/plans/"), rel)
-	assert.Contains(t, argv[6], advice, "advice passes through verbatim inside the single prompt element")
-	assert.Contains(t, argv[6], planPath)
+	assert.Contains(t, argv[8], advice, "advice passes through verbatim inside the single prompt element")
+	assert.Contains(t, argv[8], planPath)
 	assert.NotContains(t, strings.Join(argv, " "), "--dangerously-skip-permissions")
 }
 

@@ -516,6 +516,9 @@ Conventions for every step:
     - Check with `go test -count=50 -run AC2 ./internal/terminal/`.
     - Build note (2026-09-30): AC2 passed 50 out of 50 runs on macOS before the fix, so no red was recorded for it here. The cause of the Linux flake is exactly R20: `echo hello` exits before the clients attach, and a late client used to get nothing. After the fix, the late client gets the scrollback. AC2 as written therefore passes whether the client attaches early or late, and the `cat` rewrite is not needed. The existing nil-client-map check is the "exited" state, so there is no separate flag. Linux confirmation comes from the PR 3 CI `-count=50` step.
     - Then run `/security-review` and open draft PR 2.
+19b. **s2.6-no-shell-agents (R16, C3; from the PR 2 /security-review, added 2026-09-30).** The review allowlist `Bash(git log *)`, `git show *` and `git diff *` let the agent write any file via `--output=<file> --format=tformat:<text>`. Worse, claude 2.1.285 auto-approves `git log --output=…` even without any rule. Verified with the CLI; `--disallowedTools Bash` blocks it.
+    - Update TestSpawnPRReview_ArgvExact and TestSpawnRefactorPlan_ArgvExact first. Both argvs gain `--disallowedTools Bash`. The review allowlist becomes `Read,Grep,Glob`, and the review diff is fetched by the app (`a.prDiff`, default `gh pr diff <N>`) into a 0600 temp file that the prompt names.
+    - Deviation from R16's exact argv: two extra elements (`--disallowedTools`, `Bash`), recorded here for the design owner.
 
 ### PR 3: Build and test health (branch `repo-health/pr3-build`)
 20. **s3.1-dist-placeholder (R21).** Write TestRepo_DistPlaceholderTracked first (`frontend/dist/.gitkeep` is tracked, and `.gitignore` has `frontend/dist/*` and `!frontend/dist/.gitkeep`).

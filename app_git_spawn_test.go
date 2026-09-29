@@ -36,13 +36,16 @@ func spawnFixture(t *testing.T) (*App, *fakeSessionManager, string) {
 	return app, fake, repo
 }
 
-const wantReviewAllowedTools = "Read,Grep,Glob,Bash(gh pr diff *),Bash(gh pr view *),Bash(git diff *),Bash(git log *),Bash(git show *)"
-
-// R16: the review prompt reaches claude as exactly one argv element, and the
-// spawn no longer skips permissions.
+// R16 + PR 2 security review: the review agent gets no shell at all. Claude
+// Code auto-approves read-only-looking commands such as `git log`, which
+// accept --output=<file>, so any Bash access lets it write arbitrary files.
+// The diff is fetched by the app and handed over as a file to Read.
 func TestSpawnPRReview_ArgvExact(t *testing.T) {
 	app, fake, repo := spawnFixture(t)
 	app.prNumber = func(context.Context, string) (string, error) { return "12", nil }
+	app.prDiff = func(_ context.Context, _ string, n string) (string, error) {
+		return "diff --git a/x b/x\n+added line for PR " + n + "\n", nil
+	}
 
 	_, err := app.SpawnPRReview(repo)
 	require.NoError(t, err)
@@ -51,13 +54,28 @@ func TestSpawnPRReview_ArgvExact(t *testing.T) {
 	require.Len(t, argvs, 1)
 	argv := argvs[0]
 	model := domain.DefaultAlias(app.ListModels())
-	require.Len(t, argv, 7)
-	assert.Equal(t, []string{"claude", "--model", model, "--allowedTools", wantReviewAllowedTools, "-p"}, argv[:6])
-	prompt := argv[6]
+	require.Len(t, argv, 9)
+	assert.Equal(t, []string{"claude", "--model", model, "--allowedTools", "Read,Grep,Glob", "--disallowedTools", "Bash", "-p"}, argv[:8])
+	prompt := argv[8]
 	assert.Contains(t, prompt, "Review PR #12")
-	assert.Contains(t, prompt, "gh pr diff 12")
 	assert.Contains(t, prompt, "\n", "multi-line prompt stays one element")
 	assert.NotContains(t, strings.Join(argv, " "), "--dangerously-skip-permissions")
+
+	// The prompt names a private temp file holding the diff.
+	var diffPath string
+	for _, f := range strings.Fields(prompt) {
+		if strings.HasSuffix(f, ".diff") {
+			diffPath = f
+		}
+	}
+	require.NotEmpty(t, diffPath, "prompt must name the diff file")
+	b, err := os.ReadFile(diffPath)
+	require.NoError(t, err)
+	assert.Contains(t, string(b), "+added line for PR 12")
+	fi, err := os.Stat(diffPath)
+	require.NoError(t, err)
+	assert.Equal(t, os.FileMode(0o600), fi.Mode().Perm())
+	t.Cleanup(func() { os.Remove(diffPath) })
 }
 
 // R16: a PR number that is not all digits is rejected before any spawn.

@@ -53,7 +53,9 @@ type App struct {
 	manager sessionManager
 	// prNumber finds the PR SpawnPRReview reviews; nil means latestOpenPR.
 	// Tests replace it to avoid calling gh.
-	prNumber         func(ctx context.Context, repoPath string) (string, error)
+	prNumber func(ctx context.Context, repoPath string) (string, error)
+	// prDiff fetches a PR's diff for SpawnPRReview; nil means `gh pr diff`.
+	prDiff           func(ctx context.Context, repoPath, prNumber string) (string, error)
 	panes            paneDiscoverer
 	explainer        *explain.Explainer
 	mu               sync.Mutex

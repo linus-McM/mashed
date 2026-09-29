@@ -377,7 +377,9 @@ func (a *App) SpawnRefactorPlan(repoPath, adviceText string, filePaths []string)
 	}
 	allowed := "Read,Grep,Glob,Edit(./" + filepath.ToSlash(rel) + ")"
 	defaultModel := domain.DefaultAlias(a.ListModels())
-	argv := []string{"claude", "--model", defaultModel, "--allowedTools", allowed, "-p", prompt}
+	// No shell: auto-approved commands like `git log --output=` can write files.
+	argv := []string{"claude", "--model", defaultModel,
+		"--allowedTools", allowed, "--disallowedTools", "Bash", "-p", prompt}
 	_, err = a.spawnSessionArgv("refactor", repoPath, argv, domain.SessionAgent, defaultModel)
 	if err != nil {
 		return "", fmt.Errorf("spawn refactor plan agent: %w", err)
