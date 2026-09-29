@@ -57,7 +57,7 @@ pre-push:
   parallel: true
   commands:
     go-test-all:
-      run: go test -short -count=1 ./internal/...
+      run: go test -short -count=1 ./...
       fail_text: "go tests failed"
 
     go-coverage:

@@ -205,6 +205,28 @@ func TestRepo_CIWorkflow(t *testing.T) {
 	}
 }
 
+// R25: the local pre-push hook tests every package, including the root
+// `mashed` package, like CI does.
+func TestRepo_PrePushCoversRoot(t *testing.T) {
+	var lh struct {
+		PrePush struct {
+			Commands map[string]struct {
+				Run string `yaml:"run"`
+			} `yaml:"commands"`
+		} `yaml:"pre-push"`
+	}
+	if err := yaml.Unmarshal([]byte(readRepoFile(t, "lefthook.yml")), &lh); err != nil {
+		t.Fatalf("lefthook.yml: %v", err)
+	}
+	cmd, ok := lh.PrePush.Commands["go-test-all"]
+	if !ok {
+		t.Fatal("lefthook pre-push has no go-test-all command")
+	}
+	if cmd.Run != "go test -short -count=1 ./..." {
+		t.Errorf("pre-push go-test-all runs %q, want %q", cmd.Run, "go test -short -count=1 ./...")
+	}
+}
+
 func TestRepo_GraphifyOutIgnored(t *testing.T) {
 	cmd := exec.Command("git", "check-ignore", "-q", "graphify-out/x")
 	cmd.Dir = repoRoot(t)
