@@ -82,7 +82,8 @@ type App struct {
 
 	bmadStorage  *bmad.Storage
 	bmadExecutor *bmad.Executor
-	assetWatcher *bmad.AssetWatcher
+	assetWatcher *bmad.AssetWatcher // guarded by watcherMu
+	watcherMu    sync.Mutex
 
 	terminalSessions map[string]domain.TerminalSession
 	logFile          *os.File
@@ -432,23 +433,17 @@ func (a *App) startup(ctx context.Context) {
 		cleanupCancel()
 	}
 
-	// Start asset watcher for skills/commands directories.
-	assetRoots := bmad.AssetWatchRoots(a.activeRepoPath)
-	aw := bmad.NewAssetWatcher(assetRoots, func(event string, data interface{}) {
-		runtime.EventsEmit(a.ctx, event, data)
-	})
-	if err := aw.Start(a.ctx); err != nil {
-		log.Printf("bmad: asset watcher start failed (non-fatal): %v", err)
-	} else {
-		a.assetWatcher = aw
-	}
+	// Start asset watcher for skills/commands directories; SetActiveContext
+	// moves it to each newly active repo (R19).
+	a.mu.Lock()
+	active := a.activeRepoPath
+	a.mu.Unlock()
+	a.swapAssetWatcher(active)
 }
 
 // shutdown is called by Wails when the app is closing.
 func (a *App) shutdown(ctx context.Context) {
-	if a.assetWatcher != nil {
-		a.assetWatcher.Stop()
-	}
+	a.stopAssetWatcher()
 	if a.cancel != nil {
 		a.cancel()
 	}
@@ -497,9 +492,52 @@ func (a *App) PickFile(title string) (string, error) {
 // SetActiveContext stores the current repo path and pane target for screenshot routing.
 func (a *App) SetActiveContext(repoPath, paneTarget string) {
 	a.mu.Lock()
-	defer a.mu.Unlock()
+	prev := a.activeRepoPath
 	a.activeRepoPath = repoPath
 	a.activePaneTarget = paneTarget
+	a.mu.Unlock()
+
+	// R19: watch the newly active repo's skills/commands.
+	if repoPath != prev && a.ctx != nil {
+		a.swapAssetWatcher(repoPath)
+	}
+}
+
+// swapAssetWatcher replaces the asset watcher with one rooted at repoPath
+// (plus the global ~/.claude roots). The new watcher starts before the old
+// one stops; if it fails to start, the old one keeps running.
+func (a *App) swapAssetWatcher(repoPath string) {
+	a.watcherMu.Lock()
+	defer a.watcherMu.Unlock()
+	aw := bmad.NewAssetWatcher(bmad.AssetWatchRoots(repoPath), func(event string, data interface{}) {
+		a.emitEvent(event, data)
+	})
+	if err := aw.Start(a.ctx); err != nil {
+		log.Printf("bmad: asset watcher start failed (non-fatal): %v", err)
+		return
+	}
+	old := a.assetWatcher
+	a.assetWatcher = aw
+	if old != nil {
+		old.Stop()
+	}
+}
+
+// currentAssetWatcher returns the running asset watcher, or nil.
+func (a *App) currentAssetWatcher() *bmad.AssetWatcher {
+	a.watcherMu.Lock()
+	defer a.watcherMu.Unlock()
+	return a.assetWatcher
+}
+
+// stopAssetWatcher stops and clears the asset watcher.
+func (a *App) stopAssetWatcher() {
+	a.watcherMu.Lock()
+	defer a.watcherMu.Unlock()
+	if a.assetWatcher != nil {
+		a.assetWatcher.Stop()
+		a.assetWatcher = nil
+	}
 }
 
 // TakeScreenshot launches macOS screencapture and saves under {repoPath}/.screenshots/.
