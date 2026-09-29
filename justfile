@@ -6,6 +6,9 @@ default:
 repo := `basename $(git rev-parse --show-toplevel 2>/dev/null || basename $PWD)`
 # Random 4-digit suffix to allow multiple sessions of the same type
 rand := `printf '%04d' $((RANDOM % 10000))`
+# Code-signing identity. Defaults to ad-hoc ("-"), which works for local
+# builds; set MASHED_SIGN_IDENTITY to a real Developer identity to release.
+sign_identity := env_var_or_default("MASHED_SIGN_IDENTITY", "-")
 
 # Start a Gemini session in YOLO approval mode
 g_session:
@@ -45,7 +48,7 @@ run: build
 # Build and sign the PTY helper binary (entitlements required for PTY on macOS Sequoia)
 build-helper:
     go build -o build/bin/mashed-pty-helper ./cmd/pty-helper
-    codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist build/bin/mashed-pty-helper
+    codesign --force --options runtime --sign "{{sign_identity}}" --entitlements build/darwin/entitlements.plist build/bin/mashed-pty-helper
 
 # Full build: helper + wails + bundle + sign
 build: build-helper
@@ -53,8 +56,8 @@ build: build-helper
     PATH="$HOME/go/bin:$PATH" wails build
     cp -r fonts build/bin/mashed.app/Contents/Resources/fonts
     cp build/bin/mashed-pty-helper "build/bin/mashed.app/Contents/MacOS/mashed-pty-helper"
-    codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app/Contents/MacOS/mashed-pty-helper"
-    codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app"
+    codesign --force --options runtime --sign "{{sign_identity}}" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app/Contents/MacOS/mashed-pty-helper"
+    codesign --force --options runtime --sign "{{sign_identity}}" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app"
 
 # Package the signed .app into a distributable DMG via hdiutil. Output:
 # build/bin/mashed-<version>.dmg. Requires `just build` first. Uses an
@@ -72,7 +75,7 @@ dmg: build
     rm -f "$OUT"
     hdiutil create -volname "mashed" -srcfolder "$STAGE" -ov -format UDZO "$OUT"
     rm -rf "$STAGE"
-    codesign --force --sign "Apple Development: linus McManamey (5X8A9U965U)" "$OUT"
+    codesign --force --sign "{{sign_identity}}" "$OUT"
     echo "DMG: $OUT"
 
 # Run Go tests. -tags testing compiles files behind //go:build testing

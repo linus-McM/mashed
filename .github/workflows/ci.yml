@@ -53,6 +53,9 @@ jobs:
       - name: No personal home paths tracked (R26)
         run: "! git grep -l -F \"/Users/linus\" -- . ':!docs/plans' ':!sdlc' ':!repo_hygiene_test.go' ':!.github/workflows/ci.yml'"
 
+      - name: No signing identity or personal email tracked (R27)
+        run: "! git grep -l -E '5X8A9U965U|linus\\.a\\.mcm' -- . ':!sdlc' ':!repo_hygiene_test.go' ':!.github/workflows/ci.yml'"
+
       - name: Permission tests as root (R23)
         run: sudo -E env "PATH=$PATH" go test ./internal/bmad/ -run 'ErrorOnReadOnlyDir|StatErrorNotNotExist|WriteFailure'
 

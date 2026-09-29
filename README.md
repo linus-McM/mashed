@@ -60,7 +60,7 @@ Canonical per-file navigation lives in `.wolf/anatomy.md` (auto-maintained by Op
 - Node.js 20+ and npm
 - [Wails CLI v2.12+](https://wails.io/docs/gettingstarted/installation)
 - [just](https://github.com/casey/just) (task runner)
-- Apple Developer identity for local codesigning — currently hard-coded in `justfile` as `"Apple Development: linus McManamey (5X8A9U965U)"`; edit to your own identity before `just build`.
+- Codesigning identity — `just build` signs ad hoc (`-`) by default, which works for local builds; set `MASHED_SIGN_IDENTITY` to your Apple Development identity to sign for release.
 
 ### Develop
 

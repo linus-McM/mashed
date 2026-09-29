@@ -190,6 +190,7 @@ func TestRepo_CIWorkflow(t *testing.T) {
 		"sudo -E env \"PATH=$PATH\" go test ./internal/bmad/",           // R23 as root
 		"! git ls-files | grep -E",                                      // R26 junk
 		"! git grep -l -F \"/Users/",                                    // R26 personal paths
+		"! git grep -l -E '5X8A9U",                                      // R27 signing id / email
 	} {
 		if !strings.Contains(runs["go"], want) {
 			t.Errorf("go job lacks %q", want)
@@ -280,6 +281,34 @@ func TestRepo_NoTrackedJunk(t *testing.T) {
 	}
 	if got := gitGrepFiles(t, false, personalPath); len(got) > 0 {
 		t.Errorf("tracked files contain a personal home path: %v", got)
+	}
+}
+
+// R27: the Apple team id and the personal email are gone from HEAD, the
+// justfile signs with an overridable identity, and wails.json uses the
+// project alias.
+func TestRepo_NoPersonalData(t *testing.T) {
+	needle := "5X8A9U" + "965U|linus\\.a\\." + "mcm"
+	if got := gitGrepFiles(t, true, needle); len(got) > 0 {
+		t.Errorf("tracked files contain the signing identity or personal email: %v", got)
+	}
+	just := readRepoFile(t, "justfile")
+	if !strings.Contains(just, `env_var_or_default("MASHED_SIGN_IDENTITY", "-")`) {
+		t.Error(`justfile must sign with env_var_or_default("MASHED_SIGN_IDENTITY", "-")`)
+	}
+	if strings.Contains(just, "Apple Development:") {
+		t.Error("justfile still hard-codes an Apple Development identity")
+	}
+	var w struct {
+		Author struct {
+			Email string `json:"email"`
+		} `json:"author"`
+	}
+	if err := json.Unmarshal([]byte(readRepoFile(t, "wails.json")), &w); err != nil {
+		t.Fatalf("wails.json: %v", err)
+	}
+	if w.Author.Email != "support@surfseer.com" {
+		t.Errorf("wails.json author.email = %q, want support@surfseer.com", w.Author.Email)
 	}
 }
 

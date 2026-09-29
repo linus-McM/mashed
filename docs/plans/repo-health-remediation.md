@@ -127,7 +127,7 @@ History rewrite (`git filter-repo`) is optional; untracking is enough to stop gr
 
 ### Task 4.3 — De-personalise config
 
-- `justfile:43,51,52`: replace the hard-coded `Apple Development: linus McManamey (5X8A9U965U)` with `env_var_or_default("MASHED_SIGN_IDENTITY", "-")` (`-` = ad-hoc signing, works for local dev).
+- `justfile:43,51,52`: replace the hard-coded `<your signing identity>` with `env_var_or_default("MASHED_SIGN_IDENTITY", "-")` (`-` = ad-hoc signing, works for local dev).
 - `wails.json:11`: personal email → project/contact alias if the repo will be public.
 
 ### Task 4.4 — Repo basics

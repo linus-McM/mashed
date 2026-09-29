@@ -310,12 +310,12 @@ build:
 
 ```bash
 codesign --force --options runtime \
-  --sign "Apple Development: linus McManamey (5X8A9U965U)" \
+  --sign "<your signing identity>" \
   --entitlements build/darwin/entitlements.plist \
   "build/bin/mashed.app/Contents/MacOS/mashed-pty-helper"
 
 codesign --force --options runtime \
-  --sign "Apple Development: linus McManamey (5X8A9U965U)" \
+  --sign "<your signing identity>" \
   --entitlements build/darwin/entitlements.plist \
   "build/bin/mashed.app"
 ```
