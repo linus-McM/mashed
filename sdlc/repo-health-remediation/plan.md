@@ -9,6 +9,7 @@ From: spec.md (2026-09-29). Status: accepted. Risk: high.
 - frontend/src/lib/__tests__/workflowSerialisation.test.ts (step 0)
 - repo_hygiene_test.go (new, step 0; grows in PR 3-5)
 - testutil_git_test.go (new, step 0 hook-env fix)
+- internal/uiadapter/testmain_git_test.go (new, hook-env fix: pre-push TestCodegen_NoDrift)
 - internal/terminal/bridge.go
 - internal/terminal/origins_prod.go (new)
 - internal/terminal/origins_dev.go (new)
