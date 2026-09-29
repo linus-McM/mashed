@@ -356,6 +356,77 @@ func TestRepo_JustfileLFSGuard(t *testing.T) {
 	}
 }
 
+// ignored reports whether path is git-ignored (path need not exist).
+func ignored(t *testing.T, path string) bool {
+	t.Helper()
+	cmd := exec.Command("git", "check-ignore", "-q", "--no-index", path)
+	cmd.Dir = repoRoot(t)
+	cmd.Env = cleanGitEnv()
+	return cmd.Run() == nil
+}
+
+// R29: LICENSE, one hook system, lint config, the tracked skill and the
+// registry CSVs.
+func TestRepo_Basics(t *testing.T) {
+	lic := readRepoFile(t, "LICENSE")
+	if !strings.HasPrefix(lic, "MIT License") {
+		t.Error("LICENSE is not the MIT licence")
+	}
+	if !strings.Contains(lic, "Copyright (c) 2026 Linus McManamey\n") || strings.Contains(lic, "@") {
+		t.Error("LICENSE copyright line must name the holder with no email")
+	}
+
+	if got := trackedFiles(t, ".githooks"); len(got) > 0 {
+		t.Errorf(".githooks/ still tracked (%v); lefthook is the only hook system", got)
+	}
+	if strings.Contains(readRepoFile(t, "lefthook.yml"), "desloppify") {
+		t.Error("lefthook.yml still carries the commented desloppify block")
+	}
+
+	var lint struct {
+		Version string `yaml:"version"`
+		Linters struct {
+			Enable []string `yaml:"enable"`
+		} `yaml:"linters"`
+		Issues struct {
+			NewFromRev string `yaml:"new-from-rev"`
+		} `yaml:"issues"`
+	}
+	if err := yaml.Unmarshal([]byte(readRepoFile(t, ".golangci.yml")), &lint); err != nil {
+		t.Fatalf(".golangci.yml: %v", err)
+	}
+	for _, l := range []string{"govet", "errcheck", "staticcheck", "gosec"} {
+		if !slices.Contains(lint.Linters.Enable, l) {
+			t.Errorf(".golangci.yml does not enable %s", l)
+		}
+	}
+	if len(lint.Issues.NewFromRev) != 40 {
+		t.Errorf(".golangci.yml issues.new-from-rev = %q, want the PR 4 base SHA", lint.Issues.NewFromRev)
+	}
+
+	// Owner decision: restore the mashed-refactor-asset skill; every other
+	// .claude/ path stays personal.
+	skill := ".claude/skills/mashed-refactor-asset/SKILL.md"
+	if got := trackedFiles(t, skill); len(got) != 1 {
+		t.Errorf("%s is not tracked", skill)
+	}
+	if ignored(t, skill) {
+		t.Errorf("%s is git-ignored", skill)
+	}
+	for _, p := range []string{".claude/skills/other/SKILL.md", ".claude/settings.local.json", ".claude/worktrees/x/y"} {
+		if !ignored(t, p) {
+			t.Errorf("%s should be git-ignored", p)
+		}
+	}
+
+	if !hasLine(readRepoFile(t, ".gitignore"), "!internal/bmad/testdata/*.csv") {
+		t.Error(".gitignore must re-include internal/bmad/testdata/*.csv (registry data)")
+	}
+	if ignored(t, "internal/bmad/testdata/new.csv") {
+		t.Error("internal/bmad/testdata/*.csv is git-ignored")
+	}
+}
+
 func TestRepo_GraphifyOutIgnored(t *testing.T) {
 	cmd := exec.Command("git", "check-ignore", "-q", "graphify-out/x")
 	cmd.Dir = repoRoot(t)

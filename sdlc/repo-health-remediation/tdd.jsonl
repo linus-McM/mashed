@@ -55,3 +55,5 @@
 {"phase": "green", "step": "s4.2-personal-data", "exit": 0, "ts": "2026-09-29"}
 {"phase": "red", "step": "s4.3-lfs", "exit": 1, "ts": "2026-09-29"}
 {"phase": "green", "step": "s4.3-lfs", "exit": 0, "ts": "2026-09-29"}
+{"phase": "red", "step": "s4.4-repo-basics", "exit": 1, "ts": "2026-09-29"}
+{"phase": "green", "step": "s4.4-repo-basics", "exit": 0, "ts": "2026-09-29"}

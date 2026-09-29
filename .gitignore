@@ -70,6 +70,7 @@ images/*
 *.seed
 *.log
 *.csv
+!internal/bmad/testdata/*.csv
 *.dat
 *.backup
 console-**.log

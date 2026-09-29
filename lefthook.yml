@@ -38,21 +38,6 @@ pre-commit:
       run: just sveltecheck
       fail_text: "svelte-check found errors. Fix types — do NOT add @ts-ignore / @ts-nocheck / any. Run `just sveltecheck-by-file` to locate errors."
 
-    # desloppify:
-    #   Temporarily disabled during the breadcrumbs sprint: the queue carries
-    #   ~20 pre-existing items unrelated to the sprint scope, which blocks
-    #   every commit. Restore this block after running `desloppify next`
-    #   through the backlog (triage target: strict >= 85).
-    # desloppify:
-    #   glob: "*.{go,svelte,ts,js}"
-    #   run: |
-    #     REPO_ROOT="$(git rev-parse --show-toplevel)"
-    #     DESLOPPIFY="$REPO_ROOT/.venv-desloppify/bin/desloppify"
-    #     if [ -x "$DESLOPPIFY" ]; then
-    #       "$DESLOPPIFY" scan --skip-slow
-    #     fi
-    #   fail_text: "desloppify scan found issues"
-
 pre-push:
   parallel: true
   commands:
