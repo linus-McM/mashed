@@ -5,9 +5,9 @@ description: "Graphify community 395: docs/playwright_cli_US_validate/pty-06-fro
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: pty-06-frontend-cleanup-report, resource: docs/playwright_cli_US_validate/pty-06-frontend-cleanup-report.md, last_modified: "2026-04-09T21:07:51+10:00", digest: f5bcc9033b3d735b }
   - { id: Terminal, resource: frontend/src/components/Terminal.svelte, last_modified: "2026-05-07T21:00:01+10:00", digest: a8e6e1c9090de774 }
@@ -41,4 +41,4 @@ sources:
 - no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

@@ -5,9 +5,9 @@ description: "Graphify community 324: frontend/src/components/__tests__/remainin
 resource: frontend/src/components/__tests__
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: remaining-colors.test, resource: frontend/src/components/__tests__/remaining-colors.test.ts, last_modified: "2026-04-10T17:46:55+10:00", digest: 6adf2bcd9673498e }
 ---
@@ -36,4 +36,4 @@ sources:
 - no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

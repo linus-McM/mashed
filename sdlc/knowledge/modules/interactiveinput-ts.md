@@ -1,20 +1,24 @@
 ---
 type: Module
 title: interactiveInput.ts
-description: "Graphify community 11: frontend/package.json, frontend/src/components/bmad/InputResponseModal.test.ts, frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts, frontend/src/components/bmad/in"
+description: "Graphify community 11: frontend/package.json, frontend/src/components/bmad/InputResponseModal.test.ts, frontend/src/components/bmad/inputWidgets/ApprovalWidget.svelte, frontend/src/components/bmad/inp"
 resource: frontend
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: package, resource: frontend/package.json, last_modified: "2026-04-22T16:28:45+10:00", digest: 5a2c6b5e36bbccae }
   - { id: InputResponseModal.test, resource: frontend/src/components/bmad/InputResponseModal.test.ts, last_modified: "2026-04-22T12:56:23+10:00", digest: dbef06f6be2ed227 }
+  - { id: ApprovalWidget, resource: frontend/src/components/bmad/inputWidgets/ApprovalWidget.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 0fc07df52f3669be }
   - { id: ApprovalWidget.test, resource: frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: dd83b6c89edd8eeb }
   - { id: ChoiceWidget.test, resource: frontend/src/components/bmad/inputWidgets/ChoiceWidget.test.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: 3d4ad8158db13456 }
+  - { id: FileInputWidget, resource: frontend/src/components/bmad/inputWidgets/FileInputWidget.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: f8d44fad8490e625 }
   - { id: FileInputWidget.test, resource: frontend/src/components/bmad/inputWidgets/FileInputWidget.test.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: 85bc3c9b12efacd4 }
+  - { id: FreeTextWidget, resource: frontend/src/components/bmad/inputWidgets/FreeTextWidget.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: e4781c45f272665c }
   - { id: FreeTextWidget.test, resource: frontend/src/components/bmad/inputWidgets/FreeTextWidget.test.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: 5a6d885abc0c32fe }
+  - { id: JsonInputWidget, resource: frontend/src/components/bmad/inputWidgets/JsonInputWidget.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: e0e8b47fab69e1f8 }
   - { id: JsonInputWidget.test, resource: frontend/src/components/bmad/inputWidgets/JsonInputWidget.test.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: be0fc7194d70532a }
   - { id: MultiChoiceWidget.test, resource: frontend/src/components/bmad/inputWidgets/MultiChoiceWidget.test.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: 5d986cc8a7f48026 }
   - { id: astResponses.test, resource: frontend/src/stores/__tests__/astResponses.test.ts, last_modified: "2026-04-22T11:51:34+10:00", digest: e2e9b800b1e40d74 }
@@ -26,10 +30,14 @@ sources:
 # Files
 - `frontend/package.json`
 - `frontend/src/components/bmad/InputResponseModal.test.ts`
+- `frontend/src/components/bmad/inputWidgets/ApprovalWidget.svelte`
 - `frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts`
 - `frontend/src/components/bmad/inputWidgets/ChoiceWidget.test.ts`
+- `frontend/src/components/bmad/inputWidgets/FileInputWidget.svelte`
 - `frontend/src/components/bmad/inputWidgets/FileInputWidget.test.ts`
+- `frontend/src/components/bmad/inputWidgets/FreeTextWidget.svelte`
 - `frontend/src/components/bmad/inputWidgets/FreeTextWidget.test.ts`
+- `frontend/src/components/bmad/inputWidgets/JsonInputWidget.svelte`
 - `frontend/src/components/bmad/inputWidgets/JsonInputWidget.test.ts`
 - `frontend/src/components/bmad/inputWidgets/MultiChoiceWidget.test.ts`
 - `frontend/src/stores/__tests__/astResponses.test.ts`
@@ -44,18 +52,27 @@ sources:
 - astJson() (frontend/src/components/bmad/InputResponseModal.test.ts:L50)
 - dgNode() (frontend/src/components/bmad/InputResponseModal.test.ts:L53)
 - Mount (frontend/src/components/bmad/InputResponseModal.test.ts:L59)
+- ApprovalWidget.svelte (frontend/src/components/bmad/inputWidgets/ApprovalWidget.svelte:L1)
 - ApprovalWidget.test.ts (frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts:L1)
 - Mount (frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts:L24)
 - makePrompt() (frontend/src/components/bmad/inputWidgets/ApprovalWidget.test.ts:L9)
 - ChoiceWidget.test.ts (frontend/src/components/bmad/inputWidgets/ChoiceWidget.test.ts:L1)
 - Mount (frontend/src/components/bmad/inputWidgets/ChoiceWidget.test.ts:L24)
 - makePrompt() (frontend/src/components/bmad/inputWidgets/ChoiceWidget.test.ts:L9)
+- FileInputWidget.svelte (frontend/src/components/bmad/inputWidgets/FileInputWidget.svelte:L1)
+- invalid (frontend/src/components/bmad/inputWidgets/FileInputWidget.svelte:L74)
 - FileInputWidget.test.ts (frontend/src/components/bmad/inputWidgets/FileInputWidget.test.ts:L1)
 - Mount (frontend/src/components/bmad/inputWidgets/FileInputWidget.test.ts:L24)
 - makePrompt() (frontend/src/components/bmad/inputWidgets/FileInputWidget.test.ts:L9)
+- FreeTextWidget.svelte (frontend/src/components/bmad/inputWidgets/FreeTextWidget.svelte:L1)
+- submit() (frontend/src/components/bmad/inputWidgets/FreeTextWidget.svelte:L31)
+- onKeydown() (frontend/src/components/bmad/inputWidgets/FreeTextWidget.svelte:L37)
 - FreeTextWidget.test.ts (frontend/src/components/bmad/inputWidgets/FreeTextWidget.test.ts:L1)
 - Mount (frontend/src/components/bmad/inputWidgets/FreeTextWidget.test.ts:L25)
 - makePrompt() (frontend/src/components/bmad/inputWidgets/FreeTextWidget.test.ts:L9)
+- JsonInputWidget.svelte (frontend/src/components/bmad/inputWidgets/JsonInputWidget.svelte:L1)
+- submit() (frontend/src/components/bmad/inputWidgets/JsonInputWidget.svelte:L43)
+- onKeydown() (frontend/src/components/bmad/inputWidgets/JsonInputWidget.svelte:L49)
 - JsonInputWidget.test.ts (frontend/src/components/bmad/inputWidgets/JsonInputWidget.test.ts:L1)
 - Mount (frontend/src/components/bmad/inputWidgets/JsonInputWidget.test.ts:L24)
 - makePrompt() (frontend/src/components/bmad/inputWidgets/JsonInputWidget.test.ts:L9)
@@ -84,11 +101,13 @@ sources:
 - initial (frontend/src/stores/interactiveInput.ts:L53)
 - interactiveInput (frontend/src/stores/interactiveInput.ts:L61)
 - validationKey() (frontend/src/stores/interactiveInput.ts:L63)
+- upsertPrompt() (frontend/src/stores/interactiveInput.ts:L67)
 - resolveInput() (frontend/src/stores/interactiveInput.ts:L76)
 - setValidationError() (frontend/src/stores/interactiveInput.ts:L91)
 
 # Depends on
 - [App.js](/modules/app-js.md)
+- [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
 - [svelte](/modules/svelte.md)
 - [vitest](/modules/vitest.md)
 
@@ -96,4 +115,4 @@ sources:
 - [ui-ast-view-raw.spec.ts](/modules/ui-ast-view-raw-spec-ts.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

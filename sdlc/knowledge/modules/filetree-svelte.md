@@ -5,9 +5,9 @@ description: "Graphify community 412: frontend/src/components/FileTree.svelte, f
 resource: frontend/src
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: FileTree, resource: frontend/src/components/FileTree.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 25e86ff98c9ba349 }
   - { id: fileTree, resource: frontend/src/lib/fileTree.js, last_modified: "2026-04-22T18:59:31+10:00", digest: 335f6cf508a6f6c4 }
@@ -29,7 +29,7 @@ sources:
 - sortTree() (frontend/src/lib/fileTree.js:L40)
 
 # Depends on
-- no EXTRACTED edges to other modules
+- [svelte](/modules/svelte.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

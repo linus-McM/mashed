@@ -1,13 +1,13 @@
 ---
 type: Module
 title: executor_adapter_test.go
-description: "Graphify community 112: internal/bmad/executor.go, internal/bmad/executor_adapter_test.go, internal/bmad/executor_respond_test.go, internal/bmad/executor_suspend_test.go"
+description: "Graphify community 37: internal/bmad/executor.go, internal/bmad/executor_adapter_test.go, internal/bmad/executor_respond_test.go, internal/bmad/executor_suspend_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: executor_adapter_test, resource: internal/bmad/executor_adapter_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f79102c9f400d28f }
@@ -42,15 +42,16 @@ sources:
 - pollForStatus() (internal/bmad/executor_suspend_test.go:L87)
 
 # Depends on
+- [executor_command_test.go](/modules/executor-command-test-go.md)
 - [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
 - [executor_respond_test.go](/modules/executor-respond-test-go.md)
 - [mashed/internal/uiadapter.UIAST](/modules/mashed-internal-uiadapter-uiast.md)
-- [NewDefault](/modules/newdefault.md)
 - [NewMock](/modules/newmock.md)
+- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Inferred
 - [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
 - [NewExecutor](/modules/newexecutor.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

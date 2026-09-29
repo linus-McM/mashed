@@ -1,144 +1,41 @@
 ---
 type: Module
 title: App.js
-description: "Graphify community 4: docs/SPECIFICATION.md, frontend/src/App.svelte, frontend/src/__tests__/status-token.test.ts, frontend/src/components/EditorRouter.svelte, frontend/src/components/ImageViewer.svel"
+description: "Graphify community 4: docs/SPECIFICATION.md, frontend/src/lib/stores/sessions.ts, frontend/src/types/session.ts, frontend/src/views/AgentDetail.svelte, frontend/src/views/SwitchBranchModal.svelte, fro"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: SPECIFICATION, resource: docs/SPECIFICATION.md, last_modified: "2026-04-12T09:58:35+10:00", digest: 2150575fba9a1ee2 }
-  - { id: App, resource: frontend/src/App.svelte, last_modified: "2026-04-23T11:09:52+10:00", digest: 10db755a7a0e5abe }
-  - { id: status-token.test, resource: frontend/src/__tests__/status-token.test.ts, last_modified: "2026-04-22T18:25:48+10:00", digest: 1a2f08d41d9861de }
-  - { id: EditorRouter, resource: frontend/src/components/EditorRouter.svelte, last_modified: "2026-04-22T20:18:54+10:00", digest: 86fac6035745e901 }
-  - { id: ImageViewer, resource: frontend/src/components/ImageViewer.svelte, last_modified: "2026-04-22T19:23:56+10:00", digest: 4abd3a97e70be2b9 }
-  - { id: MarkdownEditor, resource: frontend/src/components/MarkdownEditor.svelte, last_modified: "2026-04-23T11:20:33+10:00", digest: 39b9b94efde879aa }
-  - { id: MonacoEditor, resource: frontend/src/components/MonacoEditor.svelte, last_modified: "2026-04-22T18:59:31+10:00", digest: 7ea6153fc5c063fa }
-  - { id: NewRepoModal, resource: frontend/src/components/NewRepoModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 88f99d701a9fb7ec }
-  - { id: SparkLine, resource: frontend/src/components/SparkLine.svelte, last_modified: "2026-04-22T19:23:56+10:00", digest: 61bc0e7ea260e7dc }
-  - { id: StatusBadge, resource: frontend/src/components/StatusBadge.svelte, last_modified: "2026-04-22T18:25:48+10:00", digest: adf6af8794b8416c }
-  - { id: TitleBar, resource: frontend/src/components/TitleBar.svelte, last_modified: "2026-04-23T14:09:41+10:00", digest: 24aa88a7c4d75635 }
-  - { id: GitPanel, resource: frontend/src/components/bmad/GitPanel.svelte, last_modified: "2026-04-22T19:45:14+10:00", digest: d269285a64cf37af }
-  - { id: NodeConfigPanel, resource: frontend/src/components/bmad/NodeConfigPanel.svelte, last_modified: "2026-04-28T12:36:05+10:00", digest: 4f3162377da28e00 }
-  - { id: ProcessSidebar, resource: frontend/src/components/bmad/ProcessSidebar.svelte, last_modified: "2026-04-22T20:32:12+10:00", digest: ba2dd5fd34da2ea9 }
-  - { id: dragMimeTypes, resource: frontend/src/components/bmad/dragMimeTypes.js, last_modified: "2026-04-12T11:29:01+10:00", digest: 18265d72e3368a5f }
-  - { id: errorMessage, resource: frontend/src/lib/errorMessage.ts, last_modified: "2026-04-22T17:53:53+10:00", digest: 01d52ec3146aae0e }
-  - { id: ptySize, resource: frontend/src/lib/ptySize.ts, last_modified: "2026-05-07T18:18:02+10:00", digest: 819faf79772ff83a }
-  - { id: repoPalette, resource: frontend/src/lib/repoPalette.ts, last_modified: "2026-04-22T18:25:48+10:00", digest: 513bf749080da8bf }
   - { id: sessions, resource: frontend/src/lib/stores/sessions.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 0fa9462ed476c629 }
   - { id: session, resource: frontend/src/types/session.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 0b3fa196502eba06 }
-  - { id: status, resource: frontend/src/types/status.ts, last_modified: "2026-04-22T18:25:48+10:00", digest: 396d5990d2eddad1 }
   - { id: AgentDetail, resource: frontend/src/views/AgentDetail.svelte, last_modified: "2026-05-07T18:18:02+10:00", digest: ae357b7360448f38 }
-  - { id: BranchModal, resource: frontend/src/views/BranchModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 6d3c58fc0fa1902c }
-  - { id: ForcePushModal, resource: frontend/src/views/ForcePushModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 6f35f823b43cd232 }
-  - { id: MergeModal, resource: frontend/src/views/MergeModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: aad1d4fffa15e556 }
-  - { id: NotificationFeed, resource: frontend/src/views/NotificationFeed.svelte, last_modified: "2026-05-07T18:18:02+10:00", digest: 06607e88326a1ff7 }
-  - { id: Settings, resource: frontend/src/views/Settings.svelte, last_modified: "2026-04-23T11:09:52+10:00", digest: edc56fcaa6890012 }
-  - { id: Setup, resource: frontend/src/views/Setup.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: aeb9be820e3be7e3 }
-  - { id: SpawnAgent, resource: frontend/src/views/SpawnAgent.svelte, last_modified: "2026-05-07T18:18:02+10:00", digest: b9e9afd8fe710518 }
   - { id: SwitchBranchModal, resource: frontend/src/views/SwitchBranchModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 501e05cfd7841900 }
   - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
 ---
 
 # Files
 - `docs/SPECIFICATION.md`
-- `frontend/src/App.svelte`
-- `frontend/src/__tests__/status-token.test.ts`
-- `frontend/src/components/EditorRouter.svelte`
-- `frontend/src/components/ImageViewer.svelte`
-- `frontend/src/components/MarkdownEditor.svelte`
-- `frontend/src/components/MonacoEditor.svelte`
-- `frontend/src/components/NewRepoModal.svelte`
-- `frontend/src/components/SparkLine.svelte`
-- `frontend/src/components/StatusBadge.svelte`
-- `frontend/src/components/TitleBar.svelte`
-- `frontend/src/components/bmad/GitPanel.svelte`
-- `frontend/src/components/bmad/NodeConfigPanel.svelte`
-- `frontend/src/components/bmad/ProcessSidebar.svelte`
-- `frontend/src/components/bmad/dragMimeTypes.js`
-- `frontend/src/lib/errorMessage.ts`
-- `frontend/src/lib/ptySize.ts`
-- `frontend/src/lib/repoPalette.ts`
 - `frontend/src/lib/stores/sessions.ts`
 - `frontend/src/types/session.ts`
-- `frontend/src/types/status.ts`
 - `frontend/src/views/AgentDetail.svelte`
-- `frontend/src/views/BranchModal.svelte`
-- `frontend/src/views/ForcePushModal.svelte`
-- `frontend/src/views/MergeModal.svelte`
-- `frontend/src/views/NotificationFeed.svelte`
-- `frontend/src/views/Settings.svelte`
-- `frontend/src/views/Setup.svelte`
-- `frontend/src/views/SpawnAgent.svelte`
 - `frontend/src/views/SwitchBranchModal.svelte`
 - `frontend/wailsjs/go/main/App.js`
 
 # Symbols
 - Font Discovery (docs/SPECIFICATION.md:L864)
-- App.svelte (frontend/src/App.svelte:L1)
-- if() (frontend/src/App.svelte:L344)
-- status-token.test.ts (frontend/src/__tests__/status-token.test.ts:L1)
-- EditorRouter.svelte (frontend/src/components/EditorRouter.svelte:L1)
-- ImageViewer.svelte (frontend/src/components/ImageViewer.svelte:L1)
-- MarkdownEditor.svelte (frontend/src/components/MarkdownEditor.svelte:L1)
-- MonacoEditor.svelte (frontend/src/components/MonacoEditor.svelte:L1)
-- if() (frontend/src/components/MonacoEditor.svelte:L337)
-- getWorker() (frontend/src/components/MonacoEditor.svelte:L477)
-- NewRepoModal.svelte (frontend/src/components/NewRepoModal.svelte:L1)
-- selected (frontend/src/components/NewRepoModal.svelte:L91)
-- SparkLine.svelte (frontend/src/components/SparkLine.svelte:L1)
-- StatusBadge.svelte (frontend/src/components/StatusBadge.svelte:L1)
-- TitleBar.svelte (frontend/src/components/TitleBar.svelte:L1)
-- active (frontend/src/components/TitleBar.svelte:L156)
-- GitPanel.svelte (frontend/src/components/bmad/GitPanel.svelte:L1)
-- onMouseMove() (frontend/src/components/bmad/NodeConfigPanel.svelte:L39)
-- onMouseUp() (frontend/src/components/bmad/NodeConfigPanel.svelte:L43)
-- ProcessSidebar.svelte (frontend/src/components/bmad/ProcessSidebar.svelte:L1)
-- dragMimeTypes.js (frontend/src/components/bmad/dragMimeTypes.js:L1)
-- MASHED_ASSET_MIME (frontend/src/components/bmad/dragMimeTypes.js:L4)
-- errorMessage.ts (frontend/src/lib/errorMessage.ts:L1)
-- ptySize.ts (frontend/src/lib/ptySize.ts:L1)
-- estimatePtySize() (frontend/src/lib/ptySize.ts:L17)
-- repoPalette.ts (frontend/src/lib/repoPalette.ts:L1)
-- REPO_BORDER_NONE (frontend/src/lib/repoPalette.ts:L18)
-- REPO_BORDER_PALETTE (frontend/src/lib/repoPalette.ts:L28)
 - sessions.ts (frontend/src/lib/stores/sessions.ts:L1)
 - repoSessions (frontend/src/lib/stores/sessions.ts:L11)
 - removeSessionByName() (frontend/src/lib/stores/sessions.ts:L42)
 - session.ts (frontend/src/types/session.ts:L1)
 - DataFields (frontend/src/types/session.ts:L19)
 - Session (frontend/src/types/session.ts:L40)
-- status.ts (frontend/src/types/status.ts:L1)
-- AgentStatusToken (frontend/src/types/status.ts:L31)
-- EventTypeToken (frontend/src/types/status.ts:L46)
-- UITerminalToken (frontend/src/types/status.ts:L54)
-- StatusToken (frontend/src/types/status.ts:L60)
-- STATUS_TOKENS (frontend/src/types/status.ts:L69)
-- isStatusToken() (frontend/src/types/status.ts:L93)
 - AgentDetail.svelte (frontend/src/views/AgentDetail.svelte:L1)
 - active (frontend/src/views/AgentDetail.svelte:L457)
 - if() (frontend/src/views/AgentDetail.svelte:L70)
-- BranchModal.svelte (frontend/src/views/BranchModal.svelte:L1)
-- repoPath (frontend/src/views/BranchModal.svelte:L22)
-- repoBranch (frontend/src/views/BranchModal.svelte:L23)
-- prefixes (frontend/src/views/BranchModal.svelte:L25)
-- sanitize() (frontend/src/views/BranchModal.svelte:L45)
-- handleInput() (frontend/src/views/BranchModal.svelte:L58)
-- create() (frontend/src/views/BranchModal.svelte:L66)
-- cancel() (frontend/src/views/BranchModal.svelte:L79)
-- handleKeydown() (frontend/src/views/BranchModal.svelte:L84)
-- ForcePushModal.svelte (frontend/src/views/ForcePushModal.svelte:L1)
-- cancel() (frontend/src/views/ForcePushModal.svelte:L28)
-- handleKeydown() (frontend/src/views/ForcePushModal.svelte:L33)
-- MergeModal.svelte (frontend/src/views/MergeModal.svelte:L1)
-- NotificationFeed.svelte (frontend/src/views/NotificationFeed.svelte:L1)
-- if() (frontend/src/views/NotificationFeed.svelte:L377)
-- Settings.svelte (frontend/src/views/Settings.svelte:L1)
-- Setup.svelte (frontend/src/views/Setup.svelte:L1)
-- SpawnAgent.svelte (frontend/src/views/SpawnAgent.svelte:L1)
-- selected (frontend/src/views/SpawnAgent.svelte:L91)
 - SwitchBranchModal.svelte (frontend/src/views/SwitchBranchModal.svelte:L1)
 - switchBranch() (frontend/src/views/SwitchBranchModal.svelte:L42)
 - cancel() (frontend/src/views/SwitchBranchModal.svelte:L55)
@@ -149,7 +46,6 @@ sources:
 - GitCommit() (frontend/wailsjs/go/main/App.js:L121)
 - GitCommitAndPush() (frontend/wailsjs/go/main/App.js:L125)
 - GitCommitPushAndPR() (frontend/wailsjs/go/main/App.js:L129)
-- GitCreateBranch() (frontend/wailsjs/go/main/App.js:L137)
 - GitForcePush() (frontend/wailsjs/go/main/App.js:L141)
 - GitListBranches() (frontend/wailsjs/go/main/App.js:L145)
 - GitMergeInto() (frontend/wailsjs/go/main/App.js:L149)
@@ -167,51 +63,45 @@ sources:
 - SaveMashedAssetFrontmatter() (frontend/wailsjs/go/main/App.js:L333)
 - SetFontSize() (frontend/wailsjs/go/main/App.js:L365)
 - SetSidebarWidth() (frontend/wailsjs/go/main/App.js:L393)
+- SpawnPRReview() (frontend/wailsjs/go/main/App.js:L425)
 - WriteConsoleLog() (frontend/wailsjs/go/main/App.js:L465)
 - GetFontsDir() (frontend/wailsjs/go/main/App.js:L81)
 
 # Depends on
 - [10. Wails Bindings (Go → Svelte API)](/modules/10-wails-bindings-go-svelte-api.md)
 - [applyTheme](/modules/applytheme.md)
+- [clearMarkdownMenuDirty](/modules/clearmarkdownmenudirty.md)
 - [CodeEditor.svelte](/modules/codeeditor-svelte.md)
 - [CreateFromTemplate](/modules/createfromtemplate.md)
-- [Developer Notes](/modules/developer-notes.md)
-- [DynamicUiSelector.svelte](/modules/dynamicuiselector-svelte.md)
 - [FileTree.svelte](/modules/filetree-svelte.md)
-- [font.js](/modules/font-js.md)
+- [GetTerminalPort](/modules/getterminalport.md)
+- [hydrate](/modules/hydrate.md)
+- [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
 - [interactiveInput.ts](/modules/interactiveinput-ts.md)
+- [ListOllamaModels](/modules/listollamamodels.md)
 - [ListRepoSessions](/modules/listreposessions.md)
-- [MarkdownEditor.test.ts](/modules/markdowneditor-test-ts.md)
 - [markdownMenuSettings.ts](/modules/markdownmenusettings-ts.md)
 - [mashedConfig](/modules/mashedconfig.md)
-- [models.ts](/modules/models-ts.md)
-- [NewSessionModal.svelte](/modules/newsessionmodal-svelte.md)
-- [ProcessNode.awaiting.test.ts](/modules/processnode-awaiting-test-ts.md)
-- [QuestionSnackbarStack.test.ts](/modules/questionsnackbarstack-test-ts.md)
-- [ReadFileBase64](/modules/readfilebase64.md)
+- [MonacoEditor.svelte](/modules/monacoeditor-svelte.md)
 - [runtime.js](/modules/runtime-js.md)
 - [SetEditorSettings](/modules/seteditorsettings.md)
 - [SetTheme](/modules/settheme.md)
 - [SpawnAgent](/modules/spawnagent.md)
+- [status.ts](/modules/status-ts.md)
+- [Story 18 — Title-bar Dynamic UI model selector](/modules/story-18-title-bar-dynamic-ui-model-selector.md)
 - [Story 2: Code Review Summary & Advice Streaming Backend](/modules/story-2-code-review-summary-advice-streaming-backend.md)
-- [Story: meditor-01 — EditorRouter -- Extension-Based Editor Switching](/modules/story-meditor-01-editorrouter-extension-based-editor-switching.md)
-- [StreamAdvice](/modules/streamadvice.md)
 - [StreamScopedAdvice](/modules/streamscopedadvice.md)
-- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
 - [svelte](/modules/svelte.md)
+- [TakeScreenshot](/modules/takescreenshot.md)
 - [Tasks / Subtasks](/modules/tasks-subtasks.md)
-- [theme.js](/modules/theme-js.md)
 - [themeConverter.ts](/modules/themeconverter-ts.md)
 - [themeInit.js](/modules/themeinit-js.md)
 - [uiAdapterSettings.ts](/modules/uiadaptersettings-ts.md)
-- [ValidationBadge.svelte](/modules/validationbadge-svelte.md)
-- [vitest](/modules/vitest.md)
+- [uiAdapterSettings.v3.test.ts](/modules/uiadaptersettings-v3-test-ts.md)
 - [WriteFile](/modules/writefile.md)
 
 # Inferred
-- [autoFill.test.ts](/modules/autofill-test-ts.md)
-- [CodeEditor.svelte](/modules/codeeditor-svelte.md)
-- [Story 1: Native macOS Menu Bar Construction](/modules/story-1-native-macos-menu-bar-construction.md)
+- [svelte](/modules/svelte.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

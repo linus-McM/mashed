@@ -5,9 +5,9 @@ description: "Graphify community 35: docs/SPECIFICATION.md, docs/stories/breadcr
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: SPECIFICATION, resource: docs/SPECIFICATION.md, last_modified: "2026-04-12T09:58:35+10:00", digest: 2150575fba9a1ee2 }
   - { id: breadcrumbs-06-downstream-autofill, resource: docs/stories/breadcrumbs-06-downstream-autofill.md, last_modified: "2026-04-14T16:10:56+10:00", digest: 9c851abd94d1be99 }
@@ -62,13 +62,13 @@ sources:
 - GetBmadWorkflow() (frontend/wailsjs/go/main/App.js:L61)
 
 # Depends on
-- [Developer Notes](/modules/developer-notes.md)
+- [GetTerminalPort](/modules/getterminalport.md)
 - [SpawnAgent](/modules/spawnagent.md)
 
 # Inferred
 - [10. Wails Bindings (Go → Svelte API)](/modules/10-wails-bindings-go-svelte-api.md)
 - [CreateFromTemplate](/modules/createfromtemplate.md)
-- [Developer Notes](/modules/developer-notes.md)
+- [GetTerminalPort](/modules/getterminalport.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

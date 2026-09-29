@@ -5,9 +5,9 @@ description: "Graphify community 74: docs/stories/old_stories/S03-config-persist
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: S03-config-persistence, resource: docs/stories/old_stories/S03-config-persistence.md, last_modified: "2026-04-08T10:23:03+10:00", digest: d2003a3ed0a69d86 }
   - { id: S05-settings-view, resource: docs/stories/old_stories/S05-settings-view.md, last_modified: "2026-04-08T10:23:03+10:00", digest: dac9b7a63edb9e0e }
@@ -64,10 +64,9 @@ sources:
 
 # Inferred
 - [applyTheme](/modules/applytheme.md)
-- [ReadFileBase64](/modules/readfilebase64.md)
+- [TakeScreenshot](/modules/takescreenshot.md)
 - [themeInit.js](/modules/themeinit-js.md)
-- [uiAdapterSettings.ts](/modules/uiadaptersettings-ts.md)
 - [WriteFile](/modules/writefile.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

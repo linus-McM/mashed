@@ -1,26 +1,23 @@
 ---
 type: Module
 title: CodeEditor.svelte
-description: "Graphify community 248: frontend/src/components/AboutModal.svelte, frontend/src/components/CodeEditor.svelte, frontend/wailsjs/go/main/App.js"
+description: "Graphify community 248: frontend/src/components/CodeEditor.svelte, frontend/wailsjs/go/main/App.js"
 resource: frontend
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
-  - { id: AboutModal, resource: frontend/src/components/AboutModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 4371891538f83733 }
   - { id: CodeEditor, resource: frontend/src/components/CodeEditor.svelte, last_modified: "2026-04-22T20:32:12+10:00", digest: 1bb474a9cd8f0465 }
   - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
 ---
 
 # Files
-- `frontend/src/components/AboutModal.svelte`
 - `frontend/src/components/CodeEditor.svelte`
 - `frontend/wailsjs/go/main/App.js`
 
 # Symbols
-- AboutModal.svelte (frontend/src/components/AboutModal.svelte:L1)
 - CodeEditor.svelte (frontend/src/components/CodeEditor.svelte:L1)
 - handleKeydown() (frontend/src/components/CodeEditor.svelte:L117)
 - getLanguage() (frontend/src/components/CodeEditor.svelte:L140)
@@ -40,7 +37,7 @@ sources:
 # Depends on
 - [10. Wails Bindings (Go → Svelte API)](/modules/10-wails-bindings-go-svelte-api.md)
 - [App.js](/modules/app-js.md)
-- [StreamAdvice](/modules/streamadvice.md)
+- [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
 - [svelte](/modules/svelte.md)
 - [WriteFile](/modules/writefile.md)
 
@@ -48,4 +45,4 @@ sources:
 - no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

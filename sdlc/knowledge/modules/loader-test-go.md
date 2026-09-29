@@ -5,9 +5,9 @@ description: "Graphify community 15: app_review_scoped.go, app_review_scoped_tes
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: app_review_scoped, resource: app_review_scoped.go, last_modified: "2026-04-10T13:49:09+10:00", digest: 83c692114f39a0c9 }
   - { id: app_review_scoped_test, resource: app_review_scoped_test.go, last_modified: "2026-04-10T13:49:09+10:00", digest: 495a403ad8cace57 }
@@ -92,7 +92,7 @@ sources:
 - no EXTRACTED edges to other modules
 
 # Inferred
-- [claudeCommand](/modules/claudecommand.md)
+- [App](/modules/app-63.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

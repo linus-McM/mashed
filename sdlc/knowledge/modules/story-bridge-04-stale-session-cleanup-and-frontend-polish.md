@@ -5,9 +5,9 @@ description: "Graphify community 208: docs/stories/old_stories/bridge-04-stale-c
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: bridge-04-stale-cleanup-and-frontend-polish, resource: docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 22d252e5a0750c99 }
   - { id: bmadSessionName.test, resource: frontend/src/lib/bmadSessionName.test.ts, last_modified: "2026-04-10T17:42:20+10:00", digest: 2fc81ab01d253ac2 }
@@ -27,6 +27,7 @@ sources:
 - Tasks / Subtasks (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L209)
 - Definition of Done (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L245)
 - AC Validation Table (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L259)
+- 4. Tooltip spec for NodeConfigPanel (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L325)
 - Technical Considerations (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L55)
 - Risks & Edge Cases (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L64)
 - Reference Files (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L73)

@@ -5,9 +5,9 @@ description: "Graphify community 179: internal/bmad/templates.go, internal/bmad/
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: templates, resource: internal/bmad/templates.go, last_modified: "2026-04-08T22:05:53+10:00", digest: 4a56b72dabf842f3 }
   - { id: templates_test, resource: internal/bmad/templates_test.go, last_modified: "2026-04-08T22:05:53+10:00", digest: f401386247c0f702 }
@@ -18,8 +18,21 @@ sources:
 - `internal/bmad/templates_test.go`
 
 # Symbols
+- templates.go (internal/bmad/templates.go:L1)
+- architectureReview() (internal/bmad/templates.go:L107)
+- storyDevelopment() (internal/bmad/templates.go:L123)
+- prdPipeline() (internal/bmad/templates.go:L139)
+- qaAndPolish() (internal/bmad/templates.go:L156)
+- rapidPrototype() (internal/bmad/templates.go:L172)
+- fullInfra() (internal/bmad/templates.go:L187)
 - TemplateByName() (internal/bmad/templates.go:L20)
+- node() (internal/bmad/templates.go:L29)
+- edge() (internal/bmad/templates.go:L40)
+- chain() (internal/bmad/templates.go:L44)
+- itoa() (internal/bmad/templates.go:L56)
 - BuiltinTemplates() (internal/bmad/templates.go:L6)
+- fullProductLifecycle() (internal/bmad/templates.go:L64)
+- quickSprint() (internal/bmad/templates.go:L90)
 - templates_test.go (internal/bmad/templates_test.go:L1)
 - TestBuiltinTemplates_Count() (internal/bmad/templates_test.go:L10)
 - TestAC3_BuiltinTemplateCount() (internal/bmad/templates_test.go:L102)
@@ -38,7 +51,7 @@ sources:
 - TestFullProductLifecycle_Structure() (internal/bmad/templates_test.go:L93)
 
 # Depends on
-- [templates.go](/modules/templates-go.md)
+- no EXTRACTED edges to other modules
 
 # Inferred
 - [ProcessByID](/modules/processbyid.md)

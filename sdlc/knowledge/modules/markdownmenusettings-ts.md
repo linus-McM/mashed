@@ -1,84 +1,89 @@
 ---
 type: Module
 title: markdownMenuSettings.ts
-description: "Graphify community 54: docs/stories/markdown-toolbar-03-toolbar-builder.md, frontend/src/App.test.ts, frontend/src/components/markdownToolbarBuilder.test.ts, frontend/src/components/markdownToolbarBui"
+description: "Graphify community 70: @milkdown/crepe, @milkdown/crepe/theme/classic-dark.css, @milkdown/plugin-listener, frontend/src/App.test.ts, frontend/src/components/EditorRouter.svelte, frontend/src/component"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
-  - { id: markdown-toolbar-03-toolbar-builder, resource: docs/stories/markdown-toolbar-03-toolbar-builder.md, last_modified: "2026-04-23T11:09:52+10:00", digest: cd53aa97d7a4a9fc }
+  - { id: crepe, resource: "@milkdown/crepe", last_modified: "2026-09-29T12:23:00Z", digest: missing }
+  - { id: classic-dark, resource: "@milkdown/crepe/theme/classic-dark.css", last_modified: "2026-09-29T12:23:00Z", digest: missing }
+  - { id: plugin-listener, resource: "@milkdown/plugin-listener", last_modified: "2026-09-29T12:23:00Z", digest: missing }
   - { id: App.test, resource: frontend/src/App.test.ts, last_modified: "2026-04-23T11:09:52+10:00", digest: 260d2fa32bf35b5d }
-  - { id: markdownToolbarBuilder.test, resource: frontend/src/components/markdownToolbarBuilder.test.ts, last_modified: "2026-04-23T11:09:52+10:00", digest: 62b55dc6d26f714e }
-  - { id: markdownToolbarBuilder, resource: frontend/src/components/markdownToolbarBuilder.ts, last_modified: "2026-04-23T11:09:52+10:00", digest: e2bda28418cf4758 }
+  - { id: EditorRouter, resource: frontend/src/components/EditorRouter.svelte, last_modified: "2026-04-22T20:18:54+10:00", digest: 86fac6035745e901 }
+  - { id: ImageViewer, resource: frontend/src/components/ImageViewer.svelte, last_modified: "2026-04-22T19:23:56+10:00", digest: 4abd3a97e70be2b9 }
+  - { id: MarkdownEditor, resource: frontend/src/components/MarkdownEditor.svelte, last_modified: "2026-04-23T11:20:33+10:00", digest: 39b9b94efde879aa }
+  - { id: ImageViewer.test, resource: frontend/src/components/__tests__/ImageViewer.test.ts, last_modified: "2026-04-09T12:11:12+10:00", digest: 53d820a8d332d63b }
+  - { id: imageViewerUtils, resource: frontend/src/components/imageViewerUtils.ts, last_modified: "2026-04-09T12:11:12+10:00", digest: 2bec4b44eedc3260 }
   - { id: markdownMenuSettings.test, resource: frontend/src/lib/stores/markdownMenuSettings.test.ts, last_modified: "2026-04-23T11:02:33+10:00", digest: 440326bc7b010a88 }
   - { id: markdownMenuSettings, resource: frontend/src/lib/stores/markdownMenuSettings.ts, last_modified: "2026-04-23T11:02:33+10:00", digest: 5fd83b95073decb2 }
+  - { id: Settings.test, resource: frontend/src/views/Settings.test.ts, last_modified: "2026-04-23T11:09:52+10:00", digest: 96215b23cac7f643 }
+  - { id: panzoom, resource: panzoom, last_modified: "2026-09-29T12:23:00Z", digest: missing }
 ---
 
 # Files
-- `docs/stories/markdown-toolbar-03-toolbar-builder.md`
+- `@milkdown/crepe`
+- `@milkdown/crepe/theme/classic-dark.css`
+- `@milkdown/plugin-listener`
 - `frontend/src/App.test.ts`
-- `frontend/src/components/markdownToolbarBuilder.test.ts`
-- `frontend/src/components/markdownToolbarBuilder.ts`
+- `frontend/src/components/EditorRouter.svelte`
+- `frontend/src/components/ImageViewer.svelte`
+- `frontend/src/components/MarkdownEditor.svelte`
+- `frontend/src/components/__tests__/ImageViewer.test.ts`
+- `frontend/src/components/imageViewerUtils.ts`
 - `frontend/src/lib/stores/markdownMenuSettings.test.ts`
 - `frontend/src/lib/stores/markdownMenuSettings.ts`
+- `frontend/src/views/Settings.test.ts`
+- `panzoom`
 
 # Symbols
-- markdown-toolbar-03-toolbar-builder.md (docs/stories/markdown-toolbar-03-toolbar-builder.md:L1)
-- Story 03: Toolbar Builder — markdownToolbarBuilder.ts (docs/stories/markdown-toolbar-03-toolbar-builder.md:L1)
-- Description (docs/stories/markdown-toolbar-03-toolbar-builder.md:L10)
-- BDD Test Scenarios (docs/stories/markdown-toolbar-03-toolbar-builder.md:L134)
-- Developer Notes (docs/stories/markdown-toolbar-03-toolbar-builder.md:L14)
-- Architecture (docs/stories/markdown-toolbar-03-toolbar-builder.md:L16)
-- Tasks / Subtasks (docs/stories/markdown-toolbar-03-toolbar-builder.md:L171)
-- Definition of Done (docs/stories/markdown-toolbar-03-toolbar-builder.md:L190)
-- Required imports (primary strategy) (docs/stories/markdown-toolbar-03-toolbar-builder.md:L21)
-- Item table (source of truth) (docs/stories/markdown-toolbar-03-toolbar-builder.md:L48)
-- Fallback strategy — CSS data-attribute hiding (docs/stories/markdown-toolbar-03-toolbar-builder.md:L61)
-- Behavior contract (docs/stories/markdown-toolbar-03-toolbar-builder.md:L77)
-- Technical Considerations (docs/stories/markdown-toolbar-03-toolbar-builder.md:L82)
-- Risks & Edge Cases (docs/stories/markdown-toolbar-03-toolbar-builder.md:L87)
-- Reference Files (docs/stories/markdown-toolbar-03-toolbar-builder.md:L92)
-- Acceptance Criteria (docs/stories/markdown-toolbar-03-toolbar-builder.md:L97)
+- @milkdown/crepe (@milkdown/crepe:)
+- @milkdown/crepe/theme/classic-dark.css (@milkdown/crepe/theme/classic-dark.css:)
+- @milkdown/plugin-listener (@milkdown/plugin-listener:)
 - App.test.ts (frontend/src/App.test.ts:L1)
 - DEFAULTS (frontend/src/App.test.ts:L24)
 - APP_SVELTE_PATH (frontend/src/App.test.ts:L36)
 - APP_SVELTE_SOURCE (frontend/src/App.test.ts:L40)
-- markdownToolbarBuilder.test.ts (frontend/src/components/markdownToolbarBuilder.test.ts:L1)
-- AddItemCall (frontend/src/components/markdownToolbarBuilder.test.ts:L14)
-- FakeBuilder (frontend/src/components/markdownToolbarBuilder.test.ts:L19)
-- makeFakeBuilder() (frontend/src/components/markdownToolbarBuilder.test.ts:L24)
-- settings() (frontend/src/components/markdownToolbarBuilder.test.ts:L45)
-- markdownToolbarBuilder.ts (frontend/src/components/markdownToolbarBuilder.ts:L1)
-- MinimalGroupBuilder (frontend/src/components/markdownToolbarBuilder.ts:L30)
-- .addGroup() (frontend/src/components/markdownToolbarBuilder.ts:L31)
-- MinimalItemGroup (frontend/src/components/markdownToolbarBuilder.ts:L34)
-- .addItem() (frontend/src/components/markdownToolbarBuilder.ts:L35)
-- ToolbarItemConfig (frontend/src/components/markdownToolbarBuilder.ts:L47)
-- ToolbarKey (frontend/src/components/markdownToolbarBuilder.ts:L53)
-- ToolbarEntry (frontend/src/components/markdownToolbarBuilder.ts:L55)
-- ITEMS (frontend/src/components/markdownToolbarBuilder.ts:L63)
-- buildToolbarFromSettings() (frontend/src/components/markdownToolbarBuilder.ts:L79)
+- EditorRouter.svelte (frontend/src/components/EditorRouter.svelte:L1)
+- ImageViewer.svelte (frontend/src/components/ImageViewer.svelte:L1)
+- MarkdownEditor.svelte (frontend/src/components/MarkdownEditor.svelte:L1)
+- ImageViewer.test.ts (frontend/src/components/__tests__/ImageViewer.test.ts:L1)
+- ImageViewerState (frontend/src/components/imageViewerUtils.ts:L1)
+- imageViewerUtils.ts (frontend/src/components/imageViewerUtils.ts:L1)
+- isDataUri() (frontend/src/components/imageViewerUtils.ts:L12)
+- buildImagePath() (frontend/src/components/imageViewerUtils.ts:L6)
 - markdownMenuSettings.test.ts (frontend/src/lib/stores/markdownMenuSettings.test.ts:L1)
 - mocks (frontend/src/lib/stores/markdownMenuSettings.test.ts:L18)
 - DEFAULTS (frontend/src/lib/stores/markdownMenuSettings.test.ts:L22)
 - markdownMenuSettings.ts (frontend/src/lib/stores/markdownMenuSettings.ts:L1)
 - DEFAULTS (frontend/src/lib/stores/markdownMenuSettings.ts:L13)
-- markdownMenuSettings (frontend/src/lib/stores/markdownMenuSettings.ts:L22)
 - markdownMenuDirty (frontend/src/lib/stores/markdownMenuSettings.ts:L23)
+- Settings.test.ts (frontend/src/views/Settings.test.ts:L1)
+- Mounted (frontend/src/views/Settings.test.ts:L149)
+- SvelteInit (frontend/src/views/Settings.test.ts:L153)
+- mount() (frontend/src/views/Settings.test.ts:L155)
+- here (frontend/src/views/Settings.test.ts:L164)
+- settingsSource (frontend/src/views/Settings.test.ts:L165)
+- styleBlock (frontend/src/views/Settings.test.ts:L166)
+- panzoom (panzoom:)
 
 # Depends on
 - [App.js](/modules/app-js.md)
 - [clearMarkdownMenuDirty](/modules/clearmarkdownmenudirty.md)
 - [interactiveInput.ts](/modules/interactiveinput-ts.md)
+- [MarkdownEditor.test.ts](/modules/markdowneditor-test-ts.md)
+- [markdownToolbarBuilder.test.ts](/modules/markdowntoolbarbuilder-test-ts.md)
 - [models.ts](/modules/models-ts.md)
-- [SetEditorSettings](/modules/seteditorsettings.md)
+- [MonacoEditor.svelte](/modules/monacoeditor-svelte.md)
+- [Story: meditor-01 — EditorRouter -- Extension-Based Editor Switching](/modules/story-meditor-01-editorrouter-extension-based-editor-switching.md)
+- [svelte](/modules/svelte.md)
 - [vitest](/modules/vitest.md)
 
 # Inferred
-- no INFERRED edges; treat any that appear as hints
+- [CodeEditor.svelte](/modules/codeeditor-svelte.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

@@ -5,9 +5,9 @@ description: "Graphify community 8: internal/uiadapter/backend/backend.go, inter
 resource: internal/uiadapter/backend
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: backend, resource: internal/uiadapter/backend/backend.go, last_modified: "2026-04-23T11:09:52+10:00", digest: d0eac5646b5c1ef3 }
   - { id: stub, resource: internal/uiadapter/backend/claudeapi/stub.go, last_modified: "2026-04-23T11:09:52+10:00", digest: 0c95368a8fcd18d3 }
@@ -44,7 +44,6 @@ sources:
 - .healthProbeAll() (internal/uiadapter/backend/lifecycle.go:L115)
 - Lifecycle (internal/uiadapter/backend/lifecycle.go:L15)
 - NewLifecycle() (internal/uiadapter/backend/lifecycle.go:L29)
-- .WarmUpAll() (internal/uiadapter/backend/lifecycle.go:L42)
 - .WarmUpState() (internal/uiadapter/backend/lifecycle.go:L69)
 - .StartHealthTicker() (internal/uiadapter/backend/lifecycle.go:L86)
 - lifecycle_test.go (internal/uiadapter/backend/lifecycle_test.go:L1)
@@ -91,9 +90,9 @@ sources:
 - NewStub() (internal/uiadapter/backend/stubs.go:L28)
 
 # Depends on
+- [Config](/modules/config.md)
+- [context.Context](/modules/context-context.md)
 - [DefaultConfig](/modules/defaultconfig.md)
-- [log/slog.Logger](/modules/log-slog-logger.md)
-- [StubBackend](/modules/stubbackend.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

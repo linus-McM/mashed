@@ -1,27 +1,35 @@
 ---
 type: Module
 title: ClaudeCodeProvider
-description: "Graphify community 267: internal/explain/explain.go, internal/scanner/claude.go, internal/scanner/sessions.go"
-resource: internal
+description: "Graphify community 267: app.go, app_scan.go, internal/scanner/claude.go, internal/scanner/repos.go, internal/scanner/sessions.go"
+resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
-  - { id: explain, resource: internal/explain/explain.go, last_modified: "2026-04-10T11:36:27+10:00", digest: c8a0f1b0e6aad414 }
+  - { id: app, resource: app.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 295875db4f0bdc1e }
+  - { id: app_scan, resource: app_scan.go, last_modified: "2026-05-07T10:33:04+10:00", digest: e5b2c4798c9f1cad }
   - { id: claude, resource: internal/scanner/claude.go, last_modified: "2026-04-08T18:15:54+10:00", digest: 2c44ec40e17d728e }
+  - { id: repos, resource: internal/scanner/repos.go, last_modified: "2026-05-07T10:33:04+10:00", digest: c8bd28e2f7bd59b8 }
   - { id: sessions, resource: internal/scanner/sessions.go, last_modified: "2026-04-07T10:03:32+10:00", digest: 4878f58d15bdc696 }
 ---
 
 # Files
-- `internal/explain/explain.go`
+- `app.go`
+- `app_scan.go`
 - `internal/scanner/claude.go`
+- `internal/scanner/repos.go`
 - `internal/scanner/sessions.go`
 
 # Symbols
-- Explainer (internal/explain/explain.go:L15)
-- New() (internal/explain/explain.go:L21)
+- sanitizeID() (app.go:L779)
+- App (app_scan.go:L21)
+- .initScanning() (app_scan.go:L21)
+- .scanLoop() (app_scan.go:L47)
+- .resolveTmuxTarget() (app_scan.go:L66)
+- .doScan() (app_scan.go:L77)
 - ClaudeCodeProvider (internal/scanner/claude.go:L18)
 - pidDirEntry (internal/scanner/claude.go:L32)
 - NewClaudeCodeProvider() (internal/scanner/claude.go:L40)
@@ -29,13 +37,16 @@ sources:
 - .DevDir() (internal/scanner/claude.go:L76)
 - .cachePidDir() (internal/scanner/claude.go:L80)
 - .getCachedPidDir() (internal/scanner/claude.go:L86)
+- NewRepoScanner() (internal/scanner/repos.go:L31)
 - sessionParserState (internal/scanner/sessions.go:L17)
 
 # Depends on
-- [go_pkg_strings](/modules/go-pkg-strings.md)
+- [ModelInfo](/modules/modelinfo.md)
+- [testing.T](/modules/testing-t.md)
+- [time.Time](/modules/time-time.md)
 
 # Inferred
-- no INFERRED edges; treat any that appear as hints
+- [App](/modules/app-296.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

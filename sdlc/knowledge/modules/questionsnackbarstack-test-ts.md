@@ -1,26 +1,26 @@
 ---
 type: Module
 title: QuestionSnackbarStack.test.ts
-description: "Graphify community 137: frontend/src/components/bmad/QuestionResponseModal.svelte, frontend/src/components/bmad/QuestionResponseModal.test.ts, frontend/src/components/bmad/QuestionSnackbarStack.svelte"
+description: "Graphify community 137: frontend/src/components/bmad/QuestionResponseModal.svelte, frontend/src/components/bmad/QuestionResponseModal.test.ts, frontend/src/components/bmad/QuestionSnackbarStack.test.t"
 resource: frontend/src/components/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: QuestionResponseModal, resource: frontend/src/components/bmad/QuestionResponseModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 5672933bac7b8d06 }
   - { id: QuestionResponseModal.test, resource: frontend/src/components/bmad/QuestionResponseModal.test.ts, last_modified: "2026-04-10T14:16:40+10:00", digest: a798f0e107780ec5 }
-  - { id: QuestionSnackbarStack, resource: frontend/src/components/bmad/QuestionSnackbarStack.svelte, last_modified: "2026-04-20T14:57:51+10:00", digest: c485ed709e057516 }
   - { id: QuestionSnackbarStack.test, resource: frontend/src/components/bmad/QuestionSnackbarStack.test.ts, last_modified: "2026-04-11T19:45:53+10:00", digest: 2521496fc654bb79 }
+  - { id: SkillEditorModal, resource: frontend/src/components/bmad/SkillEditorModal.svelte, last_modified: "2026-04-22T20:18:54+10:00", digest: 72aca99565eade35 }
   - { id: questionSnackbarUtils, resource: frontend/src/components/bmad/questionSnackbarUtils.ts, last_modified: "2026-04-11T19:45:53+10:00", digest: 7c6697429c616053 }
 ---
 
 # Files
 - `frontend/src/components/bmad/QuestionResponseModal.svelte`
 - `frontend/src/components/bmad/QuestionResponseModal.test.ts`
-- `frontend/src/components/bmad/QuestionSnackbarStack.svelte`
 - `frontend/src/components/bmad/QuestionSnackbarStack.test.ts`
+- `frontend/src/components/bmad/SkillEditorModal.svelte`
 - `frontend/src/components/bmad/questionSnackbarUtils.ts`
 
 # Symbols
@@ -29,6 +29,7 @@ sources:
 - submit() (frontend/src/components/bmad/QuestionResponseModal.svelte:L45)
 - handleSend() (frontend/src/components/bmad/QuestionResponseModal.svelte:L60)
 - handleOption() (frontend/src/components/bmad/QuestionResponseModal.svelte:L66)
+- handleCancel() (frontend/src/components/bmad/QuestionResponseModal.svelte:L71)
 - handleOverlayClick() (frontend/src/components/bmad/QuestionResponseModal.svelte:L75)
 - handleKeydown() (frontend/src/components/bmad/QuestionResponseModal.svelte:L80)
 - QuestionResponseModal.test.ts (frontend/src/components/bmad/QuestionResponseModal.test.ts:L1)
@@ -38,8 +39,6 @@ sources:
 - memoryStore (frontend/src/components/bmad/QuestionResponseModal.test.ts:L67)
 - fakeStorage (frontend/src/components/bmad/QuestionResponseModal.test.ts:L68)
 - MountResult (frontend/src/components/bmad/QuestionResponseModal.test.ts:L98)
-- QuestionSnackbarStack.svelte (frontend/src/components/bmad/QuestionSnackbarStack.svelte:L1)
-- questions (frontend/src/components/bmad/QuestionSnackbarStack.svelte:L10)
 - QuestionSnackbarStack.test.ts (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L1)
 - memoryStore (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L23)
 - fakeStorage (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L24)
@@ -47,6 +46,7 @@ sources:
 - makeEvent() (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L53)
 - makeIdle() (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L69)
 - asQuestion() (frontend/src/components/bmad/QuestionSnackbarStack.test.ts:L83)
+- if() (frontend/src/components/bmad/SkillEditorModal.svelte:L55)
 - questionSnackbarUtils.ts (frontend/src/components/bmad/questionSnackbarUtils.ts:L1)
 - MAX_VISIBLE (frontend/src/components/bmad/questionSnackbarUtils.ts:L10)
 - IdleEventLike (frontend/src/components/bmad/questionSnackbarUtils.ts:L103)
@@ -66,12 +66,13 @@ sources:
 
 # Depends on
 - [App.js](/modules/app-js.md)
+- [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
 - [interactiveInput.ts](/modules/interactiveinput-ts.md)
 - [svelte](/modules/svelte.md)
 - [vitest](/modules/vitest.md)
 
 # Inferred
-- [svelte](/modules/svelte.md)
+- no INFERRED edges; treat any that appear as hints
 
 # Features
 - no feature plan names these files

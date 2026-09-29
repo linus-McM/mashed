@@ -1,21 +1,23 @@
 ---
 type: Module
 title: "Story: meditor-01 \u2014 EditorRouter -- Extension-Based Editor Switching"
-description: "Graphify community 284: docs/playwright_cli_US_validate/meditor-backlog-report.md, frontend/src/components/__tests__/EditorRouter.test.ts, frontend/src/components/editorUtils.ts"
+description: "Graphify community 284: docs/playwright_cli_US_validate/meditor-backlog-report.md, docs/stories/old_stories/meditor-01-editor-router.md, frontend/src/components/__tests__/EditorRouter.test.ts, fronten"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: meditor-backlog-report, resource: docs/playwright_cli_US_validate/meditor-backlog-report.md, last_modified: "2026-04-09T21:07:51+10:00", digest: 2c8cdc16c1b25dab }
+  - { id: meditor-01-editor-router, resource: docs/stories/old_stories/meditor-01-editor-router.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 079a0c0ea2e2767b }
   - { id: EditorRouter.test, resource: frontend/src/components/__tests__/EditorRouter.test.ts, last_modified: "2026-04-09T11:48:09+10:00", digest: 1384c7c8200f6280 }
   - { id: editorUtils, resource: frontend/src/components/editorUtils.ts, last_modified: "2026-04-09T11:48:09+10:00", digest: 96ee26ec2657dee5 }
 ---
 
 # Files
 - `docs/playwright_cli_US_validate/meditor-backlog-report.md`
+- `docs/stories/old_stories/meditor-01-editor-router.md`
 - `frontend/src/components/__tests__/EditorRouter.test.ts`
 - `frontend/src/components/editorUtils.ts`
 
@@ -26,6 +28,7 @@ sources:
 - AC-3: Code fallback routing — PASS (docs/playwright_cli_US_validate/meditor-backlog-report.md:L40)
 - AC-4: AgentDetail integration — PASS (docs/playwright_cli_US_validate/meditor-backlog-report.md:L48)
 - AC-5: Case-insensitive extension matching — BLOCKED (docs/playwright_cli_US_validate/meditor-backlog-report.md:L56)
+- Definition of Done (docs/stories/old_stories/meditor-01-editor-router.md:L145)
 - EditorRouter.test.ts (frontend/src/components/__tests__/EditorRouter.test.ts:L1)
 - EditorType (frontend/src/components/editorUtils.ts:L1)
 - editorUtils.ts (frontend/src/components/editorUtils.ts:L1)

@@ -1,24 +1,33 @@
 ---
 type: Module
 title: BmadAgentConfig
-description: "Graphify community 537: frontend/wailsjs/go/models.ts"
-resource: frontend/wailsjs/go
+description: "Graphify community 335: app_bmad.go, internal/bmad/storage.go, internal/bmad/types.go"
+resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
-  - { id: models, resource: frontend/wailsjs/go/models.ts, last_modified: "2026-04-28T12:36:05+10:00", digest: 921deb8fd959e9dc }
+  - { id: app_bmad, resource: app_bmad.go, last_modified: "2026-04-28T12:36:05+10:00", digest: fca7c61a439c150e }
+  - { id: storage, resource: internal/bmad/storage.go, last_modified: "2026-04-10T12:50:28+10:00", digest: 360ebf80068d1480 }
+  - { id: types, resource: internal/bmad/types.go, last_modified: "2026-04-28T09:29:49+10:00", digest: 05a3e7d01f5f08c2 }
 ---
 
 # Files
-- `frontend/wailsjs/go/models.ts`
+- `app_bmad.go`
+- `internal/bmad/storage.go`
+- `internal/bmad/types.go`
 
 # Symbols
-- BmadAgentConfig (frontend/wailsjs/go/models.ts:L42)
-- .createFrom() (frontend/wailsjs/go/models.ts:L51)
-- .constructor() (frontend/wailsjs/go/models.ts:L55)
+- .ListBmadAgents() (app_bmad.go:L308)
+- .SaveBmadAgent() (app_bmad.go:L316)
+- .ListAllAgents() (app_bmad.go:L333)
+- ListClaudeAgents() (internal/bmad/storage.go:L197)
+- BmadAgentConfig (internal/bmad/types.go:L404)
+- AgentInfo (internal/bmad/types.go:L415)
+- GroupedAgents (internal/bmad/types.go:L421)
+- BmadAgentRole (internal/bmad/types.go:L69)
 
 # Depends on
 - no EXTRACTED edges to other modules
@@ -27,4 +36,4 @@ sources:
 - no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

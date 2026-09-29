@@ -5,9 +5,9 @@ description: "Graphify community 126: frontend/src/components/bmad/ProcessNode.a
 resource: frontend/src
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: ProcessNode.awaiting.test, resource: frontend/src/components/bmad/ProcessNode.awaiting.test.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: bf5c6893981bdae6 }
   - { id: ProcessNode, resource: frontend/src/components/bmad/ProcessNode.svelte, last_modified: "2026-04-28T12:36:05+10:00", digest: 868ed67d7007ebb8 }
@@ -64,7 +64,6 @@ sources:
 
 # Depends on
 - [interactiveInput.ts](/modules/interactiveinput-ts.md)
-- [nodePath.ts](/modules/nodepath-ts.md)
 - [svelte](/modules/svelte.md)
 - [vitest](/modules/vitest.md)
 

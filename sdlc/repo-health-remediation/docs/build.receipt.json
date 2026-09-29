@@ -1,0 +1,16 @@
+{
+  "stage": "build",
+  "type": "workflow",
+  "sources": [
+    {
+      "resource": "sdlc/repo-health-remediation/plan.md",
+      "digest": "2c35c6df5ff87e4748040b9fbfd7b3e70e203da78c1b8ed48dee5857d338ccd3"
+    }
+  ],
+  "source_digest": "b65a7dbc92115ec9be0c6ceb4b4e62df2cc5a38d5d18375cbc119575a635b560",
+  "specification_sha256": "9fd09b7e9fa2e753732d083eaea80702a415ee095d54b0a751046ff1df71d82e",
+  "artifact_sha256": "4a38997824331f1ad680d23e0905583aab272b466b401382fbf86ac6cbd2f32f",
+  "validation": "9/9 showcase, 0 errors, 0 warnings",
+  "archify_version": "2.17.0-dev.1",
+  "delivered_at": "2026-09-29T12:04:26Z"
+}

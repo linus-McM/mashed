@@ -5,9 +5,9 @@ description: "Graphify community 38: frontend/src/main.ts"
 resource: frontend/src
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: main, resource: frontend/src/main.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 645cd9a582246e7c }
 ---
@@ -55,9 +55,9 @@ sources:
 - Window (frontend/src/main.ts:L76)
 
 # Depends on
-- [App.js](/modules/app-js.md)
 - [DevRuntime](/modules/devruntime.md)
 - [EventsOnMultiple](/modules/eventsonmultiple.md)
+- [svelte](/modules/svelte.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

@@ -5,9 +5,9 @@ description: "Graphify community 343: app.go, internal/agent/engine.go, internal
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: app, resource: app.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 295875db4f0bdc1e }
   - { id: engine, resource: internal/agent/engine.go, last_modified: "2026-04-11T17:08:28+10:00", digest: 1042190db571e4e7 }
@@ -28,6 +28,8 @@ sources:
 - SortByPriority() (internal/agent/engine.go:L156)
 - .RemoveAgent() (internal/agent/engine.go:L171)
 - .ActiveAgentCount() (internal/agent/engine.go:L178)
+- .GetAgentStatus() (internal/agent/engine.go:L185)
+- agentState (internal/agent/engine.go:L41)
 - NotificationEngine (internal/agent/engine.go:L50)
 - NewNotificationEngine() (internal/agent/engine.go:L60)
 - .Events() (internal/agent/engine.go:L69)
@@ -49,4 +51,4 @@ sources:
 - no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

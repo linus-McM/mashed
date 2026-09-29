@@ -1,13 +1,13 @@
 ---
 type: Module
 title: hydrate
-description: "Graphify community 465: docs/stories/uiadapter-v3-18.md, frontend/src/lib/stores/uiAdapterSettings.ts, frontend/wailsjs/go/main/App.js"
+description: "Graphify community 452: docs/stories/uiadapter-v3-18.md, frontend/src/lib/stores/uiAdapterSettings.ts, frontend/wailsjs/go/main/App.js"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: uiadapter-v3-18, resource: docs/stories/uiadapter-v3-18.md, last_modified: "2026-04-23T11:44:08+10:00", digest: 7658ad0d7f8e1474 }
   - { id: uiAdapterSettings, resource: frontend/src/lib/stores/uiAdapterSettings.ts, last_modified: "2026-04-23T11:43:31+10:00", digest: 439345ecd230d960 }
@@ -36,4 +36,4 @@ sources:
 - [ListOllamaModels](/modules/listollamamodels.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

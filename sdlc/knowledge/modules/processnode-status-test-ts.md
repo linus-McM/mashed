@@ -1,13 +1,13 @@
 ---
 type: Module
 title: ProcessNode.status.test.ts
-description: "Graphify community 46: docs/stories/bmad-interactive-07-registry-entries.md, frontend/src/components/bmad/__tests__/CommandNode.breadcrumb.test.ts, frontend/src/components/bmad/__tests__/CommandNode.s"
+description: "Graphify community 66: docs/stories/bmad-interactive-07-registry-entries.md, frontend/src/components/bmad/__tests__/CommandNode.breadcrumb.test.ts, frontend/src/components/bmad/__tests__/CommandNode.s"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: bmad-interactive-07-registry-entries, resource: docs/stories/bmad-interactive-07-registry-entries.md, last_modified: "2026-04-20T15:36:58+10:00", digest: 47d47db81112ff4e }
   - { id: CommandNode.breadcrumb.test, resource: frontend/src/components/bmad/__tests__/CommandNode.breadcrumb.test.ts, last_modified: "2026-04-22T20:01:25+10:00", digest: d5f2905d83e01211 }
@@ -66,8 +66,7 @@ sources:
 - CanvasNodeData (frontend/src/types/workflow.ts:L49)
 
 # Depends on
-- [mountSvelte.ts](/modules/mountsvelte-ts.md)
-- [ProcessNode.svelte](/modules/processnode-svelte.md)
+- [ProcessNode.awaiting.test.ts](/modules/processnode-awaiting-test-ts.md)
 - [svelte](/modules/svelte.md)
 - [vitest](/modules/vitest.md)
 

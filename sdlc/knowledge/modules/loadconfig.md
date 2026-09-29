@@ -1,57 +1,43 @@
 ---
 type: Module
 title: loadConfig
-description: "Graphify community 16: app.go, app_uiadapter.go, app_uiadapter_v3.go, theme_scanner.go, theme_scanner_test.go"
+description: "Graphify community 16: app.go, app_config_test.go, app_uiadapter_bindings_test.go, theme_scanner_test.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: app, resource: app.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 295875db4f0bdc1e }
-  - { id: app_uiadapter, resource: app_uiadapter.go, last_modified: "2026-04-21T21:06:39+10:00", digest: eebf36a959a4ef0e }
-  - { id: app_uiadapter_v3, resource: app_uiadapter_v3.go, last_modified: "2026-04-23T11:43:31+10:00", digest: c6ede9f0c3335d2e }
-  - { id: theme_scanner, resource: theme_scanner.go, last_modified: "2026-04-10T09:28:28+10:00", digest: d02c5e5c45d34f49 }
+  - { id: app_config_test, resource: app_config_test.go, last_modified: "2026-04-28T12:36:05+10:00", digest: ca9b2bb89bd6ecc6 }
+  - { id: app_uiadapter_bindings_test, resource: app_uiadapter_bindings_test.go, last_modified: "2026-04-21T21:06:39+10:00", digest: 189277263c74d9ce }
   - { id: theme_scanner_test, resource: theme_scanner_test.go, last_modified: "2026-04-07T10:03:32+10:00", digest: b5300960a22f33a8 }
 ---
 
 # Files
 - `app.go`
-- `app_uiadapter.go`
-- `app_uiadapter_v3.go`
-- `theme_scanner.go`
+- `app_config_test.go`
+- `app_uiadapter_bindings_test.go`
 - `theme_scanner_test.go`
 
 # Symbols
+- configPath() (app.go:L155)
 - loadConfig() (app.go:L168)
+- defaultConfig() (app.go:L203)
 - saveConfig() (app.go:L213)
 - .SetDevDir() (app.go:L492)
 - .SetTheme() (app.go:L530)
-- .SetVSCodiumExtPath() (app.go:L539)
 - .SetMonoFont() (app.go:L548)
 - .SetFontSize() (app.go:L557)
 - .SetSidebarWidth() (app.go:L566)
-- .SetOllamaModel() (app_uiadapter.go:L111)
-- .ProbeOllamaReachable() (app_uiadapter.go:L124)
-- .ListOllamaModels() (app_uiadapter.go:L154)
-- loadOllamaBaseURL() (app_uiadapter.go:L41)
-- validOllamaModelName() (app_uiadapter.go:L62)
-- App (app_uiadapter.go:L67)
-- .SetUIAdapterEnabled() (app_uiadapter.go:L67)
-- .SetOllamaEnabled() (app_uiadapter.go:L76)
-- .SetUIAdapterUntrustedExpanded() (app_uiadapter.go:L86)
-- .SetUIAdapterTimeoutMs() (app_uiadapter.go:L97)
-- .ListClaudeModels() (app_uiadapter_v3.go:L100)
-- .ListRouterPolicies() (app_uiadapter_v3.go:L107)
-- App (app_uiadapter_v3.go:L39)
-- .SetBackend() (app_uiadapter_v3.go:L39)
-- .SetClaudeModel() (app_uiadapter_v3.go:L52)
-- .SetCLIModel() (app_uiadapter_v3.go:L66)
-- .SetRouterPolicy() (app_uiadapter_v3.go:L79)
-- .ListBackendsAvailable() (app_uiadapter_v3.go:L93)
-- .SetImportedTheme() (theme_scanner.go:L519)
+- TestU1_AC4_MashedConfig_UIAdapterFields_RoundTrip() (app_config_test.go:L12)
+- TestU5_AC3_App_SetOllamaModel_ValidatesName() (app_uiadapter_bindings_test.go:L111)
+- TestU5_AC2_App_SetUIAdapterTimeoutMs_BoundsCheck() (app_uiadapter_bindings_test.go:L71)
 - theme_scanner_test.go (theme_scanner_test.go:L1)
+- TestReadThemeFile_VSIX_PathTraversal() (theme_scanner_test.go:L1040)
+- TestReadThemeFile_VSIX_SizeLimit() (theme_scanner_test.go:L1070)
+- TestReadThemeFile_VSIX_FileNotFound() (theme_scanner_test.go:L1100)
 - TestReadThemeFile_VSIX_BackwardCompat() (theme_scanner_test.go:L1127)
 - TestSetImportedTheme() (theme_scanner_test.go:L1212)
 - TestConcurrentConfigWrites() (theme_scanner_test.go:L1232)
@@ -74,17 +60,20 @@ sources:
 - TestReadThemeFile_IncludeMultiLevel() (theme_scanner_test.go:L699)
 - TestReadThemeFile_IncludeDepthLimit() (theme_scanner_test.go:L744)
 - TestReadThemeFile_VSIX_HappyPath() (theme_scanner_test.go:L797)
+- TestReadThemeFile_VSIX_JSONCStripped() (theme_scanner_test.go:L830)
+- TestReadThemeFile_VSIX_IncludeResolution() (theme_scanner_test.go:L870)
+- TestReadThemeFile_VSIX_IncludeMultiLevel() (theme_scanner_test.go:L942)
+- TestReadThemeFile_VSIX_IncludeDepthLimit() (theme_scanner_test.go:L988)
 
 # Depends on
 - [App](/modules/app.md)
-- [app_uiadapter_bindings_test.go](/modules/app-uiadapter-bindings-test-go.md)
 - [bundled_themes_test.go](/modules/bundled-themes-test-go.md)
-- [markdown_menu_test.go](/modules/markdown-menu-test-go.md)
-- [.ReadThemeFile](/modules/readthemefile.md)
+- [theme_scanner.go](/modules/theme-scanner-go.md)
 
 # Inferred
+- [App](/modules/app-312.md)
 - [bundled_themes_test.go](/modules/bundled-themes-test-go.md)
-- [markdown_menu_test.go](/modules/markdown-menu-test-go.md)
+- [setupTestConfig](/modules/setuptestconfig.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

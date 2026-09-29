@@ -5,9 +5,9 @@ description: "Graphify community 57: docs/SPECIFICATION.md, docs/stories/old_sto
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: SPECIFICATION, resource: docs/SPECIFICATION.md, last_modified: "2026-04-12T09:58:35+10:00", digest: 2150575fba9a1ee2 }
   - { id: edset-04-autoload-bundled-themes, resource: docs/stories/old_stories/edset-04-autoload-bundled-themes.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 486391218b5c845a }
@@ -38,33 +38,33 @@ sources:
 - Reference Files (docs/stories/old_stories/edset-04-autoload-bundled-themes.md:L57)
 - Acceptance Criteria (docs/stories/old_stories/edset-04-autoload-bundled-themes.md:L67)
 - Description (docs/stories/old_stories/edset-04-autoload-bundled-themes.md:L9)
-- registerImportedTheme() (frontend/src/lib/stores/theme.js:L52)
 - registerSavedThemes() (frontend/src/lib/stores/theme.js:L57)
-- convertVSCodeTheme() (frontend/src/lib/themeConverter.ts:L271)
+- unregisterImportedTheme() (frontend/src/lib/stores/theme.js:L62)
 - validateConvertedTheme() (frontend/src/lib/themeConverter.ts:L308)
 - themeInit.js (frontend/src/lib/themeInit.js:L1)
 - convertedCache (frontend/src/lib/themeInit.js:L17)
 - loadBundledThemes() (frontend/src/lib/themeInit.js:L193)
 - loadSavedThemes() (frontend/src/lib/themeInit.js:L68)
-- activateImportedTheme() (frontend/src/lib/themeInit.js:L99)
+- removeImportedTheme() (frontend/src/lib/themeInit.js:L86)
 - GetSavedThemes() (frontend/wailsjs/go/main/App.js:L101)
 - ListBundledThemes() (frontend/wailsjs/go/main/App.js:L209)
+- ListVSCodiumThemes() (frontend/wailsjs/go/main/App.js:L249)
 - ReadBundledThemeFile() (frontend/wailsjs/go/main/App.js:L277)
+- RemoveTheme() (frontend/wailsjs/go/main/App.js:L301)
 - SaveTheme() (frontend/wailsjs/go/main/App.js:L337)
 
 # Depends on
+- [activateImportedTheme](/modules/activateimportedtheme.md)
 - [App.js](/modules/app-js.md)
 - [applyTheme](/modules/applytheme.md)
-- [font.js](/modules/font-js.md)
 - [interactiveInput.ts](/modules/interactiveinput-ts.md)
-- [makeThemeId](/modules/makethemeid.md)
+- [MonacoEditor.svelte](/modules/monacoeditor-svelte.md)
 - [SetTheme](/modules/settheme.md)
-- [Story 2: Frontend Theme Converter (B2 Hand-Rolled)](/modules/story-2-frontend-theme-converter-b2-hand-rolled.md)
-- [theme.js](/modules/theme-js.md)
 - [themeConverter.ts](/modules/themeconverter-ts.md)
 
 # Inferred
-- no INFERRED edges; treat any that appear as hints
+- [activateImportedTheme](/modules/activateimportedtheme.md)
+- [themeConverter.ts](/modules/themeconverter-ts.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

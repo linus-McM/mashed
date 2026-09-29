@@ -5,9 +5,9 @@ description: "Graphify community 19: internal/bmad/executor.go, internal/bmad/qu
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: question, resource: internal/bmad/question.go, last_modified: "2026-04-17T20:58:29+10:00", digest: 81034d253e6ceb12 }
@@ -70,24 +70,23 @@ sources:
 - [bmad/types.go](/modules/bmad-types-go.md)
 - [executor_command_test.go](/modules/executor-command-test-go.md)
 - [executor_fileloader_test.go](/modules/executor-fileloader-test-go.md)
+- [go_pkg_testing](/modules/go-pkg-testing.md)
 - [newHarness](/modules/newharness.md)
 - [ProcessByID](/modules/processbyid.md)
 - [ResolveArtifactPath](/modules/resolveartifactpath.md)
-- [.resolveInputs](/modules/resolveinputs.md)
-- [.resumeInteractiveNode](/modules/resumeinteractivenode.md)
 - [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 - [wait_idle_test.go](/modules/wait-idle-test-go.md)
 
 # Inferred
 - [gate.go](/modules/gate-go.md)
+- [LoadExecutionFromDisk](/modules/loadexecutionfromdisk.md)
 - [ProcessByID](/modules/processbyid.md)
 - [question_test.go](/modules/question-test-go.md)
 - [ResolveArtifactPath](/modules/resolveartifactpath.md)
-- [resume_ghost_test.go](/modules/resume-ghost-test-go.md)
 - [session_naming_test.go](/modules/session-naming-test-go.md)
 - [sprint_test.go](/modules/sprint-test-go.md)
 - [.suspendForSpecWithPane](/modules/suspendforspecwithpane.md)
 - [testing.T](/modules/testing-t.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

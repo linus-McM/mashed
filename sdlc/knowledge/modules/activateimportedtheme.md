@@ -5,9 +5,9 @@ description: "Graphify community 138: docs/stories/old_stories/theme-04-settings
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: theme-04-settings-activation, resource: docs/stories/old_stories/theme-04-settings-activation.md, last_modified: "2026-04-08T10:23:03+10:00", digest: 5604998bc5d1ad34 }
   - { id: theme-05-monaco-registration, resource: docs/stories/old_stories/theme-05-monaco-registration.md, last_modified: "2026-04-08T10:23:03+10:00", digest: dcb77471f481713a }
@@ -51,12 +51,12 @@ sources:
 
 # Depends on
 - [applyTheme](/modules/applytheme.md)
-- [convertVSCodeTheme](/modules/convertvscodetheme.md)
 - [SetTheme](/modules/settheme.md)
+- [themeConverter.ts](/modules/themeconverter-ts.md)
 - [themeInit.js](/modules/themeinit-js.md)
 
 # Inferred
 - [themeInit.js](/modules/themeinit-js.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

@@ -1,13 +1,13 @@
 ---
 type: Module
 title: ListOllamaModels
-description: "Graphify community 247: docs/stories/ui-ast-U5-settings-ui.md, frontend/src/lib/stores/uiAdapterSettings.ts, frontend/wailsjs/go/main/App.js"
+description: "Graphify community 181: docs/stories/ui-ast-U5-settings-ui.md, frontend/src/lib/stores/uiAdapterSettings.ts, frontend/wailsjs/go/main/App.js"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: ui-ast-U5-settings-ui, resource: docs/stories/ui-ast-U5-settings-ui.md, last_modified: "2026-04-21T21:07:33+10:00", digest: 52cf1571c97b6ab5 }
   - { id: uiAdapterSettings, resource: frontend/src/lib/stores/uiAdapterSettings.ts, last_modified: "2026-04-23T11:43:31+10:00", digest: 439345ecd230d960 }
@@ -45,4 +45,4 @@ sources:
 - [Story 18 — Title-bar Dynamic UI model selector](/modules/story-18-title-bar-dynamic-ui-model-selector.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

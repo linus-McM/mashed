@@ -1,14 +1,17 @@
 ---
 type: Module
 title: tmux_adapter_coverage_test.go
-description: "Graphify community 18: internal/terminal/tmux_adapter.go, internal/terminal/tmux_adapter_coverage_test.go, internal/terminal/tmux_adapter_test.go, internal/terminal/tmux_adapter_testhelpers_test.go, i"
-resource: internal/terminal
+description: "Graphify community 18: app.go, app_terminal_registry_test.go, internal/terminal/panes.go, internal/terminal/tmux_adapter.go, internal/terminal/tmux_adapter_coverage_test.go, internal/terminal/tmux_ada"
+resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
+  - { id: app, resource: app.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 295875db4f0bdc1e }
+  - { id: app_terminal_registry_test, resource: app_terminal_registry_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 2f85a0b04c1b8ba7 }
+  - { id: panes, resource: internal/terminal/panes.go, last_modified: "2026-04-08T18:15:54+10:00", digest: 45986d36cbef9af3 }
   - { id: tmux_adapter, resource: internal/terminal/tmux_adapter.go, last_modified: "2026-04-12T15:24:29+10:00", digest: 1a5bf00ab35bc698 }
   - { id: tmux_adapter_coverage_test, resource: internal/terminal/tmux_adapter_coverage_test.go, last_modified: "2026-04-11T19:58:57+10:00", digest: 24b353b6c1480a46 }
   - { id: tmux_adapter_test, resource: internal/terminal/tmux_adapter_test.go, last_modified: "2026-04-12T15:24:29+10:00", digest: 86447d1134043b08 }
@@ -17,6 +20,9 @@ sources:
 ---
 
 # Files
+- `app.go`
+- `app_terminal_registry_test.go`
+- `internal/terminal/panes.go`
 - `internal/terminal/tmux_adapter.go`
 - `internal/terminal/tmux_adapter_coverage_test.go`
 - `internal/terminal/tmux_adapter_test.go`
@@ -24,6 +30,21 @@ sources:
 - `internal/terminal/tmux_escape.go`
 
 # Symbols
+- NewApp() (app.go:L232)
+- fakePaneDiscovery (app_terminal_registry_test.go:L20)
+- .ListPanes() (app_terminal_registry_test.go:L26)
+- .InvalidateCache() (app_terminal_registry_test.go:L30)
+- .FindPaneForPID() (app_terminal_registry_test.go:L32)
+- TestStory1_NewAppInitializesMap() (app_terminal_registry_test.go:L327)
+- .InvalidateCache() (internal/terminal/panes.go:L127)
+- discoverPanes() (internal/terminal/panes.go:L133)
+- getParentPID() (internal/terminal/panes.go:L185)
+- TmuxPane (internal/terminal/panes.go:L40)
+- .Target() (internal/terminal/panes.go:L50)
+- PaneDiscovery (internal/terminal/panes.go:L60)
+- NewPaneDiscovery() (internal/terminal/panes.go:L67)
+- .ListPanes() (internal/terminal/panes.go:L72)
+- .FindPaneForPID() (internal/terminal/panes.go:L93)
 - TmuxAdapter (internal/terminal/tmux_adapter.go:L110)
 - NewTmuxAdapter() (internal/terminal/tmux_adapter.go:L127)
 - TmuxAttachment (internal/terminal/tmux_adapter.go:L140)
@@ -65,6 +86,7 @@ sources:
 - TestTmuxAdapter_FIFOPathWithSpaceInTempDir() (internal/terminal/tmux_adapter_coverage_test.go:L476)
 - TestNewTmuxAdapter_NilRunnerFallsBackToDefault() (internal/terminal/tmux_adapter_coverage_test.go:L48)
 - TestEscapeTmuxLiteral_TabPreserved() (internal/terminal/tmux_adapter_coverage_test.go:L516)
+- TestIsTmuxAvailable_ReturnsBoolWithoutPanic() (internal/terminal/tmux_adapter_coverage_test.go:L55)
 - TestEscapeTmuxLiteral_EmptyString() (internal/terminal/tmux_adapter_coverage_test.go:L62)
 - TestTmuxAdapter_AttachOnClosedAdapter() (internal/terminal/tmux_adapter_coverage_test.go:L70)
 - TestTmuxAdapter_AttachListPanesErrorWrapped() (internal/terminal/tmux_adapter_coverage_test.go:L83)
@@ -101,13 +123,17 @@ sources:
 - overrideMkfifo() (internal/terminal/tmux_adapter_testhelpers_test.go:L21)
 - attachmentIsPolling() (internal/terminal/tmux_adapter_testhelpers_test.go:L30)
 - EscapeTmuxLiteral() (internal/terminal/tmux_escape.go:L48)
+- IsTmuxAvailable() (internal/terminal/tmux_escape.go:L67)
 
 # Depends on
-- [app_terminal_registry_test.go](/modules/app-terminal-registry-test-go.md)
-- [mockTmuxAttacher](/modules/mocktmuxattacher.md)
+- [App](/modules/app.md)
+- [Bridge](/modules/bridge.md)
+- [manager_test.go](/modules/manager-test-go.md)
+- [mockTmuxSession](/modules/mocktmuxsession.md)
+- [server_test.go](/modules/server-test-go.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

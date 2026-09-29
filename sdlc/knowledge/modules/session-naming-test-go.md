@@ -5,9 +5,9 @@ description: "Graphify community 101: internal/bmad/executor_test.go, internal/b
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: executor_test, resource: internal/bmad/executor_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 4449efba985daebc }
   - { id: session_naming, resource: internal/bmad/session_naming.go, last_modified: "2026-04-10T15:50:15+10:00", digest: acbdad6853f5eaed }
@@ -20,6 +20,7 @@ sources:
 - `internal/bmad/session_naming_test.go`
 
 # Symbols
+- sessionLabelFromArgs() (internal/bmad/executor_test.go:L1175)
 - runExecuteNodeSessionCase() (internal/bmad/executor_test.go:L852)
 - TestExecuteNode_AC7_UsesDescriptiveName() (internal/bmad/executor_test.go:L904)
 - TestExecuteNode_AC8_BranchLookupFailureFallsBackToDetached() (internal/bmad/executor_test.go:L922)
@@ -51,4 +52,4 @@ sources:
 - no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

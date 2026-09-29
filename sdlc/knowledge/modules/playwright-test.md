@@ -5,9 +5,9 @@ description: "Graphify community 413: frontend/playwright.config.ts, package.jso
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: playwright.config, resource: frontend/playwright.config.ts, last_modified: "2026-04-12T11:29:01+10:00", digest: 974537bc32ecdda8 }
   - { id: package, resource: package.json, last_modified: "2026-04-12T11:29:01+10:00", digest: 31bb2e462bc86e46 }
@@ -17,8 +17,8 @@ sources:
   - { id: bmad-input-free.spec, resource: tests/ac/bmad-input-free.spec.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: ecd4b4a481f71e13 }
   - { id: bmad-input-json.spec, resource: tests/ac/bmad-input-json.spec.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: 07ce34b1008ae806 }
   - { id: bmad-input-multi.spec, resource: tests/ac/bmad-input-multi.spec.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: e0d8d303ae8a1bff }
+  - { id: skills-cmd-02-drop.spec, resource: tests/ac/skills-cmd-02-drop.spec.ts, last_modified: "2026-04-12T11:29:01+10:00", digest: 6d8caaecffe655bd }
   - { id: skills-editor-01-modal.spec, resource: tests/ac/skills-editor-01-modal.spec.ts, last_modified: "2026-04-12T16:55:09+10:00", digest: e3997cd6498a50bd }
-  - { id: ui-ast-decision-group.spec, resource: tests/ac/ui-ast-decision-group.spec.ts, last_modified: "2026-04-22T11:51:34+10:00", digest: 8dc631548335a44f }
   - { id: ui-ast-rendering.spec, resource: tests/ac/ui-ast-rendering.spec.ts, last_modified: "2026-04-22T08:19:28+10:00", digest: dc25a90d2670ae4d }
 ---
 
@@ -31,39 +31,23 @@ sources:
 - `tests/ac/bmad-input-free.spec.ts`
 - `tests/ac/bmad-input-json.spec.ts`
 - `tests/ac/bmad-input-multi.spec.ts`
+- `tests/ac/skills-cmd-02-drop.spec.ts`
 - `tests/ac/skills-editor-01-modal.spec.ts`
-- `tests/ac/ui-ast-decision-group.spec.ts`
 - `tests/ac/ui-ast-rendering.spec.ts`
 
 # Symbols
 - playwright.config.ts (frontend/playwright.config.ts:L1)
-- package.json (package.json:L1)
 - @playwright/test (package.json:L10)
-- @playwright/test (package.json:L10)
-- name (package.json:L2)
-- private (package.json:L3)
-- version (package.json:L4)
-- description (package.json:L5)
-- scripts (package.json:L6)
-- test:ac (package.json:L7)
-- devDependencies (package.json:L9)
 - bmad-input-approval.spec.ts (tests/ac/bmad-input-approval.spec.ts:L1)
 - bmad-input-choice.spec.ts (tests/ac/bmad-input-choice.spec.ts:L1)
 - bmad-input-file.spec.ts (tests/ac/bmad-input-file.spec.ts:L1)
 - bmad-input-free.spec.ts (tests/ac/bmad-input-free.spec.ts:L1)
 - bmad-input-json.spec.ts (tests/ac/bmad-input-json.spec.ts:L1)
 - bmad-input-multi.spec.ts (tests/ac/bmad-input-multi.spec.ts:L1)
+- skills-cmd-02-drop.spec.ts (tests/ac/skills-cmd-02-drop.spec.ts:L1)
+- FIXTURE_PATH (tests/ac/skills-cmd-02-drop.spec.ts:L28)
+- FIXTURE (tests/ac/skills-cmd-02-drop.spec.ts:L32)
 - skills-editor-01-modal.spec.ts (tests/ac/skills-editor-01-modal.spec.ts:L1)
-- ui-ast-decision-group.spec.ts (tests/ac/ui-ast-decision-group.spec.ts:L1)
-- respondCalls() (tests/ac/ui-ast-decision-group.spec.ts:L108)
-- waitForRespond() (tests/ac/ui-ast-decision-group.spec.ts:L116)
-- pickChoice() (tests/ac/ui-ast-decision-group.spec.ts:L135)
-- dg() (tests/ac/ui-ast-decision-group.spec.ts:L141)
-- StructuredPromptOpts (tests/ac/ui-ast-decision-group.spec.ts:L27)
-- emitAwaitingInput() (tests/ac/ui-ast-decision-group.spec.ts:L32)
-- openModal() (tests/ac/ui-ast-decision-group.spec.ts:L55)
-- installRespondStub() (tests/ac/ui-ast-decision-group.spec.ts:L66)
-- ensureHelpers() (tests/ac/ui-ast-decision-group.spec.ts:L90)
 - ui-ast-rendering.spec.ts (tests/ac/ui-ast-rendering.spec.ts:L1)
 - set() (tests/ac/ui-ast-rendering.spec.ts:L187)
 - StructuredPromptOpts (tests/ac/ui-ast-rendering.spec.ts:L21)

@@ -5,9 +5,9 @@ description: "Graphify community 84: internal/terminal/manager.go, internal/term
 resource: internal/terminal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: manager, resource: internal/terminal/manager.go, last_modified: "2026-05-07T20:55:09+10:00", digest: 4c7107fb7905c1b1 }
   - { id: manager_test, resource: internal/terminal/manager_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 8a61b932bfb6bc29 }
@@ -52,4 +52,4 @@ sources:
 - [ManagedSession](/modules/managedsession.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

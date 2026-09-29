@@ -5,9 +5,9 @@ description: "Graphify community 92: internal/bmad/executor_respond_test.go, int
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: executor_respond_test, resource: internal/bmad/executor_respond_test.go, last_modified: "2026-04-20T20:17:58+10:00", digest: 23fdebc82a94468b }
   - { id: executor_suspend_test, resource: internal/bmad/executor_suspend_test.go, last_modified: "2026-04-20T20:17:58+10:00", digest: b5f7b6a982bf834b }
@@ -32,19 +32,20 @@ sources:
 - TestRespondToInputDoubleResponseSecondFails() (internal/bmad/executor_respond_test.go:L393)
 - TestRespondToInputUnknownInputID() (internal/bmad/executor_respond_test.go:L424)
 - setupSuspension() (internal/bmad/executor_respond_test.go:L45)
+- TestRespondToInputExecNotFound() (internal/bmad/executor_respond_test.go:L457)
 - .waitForAwaiting() (internal/bmad/executor_respond_test.go:L94)
 - eventsNamed() (internal/bmad/executor_suspend_test.go:L67)
 
 # Depends on
+- [executor_adapter_test.go](/modules/executor-adapter-test-go.md)
 - [executor_command_test.go](/modules/executor-command-test-go.md)
-- [NewExecutor](/modules/newexecutor.md)
-- [registerTestProcess](/modules/registertestprocess.md)
-- [.resolveInputs](/modules/resolveinputs.md)
+- [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
+- [ResolveArtifactPath](/modules/resolveartifactpath.md)
 
 # Inferred
+- [executor_adapter_test.go](/modules/executor-adapter-test-go.md)
 - [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
 - [NewExecutor](/modules/newexecutor.md)
-- [registerTestProcess](/modules/registertestprocess.md)
 - [.suspendForSpecWithPane](/modules/suspendforspecwithpane.md)
 
 # Features

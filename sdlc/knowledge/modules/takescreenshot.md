@@ -1,13 +1,13 @@
 ---
 type: Module
 title: TakeScreenshot
-description: "Graphify community 123: docs/feasibility-multi-editor.md, docs/stories/old_stories/meditor-05-screenshot-backend.md, docs/stories/old_stories/meditor-05-screenshot-fullstack.md, docs/stories/old_stori"
+description: "Graphify community 140: docs/feasibility-multi-editor.md, docs/stories/old_stories/meditor-05-screenshot-backend.md, docs/stories/old_stories/meditor-05-screenshot-fullstack.md, docs/stories/old_stori"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: feasibility-multi-editor, resource: docs/feasibility-multi-editor.md, last_modified: "2026-04-09T21:06:37+10:00", digest: d1cc54cadf1483b3 }
   - { id: meditor-05-screenshot-backend, resource: docs/stories/old_stories/meditor-05-screenshot-backend.md, last_modified: "2026-04-12T10:43:48+10:00", digest: e4af365a8d1f6b6a }
@@ -48,11 +48,8 @@ sources:
 - 1. Current Architecture (docs/feasibility-multi-editor.md:L9)
 - meditor-05-screenshot-backend.md (docs/stories/old_stories/meditor-05-screenshot-backend.md:L1)
 - Story 5: Screenshot-to-Claude-Code -- Backend Changes (docs/stories/old_stories/meditor-05-screenshot-backend.md:L1)
-- Scenario 2: SetActiveContext (docs/stories/old_stories/meditor-05-screenshot-backend.md:L113)
 - Developer Notes (docs/stories/old_stories/meditor-05-screenshot-backend.md:L13)
-- Scenario 3: Gitignore management (docs/stories/old_stories/meditor-05-screenshot-backend.md:L135)
 - Architecture (docs/stories/old_stories/meditor-05-screenshot-backend.md:L15)
-- Scenario 4: Event emission (docs/stories/old_stories/meditor-05-screenshot-backend.md:L155)
 - Tasks / Subtasks (docs/stories/old_stories/meditor-05-screenshot-backend.md:L173)
 - Definition of Done (docs/stories/old_stories/meditor-05-screenshot-backend.md:L199)
 - Technical Considerations (docs/stories/old_stories/meditor-05-screenshot-backend.md:L27)
@@ -60,49 +57,26 @@ sources:
 - Reference Files (docs/stories/old_stories/meditor-05-screenshot-backend.md:L41)
 - Acceptance Criteria (docs/stories/old_stories/meditor-05-screenshot-backend.md:L47)
 - Description (docs/stories/old_stories/meditor-05-screenshot-backend.md:L9)
-- BDD Test Scenarios (docs/stories/old_stories/meditor-05-screenshot-backend.md:L92)
-- Scenario 1: Screenshot saving (docs/stories/old_stories/meditor-05-screenshot-backend.md:L94)
-- Story 5: Screenshot-to-Claude-Code — Full Stack (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L1)
-- Description (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L11)
-- Frontend (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L125)
 - Developer Notes (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L21)
 - Backend Changes (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L23)
-- Tasks / Subtasks (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L289)
-- Phase A: Backend (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L291)
-- Phase B: Frontend (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L316)
-- Files Modified (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L334)
-- Definition of Done (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L347)
 - Frontend Changes (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L41)
 - Technical Considerations (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L57)
 - Risks & Edge Cases (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L64)
 - Reference Files (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L71)
-- Acceptance Criteria (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L83)
-- Backend (docs/stories/old_stories/meditor-05-screenshot-fullstack.md:L85)
-- meditor-06-screenshot-frontend.md (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L1)
-- Story 6: Screenshot-to-Claude-Code -- Frontend Injection (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L1)
-- Scenario 2: Active context tracking (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L116)
 - Developer Notes (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L13)
-- Scenario 3: Cleanup (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L137)
-- Tasks / Subtasks (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L148)
 - Architecture (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L15)
-- Definition of Done (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L166)
 - Technical Considerations (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L28)
 - Risks & Edge Cases (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L41)
 - Reference Files (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L47)
-- Acceptance Criteria (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L54)
-- Description (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L9)
-- BDD Test Scenarios (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L91)
-- Scenario 1: Screenshot injection via WebSocket (docs/stories/old_stories/meditor-06-screenshot-frontend.md:L93)
 - pasteToTerminal() (frontend/src/components/Terminal.svelte:L156)
 - SetActiveContext() (frontend/wailsjs/go/main/App.js:L341)
 - TakeScreenshot() (frontend/wailsjs/go/main/App.js:L457)
 
 # Depends on
-- [applyTheme](/modules/applytheme.md)
 - [WriteFile](/modules/writefile.md)
 
 # Inferred
-- [ReadFileBase64](/modules/readfilebase64.md)
+- no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

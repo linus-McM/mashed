@@ -5,9 +5,9 @@ description: "Graphify community 108: docs/stories/old_stories/review-02-review-
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: review-02-review-backend, resource: docs/stories/old_stories/review-02-review-backend.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 897b72d9f41644f3 }
   - { id: reviewEvents, resource: frontend/src/types/reviewEvents.ts, last_modified: "2026-04-22T19:23:56+10:00", digest: 49fb1a6f6b36384f }
@@ -48,7 +48,7 @@ sources:
 - no EXTRACTED edges to other modules
 
 # Inferred
-- [StreamAdvice](/modules/streamadvice.md)
+- no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

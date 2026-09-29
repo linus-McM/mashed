@@ -5,9 +5,9 @@ description: "Graphify community 329: internal/bmad/executor.go, internal/bmad/m
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: mock_helpers_test, resource: internal/bmad/mock_helpers_test.go, last_modified: "2026-04-12T16:42:48+10:00", digest: dd7b5edf17e36713 }
@@ -40,4 +40,4 @@ sources:
 - [newHarness](/modules/newharness.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

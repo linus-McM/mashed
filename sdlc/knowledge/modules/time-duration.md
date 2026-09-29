@@ -1,23 +1,28 @@
 ---
 type: Module
 title: time.Duration
-description: "Graphify community 345: internal/uiadapter/eval/scorecard.go, internal/uiadapter/eval/scorecard_v3.go"
-resource: internal/uiadapter/eval
+description: "Graphify community 345: app_review.go, internal/uiadapter/eval/scorecard.go, internal/uiadapter/eval/scorecard_v3.go"
+resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:27Z" }
-stale_after: "2026-10-13T11:35:27Z"
-source_commit: a2484a9a3b200a7f406028196e6f86cc4cf9306f
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
+  - { id: app_review, resource: app_review.go, last_modified: "2026-05-07T18:18:02+10:00", digest: f186f322bd66e914 }
   - { id: scorecard, resource: internal/uiadapter/eval/scorecard.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 478867f290bdf6a9 }
   - { id: scorecard_v3, resource: internal/uiadapter/eval/scorecard_v3.go, last_modified: "2026-04-23T11:36:37+10:00", digest: 43f9103bcabd6620 }
 ---
 
 # Files
+- `app_review.go`
 - `internal/uiadapter/eval/scorecard.go`
 - `internal/uiadapter/eval/scorecard_v3.go`
 
 # Symbols
+- .StreamCodeReviewSummary() (app_review.go:L112)
+- runClaudePrompt() (app_review.go:L459)
+- isReviewableFile() (app_review.go:L84)
 - .ValidJSONRate() (internal/uiadapter/eval/scorecard.go:L131)
 - .ValidatorPassRate() (internal/uiadapter/eval/scorecard.go:L138)
 - .P95Latency() (internal/uiadapter/eval/scorecard.go:L149)
@@ -32,10 +37,12 @@ sources:
 - BackendThresholds (internal/uiadapter/eval/scorecard_v3.go:L20)
 
 # Depends on
+- [app_review_test.go](/modules/app-review-test-go.md)
 - [mashed/internal/uiadapter.UIAST](/modules/mashed-internal-uiadapter-uiast.md)
+- [ScopedDiff](/modules/scopeddiff.md)
 
 # Inferred
-- no INFERRED edges; treat any that appear as hints
+- [App](/modules/app-63.md)
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

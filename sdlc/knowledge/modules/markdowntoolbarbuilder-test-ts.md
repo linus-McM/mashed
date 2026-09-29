@@ -1,23 +1,25 @@
 ---
 type: Module
 title: markdownToolbarBuilder.test.ts
-description: "Graphify community 54: docs/stories/markdown-toolbar-03-toolbar-builder.md, frontend/src/components/markdownToolbarBuilder.test.ts, frontend/src/components/markdownToolbarBuilder.ts"
+description: "Graphify community 54: docs/stories/markdown-toolbar-03-toolbar-builder.md, frontend/src/components/markdownToolbarBuilder.test.ts, frontend/src/components/markdownToolbarBuilder.ts, frontend/src/lib/"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
-stale_after: "2026-10-13T11:35:20Z"
-source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
+generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:00Z" }
+stale_after: "2026-10-13T12:23:00Z"
+source_commit: c111e9108518da0d6e68dc3fa508835faaebfd96
 sources:
   - { id: markdown-toolbar-03-toolbar-builder, resource: docs/stories/markdown-toolbar-03-toolbar-builder.md, last_modified: "2026-04-23T11:09:52+10:00", digest: cd53aa97d7a4a9fc }
   - { id: markdownToolbarBuilder.test, resource: frontend/src/components/markdownToolbarBuilder.test.ts, last_modified: "2026-04-23T11:09:52+10:00", digest: 62b55dc6d26f714e }
   - { id: markdownToolbarBuilder, resource: frontend/src/components/markdownToolbarBuilder.ts, last_modified: "2026-04-23T11:09:52+10:00", digest: e2bda28418cf4758 }
+  - { id: markdownMenuSettings, resource: frontend/src/lib/stores/markdownMenuSettings.ts, last_modified: "2026-04-23T11:02:33+10:00", digest: 5fd83b95073decb2 }
 ---
 
 # Files
 - `docs/stories/markdown-toolbar-03-toolbar-builder.md`
 - `frontend/src/components/markdownToolbarBuilder.test.ts`
 - `frontend/src/components/markdownToolbarBuilder.ts`
+- `frontend/src/lib/stores/markdownMenuSettings.ts`
 
 # Symbols
 - markdown-toolbar-03-toolbar-builder.md (docs/stories/markdown-toolbar-03-toolbar-builder.md:L1)
@@ -51,6 +53,7 @@ sources:
 - ToolbarEntry (frontend/src/components/markdownToolbarBuilder.ts:L55)
 - ITEMS (frontend/src/components/markdownToolbarBuilder.ts:L63)
 - buildToolbarFromSettings() (frontend/src/components/markdownToolbarBuilder.ts:L79)
+- markdownMenuSettings (frontend/src/lib/stores/markdownMenuSettings.ts:L22)
 
 # Depends on
 - [markdownMenuSettings.ts](/modules/markdownmenusettings-ts.md)
@@ -60,4 +63,4 @@ sources:
 - no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)
