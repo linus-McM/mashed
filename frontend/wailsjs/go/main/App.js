@@ -110,6 +110,10 @@ export function GetSprintStatus(arg1) {
   return window['go']['main']['App']['GetSprintStatus'](arg1);
 }
 
+export function GetTerminalAuth() {
+  return window['go']['main']['App']['GetTerminalAuth']();
+}
+
 export function GetTerminalPort() {
   return window['go']['main']['App']['GetTerminalPort']();
 }

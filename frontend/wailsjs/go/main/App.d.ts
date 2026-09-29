@@ -59,6 +59,8 @@ export function GetScopedDiff(arg1:string):Promise<domain.ScopedDiff>;
 
 export function GetSprintStatus(arg1:string):Promise<bmad.SprintStatus>;
 
+export function GetTerminalAuth():Promise<main.TerminalAuth>;
+
 export function GetTerminalPort():Promise<number>;
 
 export function GetWorktrees(arg1:string):Promise<Array<domain.WorktreeInfo>>;

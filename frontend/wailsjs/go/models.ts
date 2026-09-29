@@ -1163,6 +1163,20 @@ export namespace main {
 	        this.protected = source["protected"];
 	    }
 	}
+	export class TerminalAuth {
+	    port: number;
+	    token: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new TerminalAuth(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.port = source["port"];
+	        this.token = source["token"];
+	    }
+	}
 	export class VSCodeThemeEntry {
 	    label: string;
 	    extensionId: string;

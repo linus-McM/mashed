@@ -10,7 +10,8 @@
   import '@xterm/xterm/css/xterm.css';
   import type { Terminal as Xterm, ITerminalOptions } from '@xterm/xterm';
   import type { FitAddon } from '@xterm/addon-fit';
-  import { GetTerminalPort, GetAgentLog } from '../../wailsjs/go/main/App.js';
+  import { GetTerminalAuth, GetAgentLog } from '../../wailsjs/go/main/App.js';
+  import { openTerminalSocket, watchEarlyClose, TERMINAL_AUTH_FAILED_MESSAGE } from '../lib/terminalSocket';
   import { EventsOn, ClipboardGetText, ClipboardSetText } from '../../wailsjs/runtime/runtime.js';
   import { currentTheme } from '../lib/stores/theme.js';
   import { currentMonoFont, currentFontSize } from '../lib/stores/font.js';
@@ -160,6 +161,7 @@
         ws.send(encoder.encode('\x1b[200~' + text + '\x1b[201~'));
       }
     }
+    pasteFn = pasteToTerminal;
 
     // Cmd+C copies selection (or sends ^C if nothing selected),
     // Cmd+V pastes from clipboard into the terminal.
@@ -207,74 +209,17 @@
     if (paneTarget) {
       // Live terminal via WebSocket — don't write anything before connect
       // to avoid scroll offset that misaligns the selection overlay.
-      const port = await GetTerminalPort();
-      if (port) {
-        const url = `ws://127.0.0.1:${port}/ws/${encodeURIComponent(paneTarget)}`;
-        const localWs = new WebSocket(url);
-        localWs.binaryType = 'arraybuffer';
-        ws = localWs;
-
-        // Send resize event to bridge so the PTY knows the real terminal dimensions
-        const sendResize = (): void => {
-          if (localWs.readyState === WebSocket.OPEN && localTerm.cols && localTerm.rows) {
-            const frame: PtyResizeFrame = { type: 'resize', cols: localTerm.cols, rows: localTerm.rows };
-            localWs.send(JSON.stringify(frame));
-          }
-        };
-
-        localWs.onopen = () => {
-          // Send resize so PTY learns the real dimensions.
-          sendResize();
-
-          // The bridge replays the scroll buffer on connect. Write directly.
-          const decoder = new TextDecoder();
-          localWs.onmessage = (evt: MessageEvent<ArrayBuffer | string>) => {
-            const raw = evt.data instanceof ArrayBuffer
-              ? decoder.decode(evt.data)
-              : evt.data;
-            localTerm.write(raw);
-          };
-
-          // NOTE: previously sent Ctrl+L (\x0c) here as a "redraw nudge", but
-          // for fresh sessions claude/zsh hadn't finished init by the time it
-          // arrived — it landed in the input buffer and got echoed as a literal
-          // `^L` glyph. Resize SIGWINCH already triggers a clean repaint, so
-          // the nudge isn't needed.
-
-          // Listen for screenshot path injection scoped to this terminal's pane
-          if (unsubScreenshot) unsubScreenshot();
-          unsubScreenshot = EventsOn('screenshot:inject', (data: ScreenshotInjectEvent) => {
-            if (data.paneTarget !== paneTarget) return;
-            pasteToTerminal(data.path);
-            if (localWs.readyState === WebSocket.OPEN) {
-              localWs.send(new TextEncoder().encode('\r'));
-            }
-          });
-        };
-
-        localWs.onclose = () => {
-          if (term) term.write('\r\n\x1b[33m[disconnected]\x1b[0m\r\n');
-        };
-
-        localWs.onerror = () => {
-          if (term) term.write('\r\n\x1b[31m[connection error]\x1b[0m\r\n');
-        };
-
-        // Re-send resize whenever the terminal is re-fitted
-        localTerm.onResize(({ cols: _cols, rows: _rows }: { cols: number; rows: number }) => {
-          sendResize();
-        });
-
-        // Send keystrokes as binary (bridge expects BinaryMessage for pty input)
-        const encoder = new TextEncoder();
-        localTerm.onData((data: string) => {
-          if (localWs.readyState === WebSocket.OPEN) {
-            localWs.send(encoder.encode(data));
-          }
-        });
-      } else {
-        localTerm.write('\r\n\x1b[31m[terminal bridge not available]\x1b[0m\r\n');
-      }
+      // Re-send resize whenever the terminal is re-fitted, and send keystrokes
+      // as binary (bridge expects BinaryMessage for pty input). Registered
+      // once; they always target the current socket, including after Retry.
+      localTerm.onResize(() => sendResize());
+      const encoder = new TextEncoder();
+      localTerm.onData((data: string) => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(encoder.encode(data));
+        }
+      });
+      await connectLive();
     } else if (repoPath) {
       // Live log view — poll JSONL session data
       localTerm.write('\x1b[90mMonitoring session log...\x1b[0m\r\n');
@@ -288,6 +233,76 @@
       localTerm.write('\x1b[90m[no session data]\x1b[0m\r\n');
     }
   });
+
+  /** Announced (aria-live) reason when the live socket could not connect. */
+  let authError = '';
+  /** pasteToTerminal from onMount, for the screenshot injector in connectLive. */
+  let pasteFn: ((text: string) => void) | null = null;
+
+  // Send resize event to bridge so the PTY knows the real terminal dimensions
+  function sendResize(): void {
+    if (ws && term && ws.readyState === WebSocket.OPEN && term.cols && term.rows) {
+      const frame: PtyResizeFrame = { type: 'resize', cols: term.cols, rows: term.rows };
+      ws.send(JSON.stringify(frame));
+    }
+  }
+
+  /** Open the authenticated bridge socket for paneTarget (R5). */
+  async function connectLive(): Promise<void> {
+    const localTerm = term;
+    if (!localTerm) return;
+    authError = '';
+    const auth = await GetTerminalAuth();
+    if (!auth || !auth.port) {
+      authError = TERMINAL_AUTH_FAILED_MESSAGE;
+      return;
+    }
+    const localWs = openTerminalSocket(auth, paneTarget);
+    ws = localWs;
+
+    localWs.onopen = () => {
+      // Send resize so PTY learns the real dimensions.
+      sendResize();
+
+      // The bridge replays the scroll buffer on connect. Write directly.
+      const decoder = new TextDecoder();
+      localWs.onmessage = (evt: MessageEvent<ArrayBuffer | string>) => {
+        const raw = evt.data instanceof ArrayBuffer
+          ? decoder.decode(evt.data)
+          : evt.data;
+        localTerm.write(raw);
+      };
+
+      // NOTE: previously sent Ctrl+L (\x0c) here as a "redraw nudge", but
+      // for fresh sessions claude/zsh hadn't finished init by the time it
+      // arrived — it landed in the input buffer and got echoed as a literal
+      // `^L` glyph. Resize SIGWINCH already triggers a clean repaint, so
+      // the nudge isn't needed.
+
+      // Listen for screenshot path injection scoped to this terminal's pane
+      if (unsubScreenshot) unsubScreenshot();
+      unsubScreenshot = EventsOn('screenshot:inject', (data: ScreenshotInjectEvent) => {
+        if (data.paneTarget !== paneTarget) return;
+        pasteFn?.(data.path);
+        if (localWs.readyState === WebSocket.OPEN) {
+          localWs.send(new TextEncoder().encode('\r'));
+        }
+      });
+    };
+
+    localWs.onclose = () => {
+      if (term) term.write('\r\n\x1b[33m[disconnected]\x1b[0m\r\n');
+    };
+
+    // A close before open means the bridge refused us (403) or is down.
+    watchEarlyClose(localWs, (message) => { authError = message; });
+  }
+
+  function retryConnect(): void {
+    if (ws) ws.close();
+    ws = null;
+    connectLive();
+  }
 
   onDestroy(() => {
     if (unsubScreenshot) unsubScreenshot();
@@ -328,8 +343,33 @@
   on:click={() => term && term.focus()}
   on:keydown={() => {}}
 ></div>
+{#if authError}
+  <div class="terminal-status" role="status" aria-live="polite">
+    <span>{authError}</span>
+    <button type="button" on:click={retryConnect}>Retry</button>
+  </div>
+{/if}
 
 <style>
+  .terminal-status {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    padding: var(--sp-xs) var(--sp-sm);
+    font-size: var(--text-label);
+    color: var(--text-secondary);
+    background: var(--bg-deepest);
+    border-top: 1px solid var(--border-subtle);
+  }
+  .terminal-status button {
+    font: inherit;
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--sp-xs);
+    padding: var(--sp-2xs) var(--sp-sm);
+    cursor: pointer;
+  }
   .terminal-wrapper {
     width: 100%;
     height: 100%;

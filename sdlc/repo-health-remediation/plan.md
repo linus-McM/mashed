@@ -13,6 +13,7 @@ From: spec.md (2026-09-29). Status: accepted. Risk: high.
 - internal/terminal/origins_prod.go (new)
 - internal/terminal/origins_dev.go (new)
 - internal/terminal/bridge_auth_test.go (new)
+- internal/terminal/bridge_origin_prod_test.go (new, `//go:build !dev` ProdRejectsDevOrigin)
 - internal/terminal/bridge_test.go
 - app.go
 - frontend/wailsjs/go/main/App.js (regenerated)
@@ -20,6 +21,7 @@ From: spec.md (2026-09-29). Status: accepted. Risk: high.
 - frontend/wailsjs/go/models.ts (regenerated)
 - frontend/src/components/Terminal.svelte
 - frontend/src/components/__tests__/Terminal.auth.test.ts (new)
+- frontend/src/lib/terminalSocket.ts (new, s1.2: openTerminalSocket and watchEarlyClose)
 - internal/pathguard/pathguard.go (new)
 - internal/pathguard/pathguard_test.go (new)
 - app_git.go

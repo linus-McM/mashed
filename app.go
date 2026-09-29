@@ -807,6 +807,19 @@ func (a *App) GetTerminalPort() int {
 	return a.bridge.GetTerminalPort()
 }
 
+// TerminalAuth is what the webview needs to open an authenticated terminal
+// WebSocket: the bridge port and the per-launch token (R5).
+type TerminalAuth struct {
+	Port  int    `json:"port"`
+	Token string `json:"token"`
+}
+
+// GetTerminalAuth returns the bridge port and connection token. The token is
+// sent as the `mashed.auth.<token>` WebSocket subprotocol, never in a URL.
+func (a *App) GetTerminalAuth() TerminalAuth {
+	return TerminalAuth{Port: a.bridge.GetTerminalPort(), Token: a.bridge.Token()}
+}
+
 // initSessionLog creates a timestamped log file in .logs/ for this session.
 func (a *App) initSessionLog() {
 	dir := filepath.Join(".", ".logs")
