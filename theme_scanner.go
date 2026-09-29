@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"mashed/internal/pathguard"
 )
 
 const vsixSeparator = "::vsix::"
@@ -336,8 +338,22 @@ func (a *App) ReadBundledThemeFile(themePath string) (string, error) {
 		return "", fmt.Errorf("invalid vsix theme path: %s", themePath)
 	}
 
-	return readAndResolveVSIXTheme(vsixPath, internalPath, 0)
+	// R8: the archive must resolve inside the bundled themes directory. The
+	// bundle lives next to the executable (e.g. /Applications), not $HOME.
+	dir := bundledThemesDirFn()
+	if dir == "" {
+		return "", fmt.Errorf("bundled themes directory not found")
+	}
+	resolved, err := pathguard.ResolveExisting([]string{dir}, vsixPath)
+	if err != nil {
+		return "", fmt.Errorf("bundled theme: %w", err)
+	}
+
+	return readAndResolveVSIXTheme(resolved, internalPath, 0)
 }
+
+// bundledThemesDirFn locates the bundled themes directory; tests override it.
+var bundledThemesDirFn = bundledThemesDir
 
 // readAndResolveVSIXTheme reads a theme file from inside a .vsix zip archive,
 // strips JSONC comments, resolves include directives within the zip (up to

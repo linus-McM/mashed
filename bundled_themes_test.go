@@ -321,6 +321,7 @@ func TestReadBundledThemeFile_AC3_ReadsThemeJSON(t *testing.T) {
 		"extension/themes/dracula.json":    themeJSON,
 	})
 
+	useBundledThemesDir(t, dir)
 	app := &App{}
 	themePath := makeVSIXThemePath(filepath.Join(dir, "dracula.vsix"), "extension/themes/dracula.json")
 	result, err := app.ReadBundledThemeFile(themePath)
@@ -352,6 +353,7 @@ func TestReadBundledThemeFile_AC3_StripsJSONC(t *testing.T) {
 		"extension/themes/theme.json": jsoncTheme,
 	})
 
+	useBundledThemesDir(t, dir)
 	app := &App{}
 	themePath := makeVSIXThemePath(filepath.Join(dir, "jsonc-ext.vsix"), "extension/themes/theme.json")
 	result, err := app.ReadBundledThemeFile(themePath)
@@ -391,6 +393,7 @@ func TestReadBundledThemeFile_AC3_ResolvesIncludes(t *testing.T) {
 		"extension/themes/child.json":   childTheme,
 	})
 
+	useBundledThemesDir(t, dir)
 	app := &App{}
 	themePath := makeVSIXThemePath(filepath.Join(dir, "include-ext.vsix"), "extension/themes/child.json")
 	result, err := app.ReadBundledThemeFile(themePath)
@@ -432,6 +435,7 @@ func TestReadBundledThemeFile_AC3_NoConfigRequired(t *testing.T) {
 		saveConfig(cfg)
 	}()
 
+	useBundledThemesDir(t, dir)
 	app := &App{}
 	themePath := makeVSIXThemePath(filepath.Join(dir, "standalone.vsix"), "extension/themes/theme.json")
 	result, err := app.ReadBundledThemeFile(themePath)
