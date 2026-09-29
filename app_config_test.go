@@ -144,6 +144,53 @@ func TestConfig_ConcurrentSetters_NoLostUpdate(t *testing.T) {
 	assert.Len(t, all, 50)
 }
 
+// R14: a malformed config.json is quarantined, not overwritten in place, and
+// the frontend is told where the original bytes went.
+func TestConfig_MalformedIsQuarantinedNotOverwritten(t *testing.T) {
+	const bad = `{this is not json`
+	app := setupTestConfig(t, bad)
+
+	var mu sync.Mutex
+	var events []map[string]string
+	orig := appEmitHook
+	appEmitHook = func(name string, data ...any) {
+		if name != "config:recovered" || len(data) != 1 {
+			return
+		}
+		if m, ok := data[0].(map[string]string); ok {
+			mu.Lock()
+			events = append(events, m)
+			mu.Unlock()
+		}
+	}
+	t.Cleanup(func() { appEmitHook = orig })
+	app.registerConfigRecovery()
+	t.Cleanup(func() { configRecoveredHook = nil })
+
+	require.NoError(t, app.SetTheme("dark"))
+
+	matches, _ := filepath.Glob(configPath() + ".corrupt-*")
+	require.Len(t, matches, 1, "malformed config must be quarantined")
+	b, err := os.ReadFile(matches[0])
+	require.NoError(t, err)
+	assert.Equal(t, bad, string(b), "quarantined file keeps the original bytes")
+
+	assert.Equal(t, "dark", loadConfig().Theme, "new config is written")
+
+	mu.Lock()
+	defer mu.Unlock()
+	require.Len(t, events, 1)
+	assert.Equal(t, matches[0], events[0]["quarantinedPath"])
+}
+
+// R14: a valid config is never quarantined.
+func TestConfig_ValidConfigNotQuarantined(t *testing.T) {
+	app := setupTestConfig(t, `{"theme":"a"}`)
+	require.NoError(t, app.SetTheme("b"))
+	matches, _ := filepath.Glob(configPath() + ".corrupt-*")
+	assert.Empty(t, matches)
+}
+
 // R13: readers never observe a half-written config.json while setters write.
 func TestConfig_ReadsNeverSeeTornWrite(t *testing.T) {
 	app := setupTestConfig(t, `{"theme":"theme-A","sidebarWidth":300}`)

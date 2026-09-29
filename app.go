@@ -229,13 +229,54 @@ func writePrivateFile(path string, data []byte) error {
 	return os.Chmod(path, 0o600)
 }
 
-// saveConfig persists the config to disk atomically, owner-only.
+// configRecoveredHook is told where a malformed config.json was moved.
+// (*App).registerConfigRecovery sets it at startup.
+var configRecoveredHook func(quarantinedPath string)
+
+// registerConfigRecovery emits `config:recovered` whenever saveConfig
+// quarantines a malformed config.json (R14).
+func (a *App) registerConfigRecovery() {
+	configRecoveredHook = func(p string) {
+		a.emitEvent("config:recovered", map[string]string{"quarantinedPath": p})
+	}
+}
+
+// quarantineMalformedConfig moves an existing config.json that does not
+// parse as JSON to config.json.corrupt-<unix>, so the next write never
+// replaces the user's bytes with defaults (R14). It returns the new path, or
+// "" when there was nothing to quarantine.
+func quarantineMalformedConfig() (string, error) {
+	path := configPath()
+	data, err := os.ReadFile(path)
+	if err != nil || json.Valid(data) {
+		return "", nil
+	}
+	dst := fmt.Sprintf("%s.corrupt-%d", path, time.Now().Unix())
+	if err := os.Rename(path, dst); err != nil {
+		return "", fmt.Errorf("quarantine malformed config: %w", err)
+	}
+	log.Printf("warning: malformed config.json moved to %s", dst)
+	return dst, nil
+}
+
+// saveConfig persists the config to disk atomically, owner-only. A malformed
+// config.json on disk is quarantined first instead of being overwritten.
 func saveConfig(cfg mashedConfig) error {
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshaling config: %w", err)
 	}
-	return writePrivateFile(configPath(), data)
+	quarantined, err := quarantineMalformedConfig()
+	if err != nil {
+		return err
+	}
+	if err := writePrivateFile(configPath(), data); err != nil {
+		return err
+	}
+	if quarantined != "" && configRecoveredHook != nil {
+		configRecoveredHook(quarantined)
+	}
+	return nil
 }
 
 // NewApp creates a new App instance. The helperClient may be nil; Spawn will
@@ -267,6 +308,7 @@ func NewApp(helperClient *helper.Client) *App {
 // startup is called by Wails when the app starts.
 func (a *App) startup(ctx context.Context) {
 	a.ctx, a.cancel = context.WithCancel(ctx)
+	a.registerConfigRecovery()
 
 	a.initSessionLog()
 
