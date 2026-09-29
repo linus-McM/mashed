@@ -11,6 +11,7 @@ import (
 
 	"mashed/internal/domain"
 	"mashed/internal/git"
+	"mashed/internal/pathguard"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -753,20 +754,42 @@ func (a *App) ListRepoFiles(repoPath string) ([]string, error) {
 	return files, nil
 }
 
-// WriteFile writes content to a file on disk.
+// fileRoots returns the directories the file bindings may touch: $HOME and
+// the configured DevDir (spec R7, C1/C2).
+func (a *App) fileRoots() []string {
+	return pathguard.AllowedRoots(a.GetDevDir())
+}
+
+// WriteFile writes content to a file on disk. The path must resolve inside
+// $HOME or DevDir and must not be a persistence-sensitive file. A symlinked
+// file is written through to its target, so the link is preserved.
 func (a *App) WriteFile(path, content string) error {
 	if path == "" {
 		return fmt.Errorf("empty file path")
 	}
-	return os.WriteFile(path, []byte(content), 0644)
+	resolved, err := pathguard.ResolveForWrite(a.fileRoots(), path)
+	if err != nil {
+		return fmt.Errorf("write file: %w", err)
+	}
+	if home, err := pathguard.HomeRoot(); err == nil {
+		if err := pathguard.CheckWriteDenylist(home, resolved); err != nil {
+			return fmt.Errorf("write file: %w", err)
+		}
+	}
+	return os.WriteFile(resolved, []byte(content), 0644)
 }
 
-// ReadFile returns the contents of a file as a string.
+// ReadFile returns the contents of a file as a string. The path must
+// resolve inside $HOME or DevDir.
 func (a *App) ReadFile(path string) (string, error) {
 	if path == "" {
 		return "", fmt.Errorf("file path is required")
 	}
-	data, err := os.ReadFile(path)
+	resolved, err := pathguard.ResolveExisting(a.fileRoots(), path)
+	if err != nil {
+		return "", fmt.Errorf("read file: %w", err)
+	}
+	data, err := os.ReadFile(resolved)
 	if err != nil {
 		return "", fmt.Errorf("read file %s: %w", path, err)
 	}
@@ -806,8 +829,12 @@ func (a *App) ReadFileBase64(path string) (string, error) {
 	if path == "" {
 		return "", fmt.Errorf("empty file path")
 	}
+	resolved, err := pathguard.ResolveExisting(a.fileRoots(), path)
+	if err != nil {
+		return "", fmt.Errorf("ReadFileBase64: %w", err)
+	}
 
-	info, err := os.Stat(path)
+	info, err := os.Stat(resolved)
 	if err != nil {
 		return "", fmt.Errorf("ReadFileBase64 %s: %w", path, err)
 	}
@@ -815,7 +842,7 @@ func (a *App) ReadFileBase64(path string) (string, error) {
 		return "", fmt.Errorf("file too large: %s (%d bytes)", path, info.Size())
 	}
 
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(resolved)
 	if err != nil {
 		return "", fmt.Errorf("ReadFileBase64 %s: %w", path, err)
 	}

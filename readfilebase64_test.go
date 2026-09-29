@@ -21,7 +21,7 @@ func TestReadFileBase64_AC1_Base64Encoding(t *testing.T) {
 	pngPath := filepath.Join(tmpDir, "test.png")
 	require.NoError(t, os.WriteFile(pngPath, pngBytes, 0644))
 
-	app := &App{}
+	app := &App{devDir: tmpDir} // tmpDir is an allowed root (R7)
 	result, err := app.ReadFileBase64(pngPath)
 	require.NoError(t, err)
 
@@ -65,7 +65,7 @@ func TestReadFileBase64_AC2_MimeTypes(t *testing.T) {
 	t.Run("ReadFileBase64_prefix", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		content := []byte("test-content")
-		app := &App{}
+		app := &App{devDir: tmpDir}
 
 		for _, tt := range tests {
 			t.Run(tt.ext, func(t *testing.T) {
@@ -91,7 +91,7 @@ func TestReadFileBase64_AC3_FileSizeLimit(t *testing.T) {
 	tenMBPlus := 10*1024*1024 + 1
 	require.NoError(t, os.WriteFile(bigFile, make([]byte, tenMBPlus), 0644))
 
-	app := &App{}
+	app := &App{devDir: tmpDir}
 	result, err := app.ReadFileBase64(bigFile)
 
 	require.Error(t, err)

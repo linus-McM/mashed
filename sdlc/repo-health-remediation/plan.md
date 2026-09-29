@@ -24,6 +24,7 @@ From: spec.md (2026-09-29). Status: accepted. Risk: high.
 - internal/pathguard/pathguard_test.go (new)
 - app_git.go
 - app_files_guard_test.go (new)
+- readfilebase64_test.go (s1.4: fixtures get DevDir as an allowed root)
 - frontend/src/components/MonacoEditor.svelte
 - frontend/src/components/MarkdownEditor.svelte
 - frontend/src/components/__tests__/MonacoEditor.guard.test.ts (new)
