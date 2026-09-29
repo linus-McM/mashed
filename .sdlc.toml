@@ -1,13 +1,13 @@
 # sdlc plugin configuration (read by every stage; commit it)
 [commands]
-test = "pytest -q"          # must exit non-zero on failure
+test = "bash scripts/test-all.sh"   # must exit non-zero on failure
 lint = ""                   # optional
 build = ""                  # optional
 
 [build]
 require_tdd = true          # `test run` refuses without a recorded red->green cycle
 protected_paths = []        # globs Claude may never edit, e.g. "src/gen/**"
-test_globs = ["tests/**", "test_*.py", "*_test.py", "*.test.*", "*.spec.*"]
+test_globs = ["tests/**", "test_*.py", "*_test.py", "*_test.go", "**/__tests__/**", "*.test.*", "*.spec.*"]
 
 [deploy]
 command = ""                # release command with {env}, e.g. "./deploy.sh {env}"; the pre-bash hook gates it

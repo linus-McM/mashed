@@ -21,6 +21,7 @@ build/bin
 mashed
 node_modules
 frontend/dist
+graphify-out/
 images/*
 # macOS Finder metadata — ignore at any depth
 **/.DS_Store

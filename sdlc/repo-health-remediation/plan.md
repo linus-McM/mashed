@@ -8,6 +8,7 @@ From: spec.md (2026-09-29). Status: accepted. Risk: high.
 - scripts/test-all.sh (new, step 0)
 - frontend/src/lib/__tests__/workflowSerialisation.test.ts (step 0)
 - repo_hygiene_test.go (new, step 0; grows in PR 3-5)
+- testutil_git_test.go (new, step 0 hook-env fix)
 - internal/terminal/bridge.go
 - internal/terminal/origins_prod.go (new)
 - internal/terminal/origins_dev.go (new)
@@ -414,6 +415,7 @@ Conventions for every step:
 - `repo_hygiene_test.go` (root package, new in step 0) holds one `TestRepo_*` function per repository-configuration requirement. It reads files and runs `git ls-files`, so configuration steps get a real red/green cycle.
 - Each PR is one branch, stacked on the previous one: `repo-health/pr1-security` from `main`, then `pr2-features`, `pr3-build`, `pr4-hygiene`, `pr5-structure`. Open each PR as a draft against `main` (or against the previous branch until that branch merges). Merge in order 1 to 5. Only the owner merges. Never force-push `main`.
 - Before opening each PR: run `/security-review` and attach its output to that PR's review.md (R32).
+- The root test package's `TestMain` (`testutil_git_test.go`) unsets every inherited `GIT_*` variable, and test helpers use `cleanGitEnv()`. Any other package whose tests create temp repos gets the same `TestMain`. Git hooks export `GIT_DIR`/`GIT_INDEX_FILE`, so without this a hook-run `go test` rewrites the real repository. This happened on 2026-09-30: the pre-commit hook's `go-test-changed` ran `app_review_scoped_test.go` and set `core.bare=true`, added a `[user] Test` section and made a stray branch commit. All three were repaired, and s0 fixes `gitRun`.
 - Line numbers in this plan are pinned to HEAD 4ff58d4. After PR 1, find code by function name.
 - Linux: the owner installs a container runtime before step 0 (`brew install colima docker && colima start`). Step 0 records a Linux baseline with `docker run --rm -v "$PWD":/src -w /src --user $(id -u):$(id -g) -e HOME=/tmp golang:1.25 go test -count=1 ./...`. Re-run it before opening each PR; a new Linux-only failure blocks that PR. If no runtime is installed, Linux coverage starts with the PR 3 CI, and this is an accepted risk.
 - Steps with no `sdlc build red` entry of their own: s1.0 (probe), s1.2 (committed with s1.1), s1.12a (refactor, green only) and s3.3 (root-only). Each of these records its proof in the PR.

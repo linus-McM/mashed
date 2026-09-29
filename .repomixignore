@@ -1,9 +1,13 @@
 # Add patterns to ignore here, one per line
-# Example:
-# *.logimages
 images/*
-.*
-docs
+docs/repomixer
+.playwright-mcp
+.playwright-cli
+.vite
+.venv
+.claude/worktrees
+graphify-out
+sdlc/knowledge
 nanobanana-output
 themes
 desloppify-workspace

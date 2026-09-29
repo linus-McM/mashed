@@ -226,8 +226,9 @@ describe('skills-cmd-03 AC-4: workflowNodesToCanvasNodes is type-agnostic', () =
     expect(restored[1].type).toBe('command');
     expect(restored[2].type).toBe('condition');
 
-    // Status and config both types pass through the same code path.
-    expect(restored[0].data?.status).toBe('complete');
+    // Status is reset to 'pending' on load for every type (persisted
+    // runtime status is stale); config passes through the same code path.
+    expect(restored[0].data?.status).toBe('pending');
     expect(restored[1].data?.status).toBe('pending');
     expect(restored[1].data?.config?.commandName).toBe('simplify');
   });
