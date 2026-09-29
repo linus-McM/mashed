@@ -117,6 +117,35 @@ func resolveHelperPath() string {
 	return ""
 }
 
+// setupHelperSocketDir creates a private (0700) directory for the PTY helper
+// socket and returns a cleanup func that removes it (R12).
+func setupHelperSocketDir() (string, func(), error) {
+	dir, err := os.MkdirTemp("", "mashed-pty-")
+	if err != nil {
+		return "", func() {}, err
+	}
+	if err := os.Chmod(dir, 0o700); err != nil {
+		os.RemoveAll(dir)
+		return "", func() {}, err
+	}
+	return dir, func() { os.RemoveAll(dir) }, nil
+}
+
+// dialHelperSecure dials the helper only if its socket is owner-only (R12).
+func dialHelperSecure(path string) (*helper.Client, error) {
+	fi, err := os.Lstat(path)
+	if err != nil {
+		return nil, err
+	}
+	if fi.Mode()&os.ModeSocket == 0 {
+		return nil, fmt.Errorf("pty helper: %s is not a socket", path)
+	}
+	if perm := fi.Mode().Perm(); perm&0o077 != 0 {
+		return nil, fmt.Errorf("pty helper: socket %s is accessible to other users (mode %o)", path, perm)
+	}
+	return helper.Dial(path)
+}
+
 // waitForSocket polls until the Unix socket file appears or the timeout expires.
 func waitForSocket(path string, timeout time.Duration) bool {
 	deadline := time.Now().Add(timeout)
@@ -135,9 +164,18 @@ func main() {
 	var helperClient *helper.Client
 	var helperCmd *exec.Cmd
 
+	sockDir, cleanupSockDir, sockDirErr := "", func() {}, error(nil)
 	if helperPath != "" {
-		sockPath := filepath.Join(os.TempDir(),
-			fmt.Sprintf("mashed-pty-%d.sock", os.Getpid()))
+		sockDir, cleanupSockDir, sockDirErr = setupHelperSocketDir()
+		if sockDirErr != nil {
+			log.Printf("WARNING: PTY helper socket dir: %v", sockDirErr)
+			helperPath = ""
+		}
+	}
+	defer cleanupSockDir()
+
+	if helperPath != "" {
+		sockPath := filepath.Join(sockDir, "pty.sock")
 
 		helperCmd = exec.Command(helperPath)
 		helperCmd.Env = append(os.Environ(),
@@ -151,7 +189,7 @@ func main() {
 			log.Printf("WARNING: PTY helper failed to start: %v", err)
 		} else {
 			if waitForSocket(sockPath, 3*time.Second) {
-				client, err := helper.Dial(sockPath)
+				client, err := dialHelperSecure(sockPath)
 				if err != nil {
 					log.Printf("WARNING: PTY helper dial failed: %v", err)
 				} else {
