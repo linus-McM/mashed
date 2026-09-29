@@ -851,16 +851,37 @@ func (a *App) ReadFileBase64(path string) (string, error) {
 	return fmt.Sprintf("data:%s;base64,%s", mime, base64.StdEncoding.EncodeToString(data)), nil
 }
 
+// repoRelPath checks lexically that filePath stays inside its repo: it must
+// be relative, must not climb with "..", and must not look like an option.
+// Lexical, so a tracked file deleted from the working tree still resolves.
+func repoRelPath(filePath string) (string, error) {
+	rel := filepath.Clean(filePath)
+	if filePath == "" || filepath.IsAbs(rel) || rel == ".." ||
+		strings.HasPrefix(rel, ".."+string(filepath.Separator)) || strings.HasPrefix(rel, "-") {
+		return "", fmt.Errorf("%q: %w", filePath, pathguard.ErrOutsideRoot)
+	}
+	return rel, nil
+}
+
 // ReadFileDiff returns the git diff for a specific file.
 func (a *App) ReadFileDiff(repoPath, filePath string) (string, error) {
 	if repoPath == "" {
 		return "", fmt.Errorf("repo path is required")
 	}
-	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "HEAD", "--", filePath)
+	rel, err := repoRelPath(filePath)
+	if err != nil {
+		return "", fmt.Errorf("git diff: %w", err)
+	}
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "HEAD", "--", rel)
 	out, err := cmd.Output()
 	if err != nil {
-		// Try without HEAD for untracked files
-		cmd2 := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--no-index", "/dev/null", filepath.Join(repoPath, filePath))
+		// Untracked file: diff against /dev/null. Resolve through symlinks so
+		// the fallback can never read outside the repo (R9).
+		abs, rerr := pathguard.ResolveExisting([]string{repoPath}, filepath.Join(repoPath, rel))
+		if rerr != nil {
+			return "", fmt.Errorf("git diff: %w", rerr)
+		}
+		cmd2 := exec.CommandContext(a.ctx, "git", "-C", repoPath, "diff", "--no-index", "--", "/dev/null", abs)
 		out2, _ := cmd2.Output()
 		if len(out2) > 0 {
 			return string(out2), nil
@@ -875,7 +896,11 @@ func (a *App) ReadFileAtHead(repoPath, filePath string) (string, error) {
 	if repoPath == "" {
 		return "", fmt.Errorf("repo path is required")
 	}
-	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "show", "HEAD:"+filePath)
+	rel, err := repoRelPath(filePath)
+	if err != nil {
+		return "", fmt.Errorf("git show: %w", err)
+	}
+	cmd := exec.CommandContext(a.ctx, "git", "-C", repoPath, "show", "HEAD:"+filepath.ToSlash(rel))
 	out, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("git show HEAD:%s: %w", filePath, err)
