@@ -31,6 +31,14 @@ const FEED_FILES = [
   resolve(FRONTEND_SRC, 'lib/feed/repoTree.ts'),
 ];
 const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
+// R31: AgentDetail was split into components/agent/* children; the view's
+// source is the parent plus its extracted children, concatenated.
+const AGENT_DETAIL_FILES = [
+  AGENT_DETAIL,
+  ...['FileStrip', 'CommitOutputPanel', 'SubAgentPanel', 'SessionTabs'].map((n) =>
+    resolve(FRONTEND_SRC, `components/agent/${n}.svelte`),
+  ),
+];
 const REPO_CONTEXT_BAR = resolve(
   FRONTEND_SRC,
   'components/bmad/RepoContextBar.svelte',
@@ -46,6 +54,7 @@ const SETTINGS_FILES = [
 ].map((p) => resolve(FRONTEND_SRC, p));
 
 const read = (p: string) => readFileSync(p, 'utf8');
+const readAgentDetail = () => AGENT_DETAIL_FILES.map(read).join('\n');
 const readSettings = () => SETTINGS_FILES.map(read).join('\n');
 const readFeed = () => FEED_FILES.map(read).join('\n');
 
@@ -187,7 +196,7 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
     });
 
     it('AC-4: AgentDetail .back-btn / .git-hot use var(--accent-green)', () => {
-      const src = read(AGENT_DETAIL);
+      const src = readAgentDetail();
       const backBlocks = src.match(/\.back-btn[^{]*\{[^}]*\}/g) ?? [];
       expect(backBlocks.length).toBeGreaterThan(0);
       for (const block of backBlocks) {

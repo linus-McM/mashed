@@ -15,6 +15,14 @@ const FRONTEND_SRC = resolve(__dirname, '../..');
 
 const EXECUTION_BAR = resolve(FRONTEND_SRC, 'components/bmad/ExecutionBar.svelte');
 const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
+// R31: AgentDetail was split into components/agent/* children; the view's
+// source is the parent plus its extracted children, concatenated.
+const AGENT_DETAIL_FILES = [
+  AGENT_DETAIL,
+  ...['FileStrip', 'CommitOutputPanel', 'SubAgentPanel', 'SessionTabs'].map((n) =>
+    resolve(FRONTEND_SRC, `components/agent/${n}.svelte`),
+  ),
+];
 // Settings.svelte was split into child components (spec R31); the view's
 // source is the parent plus its extracted children, concatenated.
 const SETTINGS_FILES = [
@@ -35,6 +43,7 @@ const TITLE_BAR = resolve(FRONTEND_SRC, 'components/TitleBar.svelte');
 const STYLE_CSS_PATH = resolve(FRONTEND_SRC, 'style.css');
 
 const read = (p: string) => readFileSync(p, 'utf8');
+const readAgentDetail = () => AGENT_DETAIL_FILES.map(read).join('\n');
 const readSettings = () => SETTINGS_FILES.map(read).join('\n');
 const readWorkflowBuilder = () => WORKFLOW_BUILDER_FILES.map(read).join('\n');
 
@@ -125,12 +134,12 @@ describe('uiqa-03: remaining hardcoded colors', () => {
 
   describe('AC-2: AgentDetail tab-close hover uses --accent-red', () => {
     it('AC-2: AgentDetail.svelte contains zero #ff5f57 literals', () => {
-      const src = read(AGENT_DETAIL);
+      const src = readAgentDetail();
       expect(src).not.toMatch(/#ff5f57/i);
     });
 
     it('AC-2: .tab-close:hover declares color: var(--accent-red)', () => {
-      const src = read(AGENT_DETAIL);
+      const src = readAgentDetail();
       const block = extractRule(src, /\.tab-close:hover[^{]*\{/);
       expect(block, '.tab-close:hover rule must exist').not.toBeNull();
       expect(block!).toMatch(/color:\s*var\(--accent-red\)/);
