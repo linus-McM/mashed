@@ -158,10 +158,41 @@ func TestCheckWriteDenylist(t *testing.T) {
 			t.Errorf("CheckWriteDenylist(%q) = %v, want ErrDeniedPath", rel, err)
 		}
 	}
-	allowed := []string{filepath.Join("proj", "a.txt"), ".zshrc.bak", filepath.Join("proj", ".zshrc"), ".sshx"}
+	allowed := []string{filepath.Join("proj", "a.txt"), ".zshrc.bak", filepath.Join("proj", ".zshrc"), ".sshx", ".sshrc.d"}
 	for _, rel := range allowed {
 		if err := CheckWriteDenylist(home, filepath.Join(home, rel)); err != nil {
 			t.Errorf("CheckWriteDenylist(%q) = %v, want nil", rel, err)
+		}
+	}
+}
+
+// Security review finding: on case-insensitive APFS a mixed-case spelling
+// reaches the same protected file, so the denylist must not be bypassable by
+// changing case. Also covers the extra login and tool config files.
+func TestCheckWriteDenylist_CaseAndAliases(t *testing.T) {
+	home, _, _ := layout(t)
+	mustWrite := func(p string) {
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	mustWrite(filepath.Join(home, ".zshrc"))
+	mustWrite(filepath.Join(home, ".ssh", "authorized_keys"))
+
+	denied := []string{
+		".ZSHRC", ".ZshRc", ".GITCONFIG",
+		filepath.Join(".SSH", "authorized_keys"), filepath.Join(".Ssh", "new_key"),
+		filepath.Join("library", "launchagents", "evil.plist"),
+		filepath.Join("LIBRARY", "LaunchAgents", "evil.plist"),
+		".zlogin", ".zlogout", ".bash_login", ".tmux.conf",
+		filepath.Join(".config", "git", "config"), filepath.Join(".CONFIG", "Git", "Config"),
+	}
+	for _, rel := range denied {
+		if err := CheckWriteDenylist(home, filepath.Join(home, rel)); !errors.Is(err, ErrDeniedPath) {
+			t.Errorf("CheckWriteDenylist(%q) = %v, want ErrDeniedPath", rel, err)
 		}
 	}
 }

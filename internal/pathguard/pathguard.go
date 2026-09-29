@@ -79,31 +79,71 @@ func ResolveForWrite(roots []string, p string) (string, error) {
 	return target, nil
 }
 
-// deniedFiles and deniedDirs are relative to $HOME.
+// deniedFiles and deniedDirs are relative to $HOME: shell startup files, git
+// and tmux config, SSH keys and LaunchAgents all give persistent code
+// execution if written.
 var (
-	deniedFiles = []string{".zshrc", ".zprofile", ".zshenv", ".bashrc", ".bash_profile", ".profile", ".gitconfig"}
-	deniedDirs  = []string{".ssh", filepath.Join("Library", "LaunchAgents")}
+	deniedFiles = []string{
+		".zshrc", ".zprofile", ".zshenv", ".zlogin", ".zlogout",
+		".bashrc", ".bash_profile", ".bash_login", ".profile",
+		".gitconfig", filepath.Join(".config", "git", "config"), ".tmux.conf",
+	}
+	deniedDirs = []string{".ssh", filepath.Join("Library", "LaunchAgents")}
 )
 
 // CheckWriteDenylist rejects writes to persistence-sensitive locations under
-// home. resolved should already be symlink-resolved.
+// home. resolved should already be symlink-resolved. Names are compared
+// case-insensitively (macOS APFS maps ~/.ZSHRC onto ~/.zshrc) and, where the
+// target or a parent exists, by file identity as well.
 func CheckWriteDenylist(home, resolved string) error {
-	h := resolveRoot(home)
+	denied := fmt.Errorf("%q: %w", resolved, ErrDeniedPath)
 	r := filepath.Clean(resolved)
-	for _, f := range deniedFiles {
-		if r == filepath.Join(h, f) || r == filepath.Join(filepath.Clean(home), f) {
-			return fmt.Errorf("%q: %w", resolved, ErrDeniedPath)
+	for _, base := range []string{resolveRoot(home), filepath.Clean(home)} {
+		rel, err := filepath.Rel(base, r)
+		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+			continue
+		}
+		for _, f := range deniedFiles {
+			if strings.EqualFold(rel, f) {
+				return denied
+			}
+		}
+		for _, d := range deniedDirs {
+			if strings.EqualFold(rel, d) || hasFoldPrefix(rel, d+string(os.PathSeparator)) {
+				return denied
+			}
+		}
+	}
+
+	// Identity checks catch any spelling the name checks miss (other
+	// normalisations, hard-to-predict aliases).
+	if fi, err := os.Stat(r); err == nil {
+		for _, f := range deniedFiles {
+			if di, err := os.Stat(filepath.Join(home, f)); err == nil && os.SameFile(fi, di) {
+				return denied
+			}
 		}
 	}
 	for _, d := range deniedDirs {
-		for _, base := range []string{h, filepath.Clean(home)} {
-			dir := filepath.Join(base, d)
-			if r == dir || strings.HasPrefix(r, dir+string(os.PathSeparator)) {
-				return fmt.Errorf("%q: %w", resolved, ErrDeniedPath)
+		di, err := os.Stat(filepath.Join(home, d))
+		if err != nil {
+			continue
+		}
+		for p := filepath.Dir(r); ; p = filepath.Dir(p) {
+			if pi, err := os.Stat(p); err == nil && os.SameFile(pi, di) {
+				return denied
+			}
+			if parent := filepath.Dir(p); parent == p {
+				break
 			}
 		}
 	}
 	return nil
+}
+
+// hasFoldPrefix reports whether s starts with prefix, ignoring case.
+func hasFoldPrefix(s, prefix string) bool {
+	return len(s) >= len(prefix) && strings.EqualFold(s[:len(prefix)], prefix)
 }
 
 // within reports whether p equals or lies under any resolved root.

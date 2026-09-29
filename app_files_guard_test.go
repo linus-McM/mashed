@@ -97,6 +97,32 @@ func TestWriteFile_RejectsDenylist(t *testing.T) {
 	}
 }
 
+// Security review finding: WriteFile must reject mixed-case spellings of the
+// protected files and directories (case-insensitive APFS maps them to the
+// real targets) and must leave the real files untouched.
+func TestWriteFile_RejectsDenylistCaseVariants(t *testing.T) {
+	app, home, _, _ := guardFixture(t)
+	mustWrite(t, filepath.Join(home, ".zshrc"), "ORIGINAL-RC")
+	if err := os.MkdirAll(filepath.Join(home, "Library", "LaunchAgents"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for _, rel := range []string{
+		".ZSHRC",
+		filepath.Join(".SSH", "authorized_keys"),
+		filepath.Join("library", "launchagents", "evil.plist"),
+	} {
+		if err := app.WriteFile(filepath.Join(home, rel), "pwned"); !errors.Is(err, pathguard.ErrDeniedPath) {
+			t.Errorf("WriteFile(%s) err = %v, want ErrDeniedPath", rel, err)
+		}
+	}
+	if b, _ := os.ReadFile(filepath.Join(home, ".zshrc")); string(b) != "ORIGINAL-RC" {
+		t.Fatalf(".zshrc modified: %q", b)
+	}
+	if _, err := os.Stat(filepath.Join(home, "Library", "LaunchAgents", "evil.plist")); !os.IsNotExist(err) {
+		t.Fatal("LaunchAgent plist was written")
+	}
+}
+
 func TestFileBindings_AllowInsideRoots(t *testing.T) {
 	app, home, dev, _ := guardFixture(t)
 	if s, err := app.ReadFile(filepath.Join(home, "proj", "a.txt")); err != nil || s != "inside" {

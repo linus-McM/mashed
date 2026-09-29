@@ -488,6 +488,9 @@ Conventions for every step:
     - `saveConfig`, `SaveTheme` and `RemoveTheme` write through `writePrivateFile` (`fsutil.WriteFileAtomic`, 0600 file, 0700 dir). The `WriteFile` binding writes through `fsutil.WriteFileAtomic` on the resolved target.
 14. **s1.12c-config-quarantine (R14).** Write TestConfig_MalformedIsQuarantinedNotOverwritten first. It asserts the original bytes are in `config.json.corrupt-<unix>`, and that a captured emit func received `config:recovered` with `quarantinedPath`.
     - `TestU1_AC4_MashedConfig_MalformedJSON_ReturnsDefaults` stays as is: reads still fall back to defaults. The quarantine happens in `saveConfig`, before the first write over a malformed file.
+14b. **s1.13-denylist-case (R7, C1; from the PR 1 /security-review, added 2026-09-30).** Write TestCheckWriteDenylist_CaseAndAliases (`internal/pathguard/pathguard_test.go`) and TestWriteFile_RejectsDenylistCaseVariants (`app_files_guard_test.go`) first. Red today: on case-insensitive APFS, `~/.ZSHRC`, `~/.SSH/authorized_keys` and `~/library/launchagents/x.plist` pass the case-sensitive denylist and reach the real files.
+    - `CheckWriteDenylist` compares names case-insensitively and also by identity (`os.SameFile` against each denied file, and against each denied directory for every ancestor of the target).
+    - Add `.zlogin`, `.zlogout`, `.bash_login`, `.tmux.conf` and `.config/git/config` to the denylist.
     - Then run `/security-review` and open draft PR 1.
 
 ### PR 2: Broken features and races (branch `repo-health/pr2-features`)
