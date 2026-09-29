@@ -17,11 +17,18 @@ const EXECUTION_BAR = resolve(FRONTEND_SRC, 'components/bmad/ExecutionBar.svelte
 const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
 const SETTINGS = resolve(FRONTEND_SRC, 'views/Settings.svelte');
 const PROCESS_NODE = resolve(FRONTEND_SRC, 'components/bmad/ProcessNode.svelte');
-const WORKFLOW_BUILDER = resolve(FRONTEND_SRC, 'views/WorkflowBuilder.svelte');
+// WorkflowBuilder.svelte was split into child components (spec R31); the
+// builder's source is the parent plus its extracted children, concatenated.
+const WORKFLOW_BUILDER_FILES = [
+  'views/WorkflowBuilder.svelte',
+  'components/bmad/BuilderToolbar.svelte',
+  'components/bmad/TerminalModal.svelte',
+].map((p) => resolve(FRONTEND_SRC, p));
 const TITLE_BAR = resolve(FRONTEND_SRC, 'components/TitleBar.svelte');
 const STYLE_CSS_PATH = resolve(FRONTEND_SRC, 'style.css');
 
 const read = (p: string) => readFileSync(p, 'utf8');
+const readWorkflowBuilder = () => WORKFLOW_BUILDER_FILES.map(read).join('\n');
 
 // Extract the contiguous { ... } block that follows a selector. Handles single
 // nesting depth (sufficient for plain CSS rules in <style> blocks).
@@ -175,19 +182,19 @@ describe('uiqa-03: remaining hardcoded colors', () => {
     });
 
     it('AC-4: WorkflowBuilder.svelte contains zero rgba(248, 81, 73, ...) literals', () => {
-      const src = read(WORKFLOW_BUILDER);
+      const src = readWorkflowBuilder();
       expect(src).not.toMatch(/rgba\(\s*248\s*,\s*81\s*,\s*73/);
     });
 
     it('AC-4: .exec-error background uses color-mix with --accent-red at 10%', () => {
-      const src = read(WORKFLOW_BUILDER);
+      const src = readWorkflowBuilder();
       const block = extractRule(src, /\.exec-error\s*\{/);
       expect(block, '.exec-error rule must exist').not.toBeNull();
       expect(block!).toMatch(/background:[^;]*color-mix\([^)]*var\(--accent-red\)[^)]*10%/);
     });
 
     it('AC-4: .exec-error-dismiss:hover background uses color-mix with --accent-red at 15%', () => {
-      const src = read(WORKFLOW_BUILDER);
+      const src = readWorkflowBuilder();
       const block = extractRule(src, /\.exec-error-dismiss:hover\s*\{/);
       expect(block, '.exec-error-dismiss:hover rule must exist').not.toBeNull();
       expect(block!).toMatch(/background:[^;]*color-mix\([^)]*var\(--accent-red\)[^)]*15%/);

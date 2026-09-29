@@ -457,6 +457,8 @@ func viewUnder1000(t *testing.T, name string) {
 
 func TestRepo_NotificationFeedUnder1000Lines(t *testing.T) { viewUnder1000(t, "NotificationFeed.svelte") }
 
+func TestRepo_WorkflowBuilderUnder1000Lines(t *testing.T) { viewUnder1000(t, "WorkflowBuilder.svelte") }
+
 func TestRepo_GraphifyOutIgnored(t *testing.T) {
 	cmd := exec.Command("git", "check-ignore", "-q", "graphify-out/x")
 	cmd.Dir = repoRoot(t)
