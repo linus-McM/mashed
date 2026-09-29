@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+
+	"mashed/internal/fsutil"
 )
 
 var validID = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
@@ -227,13 +229,5 @@ func atomicWriteJSON(path string, v any) error {
 	if err != nil {
 		return fmt.Errorf("marshaling JSON: %w", err)
 	}
-	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, data, 0644); err != nil {
-		return fmt.Errorf("writing temp file: %w", err)
-	}
-	if err := os.Rename(tmp, path); err != nil {
-		os.Remove(tmp)
-		return fmt.Errorf("renaming temp file: %w", err)
-	}
-	return nil
+	return fsutil.WriteFileAtomic(path, data, 0644)
 }
