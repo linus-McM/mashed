@@ -20,6 +20,16 @@ const STYLE_CSS_PATH = resolve(FRONTEND_SRC, 'style.css');
 
 const STATUS_BADGE = resolve(FRONTEND_SRC, 'components/StatusBadge.svelte');
 const NOTIFICATION_FEED = resolve(FRONTEND_SRC, 'views/NotificationFeed.svelte');
+// R31: NotificationFeed was split into components/feed/* children (and
+// lib/feed/repoTree.ts). Scoped markup/CSS moved with the child that renders
+// it, so feed assertions read the parent plus its children as one source.
+const FEED_FILES = [
+  NOTIFICATION_FEED,
+  ...['RepoHeader', 'AgentList', 'RepoActions', 'CommitOutputPanel'].map((n) =>
+    resolve(FRONTEND_SRC, `components/feed/${n}.svelte`),
+  ),
+  resolve(FRONTEND_SRC, 'lib/feed/repoTree.ts'),
+];
 const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
 const REPO_CONTEXT_BAR = resolve(
   FRONTEND_SRC,
@@ -29,6 +39,7 @@ const TITLE_BAR = resolve(FRONTEND_SRC, 'components/TitleBar.svelte');
 const SETTINGS = resolve(FRONTEND_SRC, 'views/Settings.svelte');
 
 const read = (p: string) => readFileSync(p, 'utf8');
+const readFeed = () => FEED_FILES.map(read).join('\n');
 
 function walk(dir: string, exts: Set<string>): string[] {
   const out: string[] = [];
@@ -111,7 +122,7 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
     });
 
     it('AC-2: NotificationFeed statusColors uses CSS var strings', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       expect(src).toMatch(/running:\s*'var\(--accent-green\)'/);
       expect(src).toMatch(/open:\s*'var\(--accent-teal\)'/);
     });
@@ -158,7 +169,7 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
     });
 
     it('AC-4: NotificationFeed hot buttons use var(--accent-green) via .glow-btn', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       // uiqa-04 replaced .action-hot with the shared .glow-btn utility.
       // NotificationFeed must no longer contain #39ff14, and its template
       // must bind class:glow-btn (hot-button equivalent). The .glow-btn
@@ -198,7 +209,7 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
 
   describe('AC-5: .color-swatch.active uses --text-primary', () => {
     it('AC-5: NotificationFeed .color-swatch.active border-color references --text-primary', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       const match = src.match(/\.color-swatch\.active\s*\{[^}]*\}/);
       expect(match, '.color-swatch.active rule must exist').not.toBeNull();
       const block = match![0];

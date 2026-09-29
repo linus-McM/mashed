@@ -447,6 +447,16 @@ func TestRepo_BmadFilesUnder1000Lines(t *testing.T) {
 	}
 }
 
+// viewUnder1000 fails when a Svelte view exceeds 1000 lines (R31).
+func viewUnder1000(t *testing.T, name string) {
+	t.Helper()
+	if n := lineCount(t, "frontend/src/views/"+name); n > 1000 {
+		t.Errorf("frontend/src/views/%s has %d lines (max 1000)", name, n)
+	}
+}
+
+func TestRepo_NotificationFeedUnder1000Lines(t *testing.T) { viewUnder1000(t, "NotificationFeed.svelte") }
+
 func TestRepo_GraphifyOutIgnored(t *testing.T) {
 	cmd := exec.Command("git", "check-ignore", "-q", "graphify-out/x")
 	cmd.Dir = repoRoot(t)

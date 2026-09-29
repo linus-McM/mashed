@@ -10,6 +10,15 @@ const FRONTEND_SRC = resolve(__dirname, '../..');
 const STYLE_CSS = resolve(FRONTEND_SRC, 'style.css');
 const NOTIFICATION_FEED = resolve(FRONTEND_SRC, 'views/NotificationFeed.svelte');
 const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
+// R31: NotificationFeed was split into components/feed/* children (and
+// lib/feed/repoTree.ts). Scoped markup/CSS moved with the child that renders
+// it, so feed assertions read the parent plus its children as one source.
+const FEED_FILES = [
+  NOTIFICATION_FEED,
+  ...['RepoHeader', 'AgentList', 'RepoActions', 'CommitOutputPanel'].map((n) =>
+    resolve(FRONTEND_SRC, `components/feed/${n}.svelte`),
+  ),
+];
 
 const read = (p: string) => readFileSync(p, 'utf8');
 
@@ -24,6 +33,10 @@ function templateOnly(src: string): string {
   const block = styleBlock(src);
   return block ? src.replace(block, '') : src;
 }
+
+// Feed style blocks / templates extracted per file, then joined.
+const feedStyles = () => FEED_FILES.map((f) => styleBlock(read(f))).join('\n');
+const feedTemplates = () => FEED_FILES.map((f) => templateOnly(read(f))).join('\n');
 
 let injectedStyle: HTMLStyleElement;
 beforeAll(() => {
@@ -75,11 +88,11 @@ describe('uiqa-04: shared .glow-btn class', () => {
 
   describe('AC-2: .action-hot removed from NotificationFeed + glow-btn binding present', () => {
     it('AC-2 (BDD#3): NotificationFeed <style> block has zero ".action-hot" selectors', () => {
-      expect(styleBlock(read(NOTIFICATION_FEED))).not.toMatch(/\.action-hot/);
+      expect(feedStyles()).not.toMatch(/\.action-hot/);
     });
 
     it('AC-2 (BDD#3): NotificationFeed template has at least one class:glow-btn binding', () => {
-      expect(templateOnly(read(NOTIFICATION_FEED))).toMatch(/class:glow-btn/);
+      expect(feedTemplates()).toMatch(/class:glow-btn/);
     });
   });
 
@@ -143,7 +156,7 @@ describe('uiqa-04: shared .glow-btn class', () => {
 
   describe('AC-6: hot-button count conserved (6 pre → 6 post)', () => {
     it('AC-6: NotificationFeed has exactly 3 class:glow-btn bindings (was 3 class:action-hot)', () => {
-      const matches = templateOnly(read(NOTIFICATION_FEED)).match(/class:glow-btn/g) ?? [];
+      const matches = feedTemplates().match(/class:glow-btn/g) ?? [];
       expect(matches.length).toBe(3);
     });
 
@@ -153,7 +166,7 @@ describe('uiqa-04: shared .glow-btn class', () => {
     });
 
     it('AC-6: total glow-btn count (6) matches pre-refactor hot-button count (6)', () => {
-      const nf = (templateOnly(read(NOTIFICATION_FEED)).match(/class:glow-btn/g) ?? []).length;
+      const nf = (feedTemplates().match(/class:glow-btn/g) ?? []).length;
       const ad = (templateOnly(read(AGENT_DETAIL)).match(/class:glow-btn/g) ?? []).length;
       expect(nf + ad).toBe(6);
     });

@@ -105,6 +105,14 @@ describe('uiqa-07: token scale normalization', () => {
 
   describe('AC-4: numeric displays use tabular-nums', () => {
     const NOTIF = resolve(VIEWS_DIR, 'NotificationFeed.svelte');
+    // R31: agent-row CSS moved to components/feed/*; read parent + children.
+    const NOTIF_FILES = [
+      NOTIF,
+      ...['RepoHeader', 'AgentList', 'RepoActions', 'CommitOutputPanel'].map((n) =>
+        resolve(COMPONENTS_DIR, `feed/${n}.svelte`),
+      ),
+    ];
+    const readNotif = () => NOTIF_FILES.map(read).join('\n');
     const AGENT = resolve(VIEWS_DIR, 'AgentDetail.svelte');
 
     function ruleBody(src: string, selector: string): string | null {
@@ -118,21 +126,21 @@ describe('uiqa-07: token scale normalization', () => {
     }
 
     it('AC-4a (BDD#5): NotificationFeed .sub-count declares tabular-nums', () => {
-      const src = read(NOTIF);
+      const src = readNotif();
       const rule = ruleBody(src, '.sub-count');
       expect(rule, '.sub-count rule not found').not.toBeNull();
       expect(rule!).toMatch(/font-variant-numeric:\s*tabular-nums/);
     });
 
     it('AC-4b (BDD#6): NotificationFeed .agent-tokens declares tabular-nums', () => {
-      const src = read(NOTIF);
+      const src = readNotif();
       const rule = ruleBody(src, '.agent-tokens');
       expect(rule, '.agent-tokens rule not found').not.toBeNull();
       expect(rule!).toMatch(/font-variant-numeric:\s*tabular-nums/);
     });
 
     it('AC-4c: NotificationFeed .agent-elapsed declares tabular-nums', () => {
-      const src = read(NOTIF);
+      const src = readNotif();
       const rule = ruleBody(src, '.agent-elapsed');
       expect(rule, '.agent-elapsed rule not found').not.toBeNull();
       expect(rule!).toMatch(/font-variant-numeric:\s*tabular-nums/);
