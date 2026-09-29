@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -208,6 +209,18 @@ func (a *App) GetBmadExecution(execID string) (*bmad.WorkflowExecution, error) {
 	return a.bmadExecutor.GetExecution(execID)
 }
 
+// GetInteractiveTranscript returns the ordered conversation transcript for
+// an interactive node — every captured Claude round output interleaved
+// with user answers from NodeInputHistory. Empty slice when the node has
+// no activity yet. Consumed by the InputResponseModal transcript pane so
+// users can re-read the full discussion while answering the current turn.
+func (a *App) GetInteractiveTranscript(execID, nodeID string) ([]bmad.InteractiveTurn, error) {
+	if a.bmadExecutor == nil {
+		return nil, fmt.Errorf("bmad executor not initialized")
+	}
+	return a.bmadExecutor.GetInteractiveTranscript(execID, nodeID)
+}
+
 // GetBmadCurrentExecution returns a deep copy of the most recently
 // started non-terminal execution (running or paused) whose RepoPath
 // matches the given path, or nil when no such execution exists.
@@ -230,12 +243,14 @@ func (a *App) GetBmadCurrentExecution(repoPath string) (*bmad.WorkflowExecution,
 	// Fallback: when no in-memory execution matches (cold start / app
 	// restart), scan the on-disk snapshot directory for a non-terminal
 	// execution tagged with this repoPath (§7.2).
+	fromDisk := false
 	if exec == nil {
 		loaded, lerr := bmad.LoadExecutionFromDisk(repoPath)
 		if lerr != nil {
 			return nil, lerr
 		}
 		exec = loaded
+		fromDisk = exec != nil
 	}
 	if exec == nil {
 		return nil, nil
@@ -245,15 +260,41 @@ func (a *App) GetBmadCurrentExecution(repoPath string) (*bmad.WorkflowExecution,
 	if exec.Status == bmad.ExecComplete || exec.Status == bmad.ExecFailed {
 		return nil, nil
 	}
+	// Register a disk-loaded exec back into the executor's in-memory map
+	// so RespondToInput / StopWorkflow / GetExecution can find it. Without
+	// this the snackbar re-appears but Send fails with "execution not
+	// found" because the executor had no memory of the exec after restart.
+	if fromDisk {
+		if _, rerr := a.bmadExecutor.RehydrateFromSnapshot(exec); rerr != nil {
+			return nil, rerr
+		}
+	}
 
 	// Re-emit awaiting_input for every pending prompt so the frontend
 	// snackbar re-appears after restart. Deferred to a goroutine so the
 	// return happens first — the UI subscribes on mount and would miss
 	// events fired before the bindings resolve.
 	if len(exec.PendingPrompts) > 0 {
-		prompts := append([]bmad.PendingPrompt(nil), exec.PendingPrompts...)
+		execID := exec.ID
 		go func() {
+			// Re-run the adapter against each persisted LastOutput so a
+			// server restart picks up newly-installed Ollama models / a
+			// recovered network and replaces stale fallback ASTs in place.
+			// Mutates exec.PendingPrompts in place via the shared backing
+			// array stored on the rehydrated execState. No-ops when the
+			// adapter is nil or every prompt is already fresh.
+			a.bmadExecutor.RefreshPendingStructured(context.Background(), execID)
+
+			// Snapshot AFTER refresh so the emit sees the freshened
+			// Structured + Shape values.
+			prompts := append([]bmad.PendingPrompt(nil), exec.PendingPrompts...)
 			for _, p := range prompts {
+				// Backfill ExecID for prompts persisted before the field
+				// existed so the frontend always has a valid execId on
+				// re-emit. New prompts already carry it from suspendForSpec.
+				if p.ExecID == "" {
+					p.ExecID = execID
+				}
 				a.emitEvent("bmad:node:awaiting_input", p)
 			}
 		}()

@@ -10,6 +10,9 @@ export const currentFontSize = writable(DEFAULT_FONT_SIZE);
  * Apply a font to all consumers. This is the single source of truth —
  * CSS variables, Terminal, and Monaco all derive from these stores.
  * Always called on startup, even with no user selection.
+ *
+ * @param {string} fontFamily
+ * @param {number} fontSize
  */
 export function applyFont(fontFamily, fontSize) {
   const family = fontFamily
@@ -25,9 +28,16 @@ export function applyFont(fontFamily, fontSize) {
 }
 
 /**
+ * @typedef {{ fileName: string; weight: string; style: string; format: string; base64: string }} LocalFontFile
+ * @typedef {{ family: string; files: LocalFontFile[] }} LocalFontFamily
+ */
+
+/**
  * Register local fonts by injecting @font-face rules into the document.
  * Must be called before applyFont() so local fonts are available to CSS.
  * Safe to call multiple times (replaces previous registration).
+ *
+ * @param {LocalFontFamily[] | null | undefined} localFamilies
  */
 export function registerLocalFonts(localFamilies) {
   const prev = document.getElementById('local-fonts');

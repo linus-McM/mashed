@@ -3,6 +3,8 @@
   import { GitBranch } from 'lucide-svelte';
   import { formatConditionSummary } from './nodeUtils.js';
 
+  /** @typedef {import('../../types/workflow').CanvasNodeData} CanvasNodeData */
+  /** @type {CanvasNodeData} */
   export let data = {};
   // svelte-ignore unused-export-let
   export let id = '';
@@ -10,7 +12,7 @@
 
   $: status = data.status || 'pending';
   $: label = data.label || 'Condition';
-  $: config = data.config || {};
+  $: config = /** @type {Record<string, unknown>} */ (data.config || {});
   $: conditionSummary = formatConditionSummary(config);
 </script>
 

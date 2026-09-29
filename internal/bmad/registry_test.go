@@ -1,7 +1,14 @@
+// NOTE: §11 Q6 resolved 2026-04-21 — UIAdapterEnabled defaults to TRUE;
+// unreachable Ollama degrades to fallback:unreachable per spec §4.8 (no
+// auto-disable).
 package bmad
 
 import (
+	"bytes"
 	"encoding/json"
+	"os"
+	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -335,4 +342,175 @@ func TestWorkflowNode_JSONRoundTrip(t *testing.T) {
 	var decoded WorkflowNode
 	require.NoError(t, json.Unmarshal(data, &decoded))
 	assert.Equal(t, original, decoded)
+}
+
+// ── Story ui-ast-U0 registry migration tests ──────────────────────────────────
+//
+// RED Phase: these tests exercise the U0 migration contract. They fail until
+// the go-engineer (a) adds ProcessDef.EnableAstAdapter, (b) flips the
+// iteration InputSpec Shape to ShapeJSON on the four migrated processes, and
+// (c) commits testdata/registry/<id>.json goldens for every non-migrated
+// process. Compile failures on EnableAstAdapter propagate to every test in
+// this package — that is the intended RED signal.
+
+// u0MigratedProcessIDs lists the four interactive processes that opt into
+// the AST adapter in U0 (spec §9 Phase 0).
+var u0MigratedProcessIDs = []string{
+	"bmad-brainstorming",
+	"bmad-product-brief",
+	"bmad-party-mode",
+	"bmad-advanced-elicitation",
+}
+
+// phase2RolloutIDs lists the six high-traffic processes upgraded to
+// InteractIterative by registry_interactive_phase2.go. Their JSON drifts from
+// the pre-rollout golden — walking integration coverage lives in
+// registry_interactive_phase2_test.go.
+var phase2RolloutIDs = []string{
+	"bmad-dev-story",
+	"bmad-code-review",
+	"bmad-create-story",
+	"bmad-validate-prd",
+	"bmad-edit-prd",
+	"bmad-quick-dev",
+}
+
+// phase3aRolloutIDs lists the three analysis-batch processes upgraded by
+// registry_interactive_phase3a.go.
+var phase3aRolloutIDs = []string{
+	"bmad-domain-research",
+	"bmad-market-research",
+	"bmad-technical-research",
+}
+
+// phase3bRolloutIDs lists the four planning-batch processes upgraded by
+// registry_interactive_phase3b.go.
+var phase3bRolloutIDs = []string{
+	"bmad-create-ux-design",
+	"bmad-create-architecture",
+	"bmad-check-implementation-readiness",
+	"bmad-create-epics-and-stories",
+}
+
+// phase3cRolloutIDs lists the implementation-batch processes upgraded by
+// registry_interactive_phase3c.go.
+var phase3cRolloutIDs = []string{
+	"bmad-qa-generate-e2e-tests",
+}
+
+// phase3dRolloutIDs lists the support-batch processes upgraded by
+// registry_interactive_phase3d.go.
+var phase3dRolloutIDs = []string{
+	"bmad-editorial-review-prose",
+	"bmad-editorial-review-structure",
+	"bmad-review-edge-case-hunter",
+	"bmad-quick-flow",
+	"bmad-adversarial-general",
+	"bmad-infrastructure-devops",
+}
+
+// phase4RolloutIDs lists the guided-batch processes upgraded by
+// registry_interactive_phase4.go.
+var phase4RolloutIDs = []string{
+	"bmad-create-prd",
+	"bmad-document-project",
+	"bmad-generate-project-context",
+}
+
+// phase5RolloutIDs lists the party-batch processes upgraded by
+// registry_interactive_phase5.go.
+var phase5RolloutIDs = []string{
+	"bmad-retrospective",
+	"bmad-web-orchestrator",
+	"bmad-game-dev-studio",
+}
+
+// skippedFromU0Goldens is the union of all process IDs whose committed pre-U0
+// golden no longer matches their current shape. Stories 03-08 append their own
+// rollout slice here so the predicate stays a single Contains call.
+var skippedFromU0Goldens = func() []string {
+	out := make([]string, 0,
+		len(u0MigratedProcessIDs)+len(phase2RolloutIDs)+
+			len(phase3aRolloutIDs)+len(phase3bRolloutIDs)+
+			len(phase3cRolloutIDs)+len(phase3dRolloutIDs)+
+			len(phase4RolloutIDs)+len(phase5RolloutIDs))
+	out = append(out, u0MigratedProcessIDs...)
+	out = append(out, phase2RolloutIDs...)
+	out = append(out, phase3aRolloutIDs...)
+	out = append(out, phase3bRolloutIDs...)
+	out = append(out, phase3cRolloutIDs...)
+	out = append(out, phase3dRolloutIDs...)
+	out = append(out, phase4RolloutIDs...)
+	out = append(out, phase5RolloutIDs...)
+	return out
+}()
+
+// TestU0_AC2_MigratedProcesses_ShapeJSON asserts the four migrated processes
+// expose ShapeJSON on their iteration InputSpec and carry EnableAstAdapter=true.
+func TestU0_AC2_MigratedProcesses_ShapeJSON(t *testing.T) {
+	t.Parallel()
+	for _, id := range u0MigratedProcessIDs {
+		t.Run(id, func(t *testing.T) {
+			t.Parallel()
+			p, ok := ProcessByID(id)
+			require.True(t, ok, "process %q must exist in registry", id)
+
+			assert.True(t, p.EnableAstAdapter,
+				"process %q must set EnableAstAdapter=true (U0 opt-in)", id)
+
+			iter, ok := p.iterationInput()
+			require.True(t, ok,
+				"process %q must declare an iteration InputSpec", id)
+			assert.Equal(t, ShapeJSON, iter.Shape,
+				"iteration InputSpec Shape must be ShapeJSON for %q", id)
+		})
+	}
+}
+
+// TestU0_AC3_NonMigratedProcessesUnchanged asserts every non-migrated
+// ProcessDef marshals byte-identical to the committed pre-U0 golden fixture.
+// Goldens live at internal/bmad/testdata/registry/<id>.json and are committed
+// from a pre-migration snapshot.
+func TestU0_AC3_NonMigratedProcessesUnchanged(t *testing.T) {
+	t.Parallel()
+	for _, p := range AllProcesses() {
+		if slices.Contains(skippedFromU0Goldens, p.ID) {
+			continue
+		}
+		t.Run(p.ID, func(t *testing.T) {
+			t.Parallel()
+			got, err := json.Marshal(p)
+			require.NoError(t, err, "marshal %q", p.ID)
+
+			goldenPath := filepath.Join("testdata", "registry", p.ID+".json")
+			raw, err := os.ReadFile(goldenPath)
+			require.NoError(t, err,
+				"golden %q must exist — commit pre-U0 snapshot before migrating", goldenPath)
+
+			want := bytes.TrimRight(raw, "\n")
+			assert.True(t, bytes.Equal(got, want),
+				"JSON for %q must be byte-identical to %s\n got: %s\nwant: %s",
+				p.ID, goldenPath, got, want)
+		})
+	}
+}
+
+// TestU0_AC5_MigratedProcessesEnableAstAdapter_Q6Resolved asserts the four
+// migrated processes opt into the AST adapter.
+//
+// NOTE(U4): Q6 resolved 2026-04-21 — UIAdapterEnabled defaults to TRUE;
+// unreachable Ollama degrades to fallback:unreachable per spec §4.8 (no
+// auto-disable).
+func TestU0_AC5_MigratedProcessesEnableAstAdapter_Q6Resolved(t *testing.T) {
+	t.Parallel()
+	for _, id := range u0MigratedProcessIDs {
+		t.Run(id, func(t *testing.T) {
+			t.Parallel()
+			p, ok := ProcessByID(id)
+			require.True(t, ok, "process %q must exist in registry", id)
+			assert.True(t, p.EnableAstAdapter,
+				"process %q must opt in (EnableAstAdapter=true) — §11 Q6 resolved 2026-04-21: default TRUE",
+				id)
+		})
+	}
 }

@@ -1,0 +1,7 @@
+Paste the guest list as JSON so I can generate seating.
+
+```json
+{"guests": ["ada", "ben", "cara"]}
+```
+
+Or describe it however you like and I'll normalise it.

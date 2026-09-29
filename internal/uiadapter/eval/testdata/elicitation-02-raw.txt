@@ -1,0 +1,9 @@
+Which refinement lenses should I apply to the draft?
+
+- tighten-language
+- shorten-length
+- surface-risks
+- highlight-assumptions
+- swap-audience
+
+Select one or more:

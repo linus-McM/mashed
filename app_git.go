@@ -894,5 +894,5 @@ Start by running: gh pr diff %s`, prNumber, prNumber)
 
 	defaultModel := domain.DefaultAlias(a.ListModels())
 	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s -p %q", defaultModel, prompt)
-	return a.spawnSession("review", repoPath, cmd, domain.SessionAgent, defaultModel)
+	return a.spawnSession("review", repoPath, cmd, domain.SessionAgent, defaultModel, 0, 0)
 }

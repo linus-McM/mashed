@@ -1002,6 +1002,10 @@ Every story is independently revertable:
 - S3-S5: revert `executeInteractiveNode` path; nodes fall back to autonomous (would break iterative registry entries, but S7 is last).
 - S7: revert registry entries; executor stays on autonomous path for affected processes.
 
+### 11.4 2026-04-21 Q6 resolution (by user decision)
+
+`UIAdapterEnabled` now defaults to TRUE (overriding spec §4.4's false default). When Ollama is unreachable, the adapter degrades to `fallback:unreachable` per §4.8 — no auto-disable. Explicit opt-out produces `fallback:disabled`. The Settings model picker is dynamic via `uiadapter.Client.ListModels`. Per-process opt-in is carried by `ProcessDef.EnableAstAdapter` (see docs/mashed-ui-ast-schema.md §9 Phase 0 / story U0); iteration `InputSpec.Shape` flips to `ShapeJSON` on the four opted-in processes (`bmad-brainstorming`, `bmad-product-brief`, `bmad-party-mode`, `bmad-advanced-elicitation`).
+
 ---
 
 ## 12. Test Strategy

@@ -24,6 +24,8 @@ import {
   dismissNode,
   resetInteractiveInput,
   validationKey,
+  pendingPrompt,
+  pendingAst,
   type PendingPrompt,
 } from './interactiveInput';
 
@@ -137,5 +139,40 @@ describe('interactiveInput store', () => {
     const second = get(interactiveInput).lastToast;
     expect(second?.kind).toBe('warn');
     expect(second?.id).not.toBe(first?.id);
+  });
+});
+
+// ui-ast-U6 — PendingPrompt.structured + pendingAst derived store (spec §6.1).
+// Fails until T2 (GREEN) adds `structured`, `pendingPrompt`, and `pendingAst`.
+
+describe('ui-ast-U6 pendingAst derived store', () => {
+  beforeEach(() => {
+    resetInteractiveInput();
+    pendingPrompt.set(null);
+  });
+
+  it('AC1_structured_field_optional — PendingPrompt.structured typechecks as string | undefined', () => {
+    // Both variants must compile — the contract is enforced by tsc, not at runtime.
+    const withStructured: PendingPrompt = { ...makePrompt(), structured: 'x' };
+    const withoutStructured: PendingPrompt = makePrompt();
+    expect(withStructured.structured).toBe('x');
+    expect(withoutStructured.structured).toBeUndefined();
+  });
+
+  it('AC2_pending_ast_parses_valid_v1 — emits parsed UIAST with version "1"', () => {
+    pendingPrompt.set(makePrompt({ structured: JSON.stringify({ version: '1', nodes: [] }) }));
+    const ast = get(pendingAst);
+    expect(ast).not.toBeNull();
+    expect(ast?.version).toBe('1');
+  });
+
+  it('AC3_pending_ast_null_on_malformed — emits null when structured is not JSON', () => {
+    pendingPrompt.set(makePrompt({ structured: 'not-json' }));
+    expect(get(pendingAst)).toBeNull();
+  });
+
+  it('AC4_pending_ast_null_on_unknown_version — emits null when version !== "1"', () => {
+    pendingPrompt.set(makePrompt({ structured: '{"version":"2"}' }));
+    expect(get(pendingAst)).toBeNull();
   });
 });

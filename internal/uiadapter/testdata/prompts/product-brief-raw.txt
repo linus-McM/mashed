@@ -1,0 +1,9 @@
+Stage 1: Scope
+
+Let me ask three scoping questions so we can lock down the product brief.
+
+- What problem does this solve? (free-form, one or two sentences)
+- Who is the primary user? (end-user / developer / operator)
+- What is the success metric? (free-form, e.g. time-to-first-insight)
+
+Please answer each one in turn.

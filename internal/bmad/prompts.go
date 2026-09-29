@@ -12,6 +12,91 @@ import (
 	"time"
 )
 
+// modalQuestionCap bounds the PendingPrompt.LastOutput payload. The event
+// bus ships this string on every awaiting_input event + persists it to
+// execution.json — 4 KiB balances readability (enough for a full Claude
+// turn) against payload bloat. Callers truncate on the tail, not the head:
+// the tail is the just-spoken question, the head is earlier context the
+// user already saw.
+const modalQuestionCap = 4 * 1024
+
+// maxStructuredBytes caps the serialized UIAST blob attached to
+// PendingPrompt.Structured (ui-ast-U4 §5.2, §3.3). Defence-in-depth against
+// adapter misbehaviour: the uiadapter validator rejects >6 KiB AST, so this
+// guard only fires on bugs. Blobs above this cap are dropped to "" so the
+// frontend falls back to Layer 1.
+const maxStructuredBytes = 6 * 1024
+
+// translatorInputCap bounds the bytes shipped to the UI adapter. The full
+// pane capture can grow to maxCaptureBytes (100 KiB), but only the latest
+// claude turn carries usable signal — earlier rounds are already represented
+// by their own NodeOutputs entries. Capping the translator input avoids
+// 30 s timeouts on long-running rounds where the cumulative scrollback
+// dwarfs the actual question.
+const translatorInputCap = 8 * 1024
+
+// claudeTurnGlyph is the U+23FA "Black Circle for Record" character the
+// Claude CLI prefixes to each assistant turn. The LAST occurrence in a
+// pane capture marks the start of the most recent turn — anything before
+// is prior-round chrome the translator does not need.
+const claudeTurnGlyph = "⏺"
+
+// extractLastClaudeTurn returns the tail of a tmux capture-pane buffer,
+// preferring the start of the most recent Claude assistant turn (marked by
+// the `⏺` glyph) as the slice boundary. When the glyph is absent the buffer
+// is cropped at translatorInputCap from the end and any partial first line
+// is trimmed so the adapter never sees a half-prefix. Empty input returns
+// "" so callers can short-circuit cleanly.
+func extractLastClaudeTurn(raw string) string {
+	if raw == "" {
+		return ""
+	}
+	if idx := strings.LastIndex(raw, claudeTurnGlyph); idx >= 0 {
+		raw = raw[idx:]
+	}
+	if len(raw) > translatorInputCap {
+		raw = raw[len(raw)-translatorInputCap:]
+		if nl := strings.IndexByte(raw, '\n'); nl >= 0 && nl < 256 {
+			raw = raw[nl+1:]
+		}
+	}
+	return raw
+}
+
+// extractModalQuestion pulls the best-available "question to show the user"
+// from a raw tmux capture. Hybrid strategy:
+//  1. If Claude authored a <MASHED_PROMPT>…</MASHED_PROMPT> sentinel (future
+//     skill work), use the sentinel body — it's the formatted question.
+//  2. Otherwise, fall back to the last ~4 KiB of the capture — noisy but
+//     always present.
+//
+// Empty input returns "" so the modal falls back to renderPrompt()'s static
+// spec.Prompt text.
+func extractModalQuestion(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	const openTag = "<MASHED_PROMPT>"
+	const closeTag = "</MASHED_PROMPT>"
+	if o := strings.LastIndex(raw, openTag); o >= 0 {
+		if c := strings.Index(raw[o+len(openTag):], closeTag); c >= 0 {
+			body := strings.TrimSpace(raw[o+len(openTag) : o+len(openTag)+c])
+			if body != "" {
+				return body
+			}
+		}
+	}
+	if len(raw) > modalQuestionCap {
+		raw = raw[len(raw)-modalQuestionCap:]
+		// Trim a partial first line so the user sees clean output.
+		if nl := strings.IndexByte(raw, '\n'); nl >= 0 && nl < 256 {
+			raw = raw[nl+1:]
+		}
+	}
+	return raw
+}
+
 // waiter returns (creating on first access) the release channel for a
 // (nodeID, inputID) suspension. Subsequent callers receive the same channel
 // so responders and suspenders share a rendezvous point.
@@ -187,12 +272,97 @@ func randHex8() string {
 	return hex.EncodeToString(b[:])
 }
 
+// translateForPrompt runs the UI AST adapter (ui-ast-U4 §5.2) and returns
+// the serialized AST plus an optional fallback-shape override.
+//
+// structured is "" when:
+//   - the executor has no adapter installed (production with UIAdapterEnabled=false);
+//   - lastOutput is empty (round-1 pre-claude suspension — no turn to translate);
+//   - the adapter reported a cancellation via Diagnostics.CancelReason;
+//   - marshal failed or the blob exceeds maxStructuredBytes (defence-in-depth).
+//
+// fallbackShape is non-empty only when the adapter degraded to its built-in
+// fallback path (GeneratedBy="fallback:*"). Callers may use it to swap the
+// suspended node's literal Shape (typically ShapeJSON for adapter-driven
+// processes) for a sensible widget — without it, users see a raw JSON
+// textarea every time the adapter times out, errors, or the model is missing.
+//
+// Must be called OUTSIDE state.mu and state.snapshotMu — Translate may block
+// for the adapter timeout (~3 s) and holding either mutex would serialise all
+// node progress. The brief lock here snapshots the node's ProcessID only.
+func (e *Executor) translateForPrompt(ctx context.Context, state *execState, idx int, lastOutput string) (structured string, fallbackShape InputShape) {
+	if e.adapter == nil || lastOutput == "" {
+		return "", ""
+	}
+	state.mu.Lock()
+	procID := state.exec.Nodes[idx].ProcessID
+	state.mu.Unlock()
+
+	// Crop to the most recent claude turn before shipping. Pane captures
+	// can hit maxCaptureBytes (100 KiB) on long-running rounds; passing the
+	// full scrollback to a 30 s Haiku translation reliably times out (see
+	// `claude-cli.translate.error reason="exit status 143"` traces). The
+	// adapter sanitises ANSI/chrome internally; the additional pre-crop
+	// here is purely a size guard and is idempotent against later passes.
+	cropped := extractLastClaudeTurn(lastOutput)
+
+	ast := e.adapter.Translate(ctx, cropped, procID)
+	if ast == nil || ast.Diagnostics.CancelReason != "" {
+		return "", ""
+	}
+	blob, err := json.Marshal(ast)
+	if err != nil || len(blob) > maxStructuredBytes {
+		return "", ""
+	}
+	// Honor the AST's FallbackAnswerShape whenever it is supplied — not just
+	// on `fallback:*` paths. A successful adapter run that emits only
+	// markdown/info nodes (no decision_group) leaves the modal with no
+	// rich widget; without this override the user lands back in a raw JSON
+	// textarea even though the adapter explicitly hinted at a sensible
+	// alternative shape. When decision_group nodes are present the modal
+	// hides the Layer-1 widget anyway, so the override is a no-op.
+	if ast.FallbackAnswerShape != "" {
+		switch InputShape(ast.FallbackAnswerShape) {
+		case ShapeFree, ShapeChoice, ShapeMultiChoice, ShapeApproval, ShapeFile, ShapeJSON:
+			fallbackShape = InputShape(ast.FallbackAnswerShape)
+		default:
+			fallbackShape = ShapeFree
+		}
+	} else if strings.HasPrefix(ast.GeneratedBy, "fallback:") {
+		// Defensive: a fallback path with no shape hint defaults to free.
+		fallbackShape = ShapeFree
+	} else {
+		// Adapter succeeded but emitted no shape hint. Inspect the AST: if
+		// it contains a decision_group node, the modal will render rich
+		// widgets and we must NOT override the literal shape (the modal
+		// hides Layer-1 anyway). Otherwise the user would land in a raw
+		// JSON textarea for a process whose adapter produced no choices —
+		// default to free-text so they can still respond.
+		hasDecisionGroup := false
+		for _, n := range ast.Nodes {
+			if n.Type == "decision_group" {
+				hasDecisionGroup = true
+				break
+			}
+		}
+		if !hasDecisionGroup {
+			fallbackShape = ShapeFree
+		}
+	}
+	return string(blob), fallbackShape
+}
+
 // suspendForSpec transitions a node into NodeAwaitingInput, emits the
 // awaiting_input event, and blocks until either the matching waiter channel
 // is closed (a response arrived) or ctx is canceled. On wake it restores
 // NodeRunning, removes the PendingPrompt, persists a second snapshot, and
 // emits input_resolved with the sha256-hashed value. Ctx cancel emits
 // EventAborted with reason "workflow stopped" and returns ctx.Err().
+//
+// Use suspendForSpecWithPane when a tmux pane target is available so the
+// suspension is also dismissed if the pane resumes activity (e.g. user typed
+// directly into tmux). Pre-spawn suspends (declared inputs resolved before
+// tmux session creation) call this wrapper with no pane watcher.
 func (e *Executor) suspendForSpec(
 	ctx context.Context,
 	state *execState,
@@ -200,21 +370,67 @@ func (e *Executor) suspendForSpec(
 	nodeID string,
 	round int,
 	spec InputSpec,
+	lastOutput string,
 ) error {
-	prompt := PendingPrompt{
-		NodeID:    nodeID,
-		InputID:   spec.ID,
-		Prompt:    renderPrompt(spec, state, nodeID),
-		Shape:     spec.Shape,
-		Options:   resolveOptions(spec, state),
-		Round:     round,
-		CreatedAt: time.Now().Unix(),
-		PromptID:  hashPendingPrompt(nodeID, spec.ID, round),
-	}
+	return e.suspendForSpecWithPane(ctx, state, nodeIndex, nodeID, round, spec, lastOutput, "")
+}
 
+// suspendForSpecWithPane is suspendForSpec plus a pane-activity watchdog. When
+// paneTarget is non-empty, a watcher goroutine polls `tmux capture-pane` at
+// e.pollInterval. If the captured hash changes while the node is suspended in
+// NodeAwaitingInput, the suspension is aborted: the node is demoted back to
+// NodeRunning, the PendingPrompt is cleared, EventAwaitingDismissed fires, and
+// ErrAwaitingPaneActive is returned so the caller can re-run the idle-wait +
+// suspend cycle against the FRESH pane content.
+func (e *Executor) suspendForSpecWithPane(
+	ctx context.Context,
+	state *execState,
+	nodeIndex map[string]int,
+	nodeID string,
+	round int,
+	spec InputSpec,
+	lastOutput string,
+	paneTarget string,
+) error {
 	idx, ok := nodeIndex[nodeID]
 	if !ok {
 		return fmt.Errorf("suspendForSpec: unknown node %q: %w", nodeID, ErrExecNotFound)
+	}
+
+	// ui-ast-U4 §5.2: translate the upstream turn into a UIAST BEFORE
+	// state.mu/state.snapshotMu are acquired. Translate may block up to ~3 s;
+	// holding either mutex here would stall every other node.
+	structured, fallbackShape := e.translateForPrompt(ctx, state, idx, lastOutput)
+
+	// §5.2: re-check ctx — Translate may have taken hundreds of ms and the
+	// run could have been canceled in the meantime. Bail before mutating
+	// PendingPrompts so a canceled run doesn't leave a phantom prompt.
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	// Adapter-driven processes (registry uses ShapeJSON to mean "let the
+	// uiadapter pick a widget") degrade to a raw JSON textarea when the
+	// adapter falls back. Swap to the AST's FallbackAnswerShape so the user
+	// sees a sensible widget (typically free-text) instead of being asked to
+	// type JSON into a multiple-choice prompt. Specs that explicitly want
+	// raw JSON should not run through the adapter, so this override is safe.
+	resolvedShape := spec.Shape
+	if fallbackShape != "" && spec.Shape == ShapeJSON {
+		resolvedShape = fallbackShape
+	}
+
+	prompt := PendingPrompt{
+		NodeID:     nodeID,
+		InputID:    spec.ID,
+		Prompt:     renderPrompt(spec, state, nodeID),
+		Shape:      resolvedShape,
+		Options:    resolveOptions(spec, state),
+		Round:      round,
+		CreatedAt:  time.Now().Unix(),
+		PromptID:   hashPendingPrompt(nodeID, spec.ID, round),
+		LastOutput: extractModalQuestion(lastOutput),
+		Structured: structured,
 	}
 
 	// Create the waiter BEFORE emitting so a fast responder that fires
@@ -222,9 +438,10 @@ func (e *Executor) suspendForSpec(
 	waitCh := state.waiter(nodeID, spec.ID)
 
 	state.mu.Lock()
+	execID := state.exec.ID
+	prompt.ExecID = execID
 	state.exec.Nodes[idx].Status = NodeAwaitingInput
 	state.exec.PendingPrompts = upsertPrompt(state.exec.PendingPrompts, prompt)
-	execID := state.exec.ID
 	state.mu.Unlock()
 
 	if err := e.persistSnapshot(state); err != nil {
@@ -232,9 +449,23 @@ func (e *Executor) suspendForSpec(
 	}
 	e.emit(EventAwaitingInput, awaitingPayload(prompt))
 
+	// Pane-activity watchdog. Empty paneTarget disables the watcher so
+	// pre-spawn suspends (no tmux session yet) keep their current behavior.
+	paneActiveCh := make(chan struct{})
+	watcherCtx, cancelWatcher := context.WithCancel(ctx)
+	defer cancelWatcher()
+	if paneTarget != "" {
+		go e.watchPaneForActivity(watcherCtx, paneTarget, paneActiveCh)
+	}
+
 	select {
 	case <-waitCh:
 		// Response arrived; fall through to the wake-up block.
+	case <-paneActiveCh:
+		// Pane resumed activity (claude began producing output). Demote the
+		// node back to NodeRunning, clear the stale prompt, and signal the
+		// caller to redo the idle-wait + suspend cycle.
+		return e.dismissAwaiting(state, idx, nodeID, spec.ID, round, "pane_active")
 	case <-ctx.Done():
 		e.emit(EventAborted, abortedPayload(execID, nodeID, "workflow stopped"))
 		return ctx.Err()
@@ -262,6 +493,67 @@ func (e *Executor) suspendForSpec(
 	state.exec.Nodes[idx].Status = NodeRunning
 	state.mu.Unlock()
 	return nil
+}
+
+// watchPaneForActivity polls the tmux pane and closes activeCh on the first
+// hash change observed after the initial baseline capture. The watcher exits
+// silently when ctx is canceled (e.g. the response arrived first or the
+// suspend was aborted by ctx.Done) so the goroutine never leaks. Capture
+// errors are non-fatal — they just skip the tick, mirroring waitForIdleCompletion.
+func (e *Executor) watchPaneForActivity(ctx context.Context, paneTarget string, activeCh chan<- struct{}) {
+	ticker := time.NewTicker(e.pollInterval)
+	defer ticker.Stop()
+
+	// Establish the baseline immediately. If the very first capture errors,
+	// fall back to the empty hash; the watcher will pick up the real baseline
+	// on the next successful capture.
+	var baseline string
+	if first, err := e.captureQuestionOutput(ctx, paneTarget); err == nil {
+		baseline = hashCapturedOutput(first)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			captured, err := e.captureQuestionOutput(ctx, paneTarget)
+			if err != nil {
+				continue
+			}
+			cur := hashCapturedOutput(captured)
+			if baseline == "" {
+				baseline = cur
+				continue
+			}
+			if cur != baseline {
+				close(activeCh)
+				return
+			}
+		}
+	}
+}
+
+// dismissAwaiting demotes a node from NodeAwaitingInput back to NodeRunning,
+// clears the matching PendingPrompt, releases the waiter so a stale
+// RespondToInput cannot resolve the discarded prompt, persists the snapshot,
+// emits EventAwaitingDismissed, and returns ErrAwaitingPaneActive so the
+// round loop can re-enter waitForIdleCompletion + re-suspend with the latest
+// pane capture.
+func (e *Executor) dismissAwaiting(state *execState, idx int, nodeID, inputID string, round int, reason string) error {
+	state.mu.Lock()
+	execID := state.exec.ID
+	state.exec.PendingPrompts = removePrompt(state.exec.PendingPrompts, nodeID, inputID)
+	state.exec.Nodes[idx].Status = NodeRunning
+	state.mu.Unlock()
+
+	state.releaseWaiter(nodeID, inputID)
+
+	if err := e.persistSnapshot(state); err != nil {
+		return err
+	}
+	e.emit(EventAwaitingDismissed, awaitingDismissedPayload(execID, nodeID, inputID, round, reason))
+	return ErrAwaitingPaneActive
 }
 
 // RespondToInput records a user-supplied answer for a suspended node input

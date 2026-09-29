@@ -24,6 +24,12 @@ var (
 	// injection — the "stuck at idle baseline" failure mode, distinct
 	// from a completion timeout that fires during normal processing.
 	ErrIdleTimeoutNoStart = errors.New("bmad: idle wait timed out before claude produced output")
+	// ErrAwaitingPaneActive is returned by suspendForSpec when the tmux pane
+	// resumes activity (claude began producing output again, e.g. user typed
+	// directly into the pane) while the node was blocked in NodeAwaitingInput.
+	// The caller demotes the node to NodeRunning and re-runs the idle-wait +
+	// suspend cycle so the modal reflects the FRESH capture, not a stale one.
+	ErrAwaitingPaneActive = errors.New("bmad: pane resumed activity while awaiting input")
 	// ErrDuplicateMultiFileLabel is returned when a MultiFileLoader node's
 	// entries contain two labels with the same non-empty value. Positional
 	// fallback labels (empty user-provided label) never collide because the
@@ -85,10 +91,14 @@ type ProcessDef struct {
 	ModuleID    string        `json:"moduleId"`
 	Version     string        `json:"version"`
 	// Interactive process fields (schema §3). Absent on legacy processes.
-	Mode        InteractionMode `json:"mode,omitempty"`
-	InputSpecs  []InputSpec     `json:"inputSpecs,omitempty"`
-	OutputSpecs []OutputSpec    `json:"outputSpecs,omitempty"`
-	Gate        *IterationGate  `json:"gate,omitempty"`
+	Mode InteractionMode `json:"mode,omitempty"`
+	// EnableAstAdapter opts the process into the Mashed UI AST adapter
+	// (docs/mashed-ui-ast-schema.md §9 Phase 0). Wired by U4; declarative
+	// only in U0. Default false; omitempty keeps pre-U0 JSON byte-identical.
+	EnableAstAdapter bool            `json:"enableAstAdapter,omitempty"`
+	InputSpecs       []InputSpec     `json:"inputSpecs,omitempty"`
+	OutputSpecs      []OutputSpec    `json:"outputSpecs,omitempty"`
+	Gate             *IterationGate  `json:"gate,omitempty"`
 }
 
 // iterationInput returns the InputSpec that represents the recurring per-round
@@ -190,6 +200,13 @@ const (
 	InteractGuided     InteractionMode = "guided"
 	InteractIterative  InteractionMode = "iterative"
 	InteractParty      InteractionMode = "party"
+)
+
+// Wire-level slot IDs referenced by the executor, registry, and frontend.
+// Promoted to exported constants so call sites cannot drift.
+const (
+	RoundResponseInputID = "round-response"
+	PartyMessageInputID  = "message"
 )
 
 // GateKind discriminates the rule used to exit an iterative loop.
@@ -345,6 +362,11 @@ type WorkflowExecution struct {
 
 // PendingPrompt is an outstanding user-input request for a suspended node (§3.5).
 type PendingPrompt struct {
+	// ExecID is the workflow execution that owns this prompt. Populated at
+	// suspend time so the frontend can call RespondToInput without relying
+	// on view-local state (which is unset when the user re-enters the
+	// builder for an in-flight run).
+	ExecID    string     `json:"execId,omitempty"`
 	NodeID    string     `json:"nodeId"`
 	InputID   string     `json:"inputId"`
 	Prompt    string     `json:"prompt"`
@@ -353,14 +375,29 @@ type PendingPrompt struct {
 	Round     int        `json:"round"`
 	CreatedAt int64      `json:"createdAt"`
 	PromptID  string     `json:"promptId"`
+	// LastOutput carries the tmux pane capture from the previous round so
+	// the frontend modal can show what Claude just said. Empty on the
+	// first suspension (before any Claude turn exists). Future enhancement:
+	// if the capture contains a <MASHED_PROMPT>…</MASHED_PROMPT> sentinel
+	// (skill-authored), extract it and use that instead of the raw tail.
+	LastOutput string `json:"lastOutput,omitempty"`
+
+	// Structured is the serialized UIAST JSON string emitted by the UI AST
+	// adapter (ui-ast-U4 §5.1). Empty when the adapter is disabled or a
+	// process opts out via Shape; the frontend decodes on receipt.
+	Structured string `json:"structured,omitempty"`
 }
 
 // NodeInputEntry is one historical user answer for a node input (§3.5).
 type NodeInputEntry struct {
 	InputID   string `json:"inputId"`
-	Round     int    `json:"round"`
+	Round     int    `json:"round,omitempty"`
 	Value     string `json:"value"`
 	Timestamp int64  `json:"timestamp"`
+	// Key is the composite sub-answer identifier ("<specID>:<subKey>") written
+	// by the flatten-on-receipt path for ShapeJSON submissions (ui-ast-U4
+	// §5.3.1). Empty for legacy single-string answers.
+	Key string `json:"key,omitempty"`
 }
 
 // BmadAgentConfig defines a custom BMAD user agent.

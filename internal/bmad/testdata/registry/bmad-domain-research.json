@@ -1,0 +1,1 @@
+{"id":"bmad-domain-research","name":"Domain Research","phase":"analysis","agentRole":"analyst","skillName":"bmad-domain-research","description":"Research the problem domain to understand context, terminology, and constraints.","inputs":[],"outputs":["domain-research"],"moduleId":"core","version":"1.0.0"}

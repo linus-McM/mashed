@@ -12,11 +12,14 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"mashed/internal/uiadapter"
 )
 
 // Node output key helpers for loop iteration tracking.
@@ -83,17 +86,37 @@ type Executor struct {
 	executions   map[string]*execState
 	pollInterval time.Duration
 	mu           sync.RWMutex
+	// adapter is the UI AST translator wired by WithAdapter (ui-ast-U4 §5.4).
+	// Nil when UIAdapterEnabled is false; §5.2 short-circuits on nil.
+	adapter uiadapter.Adapter
+}
+
+// Option configures an Executor at construction time (ui-ast-U4 §5.4).
+type Option func(*Executor)
+
+// WithAdapter installs a UI AST adapter onto the Executor. When nil is passed
+// or this option is omitted, the executor's adapter stays nil and §5.2's
+// `e.adapter != nil` guard short-circuits without allocating.
+func WithAdapter(a uiadapter.Adapter) Option {
+	return func(e *Executor) { e.adapter = a }
 }
 
 // NewExecutor creates an Executor with the given storage and event emitter.
-func NewExecutor(storage *Storage, emitEvent func(string, interface{})) *Executor {
-	return &Executor{
+// Accepts optional Options (e.g. WithAdapter) per ui-ast-U4 §5.4.
+func NewExecutor(storage *Storage, emitEvent func(string, interface{}), opts ...Option) *Executor {
+	e := &Executor{
 		storage:      storage,
 		runCmd:       DefaultCommandRunner,
 		emitEvent:    emitEvent,
 		executions:   make(map[string]*execState),
 		pollInterval: 3 * time.Second,
 	}
+	for _, opt := range opts {
+		if opt != nil {
+			opt(e)
+		}
+	}
+	return e
 }
 
 // SetCommandRunner replaces the command runner (for testing).
@@ -190,8 +213,73 @@ func (e *Executor) StartWorkflow(parentCtx context.Context, workflowID, repoPath
 	e.emit("bmad:execution:status", ExecStatusEvent{ExecID: execID, Status: ExecRunning})
 
 	go e.runDynamic(ctx, state, repoPath, model)
+	go e.monitorSessionLiveness(ctx, state)
 
 	return execution, nil
+}
+
+// sessionDeadPollInterval is how often monitorSessionLiveness checks every
+// live node's tmux session. 3s balances responsiveness against tmux IPC load.
+const sessionDeadPollInterval = 3 * time.Second
+
+// monitorSessionLiveness polls every tmux target owned by a running or
+// awaiting_input node and emits EventSessionDead + clears TmuxTarget the
+// first time the session is observed gone. A per-exec seen-set prevents
+// re-emission. Exits on ctx.Done.
+func (e *Executor) monitorSessionLiveness(ctx context.Context, state *execState) {
+	ticker := time.NewTicker(sessionDeadPollInterval)
+	defer ticker.Stop()
+	dead := make(map[string]bool) // nodeID -> already reported
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			type probe struct{ nodeID, target string }
+			var probes []probe
+			state.mu.Lock()
+			execID := state.exec.ID
+			for _, n := range state.exec.Nodes {
+				if n.TmuxTarget == "" || dead[n.ID] {
+					continue
+				}
+				if n.Status != NodeRunning && n.Status != NodeAwaitingInput {
+					continue
+				}
+				probes = append(probes, probe{nodeID: n.ID, target: n.TmuxTarget})
+			}
+			state.mu.Unlock()
+
+			for _, p := range probes {
+				// has-session accepts the session name (strip window/pane),
+				// returns non-zero when the session is gone.
+				session := p.target
+				if i := strings.IndexByte(session, ':'); i >= 0 {
+					session = session[:i]
+				}
+				probeCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+				_, err := e.runCmd(probeCtx, "tmux", "has-session", "-t", session)
+				cancel()
+				if err == nil {
+					continue // alive
+				}
+				dead[p.nodeID] = true
+				// Clear TmuxTarget in state so restoreForRepo doesn't rehydrate
+				// a stale target; persist so the change survives restart.
+				state.mu.Lock()
+				for i := range state.exec.Nodes {
+					if state.exec.Nodes[i].ID == p.nodeID {
+						state.exec.Nodes[i].TmuxTarget = ""
+						break
+					}
+				}
+				state.mu.Unlock()
+				_ = e.persistSnapshot(state)
+				e.emit(EventSessionDead, sessionDeadPayload(execID, p.nodeID, p.target))
+			}
+		}
+	}
 }
 
 // PauseWorkflow prevents new nodes from starting; running nodes finish.
@@ -282,6 +370,97 @@ func (e *Executor) GetExecution(execID string) (*WorkflowExecution, error) {
 	state.mu.Lock()
 	defer state.mu.Unlock()
 	return cloneExecution(state.exec), nil
+}
+
+// InteractiveTurn is one half of an exchange during an interactive node —
+// either Claude's captured pane output for a round, or the user's answer
+// submitted via RespondToInput. The frontend transcript view orders these
+// by (Round asc, Role="claude" before Role="user") so the modal reads like
+// a chat log.
+type InteractiveTurn struct {
+	Round     int    `json:"round"`
+	Role      string `json:"role"` // "claude" | "user"
+	InputID   string `json:"inputId,omitempty"`
+	Content   string `json:"content"`
+	Timestamp int64  `json:"timestamp,omitempty"`
+}
+
+// GetInteractiveTranscript returns the ordered turn-by-turn history for an
+// interactive node: every captured Claude round output plus every user
+// answer recorded in NodeInputHistory. Empty slice when the node has no
+// activity yet. Used by the modal's transcript pane so users can re-read
+// the full conversation while answering the current turn — BMAD turns can
+// go deep, and the old single-line prompt hid everything.
+func (e *Executor) GetInteractiveTranscript(execID, nodeID string) ([]InteractiveTurn, error) {
+	state, err := e.getState(execID)
+	if err != nil {
+		return nil, err
+	}
+	state.mu.Lock()
+	defer state.mu.Unlock()
+	if state.exec == nil {
+		return nil, nil
+	}
+	// Collect Claude turns keyed by round from NodeOutputs["{nodeID}-round-N"].
+	claudeByRound := map[int]string{}
+	prefix := nodeID + "-round-"
+	for key, val := range state.exec.NodeOutputs {
+		if !strings.HasPrefix(key, prefix) {
+			continue
+		}
+		n, cErr := strconv.Atoi(key[len(prefix):])
+		if cErr != nil || n <= 0 {
+			continue
+		}
+		claudeByRound[n] = val
+	}
+	// User answers from NodeInputHistory preserve round + timestamp + inputID.
+	userEntries := state.exec.NodeInputHistory[nodeID]
+
+	// Round cap: whichever the executor considers "current" — NodeRounds is
+	// authoritative once the round loop has advanced; otherwise fall back
+	// to the max round observed in either map.
+	maxRound := 0
+	if r, ok := state.exec.NodeRounds[nodeID]; ok {
+		maxRound = r
+	}
+	for n := range claudeByRound {
+		if n > maxRound {
+			maxRound = n
+		}
+	}
+	for _, entry := range userEntries {
+		if entry.Round > maxRound {
+			maxRound = entry.Round
+		}
+	}
+	if maxRound == 0 {
+		return []InteractiveTurn{}, nil
+	}
+
+	turns := make([]InteractiveTurn, 0, maxRound*2)
+	for round := 1; round <= maxRound; round++ {
+		if content, ok := claudeByRound[round]; ok && content != "" {
+			turns = append(turns, InteractiveTurn{
+				Round:   round,
+				Role:    "claude",
+				Content: content,
+			})
+		}
+		for _, entry := range userEntries {
+			if entry.Round != round {
+				continue
+			}
+			turns = append(turns, InteractiveTurn{
+				Round:     round,
+				Role:      "user",
+				InputID:   entry.InputID,
+				Content:   entry.Value,
+				Timestamp: entry.Timestamp,
+			})
+		}
+	}
+	return turns, nil
 }
 
 // GetCurrentExecution returns a deep copy of the most recently started
@@ -514,7 +693,13 @@ func (e *Executor) runDynamic(ctx context.Context, state *execState, repoPath, m
 					state.mu.Lock()
 					procID := state.exec.Nodes[idx].ProcessID
 					state.mu.Unlock()
-					if proc, ok := ProcessByID(procID); ok {
+					// util-file-loader is a synchronous utility: read the
+					// configured file into NodeOutputs/OutputPaths so
+					// downstream nodes receive the contents through the
+					// normal context-building path. No tmux, no claude.
+					if procID == "util-file-loader" {
+						e.executeFileLoader(ctx, state, nodeIndex, nID, repoPath)
+					} else if proc, ok := ProcessByID(procID); ok {
 						switch proc.Mode {
 						case InteractGuided, InteractIterative, InteractParty:
 							if testHookExecuteInteractiveNode != nil {
@@ -1021,7 +1206,13 @@ func wrapInBashExec(innerCommand string) string {
 //
 // Pane death at any stage returns nil (legacy completion path).
 // Context cancellation returns ctx.Err().
-func (e *Executor) waitForIdleCompletion(ctx context.Context, state *execState, nodeID, target string, timeout time.Duration) error {
+//
+// isInteractive=true disables the hasRecentQuestion gate at stageWatchingForIdle:
+// interactive processes (InteractParty/Guided/Iterative) treat a Claude-asked
+// question as the CUE to return so the round loop can advance to
+// suspendForSpec + UI-AST translation. Autonomous processes keep the gate so
+// the legacy idle/question snackbar stays visible.
+func (e *Executor) waitForIdleCompletion(ctx context.Context, state *execState, nodeID, target string, timeout time.Duration, isInteractive bool) error {
 	type idleStage int
 	const (
 		stagePriming idleStage = iota
@@ -1062,13 +1253,16 @@ func (e *Executor) waitForIdleCompletion(ctx context.Context, state *execState, 
 			currentHash := hashCapturedOutput(captured)
 
 			// Fire signal detection so snackbar events (idle/question)
-			// continue working. Idle detection runs every tick; question
-			// scanning runs every questionScanStride ticks.
+			// continue working. Interactive processes own the snackbar via
+			// PendingPrompt + EventAwaitingInput — skip legacy idle/question
+			// emissions so the UI does not render two stacked cards per node.
 			questionPollCounter++
 			scanQuestion := questionPollCounter%questionScanStride == 0
-			e.pollForIdle(state, nodeID, target, captured)
-			if scanQuestion {
-				e.pollForQuestionFromCapture(state, nodeID, target, captured)
+			if !isInteractive {
+				e.pollForIdle(state, nodeID, target, captured)
+				if scanQuestion {
+					e.pollForQuestionFromCapture(state, nodeID, target, captured)
+				}
 			}
 
 			switch stage {
@@ -1086,15 +1280,14 @@ func (e *Executor) waitForIdleCompletion(ctx context.Context, state *execState, 
 
 			case stageWatchingForIdle:
 				if currentHash == lastStableHash && detectIdlePrompt(captured) {
-					// Question gate: if the recent output contains a question
-					// (structured or natural language), don't auto-complete.
-					// The process is waiting for user input — keep polling so
-					// the idle/question snackbar stays visible and downstream
-					// nodes don't start.
-					if hasRecentQuestion(captured) {
+					// Question gate — autonomous processes only.
+					// Interactive processes treat a question as the cue to
+					// return; the caller will translate the captured output
+					// via the UI-AST adapter and emit a PendingPrompt.
+					if !isInteractive && hasRecentQuestion(captured) {
 						continue
 					}
-					return nil // stable + idle prompt + no question → done
+					return nil // stable + idle prompt → done
 				}
 				if currentHash != lastStableHash {
 					lastStableHash = currentHash
@@ -1308,7 +1501,7 @@ func (e *Executor) executeCommandNode(ctx context.Context, state *execState, nod
 	}
 
 	// Wait for idle-prompt completion (or pane death as fallback).
-	if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout); err != nil {
+	if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout, false); err != nil {
 		e.failNode(state, idx, nodeID)
 		return
 	}
@@ -1377,7 +1570,7 @@ func (e *Executor) executeProcessNode(ctx context.Context, state *execState, nod
 	}
 
 	// Wait for idle-prompt completion (or pane death as fallback).
-	waitErr := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout)
+	waitErr := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout, false)
 
 	// Capture output (best-effort) regardless of completion path.
 	captured, captureErr := e.captureOutput(ctx, target)
@@ -1812,6 +2005,114 @@ func (e *Executor) executeMultiFileLoader(ctx context.Context, state *execState,
 	e.emit("bmad:node:status", NodeStatusEvent{ExecID: state.exec.ID, NodeID: nodeID, Status: NodeComplete})
 }
 
+// fileLoaderMaxBytes caps how much of the configured file flows into
+// NodeOutputs. 256 KiB is generous for text artifacts (the spec docs cap
+// at ~8 KiB for context injection; the full contents live on disk via
+// OutputPaths for callers that need them).
+const fileLoaderMaxBytes = 256 * 1024
+
+// executeFileLoader reads the file configured on a util-file-loader node
+// into NodeOutputs (contents, capped) and OutputPaths["file-path"]
+// (absolute path). This is the synchronous replacement for the previous
+// behaviour of spawning an empty-skill claude session that did nothing
+// useful. Downstream nodes — both autonomous (buildContextStringV3) and
+// interactive (buildInteractivePrompt) — pick up the upstream output
+// through the normal context path.
+func (e *Executor) executeFileLoader(ctx context.Context, state *execState, nodeIndex map[string]int, nodeID, repoPath string) {
+	state.mu.Lock()
+	idx := nodeIndex[nodeID]
+	cfg := make(map[string]string, len(state.exec.Nodes[idx].Config))
+	for k, v := range state.exec.Nodes[idx].Config {
+		cfg[k] = v
+	}
+	if state.exec.NodeOutputs == nil {
+		state.exec.NodeOutputs = make(map[string]string)
+	}
+	state.mu.Unlock()
+
+	// Mark running so the UI shows the transition before the read.
+	e.setStatus(state, idx, nodeID, NodeRunning)
+
+	raw := strings.TrimSpace(cfg["filePath"])
+	if raw == "" {
+		e.recordNodeError(state, idx, nodeID, "bmad: file loader: filePath not configured")
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	abs := raw
+	if !filepath.IsAbs(abs) {
+		abs = filepath.Join(repoPath, raw)
+	}
+	abs = filepath.Clean(abs)
+
+	// Containment check for relative paths mirrors MultiFileLoader. Absolute
+	// paths are allowed (user explicitly picked a file outside the repo).
+	if !filepath.IsAbs(raw) && repoPath != "" {
+		rel, err := filepath.Rel(filepath.Clean(repoPath), abs)
+		if err != nil || strings.HasPrefix(rel, "..") {
+			e.recordNodeError(state, idx, nodeID, fmt.Sprintf("bmad: file loader: %s is outside repo root", raw))
+			e.failNode(state, idx, nodeID)
+			return
+		}
+	}
+
+	info, err := os.Stat(abs)
+	if err != nil {
+		e.recordNodeError(state, idx, nodeID, fmt.Sprintf("bmad: file loader: stat %s: %v", abs, err))
+		e.failNode(state, idx, nodeID)
+		return
+	}
+	if info.IsDir() {
+		e.recordNodeError(state, idx, nodeID, fmt.Sprintf("bmad: file loader: %s is a directory", abs))
+		e.failNode(state, idx, nodeID)
+		return
+	}
+
+	contents, err := os.ReadFile(abs)
+	if err != nil {
+		e.recordNodeError(state, idx, nodeID, fmt.Sprintf("bmad: file loader: read %s: %v", abs, err))
+		e.failNode(state, idx, nodeID)
+		return
+	}
+	truncated := false
+	if len(contents) > fileLoaderMaxBytes {
+		contents = contents[:fileLoaderMaxBytes]
+		truncated = true
+	}
+
+	state.mu.Lock()
+	state.exec.NodeOutputs[nodeID] = string(contents)
+	if state.exec.Nodes[idx].OutputPaths == nil {
+		state.exec.Nodes[idx].OutputPaths = map[string]string{}
+	}
+	state.exec.Nodes[idx].OutputPaths["file-path"] = abs
+	state.mu.Unlock()
+
+	e.emit("bmad:node:artifacts", NodeArtifactEvent{
+		ExecID: state.exec.ID,
+		NodeID: nodeID,
+		Found:  []string{"file-path"},
+		Paths:  map[string]string{"file-path": abs},
+	})
+	if truncated {
+		log.Printf("bmad: file loader %s truncated %s at %d bytes", nodeID, abs, fileLoaderMaxBytes)
+	}
+
+	e.completeNode(state, idx, nodeID)
+}
+
+// recordNodeError stores a user-visible error string in NodeOutputs so the
+// UI can surface it through the usual output-inspection path.
+func (e *Executor) recordNodeError(state *execState, idx int, nodeID, msg string) {
+	state.mu.Lock()
+	if state.exec.NodeOutputs == nil {
+		state.exec.NodeOutputs = make(map[string]string)
+	}
+	state.exec.NodeOutputs[nodeID] = msg
+	state.mu.Unlock()
+}
+
 // extractRegex applies a regex to input and returns the first capture group
 // (or the full match if no groups). Returns "" on no match or invalid pattern.
 func extractRegex(input, pattern string) string {
@@ -2117,7 +2418,7 @@ func (e *Executor) executeInteractiveNode(
 			break
 		}
 		for _, spec := range missing {
-			if sErr := e.suspendForSpec(ctx, state, nodeIndex, nodeID, 1, spec); sErr != nil {
+			if sErr := e.suspendForSpec(ctx, state, nodeIndex, nodeID, 1, spec, ""); sErr != nil {
 				e.failNode(state, idx, nodeID)
 				return
 			}
@@ -2125,7 +2426,7 @@ func (e *Executor) executeInteractiveNode(
 	}
 
 	// C. Start tmux session carrying the rendered prompt.
-	prompt := buildInteractivePrompt(proc, resolved)
+	prompt := buildInteractivePrompt(proc, resolved, state, nodeID)
 	innerCommand := fmt.Sprintf(`claude --dangerously-skip-permissions --model %s %q`, model, prompt)
 	target, err := e.spawnCommandSession(ctx, state, nodeIndex, nodeID, repoPath, innerCommand)
 	if err != nil {
@@ -2150,7 +2451,7 @@ func (e *Executor) executeInteractiveNode(
 	var lastRoundKey string
 roundLoop:
 	for {
-		if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout); err != nil {
+		if err := e.waitForIdleCompletion(ctx, state, nodeID, target, defaultProcessNodeTimeout, true); err != nil {
 			e.failNode(state, idx, nodeID)
 			return
 		}
@@ -2198,8 +2499,28 @@ roundLoop:
 			break
 		}
 
-		// Suspend for the user's answer to feed round+1.
-		if sErr := e.suspendForSpec(ctx, state, nodeIndex, nodeID, round+1, nextSpec); sErr != nil {
+		// Suspend for the user's answer to feed round+1. Pass the last
+		// round's capture so the modal can show what Claude just said. Pass
+		// the tmux target so suspendForSpecWithPane runs the pane-activity
+		// watchdog: if claude resumes producing output mid-suspension (e.g.
+		// the user typed directly into the pane) the suspension aborts with
+		// ErrAwaitingPaneActive and we re-run the idle-wait + suspend cycle
+		// against the fresh capture instead of leaving the modal stuck on a
+		// stale prompt.
+		state.mu.Lock()
+		lastOutput := ""
+		if state.exec.NodeOutputs != nil {
+			lastOutput = state.exec.NodeOutputs[lastRoundKey]
+		}
+		state.mu.Unlock()
+		sErr := e.suspendForSpecWithPane(ctx, state, nodeIndex, nodeID, round+1, nextSpec, lastOutput, target)
+		if errors.Is(sErr, ErrAwaitingPaneActive) {
+			// Pane resumed activity. Skip the answer-injection block and
+			// re-enter waitForIdleCompletion at the top of the round loop;
+			// the next idle stop will re-suspend with the new capture.
+			continue
+		}
+		if sErr != nil {
 			e.failNode(state, idx, nodeID)
 			return
 		}
@@ -2209,13 +2530,27 @@ roundLoop:
 		if state.exec.NodeInputs != nil {
 			answer = state.exec.NodeInputs[nodeID][nextSpec.ID]
 		}
+		// ui-ast-U4 §5.3.1 flatten-on-receipt: when the iteration spec is
+		// ShapeJSON and the process opts into the AST adapter, expand
+		// multi-decision JSON submissions into composite `<specID>:<subKey>`
+		// keys so §5.3.2's gate walk can match a single sub-answer. The raw
+		// blob stays under the bare specID for sendToSession + upstream
+		// readers. Unmarshal failure falls through to legacy behaviour.
+		if nextSpec.Shape == ShapeJSON && astStructuredInUse(state, nodeID) {
+			flattenSubAnswers(state, nodeID, nextSpec.ID, round+1, answer)
+		}
+		subAnswers := collectSubAnswersForSpec(state, nodeID, nextSpec.ID)
 		state.mu.Unlock()
 
-		// Reject-token check: user explicitly aborts the iteration.
-		if containsToken(proc.Gate.RejectTokens, answer) {
-			e.emit(EventAborted, abortedPayload(execID, nodeID, "rejected by user"))
-			e.failNode(state, idx, nodeID)
-			return
+		// ui-ast-U4 §5.3.2 AC-7: reject-token walk covers every sub-answer
+		// plus the bare JSON blob so a decision-group widget output like
+		// `{"confirm":"done","stub":"cancel"}` aborts on the sub-answer match.
+		for _, v := range append(subAnswers, answer) {
+			if containsToken(proc.Gate.RejectTokens, v) {
+				e.emit(EventAborted, abortedPayload(execID, nodeID, "rejected by user"))
+				e.failNode(state, idx, nodeID)
+				return
+			}
 		}
 
 		// GateUserConfirm: the user just answered; check accept tokens.
@@ -2561,10 +2896,27 @@ func loadRegistryCSV(path string) ([][]string, error) {
 	return rows, nil
 }
 
+// interactivePromptUpstreamCap bounds how much upstream content embeds
+// per upstream node. The autonomous path caps at 2000 (upstreamOutputCap);
+// interactive nodes can afford more since the whole prompt isn't fighting a
+// tmux context window — 8 KiB gives enough room for a loaded file.
+const interactivePromptUpstreamCap = 8 * 1024
+
 // buildInteractivePrompt renders a markdown prompt block for an interactive
 // process, mirroring the autonomous buildContextStringV3 shape so claude sees
-// a familiar structure.
-func buildInteractivePrompt(proc ProcessDef, resolved resolvedInputs) string {
+// a familiar structure. It includes:
+//   - the process name + description
+//   - the resolved InputSpecs (user answers, file artifacts, env, registry)
+//   - any upstream nodes wired via incoming edges — their NodeOutputs go
+//     into a "## Upstream context" block and their OutputPaths into a
+//     "**Path:**" line so File Loader + similar utilities automatically
+//     surface to the session without requiring an explicit InputFromUpstream
+//     spec.
+//
+// state/nodeID are optional: pass nil/"" (resume flow) to skip upstream
+// injection and render spec-only — callers that already composed a recap
+// block don't need duplicate upstream content.
+func buildInteractivePrompt(proc ProcessDef, resolved resolvedInputs, state *execState, nodeID string) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# %s\n\n", proc.Name)
 	if proc.Description != "" {
@@ -2581,8 +2933,82 @@ func buildInteractivePrompt(proc ProcessDef, resolved resolvedInputs) string {
 			}
 			fmt.Fprintf(&b, "- %s: %s\n", spec.ID, truncate(v, upstreamOutputCap))
 		}
+		b.WriteString("\n")
+	}
+	if state != nil && nodeID != "" {
+		appendUpstreamContext(&b, state, nodeID)
 	}
 	return b.String()
+}
+
+// appendUpstreamContext writes one "## Upstream context — {label} ({id})"
+// block per incoming edge whose source produced either a NodeOutputs entry
+// or an OutputPaths["file-path"] entry. Order is stable by source nodeID
+// so successive calls are deterministic.
+func appendUpstreamContext(b *strings.Builder, state *execState, nodeID string) {
+	state.mu.Lock()
+	// Collect unique upstream node IDs from the outEdges adjacency list.
+	var sources []string
+	seen := map[string]struct{}{}
+	for _, edges := range state.outEdges {
+		for _, edge := range edges {
+			if edge.Target != nodeID {
+				continue
+			}
+			if _, dup := seen[edge.Source]; dup {
+				continue
+			}
+			seen[edge.Source] = struct{}{}
+			sources = append(sources, edge.Source)
+		}
+	}
+	// Index by node ID for O(1) lookup on the snapshot pass.
+	byID := make(map[string]WorkflowNode, len(state.exec.Nodes))
+	for _, n := range state.exec.Nodes {
+		byID[n.ID] = n
+	}
+	type upstream struct {
+		id       string
+		label    string
+		output   string
+		filePath string
+	}
+	upstreams := make([]upstream, 0, len(sources))
+	for _, src := range sources {
+		node, ok := byID[src]
+		if !ok {
+			continue
+		}
+		up := upstream{id: src, label: node.Label}
+		if up.label == "" {
+			up.label = src
+		}
+		if v, ok := state.exec.NodeOutputs[src]; ok {
+			up.output = v
+		}
+		if node.OutputPaths != nil {
+			if p, ok := node.OutputPaths["file-path"]; ok {
+				up.filePath = p
+			}
+		}
+		if up.output == "" && up.filePath == "" {
+			continue
+		}
+		upstreams = append(upstreams, up)
+	}
+	state.mu.Unlock()
+
+	sort.Slice(upstreams, func(i, j int) bool { return upstreams[i].id < upstreams[j].id })
+	for _, up := range upstreams {
+		fmt.Fprintf(b, "## Upstream context — %s (%s)\n", up.label, up.id)
+		if up.filePath != "" {
+			fmt.Fprintf(b, "**Path:** %s\n", up.filePath)
+		}
+		if up.output != "" {
+			fmt.Fprintf(b, "\n```\n%s\n```\n", truncate(up.output, interactivePromptUpstreamCap))
+		}
+		b.WriteString("\n")
+	}
 }
 
 // verifyOutputs checks every declared OutputSpec against the filesystem

@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { GetScopedDiff, GetWorktrees, ListRepoFiles, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus, RepoMtimes, KillTerminalSession, SpawnTerminal, SetActiveContext } from '../../wailsjs/go/main/App.js';
-  import { repoSessions, refreshSessions } from '../lib/stores/sessions.js';
+  import { repoSessions, refreshSessions } from '../lib/stores/sessions';
   import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
   import { ArrowLeft, GitBranch, GripVertical, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, Download, GitMerge, AlertTriangle } from 'lucide-svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
@@ -11,25 +11,42 @@
   import BranchModal from './BranchModal.svelte';
   import MergeModal from './MergeModal.svelte';
   import ForcePushModal from './ForcePushModal.svelte';
+  import { errorMessage } from '../lib/errorMessage';
+  import { estimatePtySize } from '../lib/ptySize';
 
+  /** @type {import('svelte').EventDispatcher<{ back: void }>} */
   const dispatch = createEventDispatcher();
 
+  /** @typedef {import('../lib/types/wails').Notification} AgentLike */
+  /** @typedef {{ path: string; isBinary?: boolean; added?: number; removed?: number }} RepoFile */
+  /** @typedef {'file-strip' | 'editor'} DragPane */
+  /** @typedef {'commit' | 'push' | 'pull' | 'pr' | 'review'} GitActionName */
+
+  /** @type {AgentLike} */
   export let agent;
 
+  /** @type {RepoFile[]} */
   let changedFiles = [];
+  /** @type {string[]} */
   let allFiles = []; // all repo files for the "All" tab
+  /** @type {import('../lib/types/wails').WorktreeInfo | null} */
   let worktree = null;
+  /** @type {RepoFile | null} */
   let selectedFile = null; // when set, shows code editor on right
   let fileTab = 'changed'; // 'changed' or 'all'
   let allFilesSearch = ''; // search filter for all files tab
 
   // Resizable pane widths
+  /** @type {HTMLElement | undefined} */
   let workspaceEl;
   let fileStripWidth = 180;
   let editorFraction = 0.5; // fraction of remaining space for editor
+  /** @type {DragPane | null} */
   let dragging = null; // 'file-strip' or 'editor'
 
+  /** @param {DragPane} pane */
   function onMouseDown(pane) {
+    /** @param {MouseEvent} e */
     return (e) => {
       e.preventDefault();
       dragging = pane;
@@ -40,6 +57,7 @@
     };
   }
 
+  /** @param {MouseEvent} e */
   function onMouseMove(e) {
     if (!dragging || !workspaceEl) return;
     const rect = workspaceEl.getBoundingClientRect();
@@ -60,7 +78,6 @@
     } else if (dragging === 'editor') {
       // Dragging the handle between file strip and editor
       const editorW = totalW - x;
-      const availableForEditor = totalW - fileStripWidth;
       editorFraction = Math.max(0.2, Math.min(0.8, editorW / totalW));
     }
   }
@@ -77,6 +94,7 @@
   $: tokenPct = agent ? Math.min(((agent.tokensUsed || 0) / (agent.tokensMax || 1)) * 100, 100) : 0;
   $: tokenLabel = agent ? formatTokens(agent.tokensUsed || 0) + ' / ' + formatTokens(agent.tokensMax || 0) : '';
 
+  /** @param {number} n */
   function formatTokens(n) {
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
     if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
@@ -85,6 +103,7 @@
 
   // Session tab state
   let activeSessionIdx = 0;
+  /** @type {string | null} */
   let pendingPaneTarget = null;
   $: sessions = $repoSessions[agent?.repoPath] || [];
   $: {
@@ -106,6 +125,7 @@
     SetActiveContext(agent.repoPath, activeSession.paneTarget);
   }
 
+  /** @param {string} sessionName */
   async function killSession(sessionName) {
     await KillTerminalSession(sessionName);
     if (sessions[activeSessionIdx]?.sessionName === sessionName) {
@@ -114,20 +134,26 @@
   }
 
   async function spawnNewTerminal() {
-    const target = await SpawnTerminal(agent.repoPath);
+    const { cols, rows } = estimatePtySize();
+    const target = await SpawnTerminal(agent.repoPath, cols, rows);
     pendingPaneTarget = target;
   }
 
   // Git action state
-  let gitAction = null; // 'commit' | 'push' | 'pr' | 'review' | null
+  /** @type {GitActionName | null} */
+  let gitAction = null;
+  /** @type {string | null} */
   let gitResult = null;
+  /** @type {string | null} */
   let gitError = null;
   let showBranchModal = false;
   let showMergeModal = false;
-  let forcePushState = null; // { message } or null
+  /** @type {{ message: string } | null} */
+  let forcePushState = null;
 
   // Repo status for push highlighting
   let repoStatus = { ahead: 0, behind: 0, protected: false };
+  /** @type {ReturnType<typeof setInterval> | undefined} */
   let statusInterval;
 
   async function refreshRepoStatus() {
@@ -155,13 +181,17 @@
       refreshChangedFiles();
       refreshAllFiles();
     } catch (err) {
-      gitError = err?.message || String(err);
+      gitError = errorMessage(err);
     }
     gitAction = null;
     refreshRepoStatus();
     setTimeout(() => { gitResult = null; gitError = null; }, 5000);
   }
 
+  /**
+   * @param {GitActionName} actionName
+   * @param {(repoPath: string) => Promise<string>} fn
+   */
   async function runGitAction(actionName, fn) {
     if (!agent?.repoPath) return;
     gitAction = actionName;
@@ -173,15 +203,16 @@
       refreshChangedFiles();
       refreshAllFiles();
     } catch (err) {
-      gitError = err?.message || String(err);
+      gitError = errorMessage(err);
     }
     gitAction = null;
     // Clear result/error after 5s
     setTimeout(() => { gitResult = null; gitError = null; }, 5000);
   }
 
-  // Streaming commit panel
-  let commitPanel = null; // { lines[], error, explanation, done }
+  /** @typedef {{ lines: Array<{ step: string; output: string }>; error: string | null; explanation: string | null; done: boolean }} CommitPanelState */
+  /** @type {CommitPanelState | null} */
+  let commitPanel = null;
 
   function startStreamingCommit() {
     if (!agent?.repoPath) return;
@@ -196,10 +227,13 @@
     commitPanel = null;
   }
 
+  /** @type {(() => void) | undefined} */
   let commitEventCancel;
 
+  /** @typedef {{ repoPath?: string; step?: string; output?: string; error?: string; explanation?: string; done?: boolean }} CommitProgressEvent */
+
   function setupCommitListener() {
-    commitEventCancel = EventsOn('git:commit:progress', (evt) => {
+    commitEventCancel = EventsOn('git:commit:progress', (/** @type {CommitProgressEvent} */ evt) => {
       if (evt.repoPath !== agent?.repoPath) return;
       if (!commitPanel) {
         commitPanel = { lines: [], error: null, explanation: null, done: false };
@@ -234,6 +268,7 @@
     ? allFiles.filter(f => f.toLowerCase().includes(allFilesSearch.toLowerCase()))
     : allFiles;
 
+  /** @param {RepoFile} file */
   function selectFile(file) {
     if (selectedFile?.path === file.path) {
       selectedFile = null; // toggle off
@@ -243,6 +278,7 @@
     }
   }
 
+  /** @param {string} filePath */
   function selectAllFile(filePath) {
     if (selectedFile?.path === filePath) {
       selectedFile = null;
@@ -252,6 +288,7 @@
     }
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') {
       if (selectedFile) {
@@ -267,6 +304,7 @@
   // Mtime-based file change detection
   let lastIndexMtime = 0;
   let lastRootMtime = 0;
+  /** @type {ReturnType<typeof setInterval> | undefined} */
   let mtimeInterval;
 
   async function refreshChangedFiles() {
@@ -321,8 +359,8 @@
       try {
         const wts = await GetWorktrees(agent.repoPath);
         if (wts && wts.length > 0) worktree = wts[0];
-      } catch (e) {
-        console.warn('Failed to get worktrees:', e);
+      } catch (err) {
+        console.warn('Failed to get worktrees:', err);
       }
 
       // Seed mtimes then start polling
@@ -484,8 +522,8 @@
                 <span class="file-stat binary">bin</span>
               {:else}
                 <span class="file-stat">
-                  {#if file.added > 0}<span class="added">+{file.added}</span>{/if}
-                  {#if file.removed > 0}<span class="removed">-{file.removed}</span>{/if}
+                  {#if (file.added ?? 0) > 0}<span class="added">+{file.added}</span>{/if}
+                  {#if (file.removed ?? 0) > 0}<span class="removed">-{file.removed}</span>{/if}
                 </span>
               {/if}
             </button>

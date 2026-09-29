@@ -1,44 +1,206 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
   import { ArrowLeft } from 'lucide-svelte';
   import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
   import { GetConfig, SetTheme, SetImportedTheme, SetVSCodiumExtPath, PickDirectory, ListVSCodiumThemes, ListLocalFonts, SetMonoFont, SetFontSize, SetSidebarWidth } from '../../wailsjs/go/main/App.js';
-  import { activateImportedTheme, removeImportedTheme, convertedCache, makeThemeId } from '../lib/themeInit.js';
+  import { activateImportedTheme, removeImportedTheme, makeThemeId } from '../lib/themeInit.js';
   import { builtInThemeIds } from '../lib/stores/theme.js';
-  import { currentMonoFont, currentFontSize, applyFont, registerLocalFonts } from '../lib/stores/font.js';
+  import { applyFont, registerLocalFonts } from '../lib/stores/font.js';
   import { editorSettings, updateEditorSetting } from '../lib/stores/editorSettings.js';
+  import {
+    markdownMenuSettings,
+    updateMarkdownMenuItem,
+    clearMarkdownMenuDirty,
+  } from '../lib/stores/markdownMenuSettings';
+  import {
+    uiAdapterEnabled,
+    uiAdapterTimeoutMs,
+    ollamaModel,
+    ollamaEnabled,
+    uiAdapterUntrustedExpanded,
+    ollamaReachable,
+    ollamaModels,
+    hydrate as hydrateUIAdapter,
+    refreshModels as refreshUIAdapterModels,
+    setEnabled as setUIAdapterEnabled,
+    setTimeoutMs as setUIAdapterTimeoutMs,
+    setModel as setUIAdapterModel,
+    setOllamaEnabled as setUIAdapterOllamaEnabled,
+    setUntrustedExpanded as setUIAdapterUntrustedExpanded,
+    validOllamaModelName,
+  } from '../lib/stores/uiAdapterSettings';
+  import { BrowserOpenURL } from '../../wailsjs/runtime/runtime.js';
+  import { RefreshCw, TriangleAlert } from 'lucide-svelte';
+  import { errorMessage } from '../lib/errorMessage';
+  import type { LocalFontFamily, VSCodeThemeEntry } from '../lib/types/wails';
 
-  const dispatch = createEventDispatcher();
+  /** A theme entry as stored in `allThemes`. Mirrors the JSDoc-typed
+   * `ThemeEntry` in `lib/stores/theme.js` — each imported VSCodium theme
+   * has the same structural shape. */
+  type ThemeEntry = {
+    label: string;
+    css: Record<string, string>;
+    monaco?: unknown;
+    xterm?: import('@xterm/xterm').ITheme;
+  };
+  type ThemeMap = Record<string, ThemeEntry>;
+
+  /** Entry used by the local-font option list in the font picker. */
+  type FontOption = { family: string; source: 'bundled' };
+
+  const dispatch = createEventDispatcher<{ back: void }>();
+
+  const TOOLBAR_ITEMS = [
+    { key: 'bold',          label: 'Bold' },
+    { key: 'italic',        label: 'Italic' },
+    { key: 'strikethrough', label: 'Strikethrough' },
+    { key: 'code',          label: 'Code' },
+    { key: 'link',          label: 'Link' },
+    { key: 'latex',         label: 'LaTeX' },
+  ] as const;
+
+  /** Dispatch `back` after clearing the markdown-menu dirty flag so
+   * MarkdownEditor's re-init guard (story 06) sees a fresh state.
+   * Call order is load-bearing — unit tests assert it explicitly. */
+  function goBack(): void {
+    clearMarkdownMenuDirty();
+    dispatch('back');
+  }
 
   let vscodiumPath = '';
   let saveStatus = '';
-  let vscodiumThemes = [];
+  let vscodiumThemes: VSCodeThemeEntry[] = [];
   let loadingThemes = false;
   let themeLoadError = '';
   let activatingThemePath = '';
 
-  let localFonts = [];
-  let allFonts = [];
+  let localFonts: LocalFontFamily[] = [];
+  let allFonts: FontOption[] = [];
   let loadingFonts = false;
   let selectedFont = '';
   let selectedFontSize = 13;
   let selectedSidebarWidth = 280;
 
+  // UI AST adapter — local form state mirrors the store; binds to inputs so
+  // blur-validated edits don't push partial keystrokes to disk.
+  let timeoutInput = 3000;
+  let timeoutError = '';
+  let modelSelectValue = 'gemma3:4b';
+  let customModelInput = '';
+  let customModelError = '';
+  let refreshingModels = false;
+
+  const OLLAMA_INSTALL_URL = 'https://ollama.com/download';
+  const CUSTOM_MODEL_SENTINEL = '__custom__';
+
+  $: if ($uiAdapterTimeoutMs !== undefined) timeoutInput = $uiAdapterTimeoutMs;
+  $: if ($ollamaModel) {
+    modelSelectValue = resolveModelSelectValue($ollamaModel, $ollamaModels);
+    if (modelSelectValue === CUSTOM_MODEL_SENTINEL && !customModelInput) {
+      customModelInput = $ollamaModel;
+    }
+  }
+
+  function resolveModelSelectValue(model: string, availableModels: string[]): string {
+    if (!model) return CUSTOM_MODEL_SENTINEL;
+    if (availableModels && availableModels.includes(model)) return model;
+    return CUSTOM_MODEL_SENTINEL;
+  }
+
   onMount(async () => {
+    let hasVscodiumPath = false;
     try {
       const cfg = await GetConfig();
       vscodiumPath = cfg.vscodiumExtPath || '';
       selectedFont = cfg.monoFont || '';
       selectedFontSize = cfg.fontSize || 13;
       selectedSidebarWidth = cfg.sidebarWidth || 280;
-      if (vscodiumPath) {
-        await scanThemes();
-      }
-      await scanFonts();
+      hasVscodiumPath = !!vscodiumPath;
     } catch {}
+    await Promise.all([
+      hasVscodiumPath ? scanThemes() : Promise.resolve(),
+      scanFonts(),
+      hydrateUIAdapter(),
+    ]);
   });
 
-  async function selectTheme(id) {
+  async function toggleUIAdapter() {
+    const ok = await setUIAdapterEnabled(!$uiAdapterEnabled);
+    if (ok) {
+      flashSave();
+      if ($uiAdapterEnabled) await refreshUIAdapterModels();
+    }
+  }
+
+  async function toggleOllamaEnabled() {
+    const ok = await setUIAdapterOllamaEnabled(!$ollamaEnabled);
+    if (ok) flashSave();
+  }
+
+  async function toggleUntrustedExpanded() {
+    const ok = await setUIAdapterUntrustedExpanded(!$uiAdapterUntrustedExpanded);
+    if (ok) flashSave();
+  }
+
+  async function commitTimeout() {
+    const ms = Number(timeoutInput);
+    if (!Number.isFinite(ms) || ms < 500 || ms > 30000) {
+      timeoutError = 'must be 500-30000';
+      return;
+    }
+    timeoutError = '';
+    if (ms === $uiAdapterTimeoutMs) return;
+    const ok = await setUIAdapterTimeoutMs(ms);
+    if (ok) flashSave();
+    else timeoutError = 'save failed';
+  }
+
+  async function onModelSelect(value: string): Promise<void> {
+    modelSelectValue = value;
+    if (value === CUSTOM_MODEL_SENTINEL) {
+      customModelInput = $ollamaModel;
+      return;
+    }
+    customModelError = '';
+    const ok = await setUIAdapterModel(value);
+    if (ok) flashSave();
+  }
+
+  async function commitCustomModel() {
+    if (!validOllamaModelName(customModelInput)) {
+      customModelError = 'only [a-zA-Z0-9._:-], 1-64 chars';
+      return;
+    }
+    customModelError = '';
+    if (customModelInput === $ollamaModel) return;
+    const ok = await setUIAdapterModel(customModelInput);
+    if (ok) flashSave();
+    else customModelError = 'save failed';
+  }
+
+  async function manualRefreshModels() {
+    refreshingModels = true;
+    try {
+      await refreshUIAdapterModels();
+    } finally {
+      refreshingModels = false;
+    }
+  }
+
+  function openOllamaDocs() {
+    BrowserOpenURL(OLLAMA_INSTALL_URL);
+  }
+
+  $: sortedOllamaModels = [...($ollamaModels || [])].sort((a, b) => a.localeCompare(b));
+  $: configuredModelMissing =
+    $ollamaModel && !sortedOllamaModels.includes($ollamaModel);
+  $: showOfflineBanner = $uiAdapterEnabled && $ollamaReachable === false;
+
+  // Narrow the store value to the friendly ThemeMap shape — `allThemes` is
+  // authored in JS as a loose object, but every entry structurally matches.
+  $: themes = $allThemes as unknown as ThemeMap;
+
+  async function selectTheme(id: string): Promise<void> {
     applyTheme(id);
     try {
       await SetTheme(id);
@@ -46,35 +208,35 @@
     } catch {}
   }
 
-  async function scanThemes() {
+  async function scanThemes(): Promise<void> {
     loadingThemes = true;
     themeLoadError = '';
     try {
       vscodiumThemes = await ListVSCodiumThemes();
     } catch (err) {
-      themeLoadError = err?.message || 'Failed to scan themes';
+      themeLoadError = errorMessage(err) || 'Failed to scan themes';
       vscodiumThemes = [];
     } finally {
       loadingThemes = false;
     }
   }
 
-  async function handleImportedThemeClick(entry) {
+  async function handleImportedThemeClick(entry: VSCodeThemeEntry): Promise<void> {
     activatingThemePath = entry.themePath;
     try {
       await activateImportedTheme(entry.themePath, entry.extensionId);
     } catch (err) {
-      themeLoadError = 'Failed to activate theme: ' + (err?.message || 'unknown error');
+      themeLoadError = 'Failed to activate theme: ' + (errorMessage(err) || 'unknown error');
     } finally {
       activatingThemePath = '';
     }
   }
 
-  async function handleRemoveTheme(id) {
+  async function handleRemoveTheme(id: string): Promise<void> {
     await removeImportedTheme(id);
   }
 
-  function isDarkTheme(uiTheme) {
+  function isDarkTheme(uiTheme: string): boolean {
     return uiTheme !== 'vs' && uiTheme !== 'vs-light';
   }
 
@@ -102,12 +264,12 @@
     setTimeout(() => { saveStatus = ''; }, 2000);
   }
 
-  async function scanFonts() {
+  async function scanFonts(): Promise<void> {
     loadingFonts = true;
     try {
-      localFonts = await ListLocalFonts() || [];
+      localFonts = (await ListLocalFonts()) || [];
       registerLocalFonts(localFonts);
-      allFonts = localFonts.map(f => ({ family: f.family, source: 'bundled' }));
+      allFonts = localFonts.map((f) => ({ family: f.family, source: 'bundled' as const }));
     } catch {
       localFonts = [];
       allFonts = [];
@@ -116,27 +278,38 @@
     }
   }
 
-  async function selectFont(family) {
+  async function selectFont(family: string): Promise<void> {
     selectedFont = family;
     applyFont(family, selectedFontSize);
     try { await SetMonoFont(family); } catch {}
   }
 
-  async function changeFontSize(size) {
+  async function changeFontSize(size: number): Promise<void> {
     selectedFontSize = size;
     applyFont(selectedFont, size);
     try { await SetFontSize(size); } catch {}
   }
 
-  async function changeSidebarWidth(width) {
+  async function changeSidebarWidth(width: number): Promise<void> {
     selectedSidebarWidth = width;
     try { await SetSidebarWidth(width); } catch {}
   }
 
-  function handleKeydown(e) {
+  function handleKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape') {
-      dispatch('back');
+      goBack();
     }
+  }
+
+  /**
+   * Narrow an `<input>` / `<select>` change-event target to an `HTMLInputElement`.
+   * svelte-check reports `'e.target' is possibly null` + `Property 'value' does
+   * not exist on type 'EventTarget'`; routing every handler through this helper
+   * keeps the setting row templates tidy.
+   */
+  function fieldValue(e: Event): string {
+    const t = e.currentTarget as HTMLInputElement | HTMLSelectElement | null;
+    return t?.value ?? '';
   }
 </script>
 
@@ -144,7 +317,7 @@
 
 <div class="settings">
   <div class="settings-header">
-    <button class="back-btn" on:click={() => dispatch('back')}><ArrowLeft size={14} /> Back</button>
+    <button class="back-btn" on:click={goBack}><ArrowLeft size={14} /> Back</button>
     <span class="settings-title">Settings</span>
   </div>
 
@@ -154,7 +327,7 @@
       <h2 class="section-title">Themes</h2>
       <div class="theme-list">
         {#each $themeIds as id}
-          {@const theme = $allThemes[id]}
+          {@const theme = themes[id]}
           <button
             class="theme-list-btn"
             class:active={$currentThemeId === id}
@@ -184,7 +357,9 @@
 
     <!-- Right column: font, extensions, import -->
     <div class="col-settings">
+      <div class="settings-col settings-col-1">
       <!-- Mono Font -->
+      <div class="settings-panel">
       <section class="settings-section">
         <h2 class="section-title">Font</h2>
 
@@ -228,8 +403,10 @@
           </div>
         {/if}
       </section>
+      </div>
 
       <!-- Sidebar Width -->
+      <div class="settings-panel">
       <section class="settings-section">
         <h2 class="section-title">Sidebar Width</h2>
         <p class="section-desc">Default width for the workflow process sidebar.</p>
@@ -241,8 +418,10 @@
                  on:input={() => changeSidebarWidth(selectedSidebarWidth)} class="size-slider" />
         </div>
       </section>
+      </div>
 
       <!-- Editor -->
+      <div class="settings-panel">
       <section class="settings-section">
         <h2 class="section-title">Editor</h2>
 
@@ -251,7 +430,7 @@
         <div class="setting-row">
           <label class="setting-label" for="cursorStyle">Cursor Style</label>
           <select id="cursorStyle" class="setting-select" value={$editorSettings.cursorStyle}
-            on:change={(e) => updateEditorSetting('cursorStyle', e.target.value)}>
+            on:change={(e) => updateEditorSetting('cursorStyle', fieldValue(e))}>
             <option value="line">line</option>
             <option value="line-thin">line-thin</option>
             <option value="block">block</option>
@@ -263,7 +442,7 @@
         <div class="setting-row">
           <label class="setting-label" for="cursorBlinking">Cursor Blinking</label>
           <select id="cursorBlinking" class="setting-select" value={$editorSettings.cursorBlinking}
-            on:change={(e) => updateEditorSetting('cursorBlinking', e.target.value)}>
+            on:change={(e) => updateEditorSetting('cursorBlinking', fieldValue(e))}>
             <option value="blink">blink</option>
             <option value="smooth">smooth</option>
             <option value="phase">phase</option>
@@ -277,7 +456,7 @@
         <div class="setting-row">
           <label class="setting-label" for="wordWrap">Word Wrap</label>
           <select id="wordWrap" class="setting-select" value={$editorSettings.wordWrap}
-            on:change={(e) => updateEditorSetting('wordWrap', e.target.value)}>
+            on:change={(e) => updateEditorSetting('wordWrap', fieldValue(e))}>
             <option value="off">off</option>
             <option value="on">on</option>
             <option value="wordWrapColumn">wordWrapColumn</option>
@@ -287,7 +466,7 @@
         <div class="setting-row">
           <label class="setting-label" for="lineNumbers">Line Numbers</label>
           <select id="lineNumbers" class="setting-select" value={$editorSettings.lineNumbers}
-            on:change={(e) => updateEditorSetting('lineNumbers', e.target.value)}>
+            on:change={(e) => updateEditorSetting('lineNumbers', fieldValue(e))}>
             <option value="on">on</option>
             <option value="off">off</option>
             <option value="relative">relative</option>
@@ -297,7 +476,7 @@
         <div class="setting-row">
           <label class="setting-label" for="renderLineHighlight">Line Highlight</label>
           <select id="renderLineHighlight" class="setting-select" value={$editorSettings.renderLineHighlight}
-            on:change={(e) => updateEditorSetting('renderLineHighlight', e.target.value)}>
+            on:change={(e) => updateEditorSetting('renderLineHighlight', fieldValue(e))}>
             <option value="none">none</option>
             <option value="gutter">gutter</option>
             <option value="line">line</option>
@@ -307,7 +486,7 @@
         <div class="setting-row">
           <label class="setting-label" for="renderWhitespace">Whitespace</label>
           <select id="renderWhitespace" class="setting-select" value={$editorSettings.renderWhitespace}
-            on:change={(e) => updateEditorSetting('renderWhitespace', e.target.value)}>
+            on:change={(e) => updateEditorSetting('renderWhitespace', fieldValue(e))}>
             <option value="none">none</option>
             <option value="boundary">boundary</option>
             <option value="selection">selection</option>
@@ -329,7 +508,7 @@
           <label class="setting-label" for="tabSize">Tab Size</label>
           <input id="tabSize" class="setting-number" type="number" min="2" max="8"
             value={$editorSettings.tabSize}
-            on:change={(e) => updateEditorSetting('tabSize', Math.min(8, Math.max(2, parseInt(e.target.value) || 2)))} />
+            on:change={(e) => updateEditorSetting('tabSize', Math.min(8, Math.max(2, parseInt(fieldValue(e)) || 2)))} />
         </div>
         <div class="setting-row">
           <label class="setting-label" for="insertSpaces">Insert Spaces</label>
@@ -370,8 +549,12 @@
           </button>
         </div>
       </section>
+      </div>
+      </div>
 
+      <div class="settings-col settings-col-2">
       <!-- VSCodium Extension path -->
+      <div class="settings-panel">
       <section class="settings-section">
         <h2 class="section-title">Theme Extensions</h2>
         <p class="section-desc">Path to .vsix theme files.</p>
@@ -402,7 +585,7 @@
             <div class="import-list">
               {#each vscodiumThemes as entry}
                 {@const themeId = makeThemeId(entry.themePath, entry.extensionId)}
-                {@const alreadyImported = !!$allThemes[themeId]}
+                {@const alreadyImported = !!themes[themeId]}
                 <button
                   class="import-item"
                   class:imported={alreadyImported}
@@ -422,6 +605,175 @@
           {/if}
         {/if}
       </section>
+      </div>
+
+      <!-- UI AST adapter -->
+      <div class="settings-panel">
+      <section class="settings-section" data-testid="ui-adapter-section">
+        <h2 class="section-title">UI AST adapter</h2>
+        <p class="section-desc">
+          Translates Claude's round output into typed widgets. Requires Ollama running locally.
+          Changes take effect on next app launch.
+        </p>
+
+        <div class="setting-row">
+          <label class="setting-label" for="uiAdapterEnabled">Enable UI AST adapter</label>
+          <button
+            id="uiAdapterEnabled"
+            class="setting-toggle"
+            class:active={$uiAdapterEnabled}
+            data-testid="ui-adapter-toggle"
+            on:click={toggleUIAdapter}
+          >
+            {$uiAdapterEnabled ? 'On' : 'Off'}
+          </button>
+        </div>
+
+        <div class="setting-row">
+          <label class="setting-label" for="ollamaEnabled">Ollama enabled</label>
+          <button
+            id="ollamaEnabled"
+            class="setting-toggle"
+            class:active={$ollamaEnabled}
+            on:click={toggleOllamaEnabled}
+          >
+            {$ollamaEnabled ? 'On' : 'Off'}
+          </button>
+        </div>
+
+        <div class="setting-row">
+          <label class="setting-label" for="uiAdapterTimeout">Timeout (ms)</label>
+          <input
+            id="uiAdapterTimeout"
+            class="setting-number"
+            class:invalid={timeoutError}
+            type="number"
+            min="500"
+            max="30000"
+            step="100"
+            bind:value={timeoutInput}
+            on:blur={commitTimeout}
+          />
+        </div>
+        {#if timeoutError}
+          <div class="setting-error" role="alert">{timeoutError}</div>
+        {/if}
+
+        <div class="setting-row">
+          <label class="setting-label" for="ollamaModel">Ollama model</label>
+          <div class="model-row-controls">
+            <select
+              id="ollamaModel"
+              class="setting-select"
+              data-testid="ui-adapter-model-select"
+              value={modelSelectValue}
+              on:change={(e) => onModelSelect(e.currentTarget.value)}
+            >
+              {#each sortedOllamaModels as m}
+                <option value={m}>{m}</option>
+                  {/each}
+              {#if configuredModelMissing}
+                <option value={$ollamaModel}
+                  >{$ollamaModel}{sortedOllamaModels.length > 0 ? ' (not pulled)' : ''}</option
+                >
+              {/if}
+              <option value={CUSTOM_MODEL_SENTINEL}>Custom…</option>
+            </select>
+            <button
+              class="icon-btn"
+              type="button"
+              aria-label="Refresh model list"
+              title="Refresh model list"
+              data-testid="ui-adapter-refresh"
+              disabled={refreshingModels}
+              on:click={manualRefreshModels}
+            >
+              <RefreshCw size={12} />
+            </button>
+          </div>
+        </div>
+
+        {#if modelSelectValue === '__custom__'}
+          <div class="setting-row custom-model-row">
+            <label class="setting-label" for="customOllamaModel">Custom model</label>
+            <input
+              id="customOllamaModel"
+              class="path-input custom-model-input"
+              class:invalid={customModelError}
+              type="text"
+              placeholder="e.g. llama3.2:3b"
+              bind:value={customModelInput}
+              on:blur={commitCustomModel}
+              data-testid="ui-adapter-custom-model"
+            />
+          </div>
+          {#if customModelError}
+            <div class="setting-error" role="alert">{customModelError}</div>
+          {/if}
+        {/if}
+
+        <div class="setting-row">
+          <label class="setting-label" for="untrustedExpanded">
+            Expand "View raw" by default when a translation is flagged as untrusted
+          </label>
+          <button
+            id="untrustedExpanded"
+            class="setting-toggle"
+            class:active={$uiAdapterUntrustedExpanded}
+            on:click={toggleUntrustedExpanded}
+          >
+            {$uiAdapterUntrustedExpanded ? 'On' : 'Off'}
+          </button>
+        </div>
+
+        {#if showOfflineBanner}
+          <aside class="offline-banner" role="status" data-testid="ui-adapter-offline-banner">
+            <span class="offline-banner-icon" aria-hidden="true">
+              <TriangleAlert size={14} />
+            </span>
+            <div class="offline-banner-body">
+              <div class="offline-banner-title">Ollama not reachable at localhost:11434.</div>
+              <div class="offline-banner-text">
+                Install Ollama and pull the model to enable this.
+              </div>
+              <a
+                class="offline-banner-link"
+                href={OLLAMA_INSTALL_URL}
+                on:click|preventDefault={openOllamaDocs}
+              >
+                Install docs
+              </a>
+            </div>
+          </aside>
+        {/if}
+      </section>
+      </div>
+
+      <!-- Markdown Editor — selection toolbar toggles (story 05) -->
+      <div class="settings-panel">
+      <section class="settings-section" data-testid="markdown-menu-section">
+        <h2 class="section-title">Markdown Editor</h2>
+        <p class="section-desc">
+          Selection toolbar items. Changes apply when you close Settings.
+        </p>
+
+        {#each TOOLBAR_ITEMS as item}
+          <div class="setting-row">
+            <span class="setting-label">{item.label}</span>
+            <button
+              class="setting-toggle"
+              class:active={$markdownMenuSettings[item.key]}
+              aria-pressed={$markdownMenuSettings[item.key]}
+              data-testid={`toolbar-toggle-${item.key}`}
+              on:click={() => updateMarkdownMenuItem(item.key, !$markdownMenuSettings[item.key])}
+            >
+              {$markdownMenuSettings[item.key] ? 'On' : 'Off'}
+            </button>
+          </div>
+        {/each}
+      </section>
+      </div>
+      </div>
     </div>
   </div>
 
@@ -595,12 +947,41 @@
     color: var(--accent-red);
   }
 
-  /* Right column: other settings */
+  /* Right column: other settings — 2-column panel grid (story 04) */
   .col-settings {
     flex: 1;
     overflow-y: auto;
     padding: var(--sp-lg) var(--sp-xl);
     min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-lg);
+    align-items: start;
+  }
+
+  .settings-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+    min-width: 0;
+  }
+
+  .settings-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--sp-lg);
+  }
+
+  /* Panel padding owns bottom spacing; neutralise the legacy section margin. */
+  .settings-panel .settings-section {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 1100px) {
+    .col-settings {
+      grid-template-columns: 1fr;
+    }
   }
 
   .section-title {
@@ -985,6 +1366,120 @@
     background: var(--bg-active);
     border-color: var(--accent-green);
     color: var(--accent-green);
+  }
+
+  /* UI AST adapter section */
+  .setting-number.invalid,
+  .path-input.invalid {
+    border-color: var(--accent-red);
+  }
+
+  .setting-error {
+    padding-left: var(--sp-xs);
+    margin-top: var(--sp-2xs);
+    font-family: var(--font-ui);
+    font-size: var(--text-label);
+    font-weight: 500;
+    color: var(--accent-red);
+  }
+
+  .model-row-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+  }
+
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: color var(--duration-short) var(--ease-move),
+      border-color var(--duration-short) var(--ease-move);
+  }
+
+  .icon-btn:hover:not(:disabled) {
+    color: var(--text-primary);
+    border-color: var(--border-emphasis);
+  }
+
+  .icon-btn:disabled {
+    opacity: 0.5;
+    cursor: wait;
+  }
+
+  .custom-model-row {
+    align-items: stretch;
+  }
+
+  .custom-model-input {
+    flex: 1;
+    max-width: 260px;
+  }
+
+  .offline-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-sm);
+    margin-top: var(--sp-md);
+    padding: var(--sp-sm) var(--sp-md);
+    background: color-mix(in srgb, var(--accent-amber) 10%, transparent);
+    border-left: 3px solid var(--accent-amber);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  }
+
+  .offline-banner-icon {
+    display: inline-flex;
+    align-items: center;
+    color: var(--accent-amber);
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .offline-banner-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2xs);
+    min-width: 0;
+  }
+
+  .offline-banner-title {
+    font-family: var(--font-ui);
+    font-size: var(--text-body);
+    font-weight: 600;
+    color: var(--accent-amber);
+  }
+
+  .offline-banner-text {
+    font-family: var(--font-ui);
+    font-size: var(--text-label);
+    color: var(--text-dim);
+  }
+
+  .offline-banner-link {
+    align-self: flex-start;
+    margin-top: var(--sp-2xs);
+    padding: 0;
+    background: none;
+    border: none;
+    font-family: var(--font-ui);
+    font-size: var(--text-label);
+    font-weight: 500;
+    color: var(--accent-green);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .offline-banner-link:hover {
+    text-shadow: var(--glow-spread) color-mix(in srgb, var(--accent-green) 60%, transparent);
   }
 
   /* Footer */

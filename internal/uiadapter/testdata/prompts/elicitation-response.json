@@ -1,0 +1,25 @@
+{
+  "version": "1",
+  "generated_by": "",
+  "turn_summary": "Select elicitation methods",
+  "nodes": [
+    {"type": "markdown", "content": "Pick one or more elicitation methods to run through."},
+    {
+      "type": "decision_group",
+      "prompt": "Select elicitation methods",
+      "required": false,
+      "response_key": "elicitation_methods",
+      "widget": {
+        "type": "multi",
+        "options": [
+          {"value": "1", "label": "Story circle"},
+          {"value": "2", "label": "Retrospective"},
+          {"value": "3", "label": "Risk matrix"},
+          {"value": "4", "label": "Assumption audit"},
+          {"value": "5", "label": "Stakeholder map"}
+        ]
+      }
+    }
+  ],
+  "fallback_answer_shape": "multi"
+}

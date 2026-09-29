@@ -48,6 +48,7 @@
     window.removeEventListener('keydown', handleKeydown);
   });
 
+  /** @param {KeyboardEvent} event */
   function handleKeydown(event) {
     if (event.key === 'Escape') {
       onDismiss();

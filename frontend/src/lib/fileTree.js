@@ -1,12 +1,15 @@
 /**
+ * @typedef {{ name: string; path: string; type: 'file' | 'dir'; children?: TreeNode[] }} TreeNode
+ */
+
+/**
  * Convert a flat array of file paths into a tree structure.
  * @param {string[]} paths - flat array of relative paths, e.g. ["src/main.go", "src/lib/util.go"]
  * @returns {TreeNode[]} sorted tree -- directories first, then alphabetical
- *
- * TreeNode = { name: string, path: string, type: 'file' | 'dir', children?: TreeNode[] }
  */
 export function flatPathsToTree(paths) {
   const unique = [...new Set(paths)];
+  /** @type {TreeNode} */
   const root = { name: '', path: '', type: 'dir', children: [] };
 
   for (const p of unique) {
@@ -17,6 +20,8 @@ export function flatPathsToTree(paths) {
       const name = parts[i];
       const isFile = i === parts.length - 1;
       const partPath = parts.slice(0, i + 1).join('/');
+
+      if (!current.children) current.children = [];
 
       if (isFile) {
         current.children.push({ name, path: partPath, type: 'file' });
@@ -31,7 +36,7 @@ export function flatPathsToTree(paths) {
     }
   }
 
-  // Sort recursively: dirs first, then alphabetical
+  /** @param {TreeNode[]} nodes */
   function sortTree(nodes) {
     nodes.sort((a, b) => {
       if (a.type !== b.type) return a.type === 'dir' ? -1 : 1;
@@ -42,6 +47,6 @@ export function flatPathsToTree(paths) {
     }
   }
 
-  sortTree(root.children);
-  return root.children;
+  sortTree(root.children ?? []);
+  return root.children ?? [];
 }

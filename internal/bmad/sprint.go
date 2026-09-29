@@ -24,6 +24,10 @@ const (
 	StoryInProgress  StoryStatus = "in-progress"
 	StoryReview      StoryStatus = "review"
 	StoryDone        StoryStatus = "done"
+	// StorySkip — closed without implementation (merged into another story,
+	// retired by course-correction, or scope-deferred). Documented in the
+	// sprint-status.yaml header comments and used in the wild.
+	StorySkip StoryStatus = "skip"
 )
 
 // EpicStatus represents the status of an epic.
@@ -220,7 +224,7 @@ func parseDevelopmentStatus(node *yaml.Node) ([]SprintEpic, error) {
 // ValidateStoryStatus checks whether the given string is a valid StoryStatus.
 func ValidateStoryStatus(s string) (StoryStatus, bool) {
 	switch StoryStatus(s) {
-	case StoryBacklog, StoryReadyForDev, StoryInProgress, StoryReview, StoryDone:
+	case StoryBacklog, StoryReadyForDev, StoryInProgress, StoryReview, StoryDone, StorySkip:
 		return StoryStatus(s), true
 	default:
 		return "", false

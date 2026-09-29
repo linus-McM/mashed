@@ -38,8 +38,9 @@ func NewSessionManager(client *helper.Client) *SessionManager {
 
 // Spawn creates a new PTY session with the given name, working directory, and command.
 // If command is empty, the user's default shell is used.
+// cols/rows set the initial PTY winsize; pass 0 to use the defaults (80x24).
 // The helper client must be non-nil; otherwise ErrHelperNotRunning is returned.
-func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath string, command string) (*ManagedSession, error) {
+func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath string, command string, cols, rows uint16) (*ManagedSession, error) {
 	if sm.helperClient == nil {
 		return nil, ErrHelperNotRunning
 	}
@@ -69,14 +70,22 @@ func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath strin
 	sm.sessions[name] = nil // reserve slot
 	sm.mu.Unlock()
 
+	if cols == 0 {
+		cols = 80
+	}
+	if rows == 0 {
+		rows = 24
+	}
+
+	env := applyLoginPATH(append(os.Environ(), "TERM=xterm-256color"))
 	ptmx, pid, err := sm.helperClient.Spawn(ctx, helper.SpawnRequest{
 		ID:    name,
-		Shell: parts[0],
+		Shell: resolveExecutable(parts[0]),
 		Args:  parts[1:],
-		Env:   append(os.Environ(), "TERM=xterm-256color"),
+		Env:   env,
 		Cwd:   repoPath,
-		Cols:  80,
-		Rows:  24,
+		Cols:  cols,
+		Rows:  rows,
 	})
 	if err != nil {
 		sm.mu.Lock()

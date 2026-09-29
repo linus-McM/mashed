@@ -2,6 +2,8 @@
   import { Handle, Position } from '@xyflow/svelte';
   import { Merge } from 'lucide-svelte';
 
+  /** @typedef {import('../../types/workflow').CanvasNodeData} CanvasNodeData */
+  /** @type {CanvasNodeData} */
   export let data = {};
   // svelte-ignore unused-export-let
   export let id = '';

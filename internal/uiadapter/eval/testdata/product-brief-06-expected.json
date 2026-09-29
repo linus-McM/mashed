@@ -1,0 +1,6 @@
+{
+  "decision_group_count": 1,
+  "widget_types": ["file"],
+  "fallback_answer_shape": "file",
+  "category": "product-brief"
+}

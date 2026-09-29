@@ -1,0 +1,5 @@
+Stage 4 — Metrics
+
+How many weekly active users do you expect inside the first quarter post-launch?
+
+Enter a whole number (target lower bound is fine).

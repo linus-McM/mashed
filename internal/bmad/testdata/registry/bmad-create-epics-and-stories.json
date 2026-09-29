@@ -1,0 +1,1 @@
+{"id":"bmad-create-epics-and-stories","name":"Create Epics and Stories","phase":"solutioning","agentRole":"pm","skillName":"bmad-create-epics-and-stories","description":"Break down the PRD and architecture into epics and user stories.","inputs":["PRD.md","architecture.md"],"outputs":["epics/"],"moduleId":"core","version":"1.0.0"}

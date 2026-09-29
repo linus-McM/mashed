@@ -549,9 +549,16 @@ func TestRehydratePendingSpawnsWaiters(t *testing.T) {
 		"PendingPrompts must not contain the released n1/topic entry")
 
 	// Snapshot must have been persisted (file mtime changed or exists).
+	// The rehydrated goroutine releases state.mu *before* persistSnapshot
+	// runs, so PendingPrompts can be observed cleared above while the
+	// snapshot write is still in flight. Poll for the file rather than
+	// racing the single os.Stat call.
 	snapshotPath := filepath.Join(tmpHome, ".mashed", "workflows", state.exec.ID, "execution.json")
-	_, statErr := os.Stat(snapshotPath)
-	assert.NoError(t, statErr, "persistSnapshot must have been called by the rehydrated goroutine")
+	require.Eventually(t, func() bool {
+		_, statErr := os.Stat(snapshotPath)
+		return statErr == nil
+	}, 2*time.Second, 20*time.Millisecond,
+		"persistSnapshot must have been called by the rehydrated goroutine")
 }
 
 // ── AC-7: Stop-while-awaiting produces aborted/failed state at restore ────────
@@ -615,4 +622,231 @@ func TestStopWhileAwaitingRestoreProducesAbortedState(t *testing.T) {
 		"GetCurrentExecution must return nil for terminal (ExecFailed) executions; "+
 			"if this passes trivially because in-memory map is empty, the go-engineer "+
 			"must also add disk-load+filter logic to CurrentExecution for the restore-on-mount path")
+}
+
+// TestRehydrateFromSnapshot_RegistersExecForRespond addresses the gap where
+// GetBmadCurrentExecution loaded a snapshot + re-emitted awaiting_input but
+// RespondToInput subsequently failed with ErrExecNotFound because the
+// executor never registered the exec back into its in-memory map.
+func TestRehydrateFromSnapshot_RegistersExecForRespond(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	exec := NewExecutor(storage, func(string, interface{}) {})
+
+	snap := &WorkflowExecution{
+		ID:       "exec-rehydrate-test",
+		RepoPath: "/tmp/demo-repo",
+		Status:   ExecRunning,
+		Nodes: []WorkflowNode{{
+			ID:        "party",
+			ProcessID: "test-rehydrate-proc",
+			Status:    NodeAwaitingInput,
+		}},
+		PendingPrompts: []PendingPrompt{{
+			NodeID: "party", InputID: "message", Prompt: "turn?", Shape: ShapeFree, Round: 2, PromptID: "abc123",
+		}},
+	}
+	testRegistry = append(testRegistry, ProcessDef{
+		ID:         "test-rehydrate-proc",
+		Mode:       InteractParty,
+		SkillName:  "test",
+		InputSpecs: []InputSpec{{ID: "message", Source: InputFromUser, Shape: ShapeFree}},
+	})
+	t.Cleanup(func() { testRegistry = testRegistry[:len(testRegistry)-1] })
+
+	// Before rehydrate: getState must fail.
+	if _, err := exec.getState(snap.ID); err == nil {
+		t.Fatalf("expected ErrExecNotFound before rehydrate")
+	}
+
+	if _, err := exec.RehydrateFromSnapshot(snap); err != nil {
+		t.Fatalf("RehydrateFromSnapshot: %v", err)
+	}
+
+	state, err := exec.getState(snap.ID)
+	if err != nil {
+		t.Fatalf("getState after rehydrate: %v", err)
+	}
+	if state.exec.ID != snap.ID {
+		t.Fatalf("wrong exec in map: %s", state.exec.ID)
+	}
+
+	// Responding must succeed end-to-end: validates, stores value, signals
+	// the waiter goroutine spawned by rehydratePending.
+	if err := exec.RespondToInput(snap.ID, "party", "message", "hello"); err != nil {
+		t.Fatalf("RespondToInput after rehydrate: %v", err)
+	}
+
+	// Give rehydratePending's goroutine a moment to observe the released
+	// waiter and flip status back to running + remove the prompt.
+	for i := 0; i < 50; i++ {
+		state.mu.Lock()
+		done := len(state.exec.PendingPrompts) == 0
+		state.mu.Unlock()
+		if done {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	state.mu.Lock()
+	got := state.exec.NodeInputs["party"]["message"]
+	prompts := len(state.exec.PendingPrompts)
+	state.mu.Unlock()
+	if got != "hello" {
+		t.Fatalf("NodeInputs[party][message] = %q; want hello", got)
+	}
+	if prompts != 0 {
+		t.Fatalf("PendingPrompts still has %d entries after respond", prompts)
+	}
+}
+
+func TestRehydrateFromSnapshot_IdempotentOnSecondCall(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	exec := NewExecutor(storage, func(string, interface{}) {})
+	snap := &WorkflowExecution{ID: "exec-idem", RepoPath: "/r", Status: ExecRunning, Nodes: []WorkflowNode{{ID: "n", Status: NodeRunning}}}
+	s1, err := exec.RehydrateFromSnapshot(snap)
+	if err != nil {
+		t.Fatalf("first: %v", err)
+	}
+	s2, err := exec.RehydrateFromSnapshot(snap)
+	if err != nil {
+		t.Fatalf("second: %v", err)
+	}
+	if s1 != s2 {
+		t.Fatalf("second rehydrate returned a different state pointer")
+	}
+}
+
+// ── GetInteractiveTranscript ────────────────────────────────────────────────
+
+func TestGetInteractiveTranscript_OrdersClaudeThenUserPerRound(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	e := NewExecutor(storage, func(string, interface{}) {})
+
+	snap := &WorkflowExecution{
+		ID:       "exec-transcript-1",
+		RepoPath: "/tmp/demo",
+		Status:   ExecRunning,
+		Nodes: []WorkflowNode{{ID: "party", ProcessID: "util-file-loader", Status: NodeAwaitingInput}},
+		NodeOutputs: map[string]string{
+			"party-round-1": "Claude turn 1 text",
+			"party-round-2": "Claude turn 2 text",
+			"unrelated-key": "noise that must not leak into the transcript",
+		},
+		NodeRounds: map[string]int{"party": 2},
+		NodeInputHistory: map[string][]NodeInputEntry{
+			"party": {
+				{InputID: "message", Round: 1, Value: "user answer 1", Timestamp: 100},
+				{InputID: "message", Round: 2, Value: "user answer 2", Timestamp: 200},
+			},
+		},
+	}
+	if _, err := e.RehydrateFromSnapshot(snap); err != nil {
+		t.Fatalf("rehydrate: %v", err)
+	}
+
+	turns, err := e.GetInteractiveTranscript(snap.ID, "party")
+	if err != nil {
+		t.Fatalf("GetInteractiveTranscript: %v", err)
+	}
+	if len(turns) != 4 {
+		t.Fatalf("expected 4 turns, got %d: %+v", len(turns), turns)
+	}
+	if turns[0].Role != "claude" || turns[0].Round != 1 || turns[0].Content != "Claude turn 1 text" {
+		t.Errorf("turn[0] mismatch: %+v", turns[0])
+	}
+	if turns[1].Role != "user" || turns[1].Round != 1 || turns[1].Content != "user answer 1" {
+		t.Errorf("turn[1] mismatch: %+v", turns[1])
+	}
+	if turns[2].Role != "claude" || turns[2].Round != 2 {
+		t.Errorf("turn[2] mismatch: %+v", turns[2])
+	}
+	if turns[3].Role != "user" || turns[3].Round != 2 || turns[3].Timestamp != 200 {
+		t.Errorf("turn[3] mismatch (timestamp propagation): %+v", turns[3])
+	}
+}
+
+func TestGetInteractiveTranscript_EmptyNodeReturnsEmptySlice(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	e := NewExecutor(storage, func(string, interface{}) {})
+	snap := &WorkflowExecution{
+		ID: "e-empty", RepoPath: "/r", Status: ExecRunning,
+		Nodes: []WorkflowNode{{ID: "n", Status: NodePending}},
+	}
+	if _, err := e.RehydrateFromSnapshot(snap); err != nil {
+		t.Fatalf("rehydrate: %v", err)
+	}
+	turns, err := e.GetInteractiveTranscript("e-empty", "n")
+	if err != nil {
+		t.Fatalf("GetInteractiveTranscript: %v", err)
+	}
+	if len(turns) != 0 {
+		t.Fatalf("expected empty slice, got %+v", turns)
+	}
+}
+
+func TestGetInteractiveTranscript_SkipsMissingClaudeRoundButKeepsUser(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	e := NewExecutor(storage, func(string, interface{}) {})
+
+	// Simulates the first suspend: no Claude turn captured yet, but user
+	// already has a history entry from initial step-B inputs.
+	snap := &WorkflowExecution{
+		ID: "e-sparse", RepoPath: "/r", Status: ExecRunning,
+		Nodes:       []WorkflowNode{{ID: "n", Status: NodeAwaitingInput}},
+		NodeOutputs: map[string]string{}, // no round captures
+		NodeInputHistory: map[string][]NodeInputEntry{
+			"n": {{InputID: "topic", Round: 1, Value: "first answer", Timestamp: 1}},
+		},
+	}
+	if _, err := e.RehydrateFromSnapshot(snap); err != nil {
+		t.Fatalf("rehydrate: %v", err)
+	}
+	turns, err := e.GetInteractiveTranscript("e-sparse", "n")
+	if err != nil {
+		t.Fatalf("GetInteractiveTranscript: %v", err)
+	}
+	if len(turns) != 1 || turns[0].Role != "user" || turns[0].Content != "first answer" {
+		t.Fatalf("expected 1 user turn, got: %+v", turns)
+	}
+}
+
+func TestGetInteractiveTranscript_ExecNotFound(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	storage, err := NewStorage(filepath.Join(home, ".mashed"))
+	if err != nil {
+		t.Fatalf("storage: %v", err)
+	}
+	e := NewExecutor(storage, func(string, interface{}) {})
+	_, err = e.GetInteractiveTranscript("never-started", "n")
+	if err == nil {
+		t.Fatal("expected ErrExecNotFound")
+	}
 }

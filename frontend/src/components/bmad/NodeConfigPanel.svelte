@@ -1,6 +1,6 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
-  import { X, Terminal, FileText, FolderOpen, List, Plus, Minus } from 'lucide-svelte';
+  import { X, Terminal, FileText, FolderOpen, List, Plus, Minus, MessageCircleQuestion } from 'lucide-svelte';
   import { PickFile, ReadFile, ListModels } from '../../../wailsjs/go/main/App.js';
   import { parseFriendlyTarget } from '../../lib/bmadSessionName';
   import {
@@ -8,24 +8,36 @@
     stringifyEntries,
     hasDuplicateLabels,
   } from '../../lib/bmad/multiFileEntries';
+  import MarkdownBlock from './MarkdownBlock.svelte';
 
+  /** @typedef {import('../../types/workflow').CanvasNode} CanvasNode */
+  /** @typedef {import('../../lib/types/wails').GroupedAgents} GroupedAgents */
+  /** @typedef {import('../../lib/types/wails').AgentInfo} AgentInfo */
+  /** @typedef {import('../../lib/types/wails').BmadAgentConfig} BmadAgentConfig */
+  /** @typedef {AgentInfo | BmadAgentConfig} AnyAgent */
+  /** @typedef {import('../../lib/bmad/multiFileEntries').MultiFileEntry} MultiFileEntry */
+  /** @type {CanvasNode | null} */
   export let node = null;
+  /** @type {GroupedAgents | { bmadAgents: BmadAgentConfig[]; localAgents: AgentInfo[]; globalAgents: AgentInfo[] }} */
   export let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
 
+  /** @type {import('svelte').EventDispatcher<{ update: { nodeId: string; config: Record<string, unknown> }; close: void; 'edit-items': { nodeId: string; items: string[] }; 'open-terminal': string; 'open-output': string; 'open-prompt': string }>} */
   const dispatch = createEventDispatcher();
 
   // Resize logic — exported so parent can read current width
-  export let panelWidth = 280;
+  export let panelWidth = 360;
   let resizing = false;
 
+  /** @param {MouseEvent} e */
   function onResizeStart(e) {
     e.preventDefault();
     resizing = true;
     const startX = e.clientX;
     const startWidth = panelWidth;
 
+    /** @param {MouseEvent} e */
     function onMouseMove(e) {
-      panelWidth = Math.max(220, Math.min(500, startWidth - (e.clientX - startX)));
+      panelWidth = Math.max(260, Math.min(720, startWidth - (e.clientX - startX)));
     }
 
     function onMouseUp() {
@@ -38,6 +50,7 @@
     window.addEventListener('mouseup', onMouseUp);
   }
 
+  /** @type {Array<{ value: string; label: string }>} */
   let models = [{ value: '', label: 'Default (inherit)' }];
 
   onMount(async () => {
@@ -58,17 +71,18 @@
 
   // Deduplicate agents: BMAD agents take priority, then local, then global.
   $: dedupedAgents = (() => {
+    /** @type {Set<string>} */
     const seen = new Set();
-    const bmad = (groupedAgents.bmadAgents || []).map(a => {
+    const bmad = (groupedAgents.bmadAgents || []).map((a) => {
       seen.add(a.id);
       return a;
     });
-    const local = (groupedAgents.localAgents || []).filter(a => {
+    const local = (groupedAgents.localAgents || []).filter((a) => {
       if (seen.has(a.id)) return false;
       seen.add(a.id);
       return true;
     });
-    const global = (groupedAgents.globalAgents || []).filter(a => {
+    const global = (groupedAgents.globalAgents || []).filter((a) => {
       if (seen.has(a.id)) return false;
       seen.add(a.id);
       return true;
@@ -83,12 +97,14 @@
   // Reorder is deferred — ArrayEditorModal only handles string arrays and
   // the MultiFileLoader entry editor inlines add/edit/delete only. Upstream
   // story AC-2 mentions "reorder" which we are flagging as a follow-up.
+  /** @type {MultiFileEntry[]} */
   let mflEntries = [];
   $: mflDuplicates = hasDuplicateLabels(mflEntries);
 
   let filePath = '';
   let filePreview = '';
   let fileError = '';
+  $: isMarkdownFile = /\.(md|markdown|mdx)$/i.test(filePath);
 
   // Load preview when filePath changes
   $: if (isFileLoader && filePath) {
@@ -121,30 +137,47 @@
   let conditionPattern = '';
   let sourceNode = '';
   let maxIterations = '10';
+  /** @type {string[]} */
   let items = [];
   let extractType = 'regex';
   let extractPattern = '';
 
+  /**
+   * @param {Record<string, unknown>} obj
+   * @param {string} key
+   * @param {string} fallback
+   */
+  function stringAt(obj, key, fallback = '') {
+    const v = obj[key];
+    return typeof v === 'string' ? v : fallback;
+  }
+
   $: if (node) {
+    /** @type {Record<string, unknown>} */
     const cfg = node.data?.config || {};
-    modelOverride = cfg.model || '';
-    customContext = cfg.context || '';
-    selectedAgent = cfg.agentId || '';
-    conditionType = cfg.conditionType || 'contains';
-    conditionPattern = cfg.conditionPattern || '';
-    sourceNode = cfg.sourceNode || '';
-    maxIterations = cfg.maxIterations || '10';
-    try { items = cfg.items ? JSON.parse(cfg.items) : []; } catch { items = []; }
-    extractType = cfg.extractType || 'regex';
-    extractPattern = cfg.extractPattern || '';
-    filePath = cfg.filePath || '';
-    mflEntries = parseEntries(cfg.entries || '[]');
+    modelOverride = stringAt(cfg, 'model');
+    customContext = stringAt(cfg, 'context');
+    selectedAgent = stringAt(cfg, 'agentId');
+    conditionType = stringAt(cfg, 'conditionType', 'contains');
+    conditionPattern = stringAt(cfg, 'conditionPattern');
+    sourceNode = stringAt(cfg, 'sourceNode');
+    maxIterations = stringAt(cfg, 'maxIterations', '10');
+    try {
+      const rawItems = cfg.items;
+      const parsed = typeof rawItems === 'string' && rawItems.length > 0 ? JSON.parse(rawItems) : [];
+      items = Array.isArray(parsed) ? parsed.filter((/** @type {unknown} */ x) => typeof x === 'string') : [];
+    } catch { items = []; }
+    extractType = stringAt(cfg, 'extractType', 'regex');
+    extractPattern = stringAt(cfg, 'extractPattern');
+    filePath = stringAt(cfg, 'filePath');
+    mflEntries = parseEntries(stringAt(cfg, 'entries', '[]'));
   }
 
   $: label = node?.data?.label || 'Node';
   $: status = node?.data?.status || 'pending';
   $: tmuxTarget = node?.data?.tmuxTarget || '';
-  $: hasTerminal = status === 'running' && tmuxTarget;
+  $: hasTerminal = !!tmuxTarget && (status === 'running' || status === 'awaiting_input');
+  $: sessionDead = !!node?.data?.sessionDead;
   $: parsedTmuxTarget = parseFriendlyTarget(tmuxTarget);
 
   async function browseFile() {
@@ -175,6 +208,7 @@
       : nodeType === 'transform'
       ? { extractType, extractPattern, sourceNode }
       : {};
+    if (!node) return;
     dispatch('update', { nodeId: node.id, config });
   }
 
@@ -183,16 +217,23 @@
     emitUpdate();
   }
 
+  /** @param {number} index */
   function removeMflEntry(index) {
     mflEntries = mflEntries.filter((_, i) => i !== index);
     emitUpdate();
   }
 
+  /**
+   * @param {number} index
+   * @param {'label' | 'path'} field
+   * @param {string} value
+   */
   function updateMflEntry(index, field, value) {
     mflEntries = mflEntries.map((e, i) => (i === index ? { ...e, [field]: value } : e));
     emitUpdate();
   }
 
+  /** @param {number} index */
   async function browseMflEntry(index) {
     try {
       const path = await PickFile('Select a file');
@@ -221,7 +262,7 @@
     <div class="panel-body">
       {#if isMultiFileLoader}
         <div class="field">
-          <label class="field-label">Entries</label>
+          <span class="field-label">Entries</span>
           <div class="mfl-entries">
             {#each mflEntries as entry, i (i)}
               <div class="mfl-row" class:dup-row={entry.label && mflDuplicates.has(entry.label)}>
@@ -229,7 +270,7 @@
                   class="field-input mfl-label"
                   type="text"
                   value={entry.label}
-                  on:input={(e) => updateMflEntry(i, 'label', e.target.value)}
+                  on:input={(e) => updateMflEntry(i, 'label', /** @type {HTMLInputElement} */ (e.currentTarget).value)}
                   on:blur={emitUpdate}
                   placeholder={`file[${i}]`}
                 />
@@ -237,7 +278,7 @@
                   class="field-input mfl-path"
                   type="text"
                   value={entry.path}
-                  on:input={(e) => updateMflEntry(i, 'path', e.target.value)}
+                  on:input={(e) => updateMflEntry(i, 'path', /** @type {HTMLInputElement} */ (e.currentTarget).value)}
                   on:blur={emitUpdate}
                   placeholder="/absolute/path"
                 />
@@ -257,17 +298,27 @@
         </div>
       {:else if isFileLoader}
         <div class="field">
-          <label class="field-label">File Path</label>
-          <div class="file-picker-row">
-            <input
-              class="field-input file-path-input"
-              type="text"
-              bind:value={filePath}
-              on:blur={emitUpdate}
-              placeholder="No file selected..."
-              readonly
-            />
-          </div>
+          <span class="field-label" id="file-loader-path-label">File Path</span>
+          {#if filePath}
+            {@const lastSep = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'))}
+            {@const fileName = lastSep >= 0 ? filePath.slice(lastSep + 1) : filePath}
+            {@const parentDir = lastSep >= 0 ? filePath.slice(0, lastSep) : ''}
+            <div
+              class="file-path-block"
+              role="group"
+              aria-labelledby="file-loader-path-label"
+              title={filePath}
+            >
+              <span class="file-name">{fileName}</span>
+              {#if parentDir}
+                <span class="file-parent">{parentDir}</span>
+              {/if}
+            </div>
+          {:else}
+            <div class="file-path-block empty" role="group" aria-labelledby="file-loader-path-label">
+              <span class="file-placeholder">No file selected</span>
+            </div>
+          {/if}
           <button class="browse-btn" on:click={browseFile}>
             <FolderOpen size={14} />
             Browse...
@@ -275,8 +326,14 @@
         </div>
         {#if filePreview}
           <div class="field">
-            <label class="field-label">Preview</label>
-            <pre class="file-preview">{filePreview}</pre>
+            <span class="field-label">Preview</span>
+            <div class="file-preview" class:file-preview-md={isMarkdownFile}>
+              {#if isMarkdownFile}
+                <MarkdownBlock content={filePreview} />
+              {:else}
+                <pre class="file-preview-raw">{filePreview}</pre>
+              {/if}
+            </div>
           </div>
         {/if}
         {#if fileError}
@@ -356,7 +413,7 @@
           <input id="loop-max" class="field-input" type="number" bind:value={maxIterations} on:change={emitUpdate} min="1" max="100" />
         </div>
         <div class="field">
-          <label class="field-label">Items Array</label>
+          <span class="field-label">Items Array</span>
           {#if items.length > 0}
             <div class="items-preview">{items.length} item{items.length !== 1 ? 's' : ''}</div>
           {:else}
@@ -389,7 +446,7 @@
           <input id="lu-source" class="field-input" type="text" bind:value={sourceNode} on:blur={emitUpdate} placeholder="Node ID..." />
         </div>
         <div class="field">
-          <label class="field-label">Items Array</label>
+          <span class="field-label">Items Array</span>
           {#if items.length > 0}
             <div class="items-preview">{items.length} item{items.length !== 1 ? 's' : ''}</div>
           {:else}
@@ -455,6 +512,21 @@
         {/if}
       {/if}
 
+      {#if status === 'awaiting_input'}
+        <!-- Re-open the input modal for this node. Useful when the user
+             dismissed the modal (Cancel / Esc) and the snackbar is
+             pending — without this, they had to wait for the next
+             awaiting_input emit before the prompt was reachable again. -->
+        <button
+          class="terminal-btn respond-btn"
+          data-testid="config-panel-respond"
+          on:click={() => dispatch('open-prompt', node.id)}
+        >
+          <MessageCircleQuestion size={13} />
+          Open Input
+        </button>
+      {/if}
+
       {#if hasTerminal}
         <button
           class="terminal-btn"
@@ -465,6 +537,11 @@
           <Terminal size={13} />
           View Terminal
         </button>
+      {:else if sessionDead}
+        <div class="session-dead-note" role="status">
+          <Terminal size={13} />
+          Terminal session ended
+        </div>
       {/if}
 
       {#if status === 'complete'}
@@ -651,25 +728,86 @@
   .browse-btn:hover {
     background: var(--bg-active);
   }
-  .file-path-input {
-    font-size: 11px;
+  .file-path-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--sp-sm) var(--sp-sm);
+    background: var(--bg-deepest);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    min-width: 0;
+  }
+  .file-path-block.empty {
+    border-style: dashed;
+  }
+  .file-name {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    word-break: break-all;
+    line-height: 1.35;
+  }
+  .file-parent {
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
     color: var(--text-dim);
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-break: break-all;
+    line-height: 1.4;
+  }
+  .file-placeholder {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
   }
   .file-preview {
     background: var(--bg-deepest);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
-    padding: var(--sp-xs) var(--sp-sm);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    line-height: 1.4;
-    color: var(--text-dim);
-    max-height: 200px;
+    padding: var(--sp-sm) var(--sp-sm);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-primary);
+    max-height: 420px;
     overflow-y: auto;
-    white-space: pre;
+    overflow-x: hidden;
     margin: 0;
+    scrollbar-gutter: stable;
+  }
+  .file-preview-raw {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .file-preview :global(.markdown-block) {
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .file-preview :global(.markdown-block pre),
+  .file-preview :global(.markdown-block code) {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .file-preview::-webkit-scrollbar {
+    width: 10px;
+  }
+  .file-preview::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .file-preview::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 5px;
+  }
+  .file-preview::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
   }
   .file-error {
     font-size: var(--text-label);
@@ -689,6 +827,19 @@
     color: var(--text-muted);
   }
 
+  .session-dead-note {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    padding: var(--sp-xs) 10px;
+    background: color-mix(in srgb, var(--accent-red, #f85149) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-red, #f85149) 40%, transparent);
+    border-radius: var(--radius-sm);
+    color: var(--accent-red, #f85149);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    margin-top: 4px;
+  }
   .terminal-btn {
     display: flex;
     align-items: center;
@@ -712,6 +863,17 @@
 
   .output-btn {
     color: var(--accent-blue, #3d9eff);
+  }
+
+  .respond-btn {
+    color: var(--accent-amber, #f5a623);
+    border-color: color-mix(in srgb, var(--accent-amber) 40%, transparent);
+    background: color-mix(in srgb, var(--accent-amber) 8%, var(--bg-elevated));
+  }
+
+  .respond-btn:hover {
+    border-color: var(--accent-amber);
+    background: color-mix(in srgb, var(--accent-amber) 14%, var(--bg-elevated));
   }
 
   .output-btn:hover {

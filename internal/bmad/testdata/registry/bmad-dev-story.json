@@ -1,0 +1,1 @@
+{"id":"bmad-dev-story","name":"Develop Story","phase":"implementation","agentRole":"developer","skillName":"bmad-dev-story","description":"Implement a story by writing code and tests according to acceptance criteria.","inputs":["story-*.md"],"outputs":["code","tests"],"moduleId":"core","version":"1.0.0"}

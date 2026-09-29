@@ -1,23 +1,50 @@
 <script>
+  /** @typedef {import('../../stores/interactiveInput').PendingPrompt} PendingPrompt */
+  /** @typedef {import('./questionSnackbarUtils').SnackbarEntry} SnackbarEntry */
+  /** @typedef {import('./questionSnackbarUtils').QuestionEventLike} QuestionEventLike */
+  /**
+   * @typedef {Object} PromptEntry
+   * @property {'prompt'} kind
+   * @property {string} nodeId
+   * @property {string} inputId
+   * @property {string} repoPath
+   * @property {string} repoName
+   * @property {string} question
+   * @property {string[]} options
+   * @property {number | undefined} timestamp
+   * @property {number | undefined} round
+   * @property {number | undefined} maxRounds
+   * @property {boolean} required
+   * @property {string} shape
+   * @property {PendingPrompt} prompt
+   */
+  /** @typedef {SnackbarEntry | PromptEntry} MergedEntry */
+
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import { fly } from 'svelte/transition';
   import { flip } from 'svelte/animate';
   import { cubicOut, cubicIn } from 'svelte/easing';
-  import { MessageCircleQuestion, Keyboard } from 'lucide-svelte';
+  import { MessageCircleQuestion, Keyboard, X } from 'lucide-svelte';
   import {
     truncate,
     getBorderColor,
     timeAgo,
-    partitionForDisplay,
     isQuestionEntry,
+    MAX_VISIBLE,
   } from './questionSnackbarUtils';
 
-  /** @type {import('./questionSnackbarUtils').SnackbarEntry[]} */
+  /** @type {SnackbarEntry[]} */
   export let questions = [];
-  /** @type {import('../../stores/interactiveInput').PendingPrompt[]} */
+  /** @type {PendingPrompt[]} */
   export let pendingPrompts = [];
 
+  /** @type {import('svelte').EventDispatcher<{ respond: { prompt: PendingPrompt }; navigate: { repoPath: string; question?: SnackbarEntry; entry: MergedEntry }; skip: { prompt: PendingPrompt }; dismiss: { entry: MergedEntry } }>} */
   const dispatch = createEventDispatcher();
+
+  /** @param {MergedEntry} entry */
+  function handleDismiss(entry) {
+    dispatch('dismiss', { entry });
+  }
 
   let now = Date.now();
   /** @type {ReturnType<typeof setInterval> | undefined} */
@@ -30,13 +57,19 @@
   });
 
   $: merged = mergeEntries(questions, pendingPrompts);
-  $: ({ visible, overflow } = partitionForDisplay(merged));
+  $: visible = merged.slice(0, MAX_VISIBLE);
+  $: overflow = Math.max(0, merged.length - MAX_VISIBLE);
 
   /**
    * Merge legacy question/idle entries with new interactive PendingPrompts.
    * Prompt entries carry kind:'prompt' so the render path can branch on it.
+   *
+   * @param {SnackbarEntry[]} qs
+   * @param {PendingPrompt[]} prompts
+   * @returns {MergedEntry[]}
    */
   function mergeEntries(qs, prompts) {
+    /** @type {PromptEntry[]} */
     const promptEntries = (prompts || []).map((p) => ({
       kind: 'prompt',
       nodeId: p.nodeId,
@@ -56,7 +89,11 @@
     return [...(qs || []), ...promptEntries];
   }
 
-  function isPromptEntry(q) { return q && q.kind === 'prompt'; }
+  /**
+   * @param {MergedEntry} q
+   * @returns {q is PromptEntry}
+   */
+  function isPromptEntry(q) { return !!q && /** @type {{ kind?: string }} */ (q).kind === 'prompt'; }
 
   /** @param {{round?: number, maxRounds?: number}} entry */
   function roundLabel(entry) {
@@ -65,25 +102,38 @@
     return `Round ${entry.round}`;
   }
 
+  /** @param {MergedEntry} entry */
   function handleNavigate(entry) {
     if (isPromptEntry(entry)) {
       dispatch('respond', { prompt: entry.prompt });
       return;
     }
+    const legacy = /** @type {SnackbarEntry} */ (entry);
     dispatch('navigate', {
-      repoPath: entry.repoPath,
-      question: isQuestionEntry(entry) ? entry : undefined,
+      repoPath: legacy.repoPath,
+      question: isQuestionEntry(legacy) ? legacy : undefined,
       entry,
     });
   }
 
+  /** @param {MergedEntry} entry */
+  function isLegacyQuestion(entry) {
+    return !isPromptEntry(entry) && isQuestionEntry(/** @type {SnackbarEntry} */ (entry));
+  }
+
+  /** @param {MergedEntry} entry */
   function handleSkip(entry) {
     if (!isPromptEntry(entry)) return;
     dispatch('skip', { prompt: entry.prompt });
   }
 
+  /** @param {MergedEntry} entry */
   function handleClick(entry) { handleNavigate(entry); }
 
+  /**
+   * @param {KeyboardEvent} e
+   * @param {MergedEntry} entry
+   */
   function handleKeydown(e, entry) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -91,13 +141,15 @@
     }
   }
 
+  /** @param {MergedEntry} entry */
   function displayName(entry) {
     return entry.repoName && entry.repoName.length > 0 ? entry.repoName : 'Unknown Repo';
   }
 
+  /** @param {MergedEntry} entry */
   function bodyText(entry) {
     if (isPromptEntry(entry)) return truncate(entry.question || '', 80);
-    if (isQuestionEntry(entry)) return truncate(entry.question || '', 80);
+    if (isLegacyQuestion(entry)) return truncate(/** @type {QuestionEventLike} */ (entry).question || '', 80);
     return 'Waiting for input — open terminal to reply';
   }
 </script>
@@ -106,7 +158,7 @@
   {#each visible as q (q.kind === 'prompt' ? `p:${q.nodeId}:${q.inputId}` : q.nodeId)}
     <div
       class="snackbar-card"
-      class:idle={!isQuestionEntry(q) && !isPromptEntry(q)}
+      class:idle={!isLegacyQuestion(q) && !isPromptEntry(q)}
       class:prompt={isPromptEntry(q)}
       role="button"
       tabindex="0"
@@ -118,13 +170,22 @@
     >
       <span
         class="accent-stripe"
-        style:background-color={getBorderColor(q.repoName)}
+        style:background-color={getBorderColor(q.repoName || '')}
         aria-hidden="true"
       ></span>
+      <button
+        type="button"
+        class="close-btn"
+        aria-label="Dismiss notification"
+        title="Dismiss"
+        on:click|stopPropagation={() => handleDismiss(q)}
+      >
+        <X size={14} strokeWidth={2.5} />
+      </button>
       <div class="card-content">
         <div class="card-top">
           <span class="question-icon" aria-hidden="true">
-            {#if isPromptEntry(q) || isQuestionEntry(q)}
+            {#if isPromptEntry(q) || isLegacyQuestion(q)}
               <MessageCircleQuestion size={14} />
             {:else}
               <Keyboard size={14} />
@@ -189,6 +250,7 @@
 
   .snackbar-card {
     pointer-events: auto;
+    position: relative;
     display: flex;
     align-items: stretch;
     background: var(--bg-elevated);
@@ -201,6 +263,38 @@
       background var(--duration-short) var(--ease-enter),
       border-color var(--duration-short) var(--ease-enter),
       transform var(--duration-micro) var(--ease-enter);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background: color-mix(in srgb, var(--bg-deepest) 70%, transparent);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+    opacity: 1;
+    transition:
+      background var(--duration-short) var(--ease-enter),
+      border-color var(--duration-short) var(--ease-enter),
+      color var(--duration-short) var(--ease-enter);
+  }
+  .close-btn:hover {
+    background: color-mix(in srgb, var(--accent-red, #f85149) 20%, transparent);
+    border-color: color-mix(in srgb, var(--accent-red, #f85149) 60%, transparent);
+    color: var(--accent-red, #f85149);
+  }
+  .close-btn:focus-visible {
+    outline: 1px solid var(--accent-red, #f85149);
+    outline-offset: 1px;
   }
 
   .snackbar-card:hover {
@@ -237,6 +331,7 @@
     display: flex;
     align-items: baseline;
     gap: var(--sp-xs);
+    padding-right: 20px;
   }
 
   .question-icon {

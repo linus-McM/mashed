@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mashed.dev/schemas/uiast.json",
+  "title": "UIAST",
+  "description": "UIAST root envelope emitted by the uiadapter translator (spec §3.1).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "generated_by",
+    "generated_at",
+    "turn_summary",
+    "nodes",
+    "fallback_answer_shape",
+    "diagnostics"
+  ],
+  "properties": {
+    "version": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "generated_at": { "type": "integer" },
+    "turn_summary": { "type": "string" },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "title": "UINode",
+        "description": "Single-struct discriminated-union node variant (spec §3.2).",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": {
+          "type": { "type": "string" },
+          "content": { "type": "string" },
+          "tone": { "type": "string" },
+          "heading": { "type": "string" },
+          "bullets": { "type": "array", "items": { "type": "string" } },
+          "lang": { "type": "string" },
+          "copyable": { "type": "boolean" },
+          "columns": { "type": "array", "items": { "type": "string" } },
+          "rows": {
+            "type": "array",
+            "items": { "type": "array", "items": { "type": "string" } }
+          },
+          "prompt": { "type": "string" },
+          "help": { "type": "string" },
+          "required": { "type": "boolean" },
+          "widget": {
+            "title": "WidgetNode",
+            "description": "Input-control metadata for decision_group nodes (spec §3.2).",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type"],
+            "properties": {
+              "type": { "type": "string" },
+              "options": {
+                "type": "array",
+                "items": {
+                  "title": "WidgetOption",
+                  "description": "Single choice entry (spec §3.2).",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["value"],
+                  "properties": {
+                    "value": { "type": "string" },
+                    "label": { "type": "string" }
+                  }
+                }
+              },
+              "default": { "type": "string" },
+              "min": { "type": "integer" },
+              "max": { "type": "integer" },
+              "yes_label": { "type": "string" },
+              "no_label": { "type": "string" },
+              "placeholder": { "type": "string" },
+              "maxLength": { "type": "integer" },
+              "multiline": { "type": "boolean" },
+              "accept": { "type": "array", "items": { "type": "string" } },
+              "repoRootRelative": { "type": "boolean" },
+              "schema": {}
+            }
+          },
+          "response_key": { "type": "string" }
+        }
+      }
+    },
+    "fallback_answer_shape": { "type": "string" },
+    "diagnostics": {
+      "title": "Diagnostics",
+      "description": "Counters and trust signals for the round loop (spec §3.1).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "input_bytes": { "type": "integer" },
+        "output_bytes": { "type": "integer" },
+        "latency_ms": { "type": "integer" },
+        "fallback_reasons": { "type": "array", "items": { "type": "string" } },
+        "untrusted": { "type": "boolean" },
+        "collapsed": { "type": "boolean" }
+      }
+    }
+  }
+}

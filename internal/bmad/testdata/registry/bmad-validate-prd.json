@@ -1,0 +1,1 @@
+{"id":"bmad-validate-prd","name":"Validate PRD","phase":"planning","agentRole":"pm","skillName":"bmad-validate-prd","description":"Validate the PRD for completeness, consistency, and feasibility.","inputs":["PRD.md"],"outputs":["prd-validation","PRD.md"],"moduleId":"core","version":"1.0.0"}

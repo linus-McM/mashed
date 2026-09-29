@@ -2,8 +2,10 @@
   import { createEventDispatcher } from 'svelte';
   import { Layout } from 'lucide-svelte';
 
+  /** @type {Array<{ id: string; name: string; description?: string; nodes?: unknown[] }>} */
   export let templates = [];
 
+  /** @type {import('svelte').EventDispatcher<{ select: string }>} */
   const dispatch = createEventDispatcher();
 </script>
 

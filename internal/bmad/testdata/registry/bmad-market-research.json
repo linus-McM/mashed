@@ -1,0 +1,1 @@
+{"id":"bmad-market-research","name":"Market Research","phase":"analysis","agentRole":"analyst","skillName":"bmad-market-research","description":"Analyze the competitive landscape and market opportunity.","inputs":[],"outputs":["market-research"],"moduleId":"core","version":"1.0.0"}

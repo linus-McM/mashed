@@ -1,0 +1,1 @@
+{"id":"bmad-generate-project-context","name":"Generate Project Context","phase":"solutioning","agentRole":"architect","skillName":"bmad-generate-project-context","description":"Generate a consolidated project context document for onboarding and reference.","inputs":["PRD.md","architecture.md"],"outputs":["project-context.md"],"moduleId":"core","version":"1.0.0"}

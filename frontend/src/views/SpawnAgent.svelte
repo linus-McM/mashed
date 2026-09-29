@@ -1,10 +1,19 @@
-<script>
+<script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
   import { fade } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { ListRepoChoices, SpawnAgent, ListModels } from '../../wailsjs/go/main/App.js';
+  import { errorMessage } from '../lib/errorMessage';
+  import { estimatePtySize } from '../lib/ptySize';
+  import type { RepoChoice } from '../lib/types/wails';
 
-  const dispatch = createEventDispatcher();
+  /** Narrowed option entry for the model dropdown. */
+  type ModelOption = { value: string; label: string };
+
+  const dispatch = createEventDispatcher<{
+    spawned: { target: string; repo: RepoChoice; model: string };
+    cancel: void;
+  }>();
 
   // uiqa-06: modal fade entry/exit. prefers-reduced-motion zeroes durations.
   const reducedMotion = typeof window !== 'undefined' &&
@@ -16,13 +25,13 @@
     ? { duration: 0, delay: 0 }
     : { duration: 100, delay: 50, easing: cubicOut };
 
-  let repos = [];
-  let selectedRepo = null;
+  let repos: RepoChoice[] = [];
+  let selectedRepo: RepoChoice | null = null;
   let model = '';
   let spawning = false;
   let error = '';
 
-  let models = [];
+  let models: ModelOption[] = [];
 
   onMount(async () => {
     try {
@@ -31,32 +40,33 @@
         ListModels(),
       ]);
       repos = repoList || [];
-      models = (modelList || []).map(m => ({ value: m.id, label: m.displayName }));
-      const defaultModel = modelList?.find(m => m.isDefault);
+      models = (modelList || []).map((m) => ({ value: m.id, label: m.displayName }));
+      const defaultModel = modelList?.find((m) => m.isDefault);
       model = defaultModel ? defaultModel.id : (models[0]?.value || '');
-    } catch (e) {
+    } catch {
       error = 'Failed to load repos';
     }
   });
 
-  async function spawn() {
+  async function spawn(): Promise<void> {
     if (!selectedRepo) return;
     spawning = true;
     error = '';
     try {
-      const target = await SpawnAgent(selectedRepo.path, model);
+      const { cols, rows } = estimatePtySize();
+      const target = await SpawnAgent(selectedRepo.path, model, cols, rows);
       dispatch('spawned', { target, repo: selectedRepo, model });
     } catch (e) {
-      error = e?.message || 'Failed to spawn agent';
+      error = errorMessage(e) || 'Failed to spawn agent';
       spawning = false;
     }
   }
 
-  function cancel() {
+  function cancel(): void {
     dispatch('cancel');
   }
 
-  function handleKeydown(e) {
+  function handleKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape') cancel();
     if (e.key === 'Enter' && selectedRepo) spawn();
   }

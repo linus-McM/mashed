@@ -71,7 +71,7 @@ func setupSuspension(t *testing.T, nodeID, processID string, spec InputSpec) *su
 	ctx, cancel := context.WithCancel(context.Background())
 	errCh := make(chan error, 1)
 	go func() {
-		errCh <- e.suspendForSpec(ctx, state, nodeIndex, nodeID, 1, spec)
+		errCh <- e.suspendForSpec(ctx, state, nodeIndex, nodeID, 1, spec, "")
 	}()
 
 	h := &suspendHarness{
@@ -547,7 +547,7 @@ func TestRespondToInputConcurrencyNoPanic(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		errCh := make(chan error, 1)
 		go func(s *execState, ni map[string]int, nid string) {
-			errCh <- e.suspendForSpec(ctx, s, ni, nid, 1, spec)
+			errCh <- e.suspendForSpec(ctx, s, ni, nid, 1, spec, "")
 		}(state, nodeIndex, nodeID)
 
 		entries[i] = entry{execID: execID, nodeID: nodeID, cancel: cancel, errCh: errCh}

@@ -21,9 +21,11 @@
   /** How many nodes the user is about to save/discard, used for copy. */
   export let nodeCount = 0;
 
+  /** @type {import('svelte').EventDispatcher<{ save: { name: string }; discard: void; cancel: void }>} */
   const dispatch = createEventDispatcher();
 
   let name = defaultName;
+  /** @type {HTMLInputElement | undefined} */
   let inputEl;
 
   $: trimmed = (name || '').trim();
@@ -54,6 +56,7 @@
     dispatch('cancel');
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') {
       e.preventDefault();

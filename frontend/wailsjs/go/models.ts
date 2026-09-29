@@ -255,6 +255,26 @@ export namespace bmad {
 	        this.helpText = source["helpText"];
 	    }
 	}
+	export class InteractiveTurn {
+	    round: number;
+	    role: string;
+	    inputId?: string;
+	    content: string;
+	    timestamp?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new InteractiveTurn(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.round = source["round"];
+	        this.role = source["role"];
+	        this.inputId = source["inputId"];
+	        this.content = source["content"];
+	        this.timestamp = source["timestamp"];
+	    }
+	}
 	export class IterationGate {
 	    kind: string;
 	    maxRounds?: number;
@@ -298,9 +318,10 @@ export namespace bmad {
 	}
 	export class NodeInputEntry {
 	    inputId: string;
-	    round: number;
+	    round?: number;
 	    value: string;
 	    timestamp: number;
+	    key?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new NodeInputEntry(source);
@@ -312,6 +333,7 @@ export namespace bmad {
 	        this.round = source["round"];
 	        this.value = source["value"];
 	        this.timestamp = source["timestamp"];
+	        this.key = source["key"];
 	    }
 	}
 	export class OutputSpec {
@@ -335,6 +357,7 @@ export namespace bmad {
 	    }
 	}
 	export class PendingPrompt {
+	    execId?: string;
 	    nodeId: string;
 	    inputId: string;
 	    prompt: string;
@@ -343,6 +366,8 @@ export namespace bmad {
 	    round: number;
 	    createdAt: number;
 	    promptId: string;
+	    lastOutput?: string;
+	    structured?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new PendingPrompt(source);
@@ -350,6 +375,7 @@ export namespace bmad {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.execId = source["execId"];
 	        this.nodeId = source["nodeId"];
 	        this.inputId = source["inputId"];
 	        this.prompt = source["prompt"];
@@ -358,6 +384,8 @@ export namespace bmad {
 	        this.round = source["round"];
 	        this.createdAt = source["createdAt"];
 	        this.promptId = source["promptId"];
+	        this.lastOutput = source["lastOutput"];
+	        this.structured = source["structured"];
 	    }
 	}
 	export class Position {
@@ -386,6 +414,7 @@ export namespace bmad {
 	    moduleId: string;
 	    version: string;
 	    mode?: string;
+	    enableAstAdapter?: boolean;
 	    inputSpecs?: InputSpec[];
 	    outputSpecs?: OutputSpec[];
 	    gate?: IterationGate;
@@ -407,6 +436,7 @@ export namespace bmad {
 	        this.moduleId = source["moduleId"];
 	        this.version = source["version"];
 	        this.mode = source["mode"];
+	        this.enableAstAdapter = source["enableAstAdapter"];
 	        this.inputSpecs = this.convertValues(source["inputSpecs"], InputSpec);
 	        this.outputSpecs = this.convertValues(source["outputSpecs"], OutputSpec);
 	        this.gate = this.convertValues(source["gate"], IterationGate);
@@ -1061,6 +1091,28 @@ export namespace main {
 		}
 	}
 	
+	export class MarkdownMenuSettings {
+	    bold: boolean;
+	    italic: boolean;
+	    strikethrough: boolean;
+	    code: boolean;
+	    link: boolean;
+	    latex: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new MarkdownMenuSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.bold = source["bold"];
+	        this.italic = source["italic"];
+	        this.strikethrough = source["strikethrough"];
+	        this.code = source["code"];
+	        this.link = source["link"];
+	        this.latex = source["latex"];
+	    }
+	}
 	export class NerdFontEntry {
 	    family: string;
 	    filePath: string;
@@ -1138,6 +1190,16 @@ export namespace main {
 	    fontSize?: number;
 	    sidebarWidth?: number;
 	    editorSettings?: EditorSettings;
+	    markdownMenu?: MarkdownMenuSettings;
+	    ollamaEnabled: boolean;
+	    ollamaModel?: string;
+	    uiAdapterEnabled: boolean;
+	    uiAdapterTimeoutMs?: number;
+	    uiAdapterUntrustedExpanded: boolean;
+	    backend?: string;
+	    claudeModel?: string;
+	    cliModel?: string;
+	    routerPolicy?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new mashedConfig(source);
@@ -1153,6 +1215,16 @@ export namespace main {
 	        this.fontSize = source["fontSize"];
 	        this.sidebarWidth = source["sidebarWidth"];
 	        this.editorSettings = this.convertValues(source["editorSettings"], EditorSettings);
+	        this.markdownMenu = this.convertValues(source["markdownMenu"], MarkdownMenuSettings);
+	        this.ollamaEnabled = source["ollamaEnabled"];
+	        this.ollamaModel = source["ollamaModel"];
+	        this.uiAdapterEnabled = source["uiAdapterEnabled"];
+	        this.uiAdapterTimeoutMs = source["uiAdapterTimeoutMs"];
+	        this.uiAdapterUntrustedExpanded = source["uiAdapterUntrustedExpanded"];
+	        this.backend = source["backend"];
+	        this.claudeModel = source["claudeModel"];
+	        this.cliModel = source["cliModel"];
+	        this.routerPolicy = source["routerPolicy"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

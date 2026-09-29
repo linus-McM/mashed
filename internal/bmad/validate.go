@@ -49,6 +49,12 @@ func validateInput(spec InputSpec, value string) error {
 		}
 
 	case ShapeFree, ShapeJSON, ShapeFile:
+		// ShapeJSON (§13.4 + U0 back-compat): accepts any submission (JSON map
+		// or bare legacy string) until story ui-ast-U7 lands the frontend JSON
+		// encoder. No structural JSON parse is performed here — content is
+		// only bounded by the 64 KiB cap (explicit MaxLength overrides the
+		// default). Once U7 ships, tighten this branch to require a
+		// well-formed JSON value for ShapeJSON.
 		if spec.Validation != "" {
 			re, err := regexp.Compile(spec.Validation)
 			if err != nil {

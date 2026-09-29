@@ -2,12 +2,15 @@
   import { onMount, createEventDispatcher } from 'svelte';
   import { GitMerge, AlertTriangle, Search } from 'lucide-svelte';
   import { GitListBranches, GitMergeInto, RepoStatus } from '../../wailsjs/go/main/App.js';
+  import { errorMessage } from '../lib/errorMessage';
 
+  /** @type {import('svelte').EventDispatcher<{ merged: { targetBranch: string; result: unknown }; cancel: void }>} */
   const dispatch = createEventDispatcher();
 
   export let repoPath = '';
   export let currentBranch = '';
 
+  /** @type {Array<{ name: string; current: boolean }>} */
   let branches = [];
   let selectedBranch = '';
   let dirty = false;
@@ -29,7 +32,7 @@
       ]);
       branches = branchList || [];
       dirty = status?.dirty || false;
-    } catch (e) {
+    } catch {
       error = 'Failed to load branches';
     }
   });
@@ -42,7 +45,7 @@
       const result = await GitMergeInto(repoPath, selectedBranch, autoCommit);
       dispatch('merged', { targetBranch: selectedBranch, result });
     } catch (e) {
-      error = e?.message || 'Merge failed';
+      error = errorMessage(e) || 'Merge failed';
       merging = false;
     }
   }
@@ -51,6 +54,7 @@
     dispatch('cancel');
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') cancel();
     if (e.key === 'Enter' && canMerge && !merging) merge();

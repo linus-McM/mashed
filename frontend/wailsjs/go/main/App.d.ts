@@ -11,6 +11,8 @@ export function CreateRepo(arg1:string,arg2:boolean,arg3:boolean):Promise<void>;
 
 export function DefaultEditorSettings():Promise<main.EditorSettings>;
 
+export function DefaultMarkdownMenuSettings():Promise<main.MarkdownMenuSettings>;
+
 export function DeleteBmadAgent(arg1:string):Promise<void>;
 
 export function DeleteBmadWorkflow(arg1:string):Promise<void>;
@@ -42,6 +44,10 @@ export function GetDevDir():Promise<string>;
 export function GetEditorSettings():Promise<main.EditorSettings>;
 
 export function GetFontsDir():Promise<string>;
+
+export function GetInteractiveTranscript(arg1:string,arg2:string):Promise<Array<bmad.InteractiveTurn>>;
+
+export function GetMarkdownMenuSettings():Promise<main.MarkdownMenuSettings>;
 
 export function GetNodeOutput(arg1:string,arg2:string):Promise<string>;
 
@@ -91,6 +97,8 @@ export function ListAllAgents(arg1:string):Promise<bmad.GroupedAgents>;
 
 export function ListAllMashedAssets(arg1:string):Promise<bmad.GroupedMashedAssets>;
 
+export function ListBackendsAvailable():Promise<Array<string>>;
+
 export function ListBmadAgents():Promise<Array<bmad.BmadAgentConfig>>;
 
 export function ListBmadTemplates():Promise<Array<bmad.WorkflowDef>>;
@@ -101,17 +109,23 @@ export function ListBmadWorkflowsByRepo(arg1:string):Promise<Array<bmad.Workflow
 
 export function ListBundledThemes():Promise<Array<main.VSCodeThemeEntry>>;
 
+export function ListClaudeModels():Promise<Array<string>>;
+
 export function ListLocalFonts():Promise<Array<main.LocalFontFamily>>;
 
 export function ListModels():Promise<Array<domain.ModelInfo>>;
 
 export function ListNerdFonts():Promise<Array<main.NerdFontEntry>>;
 
+export function ListOllamaModels():Promise<Array<string>>;
+
 export function ListRepoChoices():Promise<Array<main.RepoChoice>>;
 
 export function ListRepoFiles(arg1:string):Promise<Array<string>>;
 
 export function ListRepoSessions(arg1:string):Promise<Array<domain.TerminalSession>>;
+
+export function ListRouterPolicies():Promise<Array<string>>;
 
 export function ListVSCodiumThemes():Promise<Array<main.VSCodeThemeEntry>>;
 
@@ -124,6 +138,8 @@ export function PauseBmadWorkflow(arg1:string):Promise<void>;
 export function PickDirectory():Promise<string>;
 
 export function PickFile(arg1:string):Promise<string>;
+
+export function ProbeOllamaReachable():Promise<boolean>;
 
 export function ReadBundledThemeFile(arg1:string):Promise<string>;
 
@@ -159,6 +175,12 @@ export function SaveTheme(arg1:string,arg2:string):Promise<void>;
 
 export function SetActiveContext(arg1:string,arg2:string):Promise<void>;
 
+export function SetBackend(arg1:string):Promise<void>;
+
+export function SetCLIModel(arg1:string):Promise<void>;
+
+export function SetClaudeModel(arg1:string):Promise<void>;
+
 export function SetDevDir(arg1:string):Promise<void>;
 
 export function SetEditorSettings(arg1:main.EditorSettings):Promise<void>;
@@ -167,23 +189,37 @@ export function SetFontSize(arg1:number):Promise<void>;
 
 export function SetImportedTheme(arg1:string):Promise<void>;
 
+export function SetMarkdownMenuSettings(arg1:main.MarkdownMenuSettings):Promise<void>;
+
 export function SetMonoFont(arg1:string):Promise<void>;
+
+export function SetOllamaEnabled(arg1:boolean):Promise<void>;
+
+export function SetOllamaModel(arg1:string):Promise<void>;
+
+export function SetRouterPolicy(arg1:string):Promise<void>;
 
 export function SetSidebarWidth(arg1:number):Promise<void>;
 
 export function SetTheme(arg1:string):Promise<void>;
 
+export function SetUIAdapterEnabled(arg1:boolean):Promise<void>;
+
+export function SetUIAdapterTimeoutMs(arg1:number):Promise<void>;
+
+export function SetUIAdapterUntrustedExpanded(arg1:boolean):Promise<void>;
+
 export function SetVSCodiumExtPath(arg1:string):Promise<void>;
 
-export function SpawnAgent(arg1:string,arg2:string):Promise<string>;
+export function SpawnAgent(arg1:string,arg2:string,arg3:number,arg4:number):Promise<string>;
 
-export function SpawnAgentWithCommand(arg1:string,arg2:string):Promise<string>;
+export function SpawnAgentWithCommand(arg1:string,arg2:string,arg3:number,arg4:number):Promise<string>;
 
 export function SpawnPRReview(arg1:string):Promise<string>;
 
 export function SpawnRefactorPlan(arg1:string,arg2:string,arg3:Array<string>):Promise<string>;
 
-export function SpawnTerminal(arg1:string):Promise<string>;
+export function SpawnTerminal(arg1:string,arg2:number,arg3:number):Promise<string>;
 
 export function StartBmadWorkflow(arg1:string,arg2:string,arg3:string):Promise<string>;
 

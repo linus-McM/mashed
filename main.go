@@ -165,6 +165,13 @@ func main() {
 
 	app := NewApp(helperClient)
 
+	// Story uiadapter-logging-1: ensure ./logs exists before the
+	// production logger tries to open the daily file. Failure is
+	// non-fatal — NewProductionLogger will degrade to stdout-only.
+	if err := os.MkdirAll("./logs", 0o755); err != nil {
+		log.Printf("uiadapter: log dir create failed: %v", err)
+	}
+
 	// Graceful shutdown: close client, signal helper, wait for exit.
 	defer func() {
 		if helperClient != nil {

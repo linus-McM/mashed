@@ -7,16 +7,20 @@
 // and which should be skipped.
 
 export interface ArtifactEvent {
-  execId: string;
+  execId?: string;
   nodeId: string;
   paths: Record<string, string>;
 }
 
 export interface NodeCanvas {
   id: string;
-  data: {
-    process?: { inputs?: string[] };
-    config?: { inputPaths?: Record<string, string> };
+  // Permissive shape — the caller's data object may carry arbitrary extra
+  // keys beyond `process` / `config`. Every field is optional so the
+  // WorkflowBuilder `CanvasNode` (and test fixtures) flow through without
+  // a cast.
+  data?: {
+    process?: { inputs?: string[] } | null;
+    config?: Record<string, unknown>;
   };
 }
 
@@ -71,7 +75,12 @@ export function computeAutoFill(
         continue;
       }
 
-      const existing = target.data?.config?.inputPaths?.[artifactName];
+      const config = target.data?.config;
+      const inputPaths =
+        config && typeof config === 'object'
+          ? (config as { inputPaths?: Record<string, string> }).inputPaths
+          : undefined;
+      const existing = inputPaths?.[artifactName];
       const isEmpty = existing === undefined || existing === null || existing === '';
 
       if (isEmpty) {

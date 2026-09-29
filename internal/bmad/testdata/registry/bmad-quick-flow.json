@@ -1,0 +1,1 @@
+{"id":"bmad-quick-flow","name":"Quick Flow","phase":"analysis","agentRole":"developer","skillName":"bmad-quick-flow","description":"Lightweight analysis that produces both code and a PRD in one pass.","inputs":[],"outputs":["code","PRD.md"],"moduleId":"core","version":"1.0.0"}

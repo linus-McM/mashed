@@ -138,7 +138,7 @@ func TestSuspendForSpecEntersAwaitingInput(t *testing.T) {
 	errCh := make(chan error, 1)
 	go func() {
 		// suspendForSpec does not exist yet — RED phase: this will fail to compile.
-		errCh <- e.suspendForSpec(ctx, state, nodeIndex, nodeID, 1, spec)
+		errCh <- e.suspendForSpec(ctx, state, nodeIndex, nodeID, 1, spec, "")
 	}()
 
 	// Assert NodeAwaitingInput within 500ms.
@@ -216,7 +216,7 @@ func TestSuspendForSpecCtxCancellationAborts(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	errCh := make(chan error, 1)
 	go func() {
-		errCh <- e.suspendForSpec(ctx, state, nodeIndex, nodeID, 1, spec)
+		errCh <- e.suspendForSpec(ctx, state, nodeIndex, nodeID, 1, spec, "")
 	}()
 
 	// Wait for suspension to register.

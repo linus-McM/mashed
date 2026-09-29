@@ -29,7 +29,7 @@ func sampleWorkflow(id string) WorkflowDef {
 				// bmad-domain-research is autonomous (Mode == "") so this fixture
 				// still exercises the legacy non-interactive flow. S7 moved
 				// bmad-brainstorming to InteractIterative.
-				ProcessID: "bmad-domain-research",
+				ProcessID: autonomousProcessFixtureID,
 				Label:     "Domain Research",
 				Position:  Position{X: 0, Y: 200},
 				Status:    NodePending,
@@ -37,7 +37,7 @@ func sampleWorkflow(id string) WorkflowDef {
 			},
 			{
 				ID:        "n2",
-				ProcessID: "bmad-create-prd",
+				ProcessID: autonomousProcessFixtureID,
 				Label:     "Create PRD",
 				Position:  Position{X: 250, Y: 200},
 				Status:    NodePending,

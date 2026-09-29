@@ -30,6 +30,11 @@ haiku:
 dev: build-helper
     PATH="$HOME/go/bin:$PATH" wails dev
 
+# Run wails dev with UI adapter debug logging on. Both stdout and the
+# daily JSON file are tee'd to logs/uiadapter-trace.log for offline grep.
+trace: build-helper
+    PATH="$HOME/go/bin:$PATH" UIADAPTER_LOG_LEVEL=debug wails dev 2>&1 | tee logs/uiadapter-trace.log
+
 r_mix:
     @repomix --parsable-style --compress --remove-empty-lines --skill-generate use-repo-code
 
@@ -51,9 +56,67 @@ build: build-helper
     codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app/Contents/MacOS/mashed-pty-helper"
     codesign --force --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements build/darwin/entitlements.plist "build/bin/mashed.app"
 
-# Run Go tests
+# Package the signed .app into a distributable DMG via hdiutil. Output:
+# build/bin/mashed-<version>.dmg. Requires `just build` first. Uses an
+# UDZO-compressed read-only image with a /Applications symlink so the
+# user can drag-and-drop install.
+dmg: build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION=$(git describe --tags --always --dirty 2>/dev/null || date +%Y%m%d-%H%M)
+    OUT="build/bin/mashed-${VERSION}.dmg"
+    STAGE="$(mktemp -d)/dmg"
+    mkdir -p "$STAGE"
+    cp -R build/bin/mashed.app "$STAGE/"
+    ln -s /Applications "$STAGE/Applications"
+    rm -f "$OUT"
+    hdiutil create -volname "mashed" -srcfolder "$STAGE" -ov -format UDZO "$OUT"
+    rm -rf "$STAGE"
+    codesign --force --sign "Apple Development: linus McManamey (5X8A9U965U)" "$OUT"
+    echo "DMG: $OUT"
+
+# Run Go tests. -tags testing compiles files behind //go:build testing
+# (MockAdapter + adapter/flatten/gate tests for ui-ast-U4). Without the
+# tag, those _test.go files are silently excluded from the build list.
 test:
-    go test ./internal/... -count=1
+    go test -tags testing ./internal/... -race -count=1
+
+# Install the Schema→Go codegen tool (Story A). Run once per workstation.
+# Tracked in tools.go so `go mod tidy` keeps the version pinned in go.mod.
+install-tools:
+    go install github.com/atombender/go-jsonschema@latest
+
+# Regenerate internal/uiadapter/uiast.gen.go from schemas/*.json
+# (Story A / Plan §3 Story A). CI asserts the tree is clean via
+# `TestCodegen_NoDrift` — run this after editing any schema.
+gen:
+    PATH="$(go env GOPATH)/bin:$PATH" go generate ./internal/uiadapter/...
+
+# Offline Gemma UI AST eval harness (Story ui-ast-U9). Runs the adapter
+# against the committed ≥ 30-sample corpus; skips cleanly if Ollama is
+# unreachable. Requires `gemma3:4b` pulled locally (~2.5 GB) on first run.
+# Gated behind the `ollama_eval` build tag so `just test` stays fast.
+eval:
+    go test -tags=ollama_eval -run TestEval_FullCorpus -v ./internal/uiadapter/...
+
+# Run svelte-check across the frontend. Catches implicit-any, missing props,
+# untyped catch bindings, and Svelte-template type errors that Vite's build
+# does not surface. Errors only — warnings are suppressed.
+sveltecheck:
+    cd frontend && npx svelte-check --threshold error --fail-on-warnings=false
+
+# Count svelte-check errors (headline number for sprint planning).
+sveltecheck-count:
+    cd frontend && npx svelte-check --threshold error --fail-on-warnings=false 2>&1 | grep -cE "^[0-9]+ ERROR" || true
+
+# Group svelte-check errors by file, sorted by volume. Use to pick the next
+# migration target.
+sveltecheck-by-file:
+    cd frontend && npx svelte-check --threshold error --fail-on-warnings=false 2>&1 | grep -oE 'ERROR "[^"]+"' | sort | uniq -c | sort -rn
+
+# Show svelte-check errors for a single file. Usage: just sveltecheck-file src/views/NotificationFeed.svelte
+sveltecheck-file FILE:
+    cd frontend && npx svelte-check --threshold error --fail-on-warnings=false 2>&1 | grep -F {{FILE}} || true
 
 
 # List all tmux sessions related to this repo, grouped by parent/child
@@ -129,17 +192,39 @@ repomixer:
     # repomix --remote https://github.com/bmad-code-org/BMAD-METHOD  --compress -o ./docs/repomixer/bmad-method/bmad-method.xml --style xml
     repomix --remote https://github.com/manaflow-ai/cmux  --compress -o ./docs/repomixer/cmux/cmux.xml --style xml   
 
-# Run Go tests then frontend tests
+# Run Go tests then frontend tests. svelte-check (zero-error gate) runs
+# before vitest — template-level type errors fail the suite, period.
 test-all: test
+    cd frontend && npm run check
     cd frontend && npx vitest run
 
 # Run per-package Go coverage threshold enforcement
 test-cover:
     bash scripts/check-coverage.sh
 
-# Run Go static analysis
+# Run Go static analysis + Svelte template typecheck (zero-error gate).
 lint:
     go vet ./...
+    cd frontend && npm run check
+
+# Quality gate: build + vet + test + race + frontend typecheck. Pass = green for commit.
+# Used by sprint-watchdog hook + team-sprint Phase 5 pre-flight.
+qg:
+    @echo "[qg] go build"
+    @go build ./...
+    @echo "[qg] go vet"
+    @go vet ./...
+    @echo "[qg] go test"
+    @go test -tags testing ./internal/... -count=1
+    @echo "[qg] go test -race"
+    @go test -tags testing ./internal/... -race -count=1 -short
+    @echo "[qg] svelte-check"
+    @cd frontend && npx svelte-check --threshold error --fail-on-warnings=false
+    @echo "[qg] PASS"
+
+# Quick variant: skip race + svelte-check. Used by watchdog between agent handoffs.
+qg-quick:
+    @go build ./... && go vet ./... && go test -tags testing ./internal/... -count=1 -short
 
 # Install lefthook git hooks
 hooks-install:

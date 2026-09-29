@@ -13,12 +13,19 @@ import { tick } from 'svelte';
 
 vi.mock('../../../wailsjs/go/main/App.js', () => ({
   RespondToInput: vi.fn(async () => undefined),
+  GetInteractiveTranscript: vi.fn(async () => []),
+}));
+
+vi.mock('../../../wailsjs/runtime/runtime.js', () => ({
+  BrowserOpenURL: vi.fn(),
+  EventsOn: vi.fn(() => () => undefined),
 }));
 
 import { RespondToInput } from '../../../wailsjs/go/main/App.js';
 import InputResponseModal from './InputResponseModal.svelte';
 import {
   interactiveInput,
+  pendingPrompt,
   resetInteractiveInput,
   setValidationError,
   type PendingPrompt,
@@ -39,6 +46,15 @@ function makePrompt(overrides: Partial<PendingPrompt> = {}): PendingPrompt {
     ...overrides,
   };
 }
+
+const astJson = (...nodes: Array<Record<string, unknown>>) =>
+  JSON.stringify({ version: '1', nodes });
+
+const dgNode = (
+  key: string,
+  widget: Record<string, unknown>,
+  required = true,
+) => ({ type: 'decision_group', response_key: key, heading: `DG ${key}`, required, widget });
 
 type Mount = { component: any; target: HTMLElement };
 function mount(props: Record<string, unknown> = {}): Mount {
@@ -140,5 +156,203 @@ describe('InputResponseModal', () => {
     mounted = mount({ prompt: makePrompt({ round: 3, maxRounds: 30 }) });
     const pill = mounted.target.querySelector('[data-testid="round-pill"]');
     expect(pill?.textContent?.trim()).toBe('3 / 30');
+  });
+
+  describe('AC-9 AST region stacking', () => {
+    const astPayload = astJson(
+      { type: 'markdown', content: 'Context paragraph' },
+      { type: 'hint', tone: 'info', content: 'A hint' },
+    );
+
+    it('AC9_renders_ast_above_widget — AST region precedes Layer-1 widget in DOM order', async () => {
+      mounted = mount({ prompt: makePrompt({ structured: astPayload }) });
+      await tick();
+      const region = mounted.target.querySelector('[data-testid="ast-region"]');
+      const widget = mounted.target.querySelector('[role="radiogroup"]');
+      expect(region).not.toBeNull();
+      expect(widget).not.toBeNull();
+      // region must come BEFORE widget in the document.
+      const rel = region!.compareDocumentPosition(widget!);
+      expect(rel & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('AC9_layer1_unchanged_when_null — no ast-region rendered when structured missing', async () => {
+      mounted = mount({ prompt: makePrompt() });
+      await tick();
+      expect(mounted.target.querySelector('[data-testid="ast-region"]')).toBeNull();
+      // Layer-1 widget still renders normally.
+      expect(mounted.target.querySelector('[role="radiogroup"]')).not.toBeNull();
+    });
+
+    it('AC9_respects_prefers_reduced_motion — AST renders without fly wrapper transitions', async () => {
+      const originalMatchMedia = window.matchMedia;
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion'),
+        media: query,
+        onchange: null,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => false,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+      })) as unknown as typeof window.matchMedia;
+      try {
+        mounted = mount({ prompt: makePrompt({ structured: astPayload }) });
+        await tick();
+        const region = mounted.target.querySelector('[data-testid="ast-region"]');
+        expect(region).not.toBeNull();
+        // Nodes still render; no transition attributes/inline styles required.
+        expect(region!.querySelectorAll('.ast-node-wrapper').length).toBe(2);
+      } finally {
+        window.matchMedia = originalMatchMedia;
+      }
+    });
+  });
+
+  // Story ui-ast-U7 — AC-7 (send-gating + file-path passthrough).
+  describe('ui-ast-U7 decision_group submit path', () => {
+    const TRAVERSAL_PATH = '../../etc/passwd';
+
+    it('AC7_send_disabled_until_required_filled', async () => {
+      const structured = astJson(
+        dgNode('req', { type: 'choice', options: ['a', 'b'] }),
+        dgNode('opt', { type: 'choice', options: ['x', 'y'] }, false),
+      );
+      mounted = mount({ prompt: makePrompt({ shape: 'json', structured }) });
+      await tick();
+
+      const send = mounted.target.querySelector<HTMLButtonElement>('[data-testid="input-modal-send"]');
+      expect(send, 'Send button must render when decision_groups exist').not.toBeNull();
+      expect(send!.disabled, 'Send disabled while required group has no value').toBe(true);
+
+      // Fill the required group (first radiogroup in DOM order) via click + Enter.
+      const firstRadiogroup = mounted.target.querySelector('[role="radiogroup"]')!;
+      const firstOption = firstRadiogroup.querySelector<HTMLButtonElement>('[data-testid="choice-option-1"]')!;
+      firstOption.click();
+      await tick();
+      firstOption.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      await tick();
+
+      expect(send!.disabled, 'Send enabled once required group has a value').toBe(false);
+    });
+
+    it('AC7_collapse_send_gated_on_active — Send enables when active group is filled, even if other required groups empty', async () => {
+      // shape!=='json' + 2 groups → collapse rule. User picks group `b`;
+      // group `a` (also required) stays empty. Send must enable on `b` alone
+      // since collapse collapses the submission to a single answer.
+      const structured = astJson(
+        dgNode('a', { type: 'choice', options: ['x', 'y'] }, true),
+        dgNode('b', { type: 'choice', options: ['m', 'n'] }, true),
+      );
+      mounted = mount({ prompt: makePrompt({ shape: 'free', structured }) });
+      await tick();
+
+      const send = mounted.target.querySelector<HTMLButtonElement>('[data-testid="input-modal-send"]')!;
+      expect(send.disabled, 'initially Send disabled — active group empty').toBe(true);
+
+      // Click inactive card `b` to make it active (first-required `a` is
+      // active by default; we swap so the filled group is the non-default).
+      const cardB = mounted.target.querySelector<HTMLElement>('[data-testid="decision-group"][data-key="b"]')!;
+      cardB.click();
+      await tick();
+
+      // Fill active group `b` — group `a` stays empty.
+      const bRadiogroup = cardB.querySelector('[role="radiogroup"]')!;
+      const bOpt = bRadiogroup.querySelector<HTMLButtonElement>('[data-testid="choice-option-1"]')!;
+      bOpt.click();
+      await tick();
+      bOpt.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      await tick();
+
+      expect(send.disabled, 'Send enables — active filled, ignore other required').toBe(false);
+    });
+
+    it('AC6_submits_active_group_value — collapse onSend submits active group, not first-required', async () => {
+      const SECOND_OPTIONS = ['sx', 'sy'] as const;
+      const PICKED_INDEX = 2;
+      const EXPECTED_VALUE = SECOND_OPTIONS[PICKED_INDEX - 1];
+      const structured = astJson(
+        dgNode('first', { type: 'choice', options: ['fx', 'fy'] }, true),
+        dgNode('second', { type: 'choice', options: [...SECOND_OPTIONS] }, true),
+      );
+      mounted = mount({ prompt: makePrompt({ shape: 'free', structured }) });
+      await tick();
+
+      // Swap active from `first` → `second`, fill `second`.
+      const cardSecond = mounted.target.querySelector<HTMLElement>('[data-testid="decision-group"][data-key="second"]')!;
+      cardSecond.click();
+      await tick();
+      const opt = cardSecond.querySelector<HTMLButtonElement>(`[data-testid="choice-option-${PICKED_INDEX}"]`)!;
+      opt.click();
+      await tick();
+      opt.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      await tick();
+
+      mounted.target.querySelector<HTMLButtonElement>('[data-testid="input-modal-send"]')!.click();
+      await tick();
+      await Promise.resolve();
+
+      expect(RespondToInput).toHaveBeenCalledWith('exec-1', 'n1', 'topic', EXPECTED_VALUE);
+    });
+
+    it('AC7_file_path_passthrough — file path sent verbatim to RespondToInput', async () => {
+      const structured = astJson(dgNode('path', { type: 'file' }));
+      mounted = mount({ prompt: makePrompt({ shape: 'file', inputId: 'upload', structured }) });
+      await tick();
+
+      const pathInput = mounted.target.querySelector<HTMLInputElement>('[data-testid="file-path-input"]')!;
+      pathInput.value = TRAVERSAL_PATH;
+      pathInput.dispatchEvent(new Event('input'));
+      await tick();
+      pathInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      await tick();
+
+      mounted.target.querySelector<HTMLButtonElement>('[data-testid="input-modal-send"]')!.click();
+      await tick();
+
+      expect(RespondToInput).toHaveBeenCalledWith('exec-1', 'n1', 'upload', TRAVERSAL_PATH);
+    });
+  });
+
+  // Story ui-ast-U8 — AC-10. RED until InputResponseModal wires the conditional
+  // DiagnosticsChip + RawViewToggle mount gated on `pendingAst != null`.
+  describe('ui-ast-U8 conditional mount (AC-10)', () => {
+    it('renders helpText slot when prompt.helpText is set', async () => {
+      mounted = mount({ prompt: makePrompt({ helpText: 'HINT LINE' }) });
+      await tick();
+      const help = mounted.target.querySelector('[data-testid="input-modal-help"]');
+      expect(help?.textContent).toContain('HINT LINE');
+    });
+
+    it('u8-components-absent-when-pendingAst-null — no DiagnosticsChip or RawViewToggle when structured is missing', async () => {
+      mounted = mount({ prompt: makePrompt({ shape: 'free', structured: undefined }) });
+      await tick();
+
+      expect(mounted.target.querySelector('[data-testid="diagnostics-chip"]')).toBeNull();
+      expect(mounted.target.querySelector('[data-testid="raw-view-toggle"]')).toBeNull();
+      // Existing modal behaviour unchanged — shell + Cancel render (Layer-1 free
+      // widget has its own submit path, so Send only mounts for decision groups).
+      expect(mounted.target.querySelector('[data-testid="input-response-modal"]')).not.toBeNull();
+      expect(mounted.target.querySelector('[data-testid="input-modal-cancel"]')).not.toBeNull();
+    });
+
+    it('u8-components-render-when-pendingAst-set — RawViewToggle + DiagnosticsChip mount with diagnostics', async () => {
+      const structured = JSON.stringify({
+        version: '1',
+        nodes: [{ type: 'markdown', content: 'ctx' }],
+        diagnostics: { untrusted: true, fallback_reasons: ['empty_options'] },
+      });
+      const prompt = makePrompt({ shape: 'free', structured, lastOutput: 'CAPTURED RAW BODY' });
+      pendingPrompt.set(prompt);
+      mounted = mount({ prompt });
+      await tick();
+      await tick();
+
+      const chip = mounted.target.querySelector('[data-testid="diagnostics-chip"]');
+      const toggle = mounted.target.querySelector('[data-testid="raw-view-toggle"]');
+      expect(chip, 'DiagnosticsChip must render when pendingAst is set').not.toBeNull();
+      expect(toggle, 'RawViewToggle must render when lastOutput is non-empty').not.toBeNull();
+      expect(mounted.target.querySelector('pre')?.textContent).toContain('CAPTURED RAW BODY');
+    });
   });
 });

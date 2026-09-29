@@ -1,9 +1,19 @@
-<script>
-  export let files = []; // Array of {path, added, removed, isBinary, isNew}
+<script lang="ts">
+  /** Row shape rendered by the diff list. Structurally matches
+   * `domain.DiffFileStat` with optional `isNew` surfaced by callers. */
+  type DiffRow = {
+    path: string;
+    added: number;
+    removed: number;
+    isBinary: boolean;
+    isNew?: boolean;
+  };
 
-  function formatStat(file) {
+  export let files: DiffRow[] = [];
+
+  function formatStat(file: DiffRow): string {
     if (file.isBinary) return 'binary';
-    const parts = [];
+    const parts: string[] = [];
     if (file.added > 0) parts.push(`+${file.added}`);
     if (file.removed > 0) parts.push(`-${file.removed}`);
     return parts.join(' ') || '~';

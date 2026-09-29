@@ -1,0 +1,1 @@
+{"id":"bmad-editorial-review-structure","name":"Editorial Review (Structure)","phase":"support","agentRole":"tech-writer","skillName":"bmad-editorial-review-structure","description":"Review document structure for organization, completeness, and consistency.","inputs":["any-doc"],"outputs":["reviewed-doc"],"moduleId":"core","version":"1.0.0"}

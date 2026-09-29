@@ -1,0 +1,1 @@
+{"id":"bmad-infrastructure-devops","name":"Infrastructure \u0026 DevOps","phase":"implementation","agentRole":"architect","skillName":"bmad-infrastructure-devops","description":"Design and configure infrastructure, CI/CD pipelines, and deployment automation.","inputs":["architecture.md"],"outputs":["infra-config"],"moduleId":"cis","version":"1.0.0"}

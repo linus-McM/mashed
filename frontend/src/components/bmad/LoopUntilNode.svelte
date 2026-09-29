@@ -3,6 +3,8 @@
   import { Target } from 'lucide-svelte';
   import { formatConditionSummary, formatIterationDisplay, parseItemsCount } from './nodeUtils.js';
 
+  /** @typedef {import('../../types/workflow').CanvasNodeData} CanvasNodeData */
+  /** @type {CanvasNodeData} */
   export let data = {};
   // svelte-ignore unused-export-let
   export let id = '';
@@ -10,12 +12,12 @@
 
   $: status = data.status || 'pending';
   $: label = data.label || 'Loop Until';
-  $: config = data.config || {};
-  $: maxIterations = config.maxIterations || 0;
+  $: config = /** @type {Record<string, unknown>} */ (data.config || {});
+  $: maxIterations = typeof config.maxIterations === 'number' ? config.maxIterations : (typeof config.maxIterations === 'string' ? parseInt(config.maxIterations, 10) || 0 : 0);
   $: iterationCount = data.iterationCount;
   $: conditionSummary = formatConditionSummary(config);
   $: iterationDisplay = formatIterationDisplay(iterationCount, maxIterations);
-  $: itemCount = parseItemsCount(config.items);
+  $: itemCount = parseItemsCount(typeof config.items === 'string' ? config.items : undefined);
 </script>
 
 <div class="loop-until-node" class:selected class:running={status === 'running'}>

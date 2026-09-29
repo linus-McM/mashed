@@ -1,0 +1,73 @@
+{
+  "id": "exec-pre-u4-fixture-001",
+  "workflowId": "wf-party-mode",
+  "repoPath": "/tmp/pre-u4-repo",
+  "status": "paused",
+  "nodes": [
+    {
+      "id": "n-analysis",
+      "processId": "bmad-domain-research",
+      "label": "Analysis",
+      "position": {"x": 0, "y": 0},
+      "status": "complete",
+      "config": {},
+      "tmuxTarget": "mashed-pre-u4:0.0",
+      "startedAt": "2026-03-10T14:00:00Z",
+      "nodeType": "process"
+    },
+    {
+      "id": "n-prd",
+      "processId": "bmad-create-prd",
+      "label": "Create PRD",
+      "position": {"x": 260, "y": 0},
+      "status": "awaiting_input",
+      "config": {},
+      "tmuxTarget": "mashed-pre-u4:0.1",
+      "startedAt": "2026-03-10T14:12:00Z",
+      "nodeType": "process"
+    }
+  ],
+  "startedAt": "2026-03-10T14:00:00Z",
+  "currentNode": "n-prd",
+  "nodeOutputs": {
+    "n-analysis": "The product is a developer tool for orchestrating multi-agent workflows."
+  },
+  "nodeRounds": {
+    "n-prd": 2
+  },
+  "pendingPrompts": [
+    {
+      "nodeId": "n-prd",
+      "inputId": "confirm",
+      "prompt": "Is the PRD complete?",
+      "shape": "free",
+      "options": ["done", "revise"],
+      "round": 2,
+      "createdAt": 1741618320,
+      "promptId": "9b1c7a4d82f0e5c1"
+    }
+  ],
+  "nodeInputs": {
+    "n-prd": {
+      "topic": "developer tooling",
+      "audience": "engineers"
+    }
+  },
+  "nodeInputHistory": {
+    "n-prd": [
+      {
+        "inputId": "topic",
+        "round": 1,
+        "value": "developer tooling",
+        "timestamp": 1741618100
+      },
+      {
+        "inputId": "audience",
+        "round": 1,
+        "value": "engineers",
+        "timestamp": 1741618180
+      }
+    ]
+  },
+  "version": 2
+}

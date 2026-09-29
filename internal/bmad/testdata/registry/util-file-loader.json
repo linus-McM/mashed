@@ -1,0 +1,1 @@
+{"id":"util-file-loader","name":"File Loader","phase":"utilities","agentRole":"","skillName":"","description":"Open a file picker dialog and output the selected file path for downstream processes to read.","inputs":[],"outputs":["file-path"],"moduleId":"core","version":"1.0.0"}

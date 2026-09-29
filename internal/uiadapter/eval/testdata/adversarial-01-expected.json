@@ -1,0 +1,8 @@
+{
+  "decision_group_count": 1,
+  "widget_types": ["approval"],
+  "must_contain_urls": ["https://example.com/spec/v1"],
+  "must_contain_code_blocks": ["```go\nfunc Validate(ast *UIAST) error {\n    return nil\n}\n```"],
+  "fallback_answer_shape": "approval",
+  "category": "adversarial"
+}

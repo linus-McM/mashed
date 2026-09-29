@@ -1,0 +1,8 @@
+Which ideation lens fits this session best?
+
+- divergent: cast wide, quantity over quality
+- convergent: narrow to top-3 candidates
+- analogical: borrow from adjacent domains
+- provocation: deliberately break an assumption
+
+Enter your pick:

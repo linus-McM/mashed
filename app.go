@@ -20,6 +20,7 @@ import (
 	"mashed/internal/scanner"
 	"mashed/internal/terminal"
 	"mashed/internal/terminal/helper"
+	"mashed/internal/uiadapter"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -33,7 +34,7 @@ type paneDiscoverer interface {
 
 // sessionManager abstracts PTY session lifecycle for testability.
 type sessionManager interface {
-	Spawn(ctx context.Context, name, repoPath, command string) (*terminal.ManagedSession, error)
+	Spawn(ctx context.Context, name, repoPath, command string, cols, rows uint16) (*terminal.ManagedSession, error)
 	Kill(name string) error
 	IsAlive(name string) bool
 	FindByPID(pid int) (*terminal.ManagedSession, bool)
@@ -42,15 +43,15 @@ type sessionManager interface {
 
 // App is the main application struct bound to the Wails frontend.
 type App struct {
-	ctx         context.Context
-	cancel      context.CancelFunc
-	provider    *scanner.ClaudeCodeProvider
-	repoScanner *scanner.RepoScanner
-	engine      *agent.NotificationEngine
-	bridge      *terminal.Bridge
-	manager     sessionManager
-	panes       paneDiscoverer
-	explainer   *explain.Explainer
+	ctx              context.Context
+	cancel           context.CancelFunc
+	provider         *scanner.ClaudeCodeProvider
+	repoScanner      *scanner.RepoScanner
+	engine           *agent.NotificationEngine
+	bridge           *terminal.Bridge
+	manager          sessionManager
+	panes            paneDiscoverer
+	explainer        *explain.Explainer
 	mu               sync.Mutex
 	activeRepoPath   string
 	activePaneTarget string
@@ -69,6 +70,12 @@ type App struct {
 
 	terminalSessions map[string]domain.TerminalSession
 	logFile          *os.File
+
+	// shutdownHooks are drained in (*App).shutdown. Each hook is invoked
+	// exactly once; errors are log.Printf'd and never block subsequent
+	// hooks. Story uiadapter-logging-1 introduced this slice to register
+	// the production log-file closer.
+	shutdownHooks []func() error
 }
 
 // VSCodeThemeEntry represents a single color theme found in a VSCodium extension.
@@ -96,17 +103,53 @@ type EditorSettings struct {
 	SmoothScrolling         bool   `json:"smoothScrolling"`
 }
 
-// mashedConfig persists user settings between launches.
-type mashedConfig struct {
-	DevDir          string          `json:"devDir"`
-	Theme           string          `json:"theme,omitempty"`
-	VSCodiumExtPath string          `json:"vscodiumExtPath,omitempty"`
-	ImportedTheme   string          `json:"importedTheme,omitempty"`
-	MonoFont        string          `json:"monoFont,omitempty"`
-	FontSize        int             `json:"fontSize,omitempty"`
-	SidebarWidth    int             `json:"sidebarWidth,omitempty"`
-	EditorSettings  *EditorSettings `json:"editorSettings,omitempty"`
+// MarkdownMenuSettings holds per-action visibility toggles for the markdown
+// formatting toolbar. Every field is a bool so any combination is valid.
+type MarkdownMenuSettings struct {
+	Bold          bool `json:"bold"`
+	Italic        bool `json:"italic"`
+	Strikethrough bool `json:"strikethrough"`
+	Code          bool `json:"code"`
+	Link          bool `json:"link"`
+	Latex         bool `json:"latex"`
 }
+
+// mashedConfig persists user settings between launches.
+//
+// OllamaEnabled / UIAdapterEnabled / UIAdapterUntrustedExpanded omit
+// omitempty so explicit false round-trips to disk; loadConfig
+// distinguishes missing from false where the default is TRUE.
+type mashedConfig struct {
+	DevDir                     string                `json:"devDir"`
+	Theme                      string                `json:"theme,omitempty"`
+	VSCodiumExtPath            string                `json:"vscodiumExtPath,omitempty"`
+	ImportedTheme              string                `json:"importedTheme,omitempty"`
+	MonoFont                   string                `json:"monoFont,omitempty"`
+	FontSize                   int                   `json:"fontSize,omitempty"`
+	SidebarWidth               int                   `json:"sidebarWidth,omitempty"`
+	EditorSettings             *EditorSettings       `json:"editorSettings,omitempty"`
+	MarkdownMenu               *MarkdownMenuSettings `json:"markdownMenu,omitempty"`
+	OllamaEnabled              bool                  `json:"ollamaEnabled"`
+	OllamaModel                string                `json:"ollamaModel,omitempty"`
+	UIAdapterEnabled           bool                  `json:"uiAdapterEnabled"`
+	UIAdapterTimeoutMs         int                   `json:"uiAdapterTimeoutMs,omitempty"`
+	UIAdapterUntrustedExpanded bool                  `json:"uiAdapterUntrustedExpanded"`
+
+	// Plan v3 Story 18 — dynamic backend/router selection (runtime pick).
+	Backend      string `json:"backend,omitempty"`       // "ollama" | "claude-api" | "claude-cli"
+	ClaudeModel  string `json:"claudeModel,omitempty"`   // for backend=claude-api
+	CLIModel     string `json:"cliModel,omitempty"`      // for backend=claude-cli
+	RouterPolicy string `json:"routerPolicy,omitempty"`  // enum — see Plan §3 Story 16
+}
+
+const (
+	defaultOllamaModel = "gemma3:4b"
+	// 30s budget covers Ollama gemma3:4b cold-load (~10s) + generation
+	// (~5s) on a typical Mac. The previous 3s budget guaranteed a fallback
+	// AST on the first call after a server restart, hiding the structured
+	// menu the adapter would otherwise have produced.
+	defaultUIAdapterTimeoutMs = 30000
+)
 
 // configPath returns the path to the mashed config file.
 func configPath() string {
@@ -120,18 +163,50 @@ func themesPath() string {
 	return filepath.Join(home, ".mashed", "themes.json")
 }
 
-// loadConfig reads the persisted config, or returns empty config.
+// loadConfig reads the persisted config, applying defaults for missing keys.
+// Two-pass decode distinguishes missing key (default true) from explicit false.
 func loadConfig() mashedConfig {
+	cfg := defaultConfig()
 	data, err := os.ReadFile(configPath())
 	if err != nil {
-		return mashedConfig{}
+		return cfg
 	}
-	var cfg mashedConfig
+
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		log.Printf("warning: malformed config.json, ignoring: %v", err)
+		return defaultConfig()
+	}
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		log.Printf("warning: malformed config.json, ignoring: %v", err)
-		return mashedConfig{}
+		return defaultConfig()
+	}
+
+	if _, ok := raw["ollamaEnabled"]; !ok {
+		cfg.OllamaEnabled = true
+	}
+	if _, ok := raw["uiAdapterEnabled"]; !ok {
+		cfg.UIAdapterEnabled = true
+	}
+	if !validOllamaModelName(cfg.OllamaModel) {
+		if cfg.OllamaModel != "" {
+			log.Printf("warning: config.json ollamaModel %q fails validation, falling back to default", cfg.OllamaModel)
+		}
+		cfg.OllamaModel = defaultOllamaModel
+	}
+	if cfg.UIAdapterTimeoutMs == 0 {
+		cfg.UIAdapterTimeoutMs = defaultUIAdapterTimeoutMs
 	}
 	return cfg
+}
+
+func defaultConfig() mashedConfig {
+	return mashedConfig{
+		OllamaEnabled:      true,
+		OllamaModel:        defaultOllamaModel,
+		UIAdapterEnabled:   true,
+		UIAdapterTimeoutMs: defaultUIAdapterTimeoutMs,
+	}
 }
 
 // saveConfig persists the config to disk.
@@ -212,9 +287,65 @@ func (a *App) startup(ctx context.Context) {
 		log.Printf("bmad storage init failed: %v", err)
 	} else {
 		a.bmadStorage = storage
+		var bmadOpts []bmad.Option
+		if cfg.UIAdapterEnabled {
+			level := uiadapter.ParseLogLevel(os.Getenv("UIADAPTER_LOG_LEVEL"))
+			adapterLogger, closer, logErr := uiadapter.NewProductionLogger(level, "./logs")
+			if logErr != nil {
+				log.Printf("uiadapter: production logger fallback to stdout-only: %v", logErr)
+			}
+			if closer != nil {
+				a.shutdownHooks = append(a.shutdownHooks, closer.Close)
+			}
+			// Pick the adapter implementation based on cfg.Backend. The
+			// "claude-cli" path delegates to the user's local `claude`
+			// binary (no API key required) and forces Haiku to keep
+			// per-translation cost negligible — Opus would cost ~30x for
+			// a task that only needs JSON shaping.
+			var adapter uiadapter.Adapter
+			switch cfg.Backend {
+			case "claude-cli":
+				cliModel := cfg.CLIModel
+				if cliModel == "" {
+					cliModel = "claude-haiku-4-5"
+				}
+				adapterLogger.Info("uiadapter.boot",
+					"op", "uiadapter.boot",
+					"boot_level", level.String(),
+					"backend", "claude-cli",
+					"model", cliModel,
+					"timeout_ms", cfg.UIAdapterTimeoutMs,
+				)
+				adapter = newClaudeCLIAdapter(uiadapter.Config{
+					Enabled:            true,
+					ClaudeModelPrimary: cliModel,
+					TimeoutMs:          cfg.UIAdapterTimeoutMs,
+					ClaudeCLIBinary:    "claude",
+					// --verbose is mandatory when --output-format is
+					// stream-json (claude refuses with exit 1 otherwise);
+					// --model pins Haiku for cost.
+					ClaudeCLIExtraFlags: []string{"--verbose", "--model", cliModel},
+				}, adapterLogger)
+			default:
+				adapterLogger.Info("uiadapter.boot",
+					"op", "uiadapter.boot",
+					"boot_level", level.String(),
+					"backend", "ollama",
+					"model", cfg.OllamaModel,
+					"timeout_ms", cfg.UIAdapterTimeoutMs,
+				)
+				adapter = uiadapter.NewDefault(uiadapter.Config{
+					Enabled:     true,
+					Model:       cfg.OllamaModel,
+					TimeoutMs:   cfg.UIAdapterTimeoutMs,
+					MaxInflight: 1,
+				}, adapterLogger)
+			}
+			bmadOpts = append(bmadOpts, bmad.WithAdapter(adapter))
+		}
 		a.bmadExecutor = bmad.NewExecutor(storage, func(event string, data interface{}) {
 			runtime.EventsEmit(a.ctx, event, data)
-		})
+		}, bmadOpts...)
 
 		// Clean up any BMAD tmux sessions left over from prior runs.
 		// Executions map is empty here (no workflows can have started yet),
@@ -252,6 +383,14 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 	if a.bridge != nil {
 		a.bridge.Stop()
+	}
+	// Drain the registered shutdown hooks (e.g. uiadapter log-file
+	// closer). Errors are logged but never block subsequent hooks per
+	// Story uiadapter-logging-1 AC-1.6.
+	for _, h := range a.shutdownHooks {
+		if err := h(); err != nil {
+			log.Printf("uiadapter: shutdown hook error: %v", err)
+		}
 	}
 }
 
@@ -509,6 +648,42 @@ func (a *App) SetEditorSettings(settings EditorSettings) error {
 	cfg := loadConfig()
 	cfg.EditorSettings = &settings
 	return saveConfig(cfg)
+}
+
+// DefaultMarkdownMenuSettings returns the default visibility for each markdown
+// toolbar action. LaTeX defaults to off; all other actions default to on.
+func (a *App) DefaultMarkdownMenuSettings() MarkdownMenuSettings {
+	return MarkdownMenuSettings{
+		Bold:          true,
+		Italic:        true,
+		Strikethrough: true,
+		Code:          true,
+		Link:          true,
+		Latex:         false,
+	}
+}
+
+// GetMarkdownMenuSettings returns persisted markdown menu settings, or defaults
+// if none saved. Reads must never mutate the on-disk config.
+func (a *App) GetMarkdownMenuSettings() MarkdownMenuSettings {
+	cfg := loadConfig()
+	if cfg.MarkdownMenu == nil {
+		return a.DefaultMarkdownMenuSettings()
+	}
+	return *cfg.MarkdownMenu
+}
+
+// SetMarkdownMenuSettings persists markdown menu settings to config. All fields
+// are bool, so no validation is required.
+func (a *App) SetMarkdownMenuSettings(settings MarkdownMenuSettings) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	cfg := loadConfig()
+	cfg.MarkdownMenu = &settings
+	if err := saveConfig(cfg); err != nil {
+		return fmt.Errorf("save markdown menu settings: %w", err)
+	}
+	return nil
 }
 
 // GetSavedThemes returns all saved imported themes as a JSON string.

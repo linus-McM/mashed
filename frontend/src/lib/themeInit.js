@@ -3,15 +3,21 @@
 // Handles reading, converting, registering, applying, and persisting imported VSCodium themes.
 
 import { ReadThemeFile, SetImportedTheme, SetTheme, GetSavedThemes, SaveTheme, RemoveTheme, ListBundledThemes, ReadBundledThemeFile } from '../../wailsjs/go/main/App.js';
-import { convertVSCodeTheme, validateConvertedTheme } from './themeConverter.js';
+import { convertVSCodeTheme, validateConvertedTheme } from './themeConverter';
 import { registerImportedTheme, registerSavedThemes, applyTheme, DEFAULT_THEME, allThemes } from './stores/theme.js';
 import { get } from 'svelte/store';
 
+/** @typedef {import('../types/theme').Theme} Theme */
+/** @typedef {{ id: string; theme: Theme }} CachedTheme */
+/** @typedef {{ importedTheme?: string; theme?: string }} ConfigLike */
+
 // Cache of already-converted themes: { themePath: { id, theme } }
 // Exported so Settings.svelte can render preview thumbnails for activated themes.
+/** @type {Record<string, CachedTheme>} */
 export const convertedCache = {};
 
 // Activation guard: prevent double-loading on rapid clicks (M-1 fix)
+/** @type {string | null} */
 let activatingPath = null;
 
 /**
@@ -25,7 +31,7 @@ let activatingPath = null;
 function extractExtensionId(themePath) {
   if (themePath.includes('::vsix::')) {
     const vsixPart = themePath.split('::vsix::')[0];
-    const filename = vsixPart.split('/').pop();
+    const filename = vsixPart.split('/').pop() ?? '';
     return filename.replace(/\.vsix$/i, '');
   }
   const parts = themePath.split('/');
@@ -46,10 +52,10 @@ function extractExtensionId(themePath) {
 export function makeThemeId(themePath, extensionId) {
   if (themePath.includes('::vsix::')) {
     const internalPath = themePath.split('::vsix::')[1];
-    const filename = internalPath.split('/').pop().replace('.json', '');
+    const filename = (internalPath.split('/').pop() ?? '').replace('.json', '');
     return 'imported-' + extensionId + '-' + filename;
   }
-  const filename = themePath.split('/').pop().replace('.json', '');
+  const filename = (themePath.split('/').pop() ?? '').replace('.json', '');
   return 'imported-' + extensionId + '-' + filename;
 }
 
@@ -156,7 +162,7 @@ export async function activateImportedTheme(themePath, extensionId) {
  * Called from App.svelte onMount. If cfg.importedTheme is set, activates it.
  * Falls back to cfg.theme or DEFAULT_THEME on failure (C-5 fix).
  *
- * @param {object} cfg - the config object from GetConfig()
+ * @param {ConfigLike} cfg - the config object from GetConfig()
  */
 export async function restoreImportedThemeFromConfig(cfg) {
   if (!cfg.importedTheme) {
@@ -189,6 +195,7 @@ export async function loadBundledThemes() {
   if (!entries || entries.length === 0) return;
 
   const existing = get(allThemes);
+  /** @type {import('./stores/theme.js').ThemeMap} */
   const batch = {};
 
   for (const entry of entries) {

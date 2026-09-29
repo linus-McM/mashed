@@ -1,10 +1,9 @@
-<script>
-  import { onMount, onDestroy } from 'svelte';
-  import { createEventDispatcher } from 'svelte';
+<script lang="ts">
+  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { fly, slide } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { SpawnAgent, SpawnAgentWithCommand, SpawnTerminal, KillAgent, GitCommit, GitCommitAndPush, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus } from '../../wailsjs/go/main/App.js';
-  import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime.js';
+  import { SpawnAgentWithCommand, SpawnTerminal, KillAgent, GitCommitPushAndPR, GitCommitStreaming, GitPull, GitPush, SpawnPRReview, RepoStatus } from '../../wailsjs/go/main/App.js';
+  import { EventsOn } from '../../wailsjs/runtime/runtime.js';
   import { GripVertical, GitBranch, Trash2, Plus, Hexagon, Circle, GitCommit as GitCommitIcon, Upload, GitPullRequest, ShieldAlert, GitBranchPlus, TerminalSquare, ChevronRight, ChevronDown, Download, GitMerge, Workflow } from 'lucide-svelte';
   import BranchModal from './BranchModal.svelte';
   import SwitchBranchModal from './SwitchBranchModal.svelte';
@@ -12,90 +11,194 @@
   import ForcePushModal from './ForcePushModal.svelte';
   import NewSessionModal from './NewSessionModal.svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
-  import { addSession, makeSession } from '../lib/stores/sessions.js';
+  import { addSession, makeSession } from '../lib/stores/sessions';
+  import { estimatePtySize } from '../lib/ptySize';
   import SparkLine from '../components/SparkLine.svelte';
+  import type { StatusToken } from '../types/status';
+  import { REPO_BORDER_PALETTE, REPO_BORDER_NONE } from '../lib/repoPalette';
 
-  const dispatch = createEventDispatcher();
+  // ---------------------------------------------------------------------------
+  // Local types — shapes surfaced to the feed from Wails events and app state.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Notification entry as it flows through the feed. Mirrors
+   * `domain.NotificationEvent` (internal/domain/types.go) with the extra
+   * per-render `subAgents` nesting the feed builds client-side.
+   */
+  type NotificationEntry = {
+    agentId: string;
+    agentName?: string;
+    model?: string;
+    repoName?: string;
+    repoPath?: string;
+    repoBranch?: string;
+    eventType: StatusToken | string;
+    summary?: string;
+    timestamp?: string;
+    tokensUsed?: number;
+    tokensMax?: number;
+    tokenSamples?: number[];
+    priority?: number;
+    tmuxTarget?: string;
+    pid?: number;
+    isSubAgent?: boolean;
+    parentAgentId?: string;
+    subAgentName?: string;
+    subAgentDesc?: string;
+    subAgentStatus?: 'running' | 'done' | string;
+    subAgentResult?: string;
+    subAgents?: NotificationEntry[];
+  };
+
+  /** Repo descriptor emitted by the backend `repos` event. */
+  type RepoDescriptor = {
+    name: string;
+    path: string;
+    branch: string;
+  };
+
+  /** Grouped repo → agents tree rendered by the feed. */
+  type RepoGroup = {
+    name: string;
+    path: string;
+    branch: string;
+    agents: NotificationEntry[];
+    worstStatus: string;
+  };
+
+  /** Cached git status per repo path — mirrors `main.RepoStatusInfo`. */
+  type RepoStatusSnapshot = {
+    dirty?: boolean;
+    openPRs?: number;
+    ahead?: number;
+    behind?: number;
+    protected?: boolean;
+  };
+
+  /** Transient per-repo action state (committing, pushing, etc). */
+  type RepoAction = {
+    action: string | null;
+    result: string | null;
+    error: string | null;
+  };
+
+  type CommitLine = { step: string; output: string };
+
+  /** Streaming-commit UI state keyed by repoPath. */
+  type CommitPanel = {
+    lines: CommitLine[];
+    error: string | null;
+    explanation: string | null;
+    done: boolean;
+    visible: boolean;
+  };
+
+  /** Payload of `git:commit:progress` events. */
+  type CommitProgressEvent = {
+    repoPath: string;
+    step?: string;
+    output?: string;
+    error?: string;
+    explanation?: string;
+    done?: boolean;
+  };
+
+  type SessionModalRepo = { path: string; name: string; branch: string };
+  type BranchModalRepo = { path: string; branch: string };
+  type SwitchModalRepo = { path: string; branch: string; color: string };
+  type MergeModalRepo = { path: string; branch: string };
+  type ForcePushRepo = { path: string; message: string };
+
+  // Event detail types for parent → child component events.
+  type SessionSpawnDetail = { command: string; model: string; repoPath: string };
+  type BranchEventDetail = { branch?: string };
+  type MergeEventDetail = { targetBranch?: string };
+
+  const dispatch = createEventDispatcher<{
+    notify: NotificationEntry;
+    select: NotificationEntry;
+    'open-workspace': RepoGroup;
+    spawn: void;
+  }>();
 
   // uiqa-06: entry animations. Literal ms values mirror --duration-* tokens
   // in style.css; Svelte transition props require numeric values.
   const reducedMotion = typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const STAGGER_CAP = 400;
-  const flyProps = (i) => reducedMotion
+  const flyProps = (i: number) => reducedMotion
     ? { y: 0, duration: 0, delay: 0 }
     : { y: -8, duration: 150, delay: Math.min(i * 50, STAGGER_CAP), easing: cubicOut };
   const slideProps = reducedMotion
     ? { duration: 0 }
     : { duration: 150, easing: cubicOut };
 
-  let spawningRepo = null; // repo path currently spawning
+  let spawningRepo: string | null = null; // repo path currently spawning
 
-  /** @type {any[]} Notifications passed from App.svelte */
-  export let notifications = [];
+  /** Notifications passed from App.svelte. */
+  export let notifications: NotificationEntry[] = [];
 
   // All scanned repos from backend (includes repos with no active agents)
-  let allRepos = [];
-  EventsOn('repos', (repos) => {
+  let allRepos: RepoDescriptor[] = [];
+  EventsOn('repos', (repos: RepoDescriptor[] | undefined) => {
     if (repos && repos.length > 0) {
       allRepos = repos;
     }
   });
 
-  let selectedId = null;
-  let colorPickerRepo = null; // repo name with open color picker
+  let selectedId: string | null = null;
+  let colorPickerRepo: string | null = null; // repo name with open color picker
 
-  const borderPalette = [
-    '#ff5f57', '#febc2e', '#28c840', '#3d9eff', '#9d6fff',
-    '#00c4b3', '#f0a500', '#e84545', '#00e57a', '#ff6ec7',
-    '#1e2530', // "none" — matches border-subtle
-  ];
+  const borderPalette: readonly string[] = REPO_BORDER_PALETTE;
 
   // Load saved border colors from localStorage
-  let repoBorderColors = {};
+  let repoBorderColors: Record<string, string> = {};
   try {
     const saved = localStorage.getItem('mashed:repoBorderColors');
-    if (saved) repoBorderColors = JSON.parse(saved);
+    if (saved) repoBorderColors = JSON.parse(saved) as Record<string, string>;
   } catch (_) {}
 
-  function getRepoColor(name) {
-    return repoBorderColors[name] || '#1e2530';
+  function getRepoColor(name: string): string {
+    return repoBorderColors[name] || REPO_BORDER_NONE;
   }
 
-  function setRepoColor(name, color) {
+  function setRepoColor(name: string, color: string): void {
     repoBorderColors[name] = color;
     repoBorderColors = repoBorderColors; // trigger reactivity
     localStorage.setItem('mashed:repoBorderColors', JSON.stringify(repoBorderColors));
     colorPickerRepo = null;
   }
 
-  function toggleColorPicker(name) {
+  function toggleColorPicker(name: string): void {
     colorPickerRepo = colorPickerRepo === name ? null : name;
   }
 
   // Drag and drop reordering
-  let dragRepo = null;
-  let dragOverRepo = null;
-  let dropPosition = null; // 'above' | 'below'
+  let dragRepo: string | null = null;
+  let dragOverRepo: string | null = null;
+  let dropPosition: 'above' | 'below' | null = null;
 
   // Load saved repo order from localStorage
-  let repoOrder = [];
+  let repoOrder: string[] = [];
   try {
     const saved = localStorage.getItem('mashed:repoOrder');
-    if (saved) repoOrder = JSON.parse(saved);
+    if (saved) repoOrder = JSON.parse(saved) as string[];
   } catch (_) {}
 
-  function onDragStart(e, repoName) {
+  function onDragStart(e: DragEvent, repoName: string): void {
     dragRepo = repoName;
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', repoName);
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', repoName);
+    }
     // Slight delay so the browser captures the drag image before we add opacity
     requestAnimationFrame(() => { dragRepo = repoName; });
   }
 
-  function onDragOver(e, repoName) {
+  function onDragOver(e: DragEvent, repoName: string): void {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     if (repoName === dragRepo) {
       dragOverRepo = null;
       dropPosition = null;
@@ -104,21 +207,24 @@
     dragOverRepo = repoName;
 
     // Determine above/below based on mouse Y relative to the target element center
-    const rect = e.currentTarget.getBoundingClientRect();
+    const target = e.currentTarget as HTMLElement | null;
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
     const midY = rect.top + rect.height / 2;
     dropPosition = e.clientY < midY ? 'above' : 'below';
   }
 
-  function onDragLeave(e) {
+  function onDragLeave(e: DragEvent): void {
     // Only clear if we actually left the element (not entering a child)
-    const related = e.relatedTarget;
-    if (!e.currentTarget.contains(related)) {
+    const related = e.relatedTarget as Node | null;
+    const target = e.currentTarget as HTMLElement | null;
+    if (target && !target.contains(related)) {
       dragOverRepo = null;
       dropPosition = null;
     }
   }
 
-  function onDrop(e, targetName) {
+  function onDrop(e: DragEvent, targetName: string): void {
     e.preventDefault();
     if (!dragRepo || dragRepo === targetName) {
       dragRepo = null;
@@ -127,7 +233,7 @@
       return;
     }
 
-    const names = orderedRepos.map(r => r.name);
+    const names: string[] = orderedRepos.map(r => r.name);
     const fromIdx = names.indexOf(dragRepo);
     let toIdx = names.indexOf(targetName);
     if (fromIdx === -1 || toIdx === -1) return;
@@ -154,7 +260,7 @@
     dropPosition = null;
   }
 
-  function onDragEnd() {
+  function onDragEnd(): void {
     dragRepo = null;
     dragOverRepo = null;
     dropPosition = null;
@@ -166,14 +272,15 @@
   // Apply manual order on top of the default sort
   $: orderedRepos = applyRepoOrder(repoGroups, repoOrder);
 
-  function applyRepoOrder(groups, order) {
+  function applyRepoOrder(groups: RepoGroup[], order: string[]): RepoGroup[] {
     if (!order || order.length === 0) return groups;
-    const byName = new Map(groups.map(r => [r.name, r]));
-    const result = [];
+    const byName = new Map<string, RepoGroup>(groups.map(r => [r.name, r]));
+    const result: RepoGroup[] = [];
     // Add repos in saved order first
     for (const name of order) {
-      if (byName.has(name)) {
-        result.push(byName.get(name));
+      const hit = byName.get(name);
+      if (hit) {
+        result.push(hit);
         byName.delete(name);
       }
     }
@@ -184,8 +291,8 @@
     return result;
   }
 
-  $: flatAgents = orderedRepos.flatMap(r => r.agents.flatMap(a => {
-    const result = [a];
+  $: flatAgents = orderedRepos.flatMap((r): NotificationEntry[] => r.agents.flatMap((a): NotificationEntry[] => {
+    const result: NotificationEntry[] = [a];
     if (a.subAgents && a.subAgents.length > 0 && isAgentExpanded(a.agentId)) {
       result.push(...a.subAgents);
     }
@@ -204,7 +311,7 @@
   // - anyRunning gates the pulse dot: hidden when nothing is live, visible
   //   (and animated unless reduced-motion) whenever the fleet is active.
   $: aggregateSamples = (() => {
-    const all = [];
+    const all: number[] = [];
     for (const group of orderedRepos) {
       for (const agent of (group.agents || [])) {
         if (agent.tokenSamples?.length) all.push(...agent.tokenSamples);
@@ -216,8 +323,54 @@
     (g) => (g.agents || []).some((a) => a.eventType === 'running'),
   );
 
-  function buildRepoTree(events, scannedRepos) {
-    const repoMap = new Map();
+  /**
+   * Canonical status-token → theme-token colour map used when NotificationFeed
+   * needs to render a status colour inline (e.g. ambient sparkline tint, any
+   * future per-repo chip). Values MUST be theme tokens (`var(--…)`) — cerebrum
+   * 2026-04-10 hard-bans raw hex for status colours. The map is `Record` (not
+   * `Partial<Record>`) so svelte-check fails if a new `StatusToken` lands in
+   * `types/status.ts` without a colour assignment here.
+   *
+   * StatusBadge keeps its own parallel map with label-specific tuning; the
+   * single duplication is worth the reduced coupling between the feed-layout
+   * file and the badge-render file.
+   */
+  const STATUS_COLORS: Record<StatusToken, string> = {
+    running:        'var(--accent-green)',
+    open:           'var(--accent-teal)',
+    finished:       'var(--accent-amber)',
+    needs_response: 'var(--accent-red)',
+    waiting:        'var(--accent-red)',
+    error:          'var(--accent-red)',
+    completed:      'var(--accent-blue)',
+    started:        'var(--accent-purple)',
+    blocked:        'var(--accent-red)',
+    done:           'var(--accent-blue)',
+    queued:         'var(--text-dim)',
+    terminal:       'var(--text-dim)',
+  };
+
+  // Sort-priority tables. `Partial<Record<...>>` because unknown event types
+  // fall through to the `?? 7`/`?? 5` default.
+  const AGENT_PRIORITY: Partial<Record<string, number>> = {
+    needs_response: 0,
+    error: 1,
+    running: 2,
+    open: 3,
+    started: 4,
+    finished: 5,
+    completed: 6,
+  };
+  const REPO_STATUS_PRIORITY: Partial<Record<string, number>> = {
+    needs_response: 0,
+    error: 1,
+    running: 2,
+    started: 3,
+    completed: 4,
+  };
+
+  function buildRepoTree(events: NotificationEntry[], scannedRepos: RepoDescriptor[]): RepoGroup[] {
+    const repoMap = new Map<string, RepoGroup>();
 
     // Seed with all scanned repos so they always show a panel
     for (const r of (scannedRepos || [])) {
@@ -244,14 +397,15 @@
         });
       }
       const repo = repoMap.get(repoKey);
+      if (!repo) continue;
 
       // Check if this is a sub-agent (ID contains "-sub-")
-      const isSubAgent = evt.agentId && evt.agentId.includes('-sub-');
+      const isSubAgent = !!(evt.agentId && evt.agentId.includes('-sub-'));
 
       if (isSubAgent) {
         // Find parent agent and nest under it
         const parentId = evt.agentId.split('-sub-')[0];
-        let parent = repo.agents.find(a => a.agentId === parentId);
+        const parent = repo.agents.find(a => a.agentId === parentId);
         if (!parent) {
           // Parent not found, show as top-level
           repo.agents.push({ ...evt, subAgents: [] });
@@ -276,26 +430,24 @@
     }
 
     // Sort agents within each repo: running/active on top, then by priority
-    const agentPriority = { needs_response: 0, error: 1, running: 2, open: 3, started: 4, finished: 5, completed: 6 };
     for (const repo of repoMap.values()) {
       repo.agents.sort((a, b) => {
-        const pa = agentPriority[a.eventType] ?? 7;
-        const pb = agentPriority[b.eventType] ?? 7;
+        const pa = AGENT_PRIORITY[a.eventType] ?? 7;
+        const pb = AGENT_PRIORITY[b.eventType] ?? 7;
         return pa - pb;
       });
     }
 
     // Sort repos: repos with attention-needed first, then alphabetical
-    const statusPriority = { needs_response: 0, error: 1, running: 2, started: 3, completed: 4 };
     return Array.from(repoMap.values()).sort((a, b) => {
-      const pa = statusPriority[a.worstStatus] ?? 5;
-      const pb = statusPriority[b.worstStatus] ?? 5;
+      const pa = REPO_STATUS_PRIORITY[a.worstStatus] ?? 5;
+      const pb = REPO_STATUS_PRIORITY[b.worstStatus] ?? 5;
       if (pa !== pb) return pa - pb;
       return a.name.localeCompare(b.name);
     });
   }
 
-  function repoTokens(repo) {
+  function repoTokens(repo: RepoGroup): number {
     let sum = 0;
     for (const a of repo.agents) {
       sum += a.tokensUsed || 0;
@@ -306,17 +458,13 @@
     return sum;
   }
 
-  function repoStatusColor(repo) {
-    return statusColor(repo.worstStatus);
-  }
-
-  function formatTokens(n) {
+  function formatTokens(n: number): string {
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
     if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
     return String(n);
   }
 
-  function formatElapsed(ts) {
+  function formatElapsed(ts: string | number | undefined | null): string {
     if (!ts) return '';
     const diff = Date.now() - new Date(ts).getTime();
     const secs = Math.floor(diff / 1000);
@@ -328,21 +476,22 @@
   }
 
   // New Session modal state
-  let sessionModalRepo = null; // { path, name, branch } or null
+  let sessionModalRepo: SessionModalRepo | null = null;
 
-  function openSessionModal(repo) {
+  function openSessionModal(repo: RepoGroup): void {
     sessionModalRepo = { path: repo.path, name: repo.name, branch: repo.branch };
   }
 
-  async function onSessionSpawn(e) {
+  async function onSessionSpawn(e: CustomEvent<SessionSpawnDetail>): Promise<void> {
     const { command, model, repoPath } = e.detail;
     sessionModalRepo = null;
     spawningRepo = repoPath;
     try {
-      const target = await SpawnAgentWithCommand(repoPath, command);
+      const { cols, rows } = estimatePtySize();
+      const target = await SpawnAgentWithCommand(repoPath, command, cols, rows);
       const repoName = repoNameFromDir(repoPath);
       addSession(repoPath, makeSession(target, repoPath, repoName, 'agent', model));
-      const agent = {
+      const agent: NotificationEntry = {
         agentId: `spawned-${Date.now()}`,
         agentName: model,
         model: model,
@@ -357,28 +506,29 @@
       };
       dispatch('notify', agent);
       dispatch('select', agent);
-    } catch (e) {
-      console.error('Spawn failed:', e);
+    } catch (err) {
+      console.error('Spawn failed:', err);
     } finally {
       spawningRepo = null;
     }
   }
 
-  function repoNameFromDir(dir) {
+  function repoNameFromDir(dir: string | undefined): string {
     if (!dir) return 'unknown';
     const parts = dir.split('/');
     return parts[parts.length - 1] || 'unknown';
   }
 
-  let spawningTerminal = null;
+  let spawningTerminal: string | null = null;
 
-  async function spawnTerminalInRepo(repo) {
+  async function spawnTerminalInRepo(repo: RepoGroup): Promise<void> {
     if (spawningTerminal) return;
     spawningTerminal = repo.path;
     try {
-      const target = await SpawnTerminal(repo.path);
+      const { cols, rows } = estimatePtySize();
+      const target = await SpawnTerminal(repo.path, cols, rows);
       addSession(repo.path, makeSession(target, repo.path, repo.name, 'terminal', ''));
-      const termSession = {
+      const termSession: NotificationEntry = {
         agentId: `term-${Date.now()}`,
         agentName: 'terminal',
         model: 'terminal',
@@ -395,32 +545,32 @@
       // Tell parent to add to its notification list so it persists
       dispatch('notify', termSession);
       dispatch('select', termSession);
-    } catch (e) {
-      console.error('Terminal spawn failed:', e);
+    } catch (err) {
+      console.error('Terminal spawn failed:', err);
     } finally {
       spawningTerminal = null;
     }
   }
 
-  function handleClick(evt) {
+  function handleClick(evt: NotificationEntry): void {
     selectedId = evt.agentId;
     dispatch('select', evt);
   }
 
-  function handleKeydown(e) {
+  function handleKeydown(e: KeyboardEvent): void {
     const allIds = flatAgents.map(a => a.agentId);
-    const currentIdx = allIds.indexOf(selectedId);
+    const currentIdx = selectedId == null ? -1 : allIds.indexOf(selectedId);
 
     if (e.key === 'j' || e.key === 'ArrowDown') {
       e.preventDefault();
       const next = Math.min(currentIdx + 1, allIds.length - 1);
-      selectedId = allIds[next];
-      scrollIntoView(selectedId);
+      selectedId = allIds[next] ?? null;
+      if (selectedId) scrollIntoView(selectedId);
     } else if (e.key === 'k' || e.key === 'ArrowUp') {
       e.preventDefault();
       const prev = Math.max(currentIdx - 1, 0);
-      selectedId = allIds[prev];
-      scrollIntoView(selectedId);
+      selectedId = allIds[prev] ?? null;
+      if (selectedId) scrollIntoView(selectedId);
     } else if (e.key === 'Enter' && selectedId) {
       e.preventDefault();
       const evt = flatAgents.find(a => a.agentId === selectedId);
@@ -428,15 +578,15 @@
     }
   }
 
-  function scrollIntoView(id) {
+  function scrollIntoView(id: string): void {
     const el = document.querySelector(`[data-agent-id="${id}"]`);
     if (el) el.scrollIntoView({ block: 'nearest' });
   }
 
   // Accordion state for sub-agents per parent agent
-  let expandedAgents = new Set();
+  let expandedAgents = new Set<string>();
 
-  function toggleAgentAccordion(agentId, e) {
+  function toggleAgentAccordion(agentId: string, e: Event): void {
     e.stopPropagation();
     if (expandedAgents.has(agentId)) {
       expandedAgents.delete(agentId);
@@ -446,13 +596,13 @@
     expandedAgents = expandedAgents;
   }
 
-  function isAgentExpanded(agentId) {
+  function isAgentExpanded(agentId: string): boolean {
     return expandedAgents.has(agentId);
   }
 
-  let killingAgents = new Set();
+  let killingAgents = new Set<string>();
 
-  async function killSession(agent, e) {
+  async function killSession(agent: NotificationEntry, e: Event): Promise<void> {
     e.stopPropagation();
     if (killingAgents.has(agent.agentId)) return;
     killingAgents.add(agent.agentId);
@@ -467,22 +617,22 @@
   }
 
   // Listen for agent removal events from the backend — also remove sub-agents
-  EventsOn('agent:removed', (agentId) => {
+  EventsOn('agent:removed', (agentId: string) => {
     notifications = notifications.filter(n =>
       n.agentId !== agentId && n.parentAgentId !== agentId
     );
   });
 
-  // Repo git status: repoPath -> { dirty: bool, openPRs: number }
-  let repoStatuses = {};
-  let statusInterval;
+  // Repo git status: repoPath -> RepoStatusSnapshot
+  let repoStatuses: Record<string, RepoStatusSnapshot> = {};
+  let statusInterval: ReturnType<typeof setInterval> | undefined;
 
-  async function refreshRepoStatuses() {
+  async function refreshRepoStatuses(): Promise<void> {
     for (const repo of orderedRepos) {
       if (!repo.path) continue;
       try {
         const status = await RepoStatus(repo.path);
-        repoStatuses[repo.path] = status;
+        repoStatuses[repo.path] = status as RepoStatusSnapshot;
       } catch (_) {}
     }
     repoStatuses = repoStatuses;
@@ -497,83 +647,72 @@
     if (statusInterval) clearInterval(statusInterval);
   });
 
-  function isDirty(path) {
+  function isDirty(path: string): boolean {
     return repoStatuses[path]?.dirty || false;
   }
 
-  function hasOpenPR(path) {
+  function hasOpenPR(path: string): boolean {
     return (repoStatuses[path]?.openPRs || 0) > 0;
   }
 
-  function isAhead(path) {
+  function isAhead(path: string): boolean {
     return (repoStatuses[path]?.ahead || 0) > 0;
   }
 
-  function isProtected(path) {
+  function isProtected(path: string): boolean {
     return repoStatuses[path]?.protected || false;
   }
 
   // Push with conflict detection — returns true if conflict modal should open
-  let forcePushRepo = null; // { path, message } or null
+  let forcePushRepo: ForcePushRepo | null = null;
 
-  async function smartPush(path) {
+  const IDLE_ACTION: RepoAction = { action: null, result: null, error: null };
+
+  function clearActionAfterDelay(path: string, ms = 5000): void {
+    setTimeout(() => {
+      if (repoActions[path] && !repoActions[path].action) {
+        repoActions[path] = { ...IDLE_ACTION };
+        repoActions = repoActions;
+      }
+    }, ms);
+  }
+
+  async function smartPush(path: string): Promise<void> {
     repoActions[path] = { action: 'push', result: null, error: null };
     repoActions = repoActions;
     try {
       const result = await GitPush(path);
       if (result.startsWith('conflict:')) {
         forcePushRepo = { path, message: result.slice('conflict:'.length) };
-        repoActions[path] = { action: null, result: null, error: null };
+        repoActions[path] = { ...IDLE_ACTION };
       } else {
         repoActions[path] = { action: null, result: 'Pushed', error: null };
-        setTimeout(() => {
-          if (repoActions[path] && !repoActions[path].action) {
-            repoActions[path] = { action: null, result: null, error: null };
-            repoActions = repoActions;
-          }
-        }, 5000);
+        clearActionAfterDelay(path);
       }
-    } catch (err) {
-      repoActions[path] = { action: null, result: null, error: err?.message || String(err) };
-      setTimeout(() => {
-        if (repoActions[path] && !repoActions[path].action) {
-          repoActions[path] = { action: null, result: null, error: null };
-          repoActions = repoActions;
-        }
-      }, 5000);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      repoActions[path] = { action: null, result: null, error: message };
+      clearActionAfterDelay(path);
     }
     repoActions = repoActions;
     refreshRepoStatuses();
   }
 
-  function onForcePushed() {
+  function onForcePushed(): void {
     if (forcePushRepo) {
-      repoActions[forcePushRepo.path] = { action: null, result: 'Force pushed', error: null };
+      const pushedPath = forcePushRepo.path;
+      repoActions[pushedPath] = { action: null, result: 'Force pushed', error: null };
       repoActions = repoActions;
-      setTimeout(() => {
-        if (repoActions[forcePushRepo.path] && !repoActions[forcePushRepo.path].action) {
-          repoActions[forcePushRepo.path] = { action: null, result: null, error: null };
-          repoActions = repoActions;
-        }
-      }, 5000);
+      clearActionAfterDelay(pushedPath);
     }
     forcePushRepo = null;
     refreshRepoStatuses();
   }
 
   // Collapsed state per repo name
-  let collapsedRepos = new Set();
+  let collapsedRepos = new Set<string>();
 
-  function toggleCollapse(name) {
-    if (collapsedRepos.has(name)) {
-      collapsedRepos.delete(name);
-    } else {
-      collapsedRepos.add(name);
-    }
-    collapsedRepos = collapsedRepos;
-  }
-
-  function isCollapsed(repo) {
+  function isCollapsed(repo: RepoGroup): boolean {
     // Explicitly toggled takes priority
     if (collapsedRepos.has(repo.name)) return true;
     // Auto-collapse if no agents and never explicitly opened
@@ -582,9 +721,9 @@
   }
 
   // Track repos the user has explicitly expanded (so empty repos stay open after expand)
-  let expandedRepos = new Set();
+  let expandedRepos = new Set<string>();
 
-  function handleHeaderClick(repo) {
+  function handleHeaderClick(repo: RepoGroup): void {
     if (isCollapsed(repo)) {
       collapsedRepos.delete(repo.name);
       expandedRepos.add(repo.name);
@@ -597,117 +736,137 @@
   }
 
   // Branch modal state
-  let branchModalRepo = null; // { path, branch } or null
-  let switchModalRepo = null; // { path, branch, color } or null
-  let mergeModalRepo = null; // { path, branch } or null
+  let branchModalRepo: BranchModalRepo | null = null;
+  let switchModalRepo: SwitchModalRepo | null = null;
+  let mergeModalRepo: MergeModalRepo | null = null;
 
-  function openBranchModal(repo) {
+  function openBranchModal(repo: RepoGroup): void {
     branchModalRepo = { path: repo.path, branch: repo.branch };
   }
 
-  function openSwitchModal(repo) {
+  function openSwitchModal(repo: RepoGroup): void {
     switchModalRepo = { path: repo.path, branch: repo.branch, color: getRepoColor(repo.name) };
   }
 
-  function openMergeModal(repo) {
+  function openMergeModal(repo: RepoGroup): void {
     mergeModalRepo = { path: repo.path, branch: repo.branch };
   }
 
-  function onMerged(e) {
+  function onMerged(e: CustomEvent<MergeEventDetail>): void {
     const targetBranch = e.detail?.targetBranch;
-    if (targetBranch && mergeModalRepo) {
-      notifications = notifications.map(n => {
-        if (n.repoPath === mergeModalRepo.path) {
-          return { ...n, repoBranch: targetBranch };
-        }
-        return n;
-      });
+    const targetPath = mergeModalRepo?.path;
+    if (targetBranch && targetPath) {
+      notifications = notifications.map(n =>
+        n.repoPath === targetPath ? { ...n, repoBranch: targetBranch } : n,
+      );
     }
     mergeModalRepo = null;
     refreshRepoStatuses();
   }
 
-  function onBranchSwitched(e) {
+  function onBranchSwitched(e: CustomEvent<BranchEventDetail>): void {
     const newBranch = e.detail?.branch;
-    if (newBranch && switchModalRepo) {
-      notifications = notifications.map(n => {
-        if (n.repoPath === switchModalRepo.path) {
-          return { ...n, repoBranch: newBranch };
-        }
-        return n;
-      });
+    const targetPath = switchModalRepo?.path;
+    if (newBranch && targetPath) {
+      notifications = notifications.map(n =>
+        n.repoPath === targetPath ? { ...n, repoBranch: newBranch } : n,
+      );
     }
     switchModalRepo = null;
     refreshRepoStatuses();
   }
 
-  function onBranchCreated(e) {
+  function onBranchCreated(e: CustomEvent<BranchEventDetail>): void {
     const newBranch = e.detail?.branch;
-    if (newBranch) {
+    const targetPath = branchModalRepo?.path;
+    if (newBranch && targetPath) {
       // Update branch in all notifications for this repo so it shows immediately
-      notifications = notifications.map(n => {
-        if (n.repoPath === branchModalRepo.path) {
-          return { ...n, repoBranch: newBranch };
-        }
-        return n;
-      });
+      notifications = notifications.map(n =>
+        n.repoPath === targetPath ? { ...n, repoBranch: newBranch } : n,
+      );
     }
     branchModalRepo = null;
     refreshRepoStatuses();
   }
 
-  // Repo action states: repoPath -> { action: string, result: string, error: string }
-  let repoActions = {};
+  // Repo action states: repoPath -> RepoAction
+  let repoActions: Record<string, RepoAction> = {};
 
-  function getAction(path) {
-    return repoActions[path] || { action: null, result: null, error: null };
+  function getAction(path: string): RepoAction {
+    return repoActions[path] || IDLE_ACTION;
   }
 
-  async function runRepoAction(path, actionName, fn) {
+  async function runRepoAction(
+    path: string,
+    actionName: string,
+    fn: (path: string) => Promise<string>,
+  ): Promise<void> {
     repoActions[path] = { action: actionName, result: null, error: null };
     repoActions = repoActions;
     try {
       const result = await fn(path);
       repoActions[path] = { action: null, result: result || 'Done', error: null };
-    } catch (err) {
-      repoActions[path] = { action: null, result: null, error: err?.message || String(err) };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      repoActions[path] = { action: null, result: null, error: message };
     }
     repoActions = repoActions;
     refreshRepoStatuses();
     // Clear result/error after 5s
-    setTimeout(() => {
-      if (repoActions[path] && !repoActions[path].action) {
-        repoActions[path] = { action: null, result: null, error: null };
-        repoActions = repoActions;
-      }
-    }, 5000);
+    clearActionAfterDelay(path);
   }
 
-  // Streaming commit output panel: repoPath -> { lines[], error, explanation, done, visible }
-  let commitPanels = {};
+  // Streaming commit output panel: repoPath -> CommitPanel
+  let commitPanels: Record<string, CommitPanel> = {};
 
-  function getCommitPanel(path) {
+  function getCommitPanel(path: string): CommitPanel | null {
     return commitPanels[path] || null;
   }
 
-  function startStreamingCommit(path) {
-    commitPanels[path] = { lines: [], error: null, explanation: null, done: false, visible: true };
+  /**
+   * Single-element list wrapper used by the commit-panel `{#each}` in the
+   * template. `{@const}` cannot be the immediate child of a mid-markup
+   * position, and TypeScript does not narrow through a call-then-call pattern
+   * (`{#if f()}{@const p = f()!}`), so we iterate over a filtered list
+   * instead: the compiler narrows `panel` to `CommitPanel` for us.
+   */
+  function commitPanelList(path: string): CommitPanel[] {
+    const p = commitPanels[path];
+    return p ? [p] : [];
+  }
+
+  /**
+   * Narrows an optional `tokenSamples` array to a defined one for template
+   * use. The caller guards on `agent.tokenSamples?.length > 1` immediately
+   * before the `{@const}` that invokes this helper, so the input is never
+   * `undefined` in practice — the assertion is confined to this one spot.
+   */
+  function requireSamples(s: number[] | undefined): number[] {
+    return s as number[];
+  }
+
+  function newCommitPanel(): CommitPanel {
+    return { lines: [], error: null, explanation: null, done: false, visible: true };
+  }
+
+  function startStreamingCommit(path: string): void {
+    commitPanels[path] = newCommitPanel();
     commitPanels = commitPanels;
     repoActions[path] = { action: 'commit', result: null, error: null };
     repoActions = repoActions;
     GitCommitStreaming(path);
   }
 
-  function closeCommitPanel(path) {
+  function closeCommitPanel(path: string): void {
     delete commitPanels[path];
     commitPanels = commitPanels;
   }
 
   // Listen for streaming commit progress events
-  EventsOn('git:commit:progress', (evt) => {
+  EventsOn('git:commit:progress', (evt: CommitProgressEvent) => {
     const path = evt.repoPath;
     if (!commitPanels[path]) {
-      commitPanels[path] = { lines: [], error: null, explanation: null, done: false, visible: true };
+      commitPanels[path] = newCommitPanel();
     }
     const panel = commitPanels[path];
 
@@ -770,10 +929,10 @@
               <ChevronDown size={14} />
             {/if}
           </button>
-          <span class="drag-handle" style="color: {getRepoColor(repo.name) !== '#1e2530' ? getRepoColor(repo.name) : ''}"><GripVertical size={14} /></span>
+          <span class="drag-handle" style="color: {getRepoColor(repo.name) !== REPO_BORDER_NONE ? getRepoColor(repo.name) : ''}"><GripVertical size={14} /></span>
           <span class="repo-name">{repo.name}</span>
           {#if repo.branch}
-            <span class="repo-branch" style="color: {getRepoColor(repo.name) !== '#1e2530' ? getRepoColor(repo.name) : ''}"><GitBranch size={12} /> {repo.branch}</span>
+            <span class="repo-branch" style="color: {getRepoColor(repo.name) !== REPO_BORDER_NONE ? getRepoColor(repo.name) : ''}"><GitBranch size={12} /> {repo.branch}</span>
           {/if}
           <span class="repo-stats mono">
             {repo.agents.length} agent{repo.agents.length !== 1 ? 's' : ''} · {formatTokens(repoTokens(repo))}
@@ -840,11 +999,12 @@
                       <span class="sub-count">{agent.subAgents.length} sub</span>
                     {/if}
                     <span class="agent-summary">{agent.summary}</span>
-                    {#if agent.eventType !== 'terminal' && agent.tokenSamples?.length > 1}
+                    {#if agent.eventType !== 'terminal' && agent.tokenSamples && agent.tokenSamples?.length > 1}
+                      {@const samples = requireSamples(agent.tokenSamples)}
                       <span
                         class="sparkline-wrap"
                         class:dimmed={agent.eventType !== 'running'}
-                        title={`Token history: ${agent.tokenSamples[0]} \u2192 ${agent.tokenSamples[agent.tokenSamples.length - 1]} over last ${agent.tokenSamples.length} samples`}
+                        title={`Token history: ${samples[0]} \u2192 ${samples[samples.length - 1]} over last ${samples.length} samples`}
                       >
                         <SparkLine data={agent.tokenSamples} />
                       </span>
@@ -901,7 +1061,7 @@
           <div class="repo-actions">
             <button
               class="actions-branch"
-              style="color: {getRepoColor(repo.name) !== '#1e2530' ? getRepoColor(repo.name) : 'var(--text-dim)'}"
+              style="color: {getRepoColor(repo.name) !== REPO_BORDER_NONE ? getRepoColor(repo.name) : 'var(--text-dim)'}"
               on:click|stopPropagation={() => openSwitchModal(repo)}
               title="Switch branch"
             >
@@ -987,9 +1147,9 @@
             {/if}
           </div>
 
-          <!-- Commit output panel -->
-          {#if getCommitPanel(repo.path)}
-            {@const panel = getCommitPanel(repo.path)}
+          <!-- Commit output panel — `{#each}` over a filtered 0-or-1-element
+               list narrows `panel` to CommitPanel without a type assertion. -->
+          {#each commitPanelList(repo.path) as panel}
             <div class="commit-panel" style="border-color: {getRepoColor(repo.name)}">
               <div class="commit-panel-header">
                 <span class="commit-panel-title">
@@ -1033,7 +1193,7 @@
                 </div>
               {/if}
             </div>
-          {/if}
+          {/each}
         </div>
 
         {/if}
@@ -1042,7 +1202,7 @@
           <div class="spawn-row">
             <button
               class="new-session-btn"
-              style="color: {getRepoColor(repo.name) !== '#1e2530' ? getRepoColor(repo.name) : ''}"
+              style="color: {getRepoColor(repo.name) !== REPO_BORDER_NONE ? getRepoColor(repo.name) : ''}"
               on:click|stopPropagation={() => openSessionModal(repo)}
               disabled={spawningRepo === repo.path}
             >
@@ -1051,7 +1211,7 @@
             </button>
             <button
               class="new-session-btn"
-              style="color: {getRepoColor(repo.name) !== '#1e2530' ? getRepoColor(repo.name) : ''}"
+              style="color: {getRepoColor(repo.name) !== REPO_BORDER_NONE ? getRepoColor(repo.name) : ''}"
               on:click|stopPropagation={() => spawnTerminalInRepo(repo)}
               disabled={spawningTerminal === repo.path}
             >
@@ -1060,7 +1220,7 @@
             </button>
             <button
               class="new-session-btn"
-              style="color: {getRepoColor(repo.name) !== '#1e2530' ? getRepoColor(repo.name) : ''}"
+              style="color: {getRepoColor(repo.name) !== REPO_BORDER_NONE ? getRepoColor(repo.name) : ''}"
               on:click|stopPropagation={() => dispatch('open-workspace', repo)}
             >
               <span class="new-session-icon"><Workflow size={14} /></span>
@@ -1094,7 +1254,7 @@
       <span class="status-pulse" aria-label="agents active"></span>
     {/if}
     {#if aggregateSamples.length > 1}
-      <span class="status-sparkline" aria-hidden="true">
+      <span class="status-sparkline" aria-hidden="true" style="--ambient-color: {STATUS_COLORS.open}">
         <SparkLine data={aggregateSamples} />
       </span>
     {/if}
@@ -1153,23 +1313,6 @@
   />
 {/if}
 
-<script context="module">
-  const statusColors = {
-    running:        'var(--accent-green)',
-    open:           'var(--accent-teal)',
-    finished:       'var(--accent-amber)',
-    needs_response: 'var(--accent-red)',
-    waiting:        'var(--accent-red)',
-    error:          'var(--accent-red)',
-    completed:      'var(--accent-blue)',
-    started:        'var(--accent-purple)',
-    terminal:       'var(--text-dim)',
-  };
-
-  function statusColor(type) {
-    return statusColors[type] || 'var(--text-dim)';
-  }
-</script>
 
 <style>
   .feed {
@@ -1622,7 +1765,10 @@
     opacity: 0.7;
   }
   .status-sparkline :global(.sparkline) {
-    color: var(--accent-teal);
+    /* Colour fed by inline --ambient-color from STATUS_COLORS.open so the
+       status→token mapping lives in one place (the script table). Falls
+       back to accent-teal to match the long-standing ambient hue. */
+    color: var(--ambient-color, var(--accent-teal));
   }
 
   .keys {

@@ -42,3 +42,36 @@
   /* Scrollbar blend */
   --crepe-color-scrollbar: var(--border-emphasized, #2a3340);
 }
+
+/*
+ * Markdown toolbar item visibility — driven by data-toolbar-* attrs on .milkdown
+ *
+ * Fallback strategy (see frontend/src/components/markdownToolbarBuilder.ts and
+ * Story 03 notes): Crepe v7.20.0 does NOT export the internal command/icon
+ * subpaths needed to rebuild its toolbar from scratch via `featureConfigs
+ * .Toolbar.buildToolbar`. Our `buildToolbarFromSettings` builder produces an
+ * EMPTY 'toolbar' group with zero addItem calls — passing it to Crepe would
+ * STRIP every default item, not filter them. So instead of passing it through
+ * featureConfigs, MarkdownEditor.svelte applies six `data-toolbar-<key>`
+ * attributes on the `.milkdown` root, and these rules mask disabled items
+ * purely via CSS. No editor teardown/re-init is needed; the attribute swap is
+ * free and preserves cursor + scroll state (Design Brief contract AC-3/AC-5).
+ *
+ * Selector choice: Crepe's toolbar <button> items do NOT emit data-key
+ * attributes (verified via node_modules/@milkdown/crepe/src/feature/toolbar
+ * /component.tsx L83–93). We fall back to `:nth-of-type(N)` over
+ * `.toolbar-item` — stable because Crepe's default `getGroups` renders items
+ * in a fixed order:
+ *   1. bold   2. italic   3. strikethrough   4. code   5. latex   6. link
+ * (divider <div>s between groups are ignored by :nth-of-type for buttons).
+ * This order is driven by Crepe's `getGroups` in its toolbar/config.ts — NOT
+ * by our own `ITEMS` array in markdownToolbarBuilder.ts (which has link/latex
+ * swapped and is unused in the CSS-masking path). If Crepe ever reorders or
+ * adds a new default item this mapping must be revisited.
+ */
+.milkdown[data-toolbar-bold="off"] .toolbar-item:nth-of-type(1) { display: none; }
+.milkdown[data-toolbar-italic="off"] .toolbar-item:nth-of-type(2) { display: none; }
+.milkdown[data-toolbar-strikethrough="off"] .toolbar-item:nth-of-type(3) { display: none; }
+.milkdown[data-toolbar-code="off"] .toolbar-item:nth-of-type(4) { display: none; }
+.milkdown[data-toolbar-latex="off"] .toolbar-item:nth-of-type(5) { display: none; }
+.milkdown[data-toolbar-link="off"] .toolbar-item:nth-of-type(6) { display: none; }

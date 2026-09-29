@@ -299,3 +299,47 @@ func TestResolveFileInput(t *testing.T) {
 		})
 	}
 }
+
+// ── Story ui-ast-U0, AC-4: ShapeJSON accepts bare-string submissions ──────────
+//
+// Back-compat branch: until U7 lands (frontend submits structured JSON),
+// validateInput must accept a plain string under ShapeJSON as a legacy
+// submission. The 64 KiB cap from §13.4 still applies.
+func TestU0_AC4_ValidateInput_ShapeJSON_BareStringAccepted(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		value   string
+		wantErr bool
+	}{
+		{
+			name:    "bare non-JSON string is accepted (legacy submission)",
+			value:   "pick option 2",
+			wantErr: false,
+		},
+		{
+			name:    "valid JSON map is accepted",
+			value:   `{"confirm":"done"}`,
+			wantErr: false,
+		},
+		{
+			name:    "64 KiB + 1 bytes exceeds cap",
+			value:   strings.Repeat("x", 64*1024+1),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := validateInput(InputSpec{Shape: ShapeJSON}, tt.value)
+			if tt.wantErr {
+				require.Error(t, err, "validateInput must return error for %q", tt.name)
+				return
+			}
+			assert.NoError(t, err, "validateInput must return nil for %q", tt.name)
+		})
+	}
+}

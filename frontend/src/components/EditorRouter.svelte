@@ -4,9 +4,11 @@
   import ImageViewer from './ImageViewer.svelte';
   import MarkdownEditor from './MarkdownEditor.svelte';
 
+  type EditorMode = 'source' | 'diff';
+
   export let filePath = '';
   export let repoPath = '';
-  export let mode = 'source';
+  export let mode: EditorMode = 'source';
   export let editable = false;
 
   $: editorType = getEditorType(filePath);

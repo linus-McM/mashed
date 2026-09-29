@@ -3,6 +3,7 @@
   import { EventsOn } from '../../wailsjs/runtime/runtime.js';
   import { CreateRepo } from '../../wailsjs/go/main/App.js';
 
+  /** @type {import('svelte').EventDispatcher<{ created: { name: string }; cancel: void }>} */
   const dispatch = createEventDispatcher();
 
   let name = '';
@@ -10,9 +11,12 @@
   let installBmad = true;
   let creating = false;
   let error = '';
+  /** @type {string[]} */
   let steps = [];
 
-  const cancelProgress = EventsOn('repo:create:progress', (event) => {
+  /** @typedef {{ message?: string; error?: string; done?: boolean }} RepoCreateProgress */
+
+  const cancelProgress = EventsOn('repo:create:progress', (/** @type {RepoCreateProgress} */ event) => {
     if (event.error && event.done) {
       error = event.error;
       creating = false;
@@ -46,6 +50,7 @@
     if (!creating) dispatch('cancel');
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') cancel();
     if (e.key === 'Enter' && valid && !creating) submit();

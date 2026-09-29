@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   // xterm.js ships its layout stylesheet separately from the JS module.
   // Without this import .xterm-viewport stays `position: static` so the
@@ -8,14 +8,19 @@
   // import per xterm.js docs and must stay statically imported so Vite
   // bundles it with the component chunk.
   import '@xterm/xterm/css/xterm.css';
+  import type { Terminal as Xterm, ITerminalOptions } from '@xterm/xterm';
+  import type { FitAddon } from '@xterm/addon-fit';
   import { GetTerminalPort, GetAgentLog } from '../../wailsjs/go/main/App.js';
-  import { EventsOn, EventsOff, ClipboardGetText, ClipboardSetText } from '../../wailsjs/runtime/runtime.js';
+  import { EventsOn, ClipboardGetText, ClipboardSetText } from '../../wailsjs/runtime/runtime.js';
   import { currentTheme } from '../lib/stores/theme.js';
   import { currentMonoFont, currentFontSize } from '../lib/stores/font.js';
   import { editorSettings } from '../lib/stores/editorSettings.js';
+  import type { AgentLogLine, LogLineKind, PtyResizeFrame, ScreenshotInjectEvent } from '../types/pty';
+
+  type XtermCursorStyle = NonNullable<ITerminalOptions['cursorStyle']>;
 
   /** Map Monaco cursorStyle values to xterm.js cursorStyle. */
-  function mapMonacoCursorToXterm(monacoStyle) {
+  function mapMonacoCursorToXterm(monacoStyle: string): XtermCursorStyle {
     switch (monacoStyle) {
       case 'line':
       case 'line-thin':
@@ -32,21 +37,21 @@
   }
 
   /** Map Monaco cursorBlinking values to xterm.js cursorBlink boolean. */
-  function mapCursorBlinkToXterm(monacoBlinking) {
+  function mapCursorBlinkToXterm(monacoBlinking: string): boolean {
     return monacoBlinking !== 'solid';
   }
 
   export let paneTarget = '';
   export let repoPath = '';
 
-  let terminalEl;
-  let term;
-  let ws;
-  let logPollInterval;
-  let resizeObserver;
-  let unsubScreenshot;
+  let terminalEl: HTMLDivElement | undefined;
+  let term: Xterm | null = null;
+  let ws: WebSocket | null = null;
+  let logPollInterval: ReturnType<typeof setInterval> | undefined;
+  let resizeObserver: ResizeObserver | undefined;
+  let unsubScreenshot: (() => void) | undefined;
 
-  const KIND_COLORS = {
+  const KIND_COLORS: Record<LogLineKind, string> = {
     ok:     '\x1b[32m',  // green
     info:   '\x1b[34m',  // blue
     warn:   '\x1b[33m',  // amber
@@ -55,7 +60,7 @@
     system: '\x1b[35m',  // purple
   };
 
-  const KIND_ICONS = {
+  const KIND_ICONS: Record<LogLineKind, string> = {
     ok:     '✓',
     info:   'ℹ',
     warn:   '⚠',
@@ -64,9 +69,17 @@
     system: '⬡',
   };
 
-  function formatLogLine(line) {
-    const color = KIND_COLORS[line.kind] || '\x1b[37m';
-    const icon = KIND_ICONS[line.kind] || ' ';
+  function colorFor(kind: string): string {
+    return (KIND_COLORS as Record<string, string>)[kind] ?? '\x1b[37m';
+  }
+
+  function iconFor(kind: string): string {
+    return (KIND_ICONS as Record<string, string>)[kind] ?? ' ';
+  }
+
+  function formatLogLine(line: AgentLogLine): string {
+    const color = colorFor(line.kind);
+    const icon = iconFor(line.kind);
     const reset = '\x1b[0m';
     const dimColor = '\x1b[90m';
 
@@ -80,9 +93,9 @@
   }
 
   let lastLineCount = 0;
-  let onWindowFocus;
+  let onWindowFocus: (() => void) | undefined;
 
-  async function pollLog() {
+  async function pollLog(): Promise<void> {
     if (!repoPath || !term) return;
     try {
       const lines = await GetAgentLog(repoPath);
@@ -96,7 +109,7 @@
         }
         lastLineCount = lines.length;
       }
-    } catch (e) {
+    } catch (_e) {
       // Silently retry next poll
     }
   }
@@ -105,7 +118,7 @@
     const { Terminal } = await import('@xterm/xterm');
     const { FitAddon } = await import('@xterm/addon-fit');
 
-    term = new Terminal({
+    const localTerm: Xterm = new Terminal({
       fontFamily: $currentMonoFont,
       fontSize: $currentFontSize,
       theme: $currentTheme.xterm,
@@ -116,29 +129,31 @@
       disableStdin: !paneTarget, // Read-only when showing log view
       allowProposedApi: true,
     });
+    term = localTerm;
 
-    const fitAddon = new FitAddon();
-    term.loadAddon(fitAddon);
+    const fitAddon: FitAddon = new FitAddon();
+    localTerm.loadAddon(fitAddon);
 
     // NOTE: @xterm/addon-canvas removed — it breaks text selection and scrolling
     // in macOS WKWebView. xterm.js 5.x default renderer handles both correctly.
 
-    term.open(terminalEl);
+    if (!terminalEl) return;
+    localTerm.open(terminalEl);
     fitAddon.fit();
     // Focus the terminal so it receives keyboard input and shows the cursor
-    term.focus();
+    localTerm.focus();
     // Re-focus after a short delay to ensure WebView has settled
-    setTimeout(() => term.focus(), 100);
+    setTimeout(() => localTerm.focus(), 100);
     // Re-focus whenever the window regains focus so the cursor keeps blinking
     onWindowFocus = () => { if (term) term.focus(); };
     window.addEventListener('focus', onWindowFocus);
 
     // Clipboard helpers using Wails native API (bypasses webview restrictions)
-    function copyText(text) {
+    function copyText(text: string): void {
       ClipboardSetText(text).catch(() => {});
     }
 
-    function pasteToTerminal(text) {
+    function pasteToTerminal(text: string): void {
       if (!text || !paneTarget) return;
       const encoder = new TextEncoder();
       if (ws && ws.readyState === WebSocket.OPEN) {
@@ -148,15 +163,15 @@
 
     // Cmd+C copies selection (or sends ^C if nothing selected),
     // Cmd+V pastes from clipboard into the terminal.
-    term.attachCustomKeyEventHandler((ev) => {
+    localTerm.attachCustomKeyEventHandler((ev: KeyboardEvent): boolean => {
       const isMeta = ev.metaKey || ev.ctrlKey;
       if (ev.type !== 'keydown') return true;
 
       if (isMeta && ev.key === 'c') {
-        const sel = term.getSelection();
+        const sel = localTerm.getSelection();
         if (sel) {
           copyText(sel);
-          term.clearSelection();
+          localTerm.clearSelection();
           return false;
         }
         return true; // no selection — send ^C
@@ -166,6 +181,18 @@
         ClipboardGetText()
           .then(pasteToTerminal)
           .catch(() => {});
+        return false;
+      }
+
+      // Cmd+K — wipe xterm scrollback + ask the running app to redraw.
+      // Clears the visible artifacts that scrollback accumulates when the
+      // PTY has been resized (claude/zsh repaint at the new size but old
+      // frames remain in history).
+      if (isMeta && ev.key === 'k') {
+        localTerm.clear();
+        if (ws && ws.readyState === WebSocket.OPEN && paneTarget) {
+          ws.send(new TextEncoder().encode('\x0c'));
+        }
         return false;
       }
 
@@ -183,76 +210,74 @@
       const port = await GetTerminalPort();
       if (port) {
         const url = `ws://127.0.0.1:${port}/ws/${encodeURIComponent(paneTarget)}`;
-        ws = new WebSocket(url);
-        ws.binaryType = 'arraybuffer';
+        const localWs = new WebSocket(url);
+        localWs.binaryType = 'arraybuffer';
+        ws = localWs;
 
-        ws.onopen = () => {
+        // Send resize event to bridge so the PTY knows the real terminal dimensions
+        const sendResize = (): void => {
+          if (localWs.readyState === WebSocket.OPEN && localTerm.cols && localTerm.rows) {
+            const frame: PtyResizeFrame = { type: 'resize', cols: localTerm.cols, rows: localTerm.rows };
+            localWs.send(JSON.stringify(frame));
+          }
+        };
+
+        localWs.onopen = () => {
           // Send resize so PTY learns the real dimensions.
           sendResize();
 
           // The bridge replays the scroll buffer on connect. Write directly.
           const decoder = new TextDecoder();
-          ws.onmessage = (evt) => {
+          localWs.onmessage = (evt: MessageEvent<ArrayBuffer | string>) => {
             const raw = evt.data instanceof ArrayBuffer
               ? decoder.decode(evt.data)
               : evt.data;
-            term.write(raw);
+            localTerm.write(raw);
           };
 
-          // After scroll buffer replay + resize propagation, send Ctrl+L to
-          // trigger a clean redraw. The replay may contain output formatted
-          // for different dimensions — Ctrl+L makes the running application
-          // (shell, Claude Code, etc.) repaint at the correct size.
-          setTimeout(() => {
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(new TextEncoder().encode('\x0c'));
-            }
-          }, 200);
+          // NOTE: previously sent Ctrl+L (\x0c) here as a "redraw nudge", but
+          // for fresh sessions claude/zsh hadn't finished init by the time it
+          // arrived — it landed in the input buffer and got echoed as a literal
+          // `^L` glyph. Resize SIGWINCH already triggers a clean repaint, so
+          // the nudge isn't needed.
 
           // Listen for screenshot path injection scoped to this terminal's pane
           if (unsubScreenshot) unsubScreenshot();
-          unsubScreenshot = EventsOn('screenshot:inject', (data) => {
+          unsubScreenshot = EventsOn('screenshot:inject', (data: ScreenshotInjectEvent) => {
             if (data.paneTarget !== paneTarget) return;
             pasteToTerminal(data.path);
-            if (ws && ws.readyState === WebSocket.OPEN) {
-              ws.send(new TextEncoder().encode('\r'));
+            if (localWs.readyState === WebSocket.OPEN) {
+              localWs.send(new TextEncoder().encode('\r'));
             }
           });
         };
 
-        ws.onclose = () => {
+        localWs.onclose = () => {
           if (term) term.write('\r\n\x1b[33m[disconnected]\x1b[0m\r\n');
         };
 
-        ws.onerror = () => {
+        localWs.onerror = () => {
           if (term) term.write('\r\n\x1b[31m[connection error]\x1b[0m\r\n');
         };
 
-        // Send resize event to bridge so the PTY knows the real terminal dimensions
-        function sendResize() {
-          if (ws && ws.readyState === WebSocket.OPEN && term.cols && term.rows) {
-            ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
-          }
-        }
-
         // Re-send resize whenever the terminal is re-fitted
-        term.onResize(({ cols, rows }) => {
+        localTerm.onResize(({ cols: _cols, rows: _rows }: { cols: number; rows: number }) => {
           sendResize();
         });
 
         // Send keystrokes as binary (bridge expects BinaryMessage for pty input)
         const encoder = new TextEncoder();
-        term.onData((data) => {
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(encoder.encode(data));
+        localTerm.onData((data: string) => {
+          if (localWs.readyState === WebSocket.OPEN) {
+            localWs.send(encoder.encode(data));
           }
         });
       } else {
-        term.write('\r\n\x1b[31m[terminal bridge not available]\x1b[0m\r\n');
+        localTerm.write('\r\n\x1b[31m[terminal bridge not available]\x1b[0m\r\n');
       }
     } else if (repoPath) {
       // Live log view — poll JSONL session data
-      term.write('\x1b[90mMonitoring session log...\x1b[0m\r\n');
+      localTerm.write('\x1b[90mMonitoring session log...\x1b[0m\r\n');
 
       // Initial load
       await pollLog();
@@ -260,7 +285,7 @@
       // Poll every 2 seconds for new log lines
       logPollInterval = setInterval(pollLog, 2000);
     } else {
-      term.write('\x1b[90m[no session data]\x1b[0m\r\n');
+      localTerm.write('\x1b[90m[no session data]\x1b[0m\r\n');
     }
   });
 

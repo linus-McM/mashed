@@ -1,11 +1,13 @@
 <script>
   import { createEventDispatcher, onMount, tick } from 'svelte';
+  import { Send } from 'lucide-svelte';
 
   /** @type {import('../../../stores/interactiveInput').PendingPrompt} */
   export let prompt;
   export let disabled = false;
   export let validationError = '';
 
+  /** @type {import('svelte').EventDispatcher<{ submit: { value: string } }>} */
   const dispatch = createEventDispatcher();
 
   let selected = -1;
@@ -33,9 +35,30 @@
     selected = index;
   }
 
+  /**
+   * Options arrive in two shapes depending on the source:
+   *   - Layer-1 path (`prompt.options`) → array of strings
+   *   - AST decision_group path → array of `{value, label}` objects
+   * Normalise both ends so the widget renders the human label and submits
+   * the canonical value (Anthropic's "value" field, falling back to label).
+   *
+   * @param {string | {value?: string, label?: string}} opt
+   */
+  function optionLabel(opt) {
+    if (typeof opt === 'string') return opt;
+    if (opt && typeof opt === 'object') return opt.label ?? opt.value ?? '';
+    return String(opt ?? '');
+  }
+  /** @param {string | {value?: string, label?: string}} opt */
+  function optionValue(opt) {
+    if (typeof opt === 'string') return opt;
+    if (opt && typeof opt === 'object') return opt.value ?? opt.label ?? '';
+    return String(opt ?? '');
+  }
+
   function submit() {
     if (disabled || selected < 0) return;
-    dispatch('submit', { value: options[selected] });
+    dispatch('submit', { value: optionValue(options[selected]) });
   }
 
   /** @param {KeyboardEvent} e @param {number} index */
@@ -90,9 +113,23 @@
       {#if selected === i}
         <span class="option-chevron" aria-hidden="true">›</span>
       {/if}
-      <span class="option-label">{option}</span>
+      <span class="option-label">{optionLabel(option)}</span>
     </button>
   {/each}
+</div>
+
+<div class="widget-actions">
+  <span class="keyboard-hint">Enter to send</span>
+  <button
+    type="button"
+    class="btn-submit"
+    data-testid="choice-submit"
+    disabled={disabled || selected < 0}
+    on:click={submit}
+  >
+    <Send size={13} aria-hidden="true" />
+    Send
+  </button>
 </div>
 
 <style>
@@ -158,4 +195,50 @@
   }
 
   .option-label { flex: 1; min-width: 0; }
+
+  .widget-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--sp-md);
+    margin-top: var(--sp-sm);
+  }
+
+  .keyboard-hint {
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    color: var(--text-muted);
+  }
+
+  .btn-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    background: var(--accent-green);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--sp-xs) var(--sp-xl);
+    font-family: var(--font-ui);
+    font-size: var(--text-body);
+    font-weight: 600;
+    color: var(--bg-deepest);
+    cursor: pointer;
+    transition:
+      filter var(--duration-short) var(--ease-enter),
+      transform var(--duration-micro) var(--ease-enter);
+  }
+
+  .btn-submit:hover:not(:disabled) { filter: brightness(1.1); }
+  .btn-submit:active:not(:disabled) { transform: scale(0.97); }
+
+  .btn-submit:disabled {
+    background: var(--accent-green-dim);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+
+  .btn-submit:focus-visible {
+    outline: 1px solid var(--accent-green);
+    outline-offset: 2px;
+  }
 </style>

@@ -1,0 +1,6 @@
+{
+  "decision_group_count": 1,
+  "widget_types": ["multi"],
+  "fallback_answer_shape": "multi",
+  "category": "brainstorming"
+}

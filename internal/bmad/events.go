@@ -7,15 +7,21 @@ import (
 
 // Event names for interactive suspension / response lifecycle (schema §6).
 const (
-	EventAwaitingInput = "bmad:node:awaiting_input"
-	EventInputResolved = "bmad:node:input_resolved"
-	EventInputInvalid  = "bmad:node:input_invalid"
-	EventAborted       = "bmad:node:aborted"
+	EventAwaitingInput     = "bmad:node:awaiting_input"
+	EventAwaitingDismissed = "bmad:node:awaiting_dismissed"
+	EventInputResolved     = "bmad:node:input_resolved"
+	EventInputInvalid      = "bmad:node:input_invalid"
+	EventAborted           = "bmad:node:aborted"
 
 	// Iteration loop events (schema §6, story bmad-interactive-04).
 	EventRoundComplete = "bmad:node:round_complete"
 	EventGateSatisfied = "bmad:node:gate_satisfied"
 	EventRoundLimit    = "bmad:node:round_limit"
+
+	// EventSessionDead fires when the per-exec liveness poller observes that
+	// a node's tmux pane has died while the node is still marked running or
+	// awaiting_input. Frontend clears the tmuxTarget + shows an "ended" badge.
+	EventSessionDead = "bmad:node:session_dead"
 )
 
 // roundCompletePayload returns the payload for EventRoundComplete.
@@ -62,6 +68,20 @@ func sha256hex(s string, n int) string {
 // sensitive user data.
 func awaitingPayload(p PendingPrompt) PendingPrompt { return p }
 
+// awaitingDismissedPayload returns the payload for EventAwaitingDismissed. The
+// node has been demoted from NodeAwaitingInput back to NodeRunning because the
+// tmux pane resumed activity. Frontend clears the modal + restores the running
+// badge.
+func awaitingDismissedPayload(execID, nodeID, inputID string, round int, reason string) map[string]any {
+	return map[string]any{
+		"execId":  execID,
+		"nodeId":  nodeID,
+		"inputId": inputID,
+		"round":   round,
+		"reason":  reason,
+	}
+}
+
 // inputResolvedPayload returns the payload for EventInputResolved. Per §14.3
 // the raw value NEVER appears on the event bus — only a short SHA-256 hash.
 func inputResolvedPayload(execID, nodeID, inputID string, round int, value string) map[string]any {
@@ -90,5 +110,14 @@ func abortedPayload(execID, nodeID, reason string) map[string]any {
 		"execId": execID,
 		"nodeId": nodeID,
 		"reason": reason,
+	}
+}
+
+// sessionDeadPayload returns the payload for EventSessionDead.
+func sessionDeadPayload(execID, nodeID, tmuxTarget string) map[string]any {
+	return map[string]any{
+		"execId":     execID,
+		"nodeId":     nodeID,
+		"tmuxTarget": tmuxTarget,
 	}
 }

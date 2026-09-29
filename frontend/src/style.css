@@ -17,6 +17,7 @@
   --accent-cyan: #22d3ee;
   --accent-orange: #fb923c;
   --text-primary: #c8d4e0;
+  --text-secondary: #8a9cae;
   --text-dim: #4a5a6a;
   --text-muted: #2e3d4d;
   --font-ui: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -33,6 +34,7 @@
   --sp-xl: 24px;
   --sp-2xl: 32px;
   --sp-3xl: 48px;
+  --text-xs: 10px;
   --text-label: 11px;
   --text-body: 13px;
   --text-data: 14px;
@@ -61,6 +63,10 @@
   --z-toast: 500;
   --btn-min-wide: 96px;
   --font-code: 'JetBrains Mono', 'Geist Mono', ui-monospace, monospace;
+
+  /* U8 diagnostics tokens */
+  --chip-height: 18px;
+  --raw-view-max-height: 240px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

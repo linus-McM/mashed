@@ -2,12 +2,14 @@
   import { createEventDispatcher } from 'svelte';
   import { Hexagon } from 'lucide-svelte';
 
+  /** @type {import('svelte').EventDispatcher<{ close: void }>} */
   const dispatch = createEventDispatcher();
 
   function close() {
     dispatch('close');
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') close();
   }

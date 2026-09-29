@@ -55,7 +55,7 @@ func TestWaitForIdleCompletion_HappyPath(t *testing.T) {
 
 	state := newWaitIdleState("exec-happy", "n1")
 
-	err := h.executor.waitForIdleCompletion(context.Background(), state, "n1", "test:0.0", defaultProcessNodeTimeout)
+	err := h.executor.waitForIdleCompletion(context.Background(), state, "n1", "test:0.0", defaultProcessNodeTimeout, false)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, int(atomic.LoadInt32(captureCount)), 5)
 }
@@ -72,7 +72,7 @@ func TestWaitForIdleCompletion_NoWork_Timeout(t *testing.T) {
 
 	state := newWaitIdleState("exec-timeout", "n1")
 
-	err := h.executor.waitForIdleCompletion(context.Background(), state, "n1", "test:0.0", 150*time.Millisecond)
+	err := h.executor.waitForIdleCompletion(context.Background(), state, "n1", "test:0.0", 150*time.Millisecond, false)
 	assert.ErrorIs(t, err, ErrIdleTimeoutNoStart)
 }
 
@@ -108,7 +108,7 @@ func TestWaitForIdleCompletion_PaneDeath(t *testing.T) {
 
 			state := newWaitIdleState("exec-dead-"+tt.name, "n1")
 
-			err := h.executor.waitForIdleCompletion(context.Background(), state, "n1", "test:0.0", defaultProcessNodeTimeout)
+			err := h.executor.waitForIdleCompletion(context.Background(), state, "n1", "test:0.0", defaultProcessNodeTimeout, false)
 			assert.NoError(t, err, tt.description)
 		})
 	}
@@ -172,7 +172,7 @@ func TestWaitForIdleCompletion_CtxCancel(t *testing.T) {
 
 			state := newWaitIdleState("exec-cancel-"+tt.name, "n1")
 
-			err := h.executor.waitForIdleCompletion(ctx, state, "n1", "test:0.0", defaultProcessNodeTimeout)
+			err := h.executor.waitForIdleCompletion(ctx, state, "n1", "test:0.0", defaultProcessNodeTimeout, false)
 			assert.Error(t, err)
 			assert.Equal(t, context.Canceled, err)
 		})
@@ -202,7 +202,7 @@ func TestWaitForIdleCompletion_PaneDeathSessionGone(t *testing.T) {
 
 	state := newWaitIdleState("exec-gone", "n1")
 
-	err := h.executor.waitForIdleCompletion(context.Background(), state, "n1", "test:0.0", defaultProcessNodeTimeout)
+	err := h.executor.waitForIdleCompletion(context.Background(), state, "n1", "test:0.0", defaultProcessNodeTimeout, false)
 	assert.NoError(t, err)
 }
 
@@ -227,7 +227,7 @@ func TestWaitForIdleCompletion_IdlePromptRequiresStableHash(t *testing.T) {
 
 	state := newWaitIdleState("exec-unstable", "n1")
 
-	err := h.executor.waitForIdleCompletion(context.Background(), state, "n1", "test:0.0", defaultProcessNodeTimeout)
+	err := h.executor.waitForIdleCompletion(context.Background(), state, "n1", "test:0.0", defaultProcessNodeTimeout, false)
 	// Should complete via pane death, not idle detection.
 	assert.NoError(t, err)
 }

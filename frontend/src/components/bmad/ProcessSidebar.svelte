@@ -7,9 +7,19 @@
   import { GetConfig, SetSidebarWidth } from '../../../wailsjs/go/main/App.js';
   import { MASHED_ASSET_MIME } from './dragMimeTypes.js';
 
+  /** @typedef {import('../../lib/types/wails').ProcessDef} ProcessDef */
+  /** @typedef {import('../../lib/types/wails').Workflow} Workflow */
+  /** @typedef {import('../../lib/types/wails').SprintStatus} SprintStatus */
+  /** @typedef {import('../../lib/types/wails').GroupedMashedAssets} GroupedMashedAssets */
+  /** @typedef {import('../../lib/types/wails').MashedAssetInfo} MashedAssetInfo */
+
+  /** @type {ProcessDef[]} */
   export let processes = [];
+  /** @type {Workflow[]} */
   export let templates = [];
+  /** @type {Workflow[]} */
   export let savedWorkflows = [];
+  /** @type {SprintStatus | null} */
   export let sprintStatus = null;
   export let repoPath = '';
   export let repoBranch = '';
@@ -20,16 +30,20 @@
    * assets found — run the mashed-refactor-asset skill against your
    * .claude/skills/ or .claude/commands/ directory to populate this
    * tab".
-   * @type {{ localCommands: any[], globalCommands: any[], localSkills: any[], globalSkills: any[] }}
+   * @type {GroupedMashedAssets | { localCommands: MashedAssetInfo[]; globalCommands: MashedAssetInfo[]; localSkills: MashedAssetInfo[]; globalSkills: MashedAssetInfo[] }}
    */
   export let groupedMashedAssets = { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
   /** True while a refetch triggered by bmad:assets:changed is in flight. */
   export let assetsFetching = false;
   /** True for ~2s after a refetch fails (transient error indicator). */
   export let assetsError = false;
-  /** Map of asset path → 'created' | 'updated' for 400ms row flash. */
+  /**
+   * Map of asset path → 'created' | 'updated' for 400ms row flash.
+   * @type {Record<string, 'created' | 'updated'>}
+   */
   export let flashedPaths = {};
 
+  /** @type {import('svelte').EventDispatcher<{ editAsset: unknown; 'create-custom-template': void; 'load-workflow': string; 'delete-workflow': string }>} */
   const dispatch = createEventDispatcher();
 
   let activeTab = 'templates';
@@ -41,26 +55,36 @@
   // expanded at a time, chevron + count badge in the header, draggable
   // rows inside. Local commands default to open because they are the
   // most likely target for a user who just refactored their repo.
+  /** @typedef {'localCommands' | 'globalCommands' | 'localSkills' | 'globalSkills'} MashedGroupKey */
+  /** @type {MashedGroupKey[]} */
   const mashedGroupKeys = ['localCommands', 'globalCommands', 'localSkills', 'globalSkills'];
+  /** @type {Record<MashedGroupKey, string>} */
   const mashedGroupLabels = {
     localCommands: 'Local Commands',
     globalCommands: 'Global Commands',
     localSkills: 'Local Skills',
     globalSkills: 'Global Skills',
   };
+  /** @type {Record<MashedGroupKey, string>} */
   const mashedGroupAccents = {
     localCommands: 'var(--accent-green, #3fb950)',
     globalCommands: 'var(--accent-blue, #58a6ff)',
     localSkills: 'var(--accent-purple, #bc8cff)',
     globalSkills: 'var(--accent-amber, #d29922)',
   };
+  /** @type {MashedGroupKey | null} */
   let openMashedGroup = 'localCommands';
+  /** @param {MashedGroupKey} key */
   function toggleMashedGroup(key) {
     openMashedGroup = openMashedGroup === key ? null : key;
   }
 
   let isDragging = false;
 
+  /**
+   * @param {MouseEvent} e
+   * @param {unknown} asset
+   */
   function onMashedAssetContextMenu(e, asset) {
     if (isDragging) return;
     e.preventDefault();
@@ -73,9 +97,13 @@
    * skills. For skill entries we still fire dragstart (to give a neutral
    * drag image) but set a role that WorkflowBuilder's drop handler
    * rejects, so the user gets a visual "nope" signal without a crash.
+   *
+   * @param {DragEvent} e
+   * @param {MashedAssetInfo} asset
    */
   function onMashedAssetDragStart(e, asset) {
     isDragging = true;
+    if (!e.dataTransfer) return;
     e.dataTransfer.setData(MASHED_ASSET_MIME, JSON.stringify({
       name: asset.name,
       path: asset.path,
@@ -93,7 +121,8 @@
 
   // Delay showing the sync dot by 50ms to avoid flicker on fast fetches
   let showSyncDot = false;
-  let syncDotTimer = null;
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let syncDotTimer;
   $: if (assetsFetching) {
     syncDotTimer = setTimeout(() => { showSyncDot = true; }, 50);
   } else {
@@ -110,7 +139,12 @@
     (groupedMashedAssets?.localSkills?.length || 0) +
     (groupedMashedAssets?.globalSkills?.length || 0);
 
+  /** @typedef {'analysis' | 'planning' | 'solutioning' | 'implementation' | 'support' | 'utilities'} Phase */
+  /** @typedef {{ type: string; name: string; description: string; Icon: typeof GitBranch }} ControlFlowNode */
+
+  /** @type {Phase[]} */
   const phaseOrder = ['analysis', 'planning', 'solutioning', 'implementation', 'support', 'utilities'];
+  /** @type {Record<Phase, string>} */
   const phaseLabels = {
     analysis: 'Analysis',
     planning: 'Planning',
@@ -119,6 +153,7 @@
     support: 'Support',
     utilities: 'Utilities',
   };
+  /** @type {Record<Phase, string>} */
   const phaseColors = {
     analysis: 'var(--accent-blue, #58a6ff)',
     planning: 'var(--accent-green, #3fb950)',
@@ -128,8 +163,10 @@
     utilities: 'var(--accent-teal, #00c4b3)',
   };
 
+  /** @type {Phase | null} */
   let openPhase = 'analysis';
 
+  /** @type {ControlFlowNode[]} */
   const controlFlowNodes = [
     { type: 'condition', name: 'Condition', description: 'If/else branch based on output', Icon: GitBranch },
     { type: 'loop', name: 'Loop', description: 'Repeat N times', Icon: Repeat },
@@ -140,26 +177,39 @@
 
   let controlFlowOpen = true;
 
+  /**
+   * @param {DragEvent} e
+   * @param {ControlFlowNode} item
+   */
   function onControlFlowDragStart(e, item) {
+    if (!e.dataTransfer) return;
     e.dataTransfer.setData('application/bmad-controlflow', item.type);
     e.dataTransfer.effectAllowed = 'move';
   }
 
+  /** @param {Phase} phase */
   function togglePhase(phase) {
     openPhase = openPhase === phase ? null : phase;
   }
 
+  /** @param {ProcessDef[]} procs */
   function groupByPhase(procs) {
-    const groups = {};
+    /** @type {Record<Phase, ProcessDef[]>} */
+    const groups = { analysis: [], planning: [], solutioning: [], implementation: [], support: [], utilities: [] };
     for (const phase of phaseOrder) {
-      groups[phase] = procs.filter(p => p.phase === phase);
+      groups[phase] = procs.filter((p) => p.phase === phase);
     }
     return groups;
   }
 
   $: grouped = groupByPhase(processes);
 
+  /**
+   * @param {DragEvent} e
+   * @param {ProcessDef} process
+   */
   function onDragStart(e, process) {
+    if (!e.dataTransfer) return;
     e.dataTransfer.setData('application/bmad-process', process.id);
     e.dataTransfer.effectAllowed = 'move';
   }
@@ -177,14 +227,16 @@
     } catch {}
   });
 
+  /** @param {MouseEvent} e */
   function onResizeStart(e) {
     e.preventDefault();
     resizing = true;
     const startX = e.clientX;
     const startWidth = sidebarWidth;
 
-    function onMouseMove(e) {
-      sidebarWidth = Math.max(200, Math.min(500, startWidth + (e.clientX - startX)));
+    /** @param {MouseEvent} ev */
+    function onMouseMove(ev) {
+      sidebarWidth = Math.max(200, Math.min(500, startWidth + (ev.clientX - startX)));
     }
 
     function onMouseUp() {
@@ -292,6 +344,7 @@
             class="template-card"
             draggable="true"
             on:dragstart={(e) => {
+              if (!e.dataTransfer) return;
               e.dataTransfer.setData('application/bmad-template', tmpl.id);
               e.dataTransfer.effectAllowed = 'move';
             }}
@@ -335,7 +388,7 @@
     {:else if activeTab === 'skills'}
       <div class="process-list">
         {#each mashedGroupKeys as key}
-          {@const items = groupedMashedAssets?.[key] || []}
+          {@const items = /** @type {MashedAssetInfo[]} */ (/** @type {Record<string, MashedAssetInfo[]>} */ (groupedMashedAssets)[key] || [])}
           {#if items.length > 0}
             <div class="phase-group">
               <button class="phase-header" on:click={() => toggleMashedGroup(key)}>
@@ -631,6 +684,7 @@
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
