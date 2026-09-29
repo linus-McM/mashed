@@ -5,9 +5,9 @@ description: "Graphify community 19: internal/bmad/executor.go, internal/bmad/qu
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: question, resource: internal/bmad/question.go, last_modified: "2026-04-17T20:58:29+10:00", digest: 81034d253e6ceb12 }
@@ -41,13 +41,19 @@ sources:
 - .executeFileLoader() (internal/bmad/executor.go:L2021)
 - .recordNodeError() (internal/bmad/executor.go:L2107)
 - .monitorSessionLiveness() (internal/bmad/executor.go:L229)
+- .executeInteractiveNode() (internal/bmad/executor.go:L2382)
 - .setStatus() (internal/bmad/executor.go:L2596)
+- .sendToSession() (internal/bmad/executor.go:L2609)
 - .captureRoundOutput() (internal/bmad/executor.go:L2633)
 - .PauseWorkflow() (internal/bmad/executor.go:L286)
+- .verifyOutputs() (internal/bmad/executor.go:L3017)
 - .ResumeWorkflow() (internal/bmad/executor.go:L304)
 - .StopWorkflow() (internal/bmad/executor.go:L322)
 - .killWorkflowChainTails() (internal/bmad/executor.go:L340)
+- .GetExecution() (internal/bmad/executor.go:L365)
 - .GetInteractiveTranscript() (internal/bmad/executor.go:L394)
+- .GetCurrentExecution() (internal/bmad/executor.go:L478)
+- cloneExecution() (internal/bmad/executor.go:L514)
 - execState (internal/bmad/executor.go:L54)
 - .RespondToQuestionLegacy() (internal/bmad/executor.go:L548)
 - .getState() (internal/bmad/executor.go:L615)
@@ -62,25 +68,25 @@ sources:
 # Depends on
 - [App](/modules/app-76.md)
 - [bmad/types.go](/modules/bmad-types-go.md)
-- [.executeInteractiveNode](/modules/executeinteractivenode.md)
-- [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
-- [NewDefault](/modules/newdefault.md)
-- [newHarness](/modules/newharness.md)
+- [executor_command_test.go](/modules/executor-command-test-go.md)
+- [executor_test.go](/modules/executor-test-go.md)
+- [go_pkg_testing](/modules/go-pkg-testing.md)
 - [ProcessByID](/modules/processbyid.md)
-- [.resolveInputs](/modules/resolveinputs.md)
-- [.resumeInteractiveNode](/modules/resumeinteractivenode.md)
+- [ResolveArtifactPath](/modules/resolveartifactpath.md)
 - [Storage](/modules/storage.md)
+- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 - [wait_idle_test.go](/modules/wait-idle-test-go.md)
-- [WorkflowExecution](/modules/workflowexecution.md)
 
 # Inferred
-- [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
-- [.executeInteractiveNode](/modules/executeinteractivenode.md)
+- [artifacts_test.go](/modules/artifacts-test-go.md)
+- [gate.go](/modules/gate-go.md)
 - [ProcessByID](/modules/processbyid.md)
 - [question_test.go](/modules/question-test-go.md)
+- [ResolveArtifactPath](/modules/resolveartifactpath.md)
 - [resume_ghost_test.go](/modules/resume-ghost-test-go.md)
 - [session_naming_test.go](/modules/session-naming-test-go.md)
 - [sprint_test.go](/modules/sprint-test-go.md)
+- [.suspendForSpecWithPane](/modules/suspendforspecwithpane.md)
 - [testing.T](/modules/testing-t.md)
 
 # Features

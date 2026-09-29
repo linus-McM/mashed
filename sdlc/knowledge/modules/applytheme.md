@@ -1,37 +1,38 @@
 ---
 type: Module
 title: applyTheme
-description: "Graphify community 61: docs/stories/markdown-toolbar-02-frontend-store.md, docs/stories/markdown-toolbar-06-editor-wiring.md, docs/stories/old_stories/S03-config-persistence.md, docs/stories/old_stori"
+description: "Graphify community 61: docs/feasibility-multi-editor.md, docs/stories/old_stories/S03-config-persistence.md, docs/stories/old_stories/theme-03-store-refactor.md, frontend/src/lib/monacoTheme.js, front"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
-  - { id: markdown-toolbar-02-frontend-store, resource: docs/stories/markdown-toolbar-02-frontend-store.md, last_modified: "2026-04-23T11:02:33+10:00", digest: fa89a5180f4ab303 }
-  - { id: markdown-toolbar-06-editor-wiring, resource: docs/stories/markdown-toolbar-06-editor-wiring.md, last_modified: "2026-04-23T11:20:33+10:00", digest: 125c03e40f91a85b }
+  - { id: feasibility-multi-editor, resource: docs/feasibility-multi-editor.md, last_modified: "2026-04-09T21:06:37+10:00", digest: d1cc54cadf1483b3 }
   - { id: S03-config-persistence, resource: docs/stories/old_stories/S03-config-persistence.md, last_modified: "2026-04-08T10:23:03+10:00", digest: d2003a3ed0a69d86 }
   - { id: theme-03-store-refactor, resource: docs/stories/old_stories/theme-03-store-refactor.md, last_modified: "2026-04-08T10:23:03+10:00", digest: 093f8b49cf309f4f }
   - { id: monacoTheme, resource: frontend/src/lib/monacoTheme.js, last_modified: "2026-04-22T18:59:31+10:00", digest: 8ae058a6abdd0dfa }
   - { id: theme, resource: frontend/src/lib/stores/theme.js, last_modified: "2026-04-22T19:23:56+10:00", digest: f7e61260263e6ac6 }
   - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
-  - { id: ui-ast-rendering.spec, resource: tests/ac/ui-ast-rendering.spec.ts, last_modified: "2026-04-22T08:19:28+10:00", digest: dc25a90d2670ae4d }
 ---
 
 # Files
-- `docs/stories/markdown-toolbar-02-frontend-store.md`
-- `docs/stories/markdown-toolbar-06-editor-wiring.md`
+- `docs/feasibility-multi-editor.md`
 - `docs/stories/old_stories/S03-config-persistence.md`
 - `docs/stories/old_stories/theme-03-store-refactor.md`
 - `frontend/src/lib/monacoTheme.js`
 - `frontend/src/lib/stores/theme.js`
 - `frontend/wailsjs/go/main/App.js`
-- `tests/ac/ui-ast-rendering.spec.ts`
 
 # Symbols
-- Acceptance Criteria (docs/stories/markdown-toolbar-02-frontend-store.md:L63)
-- 5. Component specs (docs/stories/markdown-toolbar-06-editor-wiring.md:L269)
+- Decision: **Milkdown Crepe** (`@milkdown/crepe`) (docs/feasibility-multi-editor.md:L101)
+- Why Crepe (docs/feasibility-multi-editor.md:L105)
+- Integration Pattern (docs/feasibility-multi-editor.md:L123)
+- Theme Integration (docs/feasibility-multi-editor.md:L141)
+- No Raw Source View Needed (docs/feasibility-multi-editor.md:L145)
+- Getting Content for Auto-Save (docs/feasibility-multi-editor.md:L149)
+- 3. Markdown Editor: Milkdown Crepe (DECIDED) (docs/feasibility-multi-editor.md:L99)
 - Tasks / Subtasks (docs/stories/old_stories/S03-config-persistence.md:L261)
 - Frontend Changes (App.svelte) (docs/stories/old_stories/S03-config-persistence.md:L87)
 - theme-03-store-refactor.md (docs/stories/old_stories/theme-03-store-refactor.md:L1)
@@ -49,24 +50,19 @@ sources:
 - Definition of Done (docs/stories/old_stories/theme-03-store-refactor.md:L277)
 - Technical Considerations (docs/stories/old_stories/theme-03-store-refactor.md:L72)
 - Description (docs/stories/old_stories/theme-03-store-refactor.md:L9)
+- Risks & Edge Cases (docs/stories/old_stories/theme-03-store-refactor.md:L96)
 - defineImportedTheme() (frontend/src/lib/monacoTheme.js:L49)
 - applyTheme() (frontend/src/lib/stores/theme.js:L38)
+- registerImportedTheme() (frontend/src/lib/stores/theme.js:L52)
 - GetDevDir() (frontend/wailsjs/go/main/App.js:L73)
-- ui-ast-rendering.spec.ts (tests/ac/ui-ast-rendering.spec.ts:L1)
-- get() (tests/ac/ui-ast-rendering.spec.ts:L184)
-- set() (tests/ac/ui-ast-rendering.spec.ts:L187)
-- StructuredPromptOpts (tests/ac/ui-ast-rendering.spec.ts:L21)
-- emitAwaitingInput() (tests/ac/ui-ast-rendering.spec.ts:L29)
-- openModal() (tests/ac/ui-ast-rendering.spec.ts:L53)
-- ensureHelpers() (tests/ac/ui-ast-rendering.spec.ts:L58)
 
 # Depends on
-- [@playwright/test](/modules/playwright-test.md)
-- [theme.js](/modules/theme-js.md)
+- no EXTRACTED edges to other modules
 
 # Inferred
-- [GetConfig](/modules/getconfig.md)
+- [Story 02: Frontend Store — markdownMenuSettings](/modules/story-02-frontend-store-markdownmenusettings.md)
 - [themeConverter.ts](/modules/themeconverter-ts.md)
+- [WriteFile](/modules/writefile.md)
 
 # Features
 - no feature plan names these files

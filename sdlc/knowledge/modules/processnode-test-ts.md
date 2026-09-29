@@ -5,9 +5,9 @@ description: "Graphify community 126: frontend/src/components/bmad/ProcessNode.t
 resource: frontend/src/components/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: ProcessNode.test, resource: frontend/src/components/bmad/ProcessNode.test.ts, last_modified: "2026-04-13T21:36:37+10:00", digest: 1021ab697b815200 }
 ---
@@ -32,7 +32,7 @@ sources:
 - makeNodeProps() (frontend/src/components/bmad/ProcessNode.test.ts:L46)
 
 # Depends on
-- [ProcessNode.svelte](/modules/processnode-svelte.md)
+- [svelte](/modules/svelte.md)
 - [vitest](/modules/vitest.md)
 
 # Inferred

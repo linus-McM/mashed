@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Repo health remediation: trust boundaries",
+    "viewBox": [
+      1080,
+      700
+    ],
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "terminal-gate",
+        "label": "Terminal gate",
+        "focus": [
+          "terminal",
+          "bindings",
+          "bridge",
+          "manager",
+          "pty",
+          "attacker"
+        ],
+        "note": "Token from GetTerminalAuth, subprotocol auth, Host and Origin checks, argv spawn over a 0600 socket."
+      },
+      {
+        "id": "file-guard",
+        "label": "File confinement",
+        "focus": [
+          "editor",
+          "bindings",
+          "pathguard",
+          "fsutil",
+          "disk"
+        ],
+        "note": "Paths resolved and confined to $HOME, then written atomically."
+      },
+      {
+        "id": "git-guard",
+        "label": "Git option guard",
+        "focus": [
+          "editor",
+          "bindings",
+          "refs",
+          "gitcli",
+          "disk"
+        ],
+        "note": "Refs validated in pure Go before auto-commit; paths passed after --."
+      }
+    ]
+  },
+  "stages": [
+    {
+      "label": "Webview"
+    },
+    {
+      "label": "Wails bindings"
+    },
+    {
+      "label": "Guards"
+    },
+    {
+      "label": "Execution"
+    },
+    {
+      "label": "OS + tools"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "terminal",
+      "type": "frontend",
+      "label": "Terminal",
+      "sublabel": "xterm pane",
+      "stage": 0,
+      "row": 0,
+      "tag": "GetTerminalAuth"
+    },
+    {
+      "id": "editor",
+      "type": "frontend",
+      "label": "Editor, Git UI",
+      "sublabel": "file + git",
+      "stage": 0,
+      "row": 2,
+      "tag": "UI"
+    },
+    {
+      "id": "attacker",
+      "type": "external",
+      "label": "Foreign page",
+      "sublabel": "browser tab",
+      "stage": 1,
+      "row": 1,
+      "tag": "untrusted"
+    },
+    {
+      "id": "bindings",
+      "type": "backend",
+      "label": "Wails bindings",
+      "sublabel": "app_git, app.go",
+      "stage": 1,
+      "row": 2,
+      "tag": "PR 1"
+    },
+    {
+      "id": "bridge",
+      "type": "security",
+      "label": "Bridge gate",
+      "sublabel": "Host, Origin, token",
+      "stage": 2,
+      "row": 0,
+      "tag": "403"
+    },
+    {
+      "id": "pathguard",
+      "type": "security",
+      "label": "Path guard",
+      "sublabel": "EvalSymlinks",
+      "stage": 2,
+      "row": 2,
+      "tag": "HOME+DevDir"
+    },
+    {
+      "id": "refs",
+      "type": "security",
+      "label": "Ref guard",
+      "sublabel": "pure Go",
+      "stage": 2,
+      "row": 3,
+      "tag": "ErrInvalidRef"
+    },
+    {
+      "id": "manager",
+      "type": "backend",
+      "label": "SessionManager",
+      "sublabel": "SpawnArgv",
+      "stage": 3,
+      "row": 0,
+      "tag": "PR 2"
+    },
+    {
+      "id": "fsutil",
+      "type": "backend",
+      "label": "Atomic write",
+      "sublabel": "fsutil",
+      "stage": 3,
+      "row": 2,
+      "tag": "cfgMu"
+    },
+    {
+      "id": "gitcli",
+      "type": "external",
+      "label": "git / gh",
+      "sublabel": "ref --",
+      "stage": 3,
+      "row": 3,
+      "tag": "exec"
+    },
+    {
+      "id": "pty",
+      "type": "external",
+      "label": "pty-helper",
+      "sublabel": "shell, claude",
+      "stage": 4,
+      "row": 0,
+      "tag": "0600 socket"
+    },
+    {
+      "id": "disk",
+      "type": "database",
+      "label": "$HOME files",
+      "sublabel": "config 0600",
+      "stage": 4,
+      "row": 2,
+      "tag": "quarantine"
+    }
+  ],
+  "flows": [
+    {
+      "from": "terminal",
+      "to": "bridge",
+      "label": "WS + token",
+      "classification": "C5",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -42
+    },
+    {
+      "from": "attacker",
+      "to": "bridge",
+      "label": "no token",
+      "classification": "403",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "via": [
+        [
+          530,
+          271
+        ]
+      ],
+      "labelAt": [
+        440,
+        300
+      ]
+    },
+    {
+      "from": "bridge",
+      "to": "manager",
+      "label": "attach",
+      "classification": "C7",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -42
+    },
+    {
+      "from": "manager",
+      "to": "pty",
+      "label": "argv",
+      "classification": "C4",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -42
+    },
+    {
+      "from": "editor",
+      "to": "bindings",
+      "label": "calls",
+      "classification": "C3",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -42
+    },
+    {
+      "from": "bindings",
+      "to": "pathguard",
+      "label": "path",
+      "classification": "C1 C2",
+      "variant": "security",
+      "route": "straight",
+      "labelDy": -42
+    },
+    {
+      "from": "pathguard",
+      "to": "fsutil",
+      "label": "resolved",
+      "classification": "inside",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -42
+    },
+    {
+      "from": "fsutil",
+      "to": "disk",
+      "label": "rename",
+      "classification": "fsync",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -42
+    },
+    {
+      "from": "bindings",
+      "to": "refs",
+      "label": "branch",
+      "classification": "C8",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          315,
+          499
+        ]
+      ],
+      "labelAt": [
+        420,
+        530
+      ]
+    },
+    {
+      "from": "refs",
+      "to": "gitcli",
+      "label": "ref --",
+      "classification": "safe",
+      "variant": "default",
+      "route": "straight",
+      "labelDy": 42
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Summary",
+      "items": [
+        "Generated by sdlc from design sources @ 0354afa3e864; drafts are Claude's reading of the artifact, the acceptor decides",
+        "Five PRs merged in order: security, broken features and races, build and CI, hygiene, structure",
+        "Every trust boundary fails closed: 403, ErrOutsideRoot, ErrDeniedPath or ErrInvalidRef before any side effect",
+        "Owner decisions: $HOME + DevDir roots with write denylist; review spawns drop skip-permissions; history rewrite deferred",
+        "Still open for owner: LICENSE choice (C12) and the mashed-refactor-asset skill, both before PR 4"
+      ]
+    }
+  ]
+}

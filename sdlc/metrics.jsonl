@@ -18,3 +18,8 @@
 {"metric": "knowledge_stale", "value": 0.0, "ts": "2026-09-29"}
 {"metric": "knowledge_unverified", "value": 306.0, "ts": "2026-09-29"}
 {"metric": "knowledge_behind", "value": 1.0, "ts": "2026-09-29"}
+{"metric": "knowledge_nodes", "value": 9674.0, "ts": "2026-09-29"}
+{"metric": "knowledge_communities", "value": 607.0, "ts": "2026-09-29"}
+{"metric": "knowledge_stale", "value": 0.0, "ts": "2026-09-29"}
+{"metric": "knowledge_unverified", "value": 336.0, "ts": "2026-09-29"}
+{"metric": "knowledge_behind", "value": 1.0, "ts": "2026-09-29"}

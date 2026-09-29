@@ -5,9 +5,9 @@ description: "Graphify community 7: app.go, app_bmad.go, app_claude.go, app_expl
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: app, resource: app.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 295875db4f0bdc1e }
   - { id: app_bmad, resource: app_bmad.go, last_modified: "2026-04-28T12:36:05+10:00", digest: fca7c61a439c150e }
@@ -21,29 +21,25 @@ sources:
   - { id: app_sessions, resource: app_sessions.go, last_modified: "2026-04-12T20:21:26+10:00", digest: 7b79f8178152c1fb }
   - { id: app_spawn, resource: app_spawn.go, last_modified: "2026-05-07T18:18:02+10:00", digest: cbe44d5e06097d50 }
   - { id: app_terminal_registry, resource: app_terminal_registry.go, last_modified: "2026-04-09T11:13:26+10:00", digest: 1c83e41a5c27d12e }
-  - { id: app_uiadapter_claudecli, resource: app_uiadapter_claudecli.go, last_modified: "2026-04-28T12:36:05+10:00", digest: 9c423a0a128af5b2 }
   - { id: main, resource: cmd/pty-helper/main.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 5b417efc875ee944 }
   - { id: engine, resource: internal/agent/engine.go, last_modified: "2026-04-11T17:08:28+10:00", digest: 1042190db571e4e7 }
   - { id: artifacts, resource: internal/bmad/artifacts.go, last_modified: "2026-04-12T20:21:26+10:00", digest: 0fcf7b7f19ac0972 }
   - { id: asset_watcher, resource: internal/bmad/asset_watcher.go, last_modified: "2026-04-12T16:58:02+10:00", digest: 25909dc6b81603ba }
+  - { id: assets, resource: internal/bmad/assets.go, last_modified: "2026-04-12T16:58:02+10:00", digest: ae5984d95ad01e8c }
   - { id: assets_write, resource: internal/bmad/assets_write.go, last_modified: "2026-04-12T17:09:26+10:00", digest: 4f3137dec4993601 }
   - { id: cleanup, resource: internal/bmad/cleanup.go, last_modified: "2026-05-07T09:52:03+10:00", digest: 78b71ea7a045636f }
   - { id: condition, resource: internal/bmad/condition.go, last_modified: "2026-04-08T17:10:27+10:00", digest: 956ffd61999ceb65 }
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
-  - { id: executor_interactive_test, resource: internal/bmad/executor_interactive_test.go, last_modified: "2026-04-28T12:02:57+10:00", digest: 38021efc1dc00f72 }
   - { id: executor_outputpaths_test, resource: internal/bmad/executor_outputpaths_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 8d577df9f438ee41 }
-  - { id: prompts, resource: internal/bmad/prompts.go, last_modified: "2026-04-27T13:46:23+10:00", digest: b76c227c938b8250 }
   - { id: resume, resource: internal/bmad/resume.go, last_modified: "2026-04-28T12:36:05+10:00", digest: 0a2ce1f02fac5f5b }
   - { id: session_naming, resource: internal/bmad/session_naming.go, last_modified: "2026-04-10T15:50:15+10:00", digest: acbdad6853f5eaed }
   - { id: storage, resource: internal/bmad/storage.go, last_modified: "2026-04-10T12:50:28+10:00", digest: 360ebf80068d1480 }
   - { id: testutil_interactive_test, resource: internal/bmad/testutil_interactive_test.go, last_modified: "2026-04-20T15:36:58+10:00", digest: f165a17bd64570bc }
-  - { id: validate, resource: internal/bmad/validate.go, last_modified: "2026-04-21T09:23:33+10:00", digest: fddd00a4023adcb7 }
-  - { id: diff, resource: internal/git/diff.go, last_modified: "2026-04-07T10:03:32+10:00", digest: 6abe6e537093b3dc }
   - { id: claude, resource: internal/scanner/claude.go, last_modified: "2026-04-08T18:15:54+10:00", digest: 2c44ec40e17d728e }
+  - { id: processes, resource: internal/scanner/processes.go, last_modified: "2026-04-07T10:03:32+10:00", digest: f095332194a18619 }
   - { id: repos, resource: internal/scanner/repos.go, last_modified: "2026-05-07T10:33:04+10:00", digest: c8bd28e2f7bd59b8 }
   - { id: watcher, resource: internal/scanner/watcher.go, last_modified: "2026-04-07T10:03:32+10:00", digest: 8aeb13ebec4f12a0 }
   - { id: bridge, resource: internal/terminal/bridge.go, last_modified: "2026-04-11T19:45:53+10:00", digest: a42cec584372611b }
-  - { id: bridge_test, resource: internal/terminal/bridge_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: b13529690aa8d966 }
   - { id: client, resource: internal/terminal/helper/client.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 46fc572e21238bfb }
   - { id: protocol, resource: internal/terminal/helper/protocol.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 07f801b52b8e41da }
   - { id: server, resource: internal/terminal/helper/server.go, last_modified: "2026-04-09T21:03:43+10:00", digest: e54a6a9ea36ca59d }
@@ -53,12 +49,11 @@ sources:
   - { id: session, resource: internal/terminal/session.go, last_modified: "2026-04-09T18:42:25+10:00", digest: 6213e8a0ece661b9 }
   - { id: tmux_adapter, resource: internal/terminal/tmux_adapter.go, last_modified: "2026-04-12T15:24:29+10:00", digest: 1a5bf00ab35bc698 }
   - { id: tmux_escape, resource: internal/terminal/tmux_escape.go, last_modified: "2026-04-10T16:37:58+10:00", digest: d61b1108f3251770 }
-  - { id: adapter, resource: internal/uiadapter/adapter.go, last_modified: "2026-04-28T12:36:05+10:00", digest: aad905dbc8e94a13 }
-  - { id: client, resource: internal/uiadapter/backend/claudeapi/client.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 3e20643bf928e2f2 }
+  - { id: client, resource: internal/uiadapter/backend/claudecli/client.go, last_modified: "2026-04-28T12:36:05+10:00", digest: 414128d39b8e1d31 }
   - { id: signal_unix, resource: internal/uiadapter/backend/claudecli/signal_unix.go, last_modified: "2026-04-23T11:34:52+10:00", digest: 60897ce7552e8510 }
   - { id: signal_windows, resource: internal/uiadapter/backend/claudecli/signal_windows.go, last_modified: "2026-04-23T11:34:52+10:00", digest: d0934456df766740 }
+  - { id: scorecard, resource: internal/uiadapter/eval/scorecard.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 478867f290bdf6a9 }
   - { id: logging, resource: internal/uiadapter/logging.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f7d1f46bdb4ea215 }
-  - { id: repair, resource: internal/uiadapter/repair.go, last_modified: "2026-04-26T10:43:55+10:00", digest: cc21726252779f85 }
   - { id: theme_scanner, resource: theme_scanner.go, last_modified: "2026-04-10T09:28:28+10:00", digest: d02c5e5c45d34f49 }
 ---
 
@@ -75,29 +70,25 @@ sources:
 - `app_sessions.go`
 - `app_spawn.go`
 - `app_terminal_registry.go`
-- `app_uiadapter_claudecli.go`
 - `cmd/pty-helper/main.go`
 - `internal/agent/engine.go`
 - `internal/bmad/artifacts.go`
 - `internal/bmad/asset_watcher.go`
+- `internal/bmad/assets.go`
 - `internal/bmad/assets_write.go`
 - `internal/bmad/cleanup.go`
 - `internal/bmad/condition.go`
 - `internal/bmad/executor.go`
-- `internal/bmad/executor_interactive_test.go`
 - `internal/bmad/executor_outputpaths_test.go`
-- `internal/bmad/prompts.go`
 - `internal/bmad/resume.go`
 - `internal/bmad/session_naming.go`
 - `internal/bmad/storage.go`
 - `internal/bmad/testutil_interactive_test.go`
-- `internal/bmad/validate.go`
-- `internal/git/diff.go`
 - `internal/scanner/claude.go`
+- `internal/scanner/processes.go`
 - `internal/scanner/repos.go`
 - `internal/scanner/watcher.go`
 - `internal/terminal/bridge.go`
-- `internal/terminal/bridge_test.go`
 - `internal/terminal/helper/client.go`
 - `internal/terminal/helper/protocol.go`
 - `internal/terminal/helper/server.go`
@@ -107,12 +98,11 @@ sources:
 - `internal/terminal/session.go`
 - `internal/terminal/tmux_adapter.go`
 - `internal/terminal/tmux_escape.go`
-- `internal/uiadapter/adapter.go`
-- `internal/uiadapter/backend/claudeapi/client.go`
+- `internal/uiadapter/backend/claudecli/client.go`
 - `internal/uiadapter/backend/claudecli/signal_unix.go`
 - `internal/uiadapter/backend/claudecli/signal_windows.go`
+- `internal/uiadapter/eval/scorecard.go`
 - `internal/uiadapter/logging.go`
-- `internal/uiadapter/repair.go`
 - `theme_scanner.go`
 
 # Symbols
@@ -131,11 +121,12 @@ sources:
 - app_sessions.go (app_sessions.go:L1)
 - app_spawn.go (app_spawn.go:L1)
 - app_terminal_registry.go (app_terminal_registry.go:L1)
-- app_uiadapter_claudecli.go (app_uiadapter_claudecli.go:L1)
 - pty-helper/main.go (cmd/pty-helper/main.go:L1)
 - engine.go (internal/agent/engine.go:L1)
 - artifacts.go (internal/bmad/artifacts.go:L1)
 - asset_watcher.go (internal/bmad/asset_watcher.go:L1)
+- assets.go (internal/bmad/assets.go:L1)
+- mashedAssetFrontmatter (internal/bmad/assets.go:L134)
 - assets_write.go (internal/bmad/assets_write.go:L1)
 - cleanup.go (internal/bmad/cleanup.go:L1)
 - condition.go (internal/bmad/condition.go:L1)
@@ -143,23 +134,19 @@ sources:
 - Condition (internal/bmad/condition.go:L35)
 - .Evaluate() (internal/bmad/condition.go:L44)
 - executor.go (internal/bmad/executor.go:L1)
-- executor_interactive_test.go (internal/bmad/executor_interactive_test.go:L1)
 - executor_outputpaths_test.go (internal/bmad/executor_outputpaths_test.go:L1)
 - TestAC5_ConcurrentCompletion_NoRace() (internal/bmad/executor_outputpaths_test.go:L188)
 - cloneStrMap() (internal/bmad/executor_outputpaths_test.go:L238)
-- prompts.go (internal/bmad/prompts.go:L1)
 - resume.go (internal/bmad/resume.go:L1)
 - session_naming.go (internal/bmad/session_naming.go:L1)
 - storage.go (internal/bmad/storage.go:L1)
 - testutil_interactive_test.go (internal/bmad/testutil_interactive_test.go:L1)
-- validate.go (internal/bmad/validate.go:L1)
-- diff.go (internal/git/diff.go:L1)
 - claude.go (internal/scanner/claude.go:L1)
+- processes.go (internal/scanner/processes.go:L1)
 - repos.go (internal/scanner/repos.go:L1)
 - watcher.go (internal/scanner/watcher.go:L1)
 - bridge.go (internal/terminal/bridge.go:L1)
 - resizeMsg (internal/terminal/bridge.go:L54)
-- bridge_test.go (internal/terminal/bridge_test.go:L1)
 - helper/client.go (internal/terminal/helper/client.go:L1)
 - protocol.go (internal/terminal/helper/protocol.go:L1)
 - server.go (internal/terminal/helper/server.go:L1)
@@ -169,83 +156,72 @@ sources:
 - session.go (internal/terminal/session.go:L1)
 - tmux_adapter.go (internal/terminal/tmux_adapter.go:L1)
 - tmux_escape.go (internal/terminal/tmux_escape.go:L1)
-- adapter.go (internal/uiadapter/adapter.go:L1)
-- claudeapi/client.go (internal/uiadapter/backend/claudeapi/client.go:L1)
-- init() (internal/uiadapter/backend/claudeapi/client.go:L302)
+- claudecli/client.go (internal/uiadapter/backend/claudecli/client.go:L1)
+- init() (internal/uiadapter/backend/claudecli/client.go:L351)
 - signal_unix.go (internal/uiadapter/backend/claudecli/signal_unix.go:L1)
 - signal_windows.go (internal/uiadapter/backend/claudecli/signal_windows.go:L1)
+- scorecard.go (internal/uiadapter/eval/scorecard.go:L1)
 - logging.go (internal/uiadapter/logging.go:L1)
-- repair.go (internal/uiadapter/repair.go:L1)
 - theme_scanner.go (theme_scanner.go:L1)
 - packageJSON (theme_scanner.go:L192)
 
 # Depends on
 - [App](/modules/app.md)
 - [App](/modules/app-349.md)
-- [App](/modules/app-63.md)
 - [App](/modules/app-76.md)
+- [app_review_scoped_test.go](/modules/app-review-scoped-test-go.md)
 - [app_review_test.go](/modules/app-review-test-go.md)
+- [app_terminal_registry_test.go](/modules/app-terminal-registry-test-go.md)
+- [artifacts_test.go](/modules/artifacts-test-go.md)
 - [asset_watcher_test.go](/modules/asset-watcher-test-go.md)
 - [assets_test.go](/modules/assets-test-go.md)
 - [AssetWatcher](/modules/assetwatcher.md)
-- [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
 - [bmad/types.go](/modules/bmad-types-go.md)
-- [BmadAgentConfig](/modules/bmadagentconfig.md)
 - [Bridge](/modules/bridge.md)
-- [BuildRepairPrompt](/modules/buildrepairprompt.md)
 - [ClaudeCodeProvider](/modules/claudecodeprovider.md)
-- [claudeCommand](/modules/claudecommand.md)
+- [Config](/modules/config.md)
 - [context.Context](/modules/context-context.md)
-- [DefaultConfig](/modules/defaultconfig.md)
 - [domain/types.go](/modules/domain-types-go.md)
 - [EngineError](/modules/engineerror.md)
-- [.executeInteractiveNode](/modules/executeinteractivenode.md)
 - [Executor](/modules/executor.md)
-- [executor_adapter_test.go](/modules/executor-adapter-test-go.md)
-- [executor_fileloader_test.go](/modules/executor-fileloader-test-go.md)
+- [executor_command_test.go](/modules/executor-command-test-go.md)
 - [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
-- [fanoutHandler](/modules/fanouthandler.md)
-- [interactiveHarness](/modules/interactiveharness.md)
+- [executor_respond_test.go](/modules/executor-respond-test-go.md)
+- [executor_test.go](/modules/executor-test-go.md)
+- [go_pkg_testing](/modules/go-pkg-testing.md)
 - [loadConfig](/modules/loadconfig.md)
-- [loader_test.go](/modules/loader-test-go.md)
 - [logging_comprehensive_test.go](/modules/logging-comprehensive-test-go.md)
 - [ManagedSession](/modules/managedsession.md)
 - [manager_test.go](/modules/manager-test-go.md)
 - [mashed/internal/uiadapter.UIAST](/modules/mashed-internal-uiadapter-uiast.md)
-- [mimeForExt](/modules/mimeforext.md)
 - [mockTmuxSession](/modules/mocktmuxsession.md)
-- [ModelInfo](/modules/modelinfo.md)
-- [NewApp](/modules/newapp.md)
-- [NewDefault](/modules/newdefault.md)
 - [NewExecutor](/modules/newexecutor.md)
 - [newHarness](/modules/newharness.md)
 - [nilSafeLogger](/modules/nilsafelogger.md)
 - [NotificationEngine](/modules/notificationengine.md)
+- [parsePSLine](/modules/parsepsline.md)
 - [ProcessByID](/modules/processbyid.md)
-- [prompts_test.go](/modules/prompts-test-go.md)
-- [refactorPlanFilename](/modules/refactorplanfilename.md)
-- [.resolveInputs](/modules/resolveinputs.md)
+- [readfilebase64_test.go](/modules/readfilebase64-test-go.md)
+- [.ReadThemeFile](/modules/readthemefile.md)
+- [RepoScanner](/modules/reposcanner.md)
+- [ResolveArtifactPath](/modules/resolveartifactpath.md)
 - [resume_ghost_test.go](/modules/resume-ghost-test-go.md)
 - [.resumeInteractiveNode](/modules/resumeinteractivenode.md)
-- [ScopedDiff](/modules/scopeddiff.md)
+- [Scorecard](/modules/scorecard.md)
 - [screenshot_fullstack_test.go](/modules/screenshot-fullstack-test-go.md)
 - [server_test.go](/modules/server-test-go.md)
 - [session_naming_test.go](/modules/session-naming-test-go.md)
-- [SessionManager](/modules/sessionmanager.md)
-- [sessions.go](/modules/sessions-go.md)
-- [startBridgeWithMockAdapter](/modules/startbridgewithmockadapter.md)
+- [session_test.go](/modules/session-test-go.md)
 - [Storage](/modules/storage.md)
-- [.suspendForSpecWithPane](/modules/suspendforspecwithpane.md)
+- [sync.Mutex](/modules/sync-mutex.md)
 - [sync.Once](/modules/sync-once.md)
 - [TerminalError](/modules/terminalerror.md)
 - [testing.T](/modules/testing-t.md)
-- [time.Time](/modules/time-time.md)
+- [time.Duration](/modules/time-duration.md)
 - [tmux_adapter_coverage_test.go](/modules/tmux-adapter-coverage-test-go.md)
 - [TmuxPane](/modules/tmuxpane.md)
-- [validate_test.go](/modules/validate-test-go.md)
+- [.Translate](/modules/translate.md)
 - [wait_idle_test.go](/modules/wait-idle-test-go.md)
-- [waitForNodeStatus](/modules/waitfornodestatus.md)
-- [WorkflowExecution](/modules/workflowexecution.md)
 
 # Inferred
 - [newHarness](/modules/newharness.md)

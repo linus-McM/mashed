@@ -1,93 +1,65 @@
 ---
 type: Module
 title: testing.T
-description: "Graphify community 0: app_bmad_question_test.go, app_bmad_respond_input_test.go, app_shutdown_test.go, app_uiadapter_v3_test.go, internal/agent/tokensamples.go, internal/agent/tokensamples_test.go, in"
+description: "Graphify community 0: app_bmad_question_test.go, app_bmad_respond_input_test.go, internal/bmad/condition.go, internal/bmad/condition_test.go, internal/bmad/executor_interactive_smoke_test.go, internal"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: app_bmad_question_test, resource: app_bmad_question_test.go, last_modified: "2026-04-10T14:01:16+10:00", digest: 9386c29f8c1272f8 }
   - { id: app_bmad_respond_input_test, resource: app_bmad_respond_input_test.go, last_modified: "2026-04-20T13:50:13+10:00", digest: c31156ae45a58fd1 }
-  - { id: app_shutdown_test, resource: app_shutdown_test.go, last_modified: "2026-04-26T09:22:14+10:00", digest: bb2b11e788c7ac0b }
-  - { id: app_uiadapter_v3_test, resource: app_uiadapter_v3_test.go, last_modified: "2026-04-23T11:43:31+10:00", digest: f965d914b8a9c4fa }
-  - { id: tokensamples, resource: internal/agent/tokensamples.go, last_modified: "2026-04-11T17:08:28+10:00", digest: 281db4a1d2ab32a0 }
-  - { id: tokensamples_test, resource: internal/agent/tokensamples_test.go, last_modified: "2026-04-11T17:08:28+10:00", digest: e73f3aa2bb785df4 }
   - { id: condition, resource: internal/bmad/condition.go, last_modified: "2026-04-08T17:10:27+10:00", digest: 956ffd61999ceb65 }
   - { id: condition_test, resource: internal/bmad/condition_test.go, last_modified: "2026-04-08T17:10:27+10:00", digest: 0058fbc2d3f1868b }
-  - { id: executor_command_test, resource: internal/bmad/executor_command_test.go, last_modified: "2026-04-28T12:02:57+10:00", digest: bc808e46119528f7 }
   - { id: executor_interactive_smoke_test, resource: internal/bmad/executor_interactive_smoke_test.go, last_modified: "2026-04-20T15:36:58+10:00", digest: 75f14883e4b4821b }
   - { id: executor_outputpaths_test, resource: internal/bmad/executor_outputpaths_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: 8d577df9f438ee41 }
   - { id: interactive_types_test, resource: internal/bmad/interactive_types_test.go, last_modified: "2026-04-20T13:01:41+10:00", digest: 0282e550b6b93893 }
+  - { id: storage_test, resource: internal/bmad/storage_test.go, last_modified: "2026-04-28T12:29:58+10:00", digest: cbabd36eb06877ea }
   - { id: testutil_interactive_test, resource: internal/bmad/testutil_interactive_test.go, last_modified: "2026-04-20T15:36:58+10:00", digest: f165a17bd64570bc }
   - { id: types_nodetype_test, resource: internal/bmad/types_nodetype_test.go, last_modified: "2026-04-08T17:10:27+10:00", digest: 63313f7f3a1e92c3 }
   - { id: types_test, resource: internal/bmad/types_test.go, last_modified: "2026-04-21T20:21:32+10:00", digest: f7fe93cfdff41ed5 }
-  - { id: bridge_test, resource: internal/terminal/bridge_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: b13529690aa8d966 }
-  - { id: protocol_test, resource: internal/terminal/helper/protocol_test.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 500bab47812315f3 }
   - { id: adapter_test, resource: internal/uiadapter/adapter_test.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 14d9868bbf707930 }
-  - { id: client_test, resource: internal/uiadapter/client_test.go, last_modified: "2026-04-26T10:14:41+10:00", digest: ae292f9785d96f43 }
+  - { id: eval_test, resource: internal/uiadapter/eval_test.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 170e442f3eb11320 }
   - { id: logging_handler_test, resource: internal/uiadapter/logging_handler_test.go, last_modified: "2026-04-26T09:22:14+10:00", digest: 998f6bb512a268ee }
   - { id: logging_plumbing_test, resource: internal/uiadapter/logging_plumbing_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 688be06cdc267d83 }
+  - { id: mock_test, resource: internal/uiadapter/mock_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: e6b7941070a1bd3a }
   - { id: sanitize_adapter_test, resource: internal/uiadapter/sanitize_adapter_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: 2951e338741da597 }
   - { id: schema_test, resource: internal/uiadapter/schema_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 706f4f8efc89d9d5 }
-  - { id: schemas_test, resource: internal/uiadapter/schemas_test.go, last_modified: "2026-04-23T11:04:07+10:00", digest: e7499deb809d563b }
-  - { id: readfilebase64_test, resource: readfilebase64_test.go, last_modified: "2026-04-09T11:58:53+10:00", digest: 82165929a5efaa1e }
-  - { id: screenshot_fullstack_test, resource: screenshot_fullstack_test.go, last_modified: "2026-04-21T10:01:10+10:00", digest: da72543a3716b145 }
+  - { id: testhelper_eval, resource: internal/uiadapter/testhelper_eval.go, last_modified: "2026-04-22T14:13:03+10:00", digest: d5eeb86f7290c4bf }
 ---
 
 # Files
 - `app_bmad_question_test.go`
 - `app_bmad_respond_input_test.go`
-- `app_shutdown_test.go`
-- `app_uiadapter_v3_test.go`
-- `internal/agent/tokensamples.go`
-- `internal/agent/tokensamples_test.go`
 - `internal/bmad/condition.go`
 - `internal/bmad/condition_test.go`
-- `internal/bmad/executor_command_test.go`
 - `internal/bmad/executor_interactive_smoke_test.go`
 - `internal/bmad/executor_outputpaths_test.go`
 - `internal/bmad/interactive_types_test.go`
+- `internal/bmad/storage_test.go`
 - `internal/bmad/testutil_interactive_test.go`
 - `internal/bmad/types_nodetype_test.go`
 - `internal/bmad/types_test.go`
-- `internal/terminal/bridge_test.go`
-- `internal/terminal/helper/protocol_test.go`
 - `internal/uiadapter/adapter_test.go`
-- `internal/uiadapter/client_test.go`
+- `internal/uiadapter/eval_test.go`
 - `internal/uiadapter/logging_handler_test.go`
 - `internal/uiadapter/logging_plumbing_test.go`
+- `internal/uiadapter/mock_test.go`
 - `internal/uiadapter/sanitize_adapter_test.go`
 - `internal/uiadapter/schema_test.go`
-- `internal/uiadapter/schemas_test.go`
-- `readfilebase64_test.go`
-- `screenshot_fullstack_test.go`
+- `internal/uiadapter/testhelper_eval.go`
 
 # Symbols
-- TestStory2_AC6_AppRespondToQuestion_NilExecutor() (app_bmad_question_test.go:L59)
+- newBmadTestApp() (app_bmad_question_test.go:L25)
+- TestStory2_AC5_AppRespondToQuestion_Delegates() (app_bmad_question_test.go:L46)
+- app_bmad_respond_input_test.go (app_bmad_respond_input_test.go:L1)
+- TestAppRespondToInputIntegration() (app_bmad_respond_input_test.go:L101)
+- TestAppRespondToInputProxies() (app_bmad_respond_input_test.go:L28)
 - TestAppRespondToInputNilExecutor() (app_bmad_respond_input_test.go:L44)
 - TestAppRespondToInputSignature() (app_bmad_respond_input_test.go:L62)
-- TestStory1_AC6_AppShutdownDrainsHooks() (app_shutdown_test.go:L28)
-- app_uiadapter_v3_test.go (app_uiadapter_v3_test.go:L1)
-- setupTempConfig() (app_uiadapter_v3_test.go:L15)
-- TestApp_SetBackend_Validates() (app_uiadapter_v3_test.go:L24)
-- TestApp_SetClaudeModel_Validates() (app_uiadapter_v3_test.go:L38)
-- TestApp_SetRouterPolicy_Validates() (app_uiadapter_v3_test.go:L51)
-- TestApp_ListBackendsAvailable_StableOrder() (app_uiadapter_v3_test.go:L64)
-- TestApp_Setters_RoundtripToConfig() (app_uiadapter_v3_test.go:L74)
-- tokensamples.go (internal/agent/tokensamples.go:L1)
-- MaybeAppendTokenSample() (internal/agent/tokensamples.go:L24)
-- tokensamples_test.go (internal/agent/tokensamples_test.go:L1)
-- TestNotificationEventJSON_IncludesTokenSamples() (internal/agent/tokensamples_test.go:L112)
-- TestNotificationEventJSON_OmitEmptyTokenSamples() (internal/agent/tokensamples_test.go:L129)
-- TestMaybeAppendTokenSample_CapEnforced() (internal/agent/tokensamples_test.go:L15)
-- TestMaybeAppendTokenSample_FirstSampleAlwaysAppends() (internal/agent/tokensamples_test.go:L34)
-- TestMaybeAppendTokenSample_DeltaThrottle() (internal/agent/tokensamples_test.go:L41)
-- TestMaybeAppendTokenSample_DeltaBypassedForDecreases() (internal/agent/tokensamples_test.go:L61)
-- TestMaybeAppendTokenSample_ThreadSafeRace() (internal/agent/tokensamples_test.go:L70)
-- TestAgentJSON_IncludesTokenSamples() (internal/agent/tokensamples_test.go:L97)
+- TestAppRespondToQuestionLegacyShimStillWorks() (app_bmad_respond_input_test.go:L80)
 - ParseCondition() (internal/bmad/condition.go:L91)
 - condition_test.go (internal/bmad/condition_test.go:L1)
 - TestCondition_Evaluate_ExitCode() (internal/bmad/condition_test.go:L101)
@@ -101,7 +73,6 @@ sources:
 - TestCondition_Evaluate_NilOutputs() (internal/bmad/condition_test.go:L311)
 - TestCondition_Evaluate_NotContains() (internal/bmad/condition_test.go:L43)
 - TestCondition_Evaluate_Regex() (internal/bmad/condition_test.go:L70)
-- TestStory1_AC1_NodeTypeCommandRoundTrip() (internal/bmad/executor_command_test.go:L227)
 - executor_interactive_smoke_test.go (internal/bmad/executor_interactive_smoke_test.go:L1)
 - TestSmoke_PartyMode_ExitToken() (internal/bmad/executor_interactive_smoke_test.go:L114)
 - TestSmoke_AdvancedElicitation_XAccept() (internal/bmad/executor_interactive_smoke_test.go:L142)
@@ -121,6 +92,31 @@ sources:
 - TestNodeInputEntryRoundTrip() (internal/bmad/interactive_types_test.go:L623)
 - TestWorkflowExecutionLegacyShape() (internal/bmad/interactive_types_test.go:L652)
 - TestInputSpecShapes() (internal/bmad/interactive_types_test.go:L92)
+- storage_test.go (internal/bmad/storage_test.go:L1)
+- TestDeleteWorkflow_NotFound() (internal/bmad/storage_test.go:L105)
+- TestSaveWorkflow_PathTraversal() (internal/bmad/storage_test.go:L113)
+- TestLoadWorkflow_InvalidID() (internal/bmad/storage_test.go:L135)
+- newTestStorage() (internal/bmad/storage_test.go:L14)
+- TestDeleteWorkflow_InvalidID() (internal/bmad/storage_test.go:L141)
+- TestListWorkflows_SkipsMalformedJSON() (internal/bmad/storage_test.go:L149)
+- TestListWorkflows_SkipsNonJSON() (internal/bmad/storage_test.go:L163)
+- TestSaveAndListAgents() (internal/bmad/storage_test.go:L177)
+- TestDeleteAgent() (internal/bmad/storage_test.go:L188)
+- TestDeleteAgent_NotFound() (internal/bmad/storage_test.go:L199)
+- TestSaveAgent_InvalidID() (internal/bmad/storage_test.go:L205)
+- sampleWorkflow() (internal/bmad/storage_test.go:L21)
+- TestDeleteAgent_InvalidID() (internal/bmad/storage_test.go:L213)
+- TestNewStorage_CreatesDirectories() (internal/bmad/storage_test.go:L221)
+- sampleWorkflowWithRepo() (internal/bmad/storage_test.go:L239)
+- TestListWorkflowsByRepo() (internal/bmad/storage_test.go:L247)
+- TestListWorkflowsByRepo_ListWorkflowsStillReturnsAll() (internal/bmad/storage_test.go:L316)
+- TestWorkflowDef_RepoPathSerialization() (internal/bmad/storage_test.go:L329)
+- TestSaveWorkflow_Overwrite() (internal/bmad/storage_test.go:L378)
+- sampleAgent() (internal/bmad/storage_test.go:L53)
+- TestSaveAndLoadWorkflow() (internal/bmad/storage_test.go:L67)
+- TestLoadWorkflow_NotFound() (internal/bmad/storage_test.go:L78)
+- TestListWorkflows() (internal/bmad/storage_test.go:L84)
+- TestDeleteWorkflow() (internal/bmad/storage_test.go:L95)
 - newInteractiveHarness() (internal/bmad/testutil_interactive_test.go:L70)
 - types_nodetype_test.go (internal/bmad/types_nodetype_test.go:L1)
 - TestNodeTypeConstants() (internal/bmad/types_nodetype_test.go:L11)
@@ -136,20 +132,16 @@ sources:
 - TestAC4_ArtifactSpec_JSONRoundTrip() (internal/bmad/types_test.go:L32)
 - TestAC4_ArtifactSpec_ZeroValue() (internal/bmad/types_test.go:L62)
 - TestStory1_AC4_LegacyWorkflowRoundTrip() (internal/bmad/types_test.go:L78)
-- TestBridge_AC4_NoTmuxReferences() (internal/terminal/bridge_test.go:L194)
-- TestBridge_CompileTimeAssertBMADPrefixMatches() (internal/terminal/bridge_test.go:L854)
-- TestSentinelErrors() (internal/terminal/helper/protocol_test.go:L307)
-- TestEnvelopeJSONTags() (internal/terminal/helper/protocol_test.go:L318)
-- TestSpawnResponseOmitEmpty() (internal/terminal/helper/protocol_test.go:L329)
 - TestU2_AC7_Adapter_NetworkPinned_NoNonLocalhostReach() (internal/uiadapter/adapter_test.go:L291)
-- TestU2_ClientHTTPStatusError_ErrorString() (internal/uiadapter/client_test.go:L189)
-- TestU1_AC2_Client_LocalhostPinned() (internal/uiadapter/client_test.go:L89)
+- TestEval_SkipWhenUnreachable() (internal/uiadapter/eval_test.go:L29)
 - TestNoopCloser_AlwaysNil() (internal/uiadapter/logging_handler_test.go:L118)
 - TestFanoutHandler_WithAttrs() (internal/uiadapter/logging_handler_test.go:L39)
 - TestFanoutHandler_WithGroup() (internal/uiadapter/logging_handler_test.go:L60)
 - TestFanoutHandler_EnabledShortCircuit() (internal/uiadapter/logging_handler_test.go:L83)
 - TestFileCloser_ConcurrentDoubleClose() (internal/uiadapter/logging_handler_test.go:L99)
 - TestStory2_AC6_NoNewLogCallsInProduction() (internal/uiadapter/logging_plumbing_test.go:L389)
+- runGoList() (internal/uiadapter/mock_test.go:L121)
+- TestU2_AC8_MockAdapter_NotInProductionBuild() (internal/uiadapter/mock_test.go:L46)
 - TestAdapter_Translate_LogsSanitizeDelta() (internal/uiadapter/sanitize_adapter_test.go:L50)
 - TestAdapter_Translate_SanitizeZeroDeltaStillLogged() (internal/uiadapter/sanitize_adapter_test.go:L74)
 - schema_test.go (internal/uiadapter/schema_test.go:L1)
@@ -164,40 +156,22 @@ sources:
 - TestU2_Schema_Diagnostics_CancelReasonNotSerialized() (internal/uiadapter/schema_test.go:L42)
 - TestU2_Schema_WidgetNode_RoundTrip() (internal/uiadapter/schema_test.go:L56)
 - TestU2_Schema_UINode_DecisionGroup_RoundTrip() (internal/uiadapter/schema_test.go:L93)
-- schemas_test.go (internal/uiadapter/schemas_test.go:L1)
-- TestUIASTSchemas_ValidJSONSchema() (internal/uiadapter/schemas_test.go:L101)
-- TestSchemas_AC_A1_DirectoryExists() (internal/uiadapter/schemas_test.go:L159)
-- TestSchemas_AC_A1_UIASTFileExistsAndIsJSON() (internal/uiadapter/schemas_test.go:L167)
-- TestSchemas_AC_A1_UIASTDeclaresDraftSchema() (internal/uiadapter/schemas_test.go:L175)
-- TestSchemas_AC_A1_UIASTDescribesEnvelope() (internal/uiadapter/schemas_test.go:L190)
-- TestSchemas_AC_A1_UIASTEnvelopeRequired() (internal/uiadapter/schemas_test.go:L209)
-- TestSchemas_AC_A1_UIASTRejectsAdditionalProperties() (internal/uiadapter/schemas_test.go:L234)
-- TestSchemas_AC_A1_PerKindShardsExist() (internal/uiadapter/schemas_test.go:L248)
-- TestSchemas_AC_A1_PerKindDeclareDraftSchema() (internal/uiadapter/schemas_test.go:L261)
-- TestSchemas_AC_A1_PerKindSubsetsOfUIAST() (internal/uiadapter/schemas_test.go:L279)
-- TestSchemas_AC_A1_PerKindRejectsAdditionalProperties() (internal/uiadapter/schemas_test.go:L304)
-- collectSchemaPropertyKeys() (internal/uiadapter/schemas_test.go:L53)
-- readSchema() (internal/uiadapter/schemas_test.go:L86)
-- TestReadFileBase64_AC4_MissingFile() (readfilebase64_test.go:L102)
-- TestReadFileBase64_AC5_EmptyPath() (readfilebase64_test.go:L116)
-- TestReadFileBase64_AC1_Base64Encoding() (readfilebase64_test.go:L15)
-- TestReadFileBase64_AC3_FileSizeLimit() (readfilebase64_test.go:L86)
-- TestTakeScreenshot_AC5_EmptyRepoPath() (screenshot_fullstack_test.go:L135)
-- TestSetActiveContext_AC3_SetAndRead() (screenshot_fullstack_test.go:L17)
-- TestSetActiveContext_AC3_ConcurrentSafety() (screenshot_fullstack_test.go:L27)
-- TestSetActiveContext_AC4_Clear() (screenshot_fullstack_test.go:L47)
+- testhelper_eval.go (internal/uiadapter/testhelper_eval.go:L1)
+- WithOllamaHost() (internal/uiadapter/testhelper_eval.go:L13)
 
 # Depends on
 - [bmad/types.go](/modules/bmad-types-go.md)
 - [go_pkg_strings](/modules/go-pkg-strings.md)
-- [interactiveHarness](/modules/interactiveharness.md)
-- [NotificationEngine](/modules/notificationengine.md)
+- [NewExecutor](/modules/newexecutor.md)
+- [Storage](/modules/storage.md)
+- [sync.Mutex](/modules/sync-mutex.md)
 - [testLogBuffer](/modules/testlogbuffer.md)
+- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Inferred
 - [bmad/types.go](/modules/bmad-types-go.md)
 - [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
-- [loadConfig](/modules/loadconfig.md)
+- [NewExecutor](/modules/newexecutor.md)
 - [newHarness](/modules/newharness.md)
 
 # Features

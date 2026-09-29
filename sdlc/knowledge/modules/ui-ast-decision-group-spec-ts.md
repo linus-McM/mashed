@@ -1,13 +1,13 @@
 ---
 type: Module
 title: ui-ast-decision-group.spec.ts
-description: "Graphify community 390: tests/ac/ui-ast-decision-group.spec.ts"
+description: "Graphify community 413: tests/ac/ui-ast-decision-group.spec.ts"
 resource: tests/ac
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: ui-ast-decision-group.spec, resource: tests/ac/ui-ast-decision-group.spec.ts, last_modified: "2026-04-22T11:51:34+10:00", digest: 8dc631548335a44f }
 ---
@@ -28,7 +28,7 @@ sources:
 - ensureHelpers() (tests/ac/ui-ast-decision-group.spec.ts:L90)
 
 # Depends on
-- [@playwright/test](/modules/playwright-test.md)
+- [ref_node_fs](/modules/ref-node-fs.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

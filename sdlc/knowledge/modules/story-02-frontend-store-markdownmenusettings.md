@@ -1,13 +1,13 @@
 ---
 type: Module
 title: "Story 02: Frontend Store \u2014 markdownMenuSettings"
-description: "Graphify community 61: docs/stories/markdown-toolbar-02-frontend-store.md, docs/stories/markdown-toolbar-06-editor-wiring.md, tests/ac/ui-ast-rendering.spec.ts"
+description: "Graphify community 254: docs/stories/markdown-toolbar-02-frontend-store.md, docs/stories/markdown-toolbar-06-editor-wiring.md, tests/ac/ui-ast-rendering.spec.ts"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: markdown-toolbar-02-frontend-store, resource: docs/stories/markdown-toolbar-02-frontend-store.md, last_modified: "2026-04-23T11:02:33+10:00", digest: fa89a5180f4ab303 }
   - { id: markdown-toolbar-06-editor-wiring, resource: docs/stories/markdown-toolbar-06-editor-wiring.md, last_modified: "2026-04-23T11:20:33+10:00", digest: 125c03e40f91a85b }
@@ -37,10 +37,9 @@ sources:
 - ensureHelpers() (tests/ac/ui-ast-rendering.spec.ts:L58)
 
 # Depends on
-- [@playwright/test](/modules/playwright-test.md)
+- [ref_node_fs](/modules/ref-node-fs.md)
 
 # Inferred
-- [GetConfig](/modules/getconfig.md)
 - [SetMarkdownMenuSettings](/modules/setmarkdownmenusettings.md)
 
 # Features

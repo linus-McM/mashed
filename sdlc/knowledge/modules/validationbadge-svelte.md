@@ -5,9 +5,9 @@ description: "Graphify community 446: frontend/src/components/bmad/ValidationBad
 resource: frontend/src/components/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: ValidationBadge, resource: frontend/src/components/bmad/ValidationBadge.svelte, last_modified: "2026-04-22T19:45:14+10:00", digest: 940626730a42fe92 }
 ---
@@ -26,7 +26,7 @@ sources:
 - positionTooltip() (frontend/src/components/bmad/ValidationBadge.svelte:L67)
 
 # Depends on
-- no EXTRACTED edges to other modules
+- [svelte](/modules/svelte.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

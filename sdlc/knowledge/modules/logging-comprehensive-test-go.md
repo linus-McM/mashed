@@ -5,9 +5,9 @@ description: "Graphify community 89: internal/uiadapter/logging.go, internal/uia
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: logging, resource: internal/uiadapter/logging.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f7d1f46bdb4ea215 }
   - { id: logging_comprehensive_test, resource: internal/uiadapter/logging_comprehensive_test.go, last_modified: "2026-04-26T12:39:41+10:00", digest: 446816f0c9fa2be3 }
@@ -53,7 +53,7 @@ sources:
 
 # Inferred
 - [DefaultConfig](/modules/defaultconfig.md)
-- [NewDefault](/modules/newdefault.md)
+- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Features
 - no feature plan names these files

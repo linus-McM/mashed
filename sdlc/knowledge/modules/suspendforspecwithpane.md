@@ -1,41 +1,47 @@
 ---
 type: Module
 title: .suspendForSpecWithPane
-description: "Graphify community 27: internal/bmad/executor.go, internal/bmad/executor_interactive_test.go, internal/bmad/executor_respond_test.go, internal/bmad/executor_suspend_test.go, internal/bmad/prompts.go,"
+description: "Graphify community 27: internal/bmad/events.go, internal/bmad/executor_suspend_test.go, internal/bmad/prompts.go, internal/bmad/prompts_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
-  - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
-  - { id: executor_interactive_test, resource: internal/bmad/executor_interactive_test.go, last_modified: "2026-04-28T12:02:57+10:00", digest: 38021efc1dc00f72 }
-  - { id: executor_respond_test, resource: internal/bmad/executor_respond_test.go, last_modified: "2026-04-20T20:17:58+10:00", digest: 23fdebc82a94468b }
+  - { id: events, resource: internal/bmad/events.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 38b90b66f8c11c26 }
   - { id: executor_suspend_test, resource: internal/bmad/executor_suspend_test.go, last_modified: "2026-04-20T20:17:58+10:00", digest: b5f7b6a982bf834b }
   - { id: prompts, resource: internal/bmad/prompts.go, last_modified: "2026-04-27T13:46:23+10:00", digest: b76c227c938b8250 }
-  - { id: registry_interactive_test, resource: internal/bmad/registry_interactive_test.go, last_modified: "2026-04-20T15:36:58+10:00", digest: 2394d3c33e43a481 }
+  - { id: prompts_test, resource: internal/bmad/prompts_test.go, last_modified: "2026-04-27T13:46:23+10:00", digest: 6a4efc33b34610a9 }
 ---
 
 # Files
-- `internal/bmad/executor.go`
-- `internal/bmad/executor_interactive_test.go`
-- `internal/bmad/executor_respond_test.go`
+- `internal/bmad/events.go`
 - `internal/bmad/executor_suspend_test.go`
 - `internal/bmad/prompts.go`
-- `internal/bmad/registry_interactive_test.go`
+- `internal/bmad/prompts_test.go`
 
 # Symbols
-- registryLookup() (internal/bmad/executor.go:L2787)
-- loadRegistryCSV() (internal/bmad/executor.go:L2870)
-- TestRegistryLookupRejectsNonRegistryScheme() (internal/bmad/executor_interactive_test.go:L660)
-- TestRegistryLookupRejectsSchemes() (internal/bmad/executor_respond_test.go:L472)
+- events.go (internal/bmad/events.go:L1)
+- abortedPayload() (internal/bmad/events.go:L108)
+- sessionDeadPayload() (internal/bmad/events.go:L117)
+- roundCompletePayload() (internal/bmad/events.go:L28)
+- gateSatisfiedPayload() (internal/bmad/events.go:L38)
+- roundLimitPayload() (internal/bmad/events.go:L48)
+- sha256hex() (internal/bmad/events.go:L61)
+- awaitingPayload() (internal/bmad/events.go:L69)
+- awaitingDismissedPayload() (internal/bmad/events.go:L75)
+- inputResolvedPayload() (internal/bmad/events.go:L87)
+- invalidPayload() (internal/bmad/events.go:L98)
+- TestHashPendingPromptDeterminism() (internal/bmad/executor_suspend_test.go:L276)
 - TestUpsertAndRemovePromptHelpers() (internal/bmad/executor_suspend_test.go:L298)
 - TestFindPendingPrompt() (internal/bmad/executor_suspend_test.go:L336)
 - TestFindInputSpec() (internal/bmad/executor_suspend_test.go:L359)
+- prompts.go (internal/bmad/prompts.go:L1)
 - .waiter() (internal/bmad/prompts.go:L103)
 - execState (internal/bmad/prompts.go:L103)
 - .releaseWaiter() (internal/bmad/prompts.go:L120)
+- hashPendingPrompt() (internal/bmad/prompts.go:L132)
 - upsertPrompt() (internal/bmad/prompts.go:L138)
 - removePrompt() (internal/bmad/prompts.go:L150)
 - findPendingPrompt() (internal/bmad/prompts.go:L163)
@@ -48,22 +54,23 @@ sources:
 - .translateForPrompt() (internal/bmad/prompts.go:L293)
 - .suspendForSpec() (internal/bmad/prompts.go:L366)
 - .suspendForSpecWithPane() (internal/bmad/prompts.go:L385)
+- extractLastClaudeTurn() (internal/bmad/prompts.go:L50)
 - .watchPaneForActivity() (internal/bmad/prompts.go:L503)
 - .dismissAwaiting() (internal/bmad/prompts.go:L543)
 - .RespondToInput() (internal/bmad/prompts.go:L564)
-- TestOptionsRefResolution() (internal/bmad/registry_interactive_test.go:L138)
+- TestExtractLastClaudeTurn_FallbackTailCrop() (internal/bmad/prompts_test.go:L105)
+- TestExtractLastClaudeTurn_Empty() (internal/bmad/prompts_test.go:L117)
+- TestExtractLastClaudeTurn_GlyphBoundary() (internal/bmad/prompts_test.go:L92)
 
 # Depends on
 - [bmad/types.go](/modules/bmad-types-go.md)
-- [.executeInteractiveNode](/modules/executeinteractivenode.md)
 - [executor_fileloader_test.go](/modules/executor-fileloader-test-go.md)
-- [prompts_test.go](/modules/prompts-test-go.md)
 
 # Inferred
-- [.executeInteractiveNode](/modules/executeinteractivenode.md)
 - [Executor](/modules/executor.md)
+- [executor_respond_test.go](/modules/executor-respond-test-go.md)
 - [ProcessByID](/modules/processbyid.md)
-- [validate_test.go](/modules/validate-test-go.md)
+- [validate.go](/modules/validate-go.md)
 
 # Features
 - no feature plan names these files

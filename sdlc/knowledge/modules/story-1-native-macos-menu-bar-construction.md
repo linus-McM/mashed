@@ -5,9 +5,9 @@ description: "Graphify community 146: docs/stories/old_stories/menu-01-native-me
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: menu-01-native-menu-bar, resource: docs/stories/old_stories/menu-01-native-menu-bar.md, last_modified: "2026-04-09T10:03:44+10:00", digest: 3f698c07181d3e5e }
   - { id: runtime, resource: frontend/wailsjs/runtime/runtime.js, last_modified: "2026-05-07T09:55:31+10:00", digest: e25fe86d3c590de7 }
@@ -42,7 +42,7 @@ sources:
 - no EXTRACTED edges to other modules
 
 # Inferred
-- no INFERRED edges; treat any that appear as hints
+- [TakeScreenshot](/modules/takescreenshot.md)
 
 # Features
 - no feature plan names these files

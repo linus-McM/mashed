@@ -5,9 +5,9 @@ description: "Graphify community 267: internal/bmad/question.go, internal/explai
 resource: internal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: question, resource: internal/bmad/question.go, last_modified: "2026-04-17T20:58:29+10:00", digest: 81034d253e6ceb12 }
   - { id: explain, resource: internal/explain/explain.go, last_modified: "2026-04-10T11:36:27+10:00", digest: c8a0f1b0e6aad414 }
@@ -24,6 +24,8 @@ sources:
 - QuestionEvent (internal/bmad/question.go:L55)
 - IdleEvent (internal/bmad/question.go:L77)
 - explain.go (internal/explain/explain.go:L1)
+- Explainer (internal/explain/explain.go:L15)
+- New() (internal/explain/explain.go:L21)
 - .Explain() (internal/explain/explain.go:L29)
 - cacheKey() (internal/explain/explain.go:L71)
 - truncateHunk() (internal/explain/explain.go:L77)
@@ -31,7 +33,6 @@ sources:
 - cache.go (internal/uiadapter/cache.go:L1)
 
 # Depends on
-- [App](/modules/app.md)
 - [DefaultConfig](/modules/defaultconfig.md)
 - [Executor](/modules/executor.md)
 - [question_test.go](/modules/question-test-go.md)

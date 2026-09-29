@@ -1,28 +1,28 @@
 ---
 type: Module
 title: ManagedSession
-description: "Graphify community 48: app_terminal_registry_test.go, internal/terminal/helper/server.go, internal/terminal/manager_test.go, internal/terminal/session.go, internal/terminal/session_test.go, internal/t"
+description: "Graphify community 48: app_terminal_registry_test.go, internal/terminal/helper/server.go, internal/terminal/login_path.go, internal/terminal/manager.go, internal/terminal/session.go, internal/terminal"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: app_terminal_registry_test, resource: app_terminal_registry_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 2f85a0b04c1b8ba7 }
   - { id: server, resource: internal/terminal/helper/server.go, last_modified: "2026-04-09T21:03:43+10:00", digest: e54a6a9ea36ca59d }
-  - { id: manager_test, resource: internal/terminal/manager_test.go, last_modified: "2026-05-07T18:18:02+10:00", digest: 8a61b932bfb6bc29 }
+  - { id: login_path, resource: internal/terminal/login_path.go, last_modified: "2026-05-07T20:55:09+10:00", digest: 7ad84d121b34092b }
+  - { id: manager, resource: internal/terminal/manager.go, last_modified: "2026-05-07T20:55:09+10:00", digest: 4c7107fb7905c1b1 }
   - { id: session, resource: internal/terminal/session.go, last_modified: "2026-04-09T18:42:25+10:00", digest: 6213e8a0ece661b9 }
-  - { id: session_test, resource: internal/terminal/session_test.go, last_modified: "2026-04-09T18:42:25+10:00", digest: 64fc12b5f28e698a }
   - { id: stub, resource: internal/terminal/stub.go, last_modified: "2026-04-09T11:24:44+10:00", digest: 4e852c6c9f8e0735 }
 ---
 
 # Files
 - `app_terminal_registry_test.go`
 - `internal/terminal/helper/server.go`
-- `internal/terminal/manager_test.go`
+- `internal/terminal/login_path.go`
+- `internal/terminal/manager.go`
 - `internal/terminal/session.go`
-- `internal/terminal/session_test.go`
 - `internal/terminal/stub.go`
 
 # Symbols
@@ -33,7 +33,17 @@ sources:
 - .FindByPID() (app_terminal_registry_test.go:L86)
 - .Shutdown() (app_terminal_registry_test.go:L93)
 - helperSession (internal/terminal/helper/server.go:L21)
-- TestSessionManager_ConcurrentInjectAndKill() (internal/terminal/manager_test.go:L301)
+- loginShellPATH() (internal/terminal/login_path.go:L22)
+- resolveExecutable() (internal/terminal/login_path.go:L46)
+- applyLoginPATH() (internal/terminal/login_path.go:L69)
+- .Get() (internal/terminal/manager.go:L106)
+- .Kill() (internal/terminal/manager.go:L117)
+- .IsAlive() (internal/terminal/manager.go:L136)
+- .List() (internal/terminal/manager.go:L147)
+- .FindByPID() (internal/terminal/manager.go:L164)
+- .Shutdown() (internal/terminal/manager.go:L180)
+- SessionManager (internal/terminal/manager.go:L24)
+- .Spawn() (internal/terminal/manager.go:L43)
 - ManagedSession (internal/terminal/session.go:L104)
 - newManagedSession() (internal/terminal/session.go:L119)
 - newRemoteManagedSession() (internal/terminal/session.go:L138)
@@ -47,20 +57,17 @@ sources:
 - .Wait() (internal/terminal/session.go:L306)
 - .Name() (internal/terminal/session.go:L311)
 - scrollBuffer (internal/terminal/session.go:L36)
-- newScrollBuffer() (internal/terminal/session.go:L44)
 - .Write() (internal/terminal/session.go:L52)
 - .Snapshot() (internal/terminal/session.go:L78)
-- TestScrollBuffer_AC1_WriteAndSnapshot() (internal/terminal/session_test.go:L114)
-- TestScrollBuffer_AC1_LargeOverCapacity() (internal/terminal/session_test.go:L187)
-- TestScrollBuffer_AC1_SnapshotIndependentCopy() (internal/terminal/session_test.go:L208)
 - terminal/stub.go (internal/terminal/stub.go:L1)
 - NewStubSession() (internal/terminal/stub.go:L4)
 
 # Depends on
-- no EXTRACTED edges to other modules
+- [server_test.go](/modules/server-test-go.md)
+- [session_test.go](/modules/session-test-go.md)
 
 # Inferred
-- [manager_test.go](/modules/manager-test-go.md)
+- no INFERRED edges; treat any that appear as hints
 
 # Features
 - no feature plan names these files

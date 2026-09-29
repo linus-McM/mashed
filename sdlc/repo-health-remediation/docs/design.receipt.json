@@ -1,0 +1,16 @@
+{
+  "stage": "design",
+  "type": "dataflow",
+  "sources": [
+    {
+      "resource": "sdlc/repo-health-remediation/spec.md",
+      "digest": "39985ed094f26c2343316ad14e4ad09062a1cf8d47ddde0df129021a248963d5"
+    }
+  ],
+  "source_digest": "0354afa3e86489eb4a27fc76c3c944513b5246e1b1328a312bd6797595f456c6",
+  "specification_sha256": "f1ec61246a87ea37419d7a4562771f16ae994724126e3f4c88ad3a7bcdaca6c3",
+  "artifact_sha256": "f934bfa5813cfe7f0b89429eddd3a44167c0f498314dff9162b914ade2b24f54",
+  "validation": "9/9 showcase, 0 errors, 0 warnings",
+  "archify_version": "2.17.0-dev.1",
+  "delivered_at": "2026-09-29T11:34:28Z"
+}

@@ -1,14 +1,16 @@
 ---
 type: Module
 title: QuestionSnackbarStack.test.ts
-description: "Graphify community 137: frontend/src/components/bmad/QuestionResponseModal.svelte, frontend/src/components/bmad/QuestionResponseModal.test.ts, frontend/src/components/bmad/QuestionSnackbarStack.svelte"
-resource: frontend/src/components/bmad
+description: "Graphify community 137: docs/stories/bmad-interactive-06-frontend-modal.md, docs/stories/old_stories/question-03-snackbar-stack.md, frontend/src/components/bmad/QuestionResponseModal.svelte, frontend/"
+resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
+  - { id: bmad-interactive-06-frontend-modal, resource: docs/stories/bmad-interactive-06-frontend-modal.md, last_modified: "2026-04-20T14:57:51+10:00", digest: 1b80ffd59d82265b }
+  - { id: question-03-snackbar-stack, resource: docs/stories/old_stories/question-03-snackbar-stack.md, last_modified: "2026-04-12T10:43:48+10:00", digest: c9e217081e4ca99f }
   - { id: QuestionResponseModal, resource: frontend/src/components/bmad/QuestionResponseModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 5672933bac7b8d06 }
   - { id: QuestionResponseModal.test, resource: frontend/src/components/bmad/QuestionResponseModal.test.ts, last_modified: "2026-04-10T14:16:40+10:00", digest: a798f0e107780ec5 }
   - { id: QuestionSnackbarStack, resource: frontend/src/components/bmad/QuestionSnackbarStack.svelte, last_modified: "2026-04-20T14:57:51+10:00", digest: c485ed709e057516 }
@@ -17,6 +19,8 @@ sources:
 ---
 
 # Files
+- `docs/stories/bmad-interactive-06-frontend-modal.md`
+- `docs/stories/old_stories/question-03-snackbar-stack.md`
 - `frontend/src/components/bmad/QuestionResponseModal.svelte`
 - `frontend/src/components/bmad/QuestionResponseModal.test.ts`
 - `frontend/src/components/bmad/QuestionSnackbarStack.svelte`
@@ -24,6 +28,8 @@ sources:
 - `frontend/src/components/bmad/questionSnackbarUtils.ts`
 
 # Symbols
+- 6. Snackbar redesign (`NodeInputSnackbarStack.svelte`) (docs/stories/bmad-interactive-06-frontend-modal.md:L431)
+- Tasks / Subtasks (docs/stories/old_stories/question-03-snackbar-stack.md:L219)
 - QuestionResponseModal.svelte (frontend/src/components/bmad/QuestionResponseModal.svelte:L1)
 - repoLabel() (frontend/src/components/bmad/QuestionResponseModal.svelte:L39)
 - submit() (frontend/src/components/bmad/QuestionResponseModal.svelte:L45)
@@ -66,7 +72,7 @@ sources:
 
 # Depends on
 - [App.js](/modules/app-js.md)
-- [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
+- [CodeEditor.svelte](/modules/codeeditor-svelte.md)
 - [svelte](/modules/svelte.md)
 - [vitest](/modules/vitest.md)
 

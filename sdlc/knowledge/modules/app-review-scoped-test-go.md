@@ -1,13 +1,13 @@
 ---
 type: Module
 title: app_review_scoped_test.go
-description: "Graphify community 46: app_review_scoped.go, app_review_scoped_test.go"
+description: "Graphify community 45: app_review_scoped.go, app_review_scoped_test.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: app_review_scoped, resource: app_review_scoped.go, last_modified: "2026-04-10T13:49:09+10:00", digest: 83c692114f39a0c9 }
   - { id: app_review_scoped_test, resource: app_review_scoped_test.go, last_modified: "2026-04-10T13:49:09+10:00", digest: 495a403ad8cace57 }
@@ -43,10 +43,10 @@ sources:
 - TestBuildScopedDiff_AC2_UntrackedFallback() (app_review_scoped_test.go:L99)
 
 # Depends on
-- [loader_test.go](/modules/loader-test-go.md)
+- [loader.go](/modules/loader-go.md)
 
 # Inferred
-- [App](/modules/app-63.md)
+- [App](/modules/app.md)
 
 # Features
 - no feature plan names these files

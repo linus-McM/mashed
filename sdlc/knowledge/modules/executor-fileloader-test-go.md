@@ -5,9 +5,9 @@ description: "Graphify community 49: internal/bmad/executor_fileloader_test.go, 
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: executor_fileloader_test, resource: internal/bmad/executor_fileloader_test.go, last_modified: "2026-04-20T20:17:58+10:00", digest: 5c7c8dfad64509c9 }
   - { id: executor_multifileloader_test, resource: internal/bmad/executor_multifileloader_test.go, last_modified: "2026-04-14T19:25:01+10:00", digest: 32a16dc3fc140e25 }
@@ -49,13 +49,13 @@ sources:
 
 # Depends on
 - [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
-- [newHarness](/modules/newharness.md)
-- [.resolveInputs](/modules/resolveinputs.md)
+- [ResolveArtifactPath](/modules/resolveartifactpath.md)
 - [Storage](/modules/storage.md)
+- [sync.Mutex](/modules/sync-mutex.md)
 
 # Inferred
 - [newHarness](/modules/newharness.md)
-- [.resolveInputs](/modules/resolveinputs.md)
+- [ResolveArtifactPath](/modules/resolveartifactpath.md)
 
 # Features
 - no feature plan names these files

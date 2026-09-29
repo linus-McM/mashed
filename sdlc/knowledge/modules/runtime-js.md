@@ -5,9 +5,9 @@ description: "Graphify community 40: frontend/wailsjs/runtime/runtime.js"
 resource: frontend/wailsjs/runtime
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: runtime, resource: frontend/wailsjs/runtime/runtime.js, last_modified: "2026-05-07T09:55:31+10:00", digest: e25fe86d3c590de7 }
 ---
@@ -17,44 +17,30 @@ sources:
 
 # Symbols
 - runtime.js (frontend/wailsjs/runtime/runtime.js:L1)
-- WindowUnfullscreen() (frontend/wailsjs/runtime/runtime.js:L100)
-- WindowGetSize() (frontend/wailsjs/runtime/runtime.js:L108)
+- WindowIsFullscreen() (frontend/wailsjs/runtime/runtime.js:L104)
 - LogPrint() (frontend/wailsjs/runtime/runtime.js:L11)
-- WindowSetMaxSize() (frontend/wailsjs/runtime/runtime.js:L116)
-- WindowSetPosition() (frontend/wailsjs/runtime/runtime.js:L124)
-- WindowGetPosition() (frontend/wailsjs/runtime/runtime.js:L128)
 - WindowHide() (frontend/wailsjs/runtime/runtime.js:L132)
-- WindowShow() (frontend/wailsjs/runtime/runtime.js:L136)
-- WindowUnmaximise() (frontend/wailsjs/runtime/runtime.js:L148)
 - LogTrace() (frontend/wailsjs/runtime/runtime.js:L15)
-- WindowUnminimise() (frontend/wailsjs/runtime/runtime.js:L160)
-- WindowSetBackgroundColour() (frontend/wailsjs/runtime/runtime.js:L164)
-- ScreenGetAll() (frontend/wailsjs/runtime/runtime.js:L168)
+- WindowIsMaximised() (frontend/wailsjs/runtime/runtime.js:L152)
 - WindowIsNormal() (frontend/wailsjs/runtime/runtime.js:L176)
-- LogDebug() (frontend/wailsjs/runtime/runtime.js:L19)
-- OnFileDropOff() (frontend/wailsjs/runtime/runtime.js:L232)
+- Environment() (frontend/wailsjs/runtime/runtime.js:L184)
+- OnFileDrop() (frontend/wailsjs/runtime/runtime.js:L225)
 - CanResolveFilePaths() (frontend/wailsjs/runtime/runtime.js:L236)
-- InitializeNotifications() (frontend/wailsjs/runtime/runtime.js:L244)
 - IsNotificationAvailable() (frontend/wailsjs/runtime/runtime.js:L252)
-- CheckNotificationAuthorization() (frontend/wailsjs/runtime/runtime.js:L260)
 - SendNotificationWithActions() (frontend/wailsjs/runtime/runtime.js:L268)
-- LogWarning() (frontend/wailsjs/runtime/runtime.js:L27)
 - RemoveNotificationCategory() (frontend/wailsjs/runtime/runtime.js:L276)
-- LogError() (frontend/wailsjs/runtime/runtime.js:L31)
+- RemoveAllPendingNotifications() (frontend/wailsjs/runtime/runtime.js:L280)
+- RemovePendingNotification() (frontend/wailsjs/runtime/runtime.js:L284)
+- RemoveNotification() (frontend/wailsjs/runtime/runtime.js:L296)
+- EventsOff() (frontend/wailsjs/runtime/runtime.js:L47)
 - EventsOffAll() (frontend/wailsjs/runtime/runtime.js:L51)
-- WindowReload() (frontend/wailsjs/runtime/runtime.js:L64)
-- WindowReloadApp() (frontend/wailsjs/runtime/runtime.js:L68)
-- WindowSetAlwaysOnTop() (frontend/wailsjs/runtime/runtime.js:L72)
-- WindowSetSystemDefaultTheme() (frontend/wailsjs/runtime/runtime.js:L76)
-- WindowSetLightTheme() (frontend/wailsjs/runtime/runtime.js:L80)
-- WindowCenter() (frontend/wailsjs/runtime/runtime.js:L88)
+- WindowSetDarkTheme() (frontend/wailsjs/runtime/runtime.js:L84)
 - WindowSetTitle() (frontend/wailsjs/runtime/runtime.js:L92)
-- WindowFullscreen() (frontend/wailsjs/runtime/runtime.js:L96)
 
 # Depends on
+- [App.js](/modules/app-js.md)
 - [Story 1: Native macOS Menu Bar Construction](/modules/story-1-native-macos-menu-bar-construction.md)
-- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
-- [Terminal.svelte](/modules/terminal-svelte.md)
+- [Story: pty-06 — Frontend Terminal and Session Cleanup](/modules/story-pty-06-frontend-terminal-and-session-cleanup.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

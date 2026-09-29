@@ -5,9 +5,9 @@ description: "Graphify community 55: docs/stories/old_stories/sessions-04-svelte
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: sessions-04-svelte-sessions-store, resource: docs/stories/old_stories/sessions-04-svelte-sessions-store.md, last_modified: "2026-04-09T10:03:44+10:00", digest: b0dcba8f3a115e70 }
   - { id: sessions-05-session-tab-bar, resource: docs/stories/old_stories/sessions-05-session-tab-bar.md, last_modified: "2026-04-09T10:03:44+10:00", digest: 73a79624d6dddc2a }
@@ -46,12 +46,8 @@ sources:
 - Reference Files (docs/stories/old_stories/sessions-05-session-tab-bar.md:L131)
 - Architecture (docs/stories/old_stories/sessions-05-session-tab-bar.md:L15)
 - AgentDetail.svelte Changes (docs/stories/old_stories/sessions-05-session-tab-bar.md:L21)
+- Tasks / Subtasks (docs/stories/old_stories/sessions-05-session-tab-bar.md:L253)
 - NotificationFeed.svelte Changes (docs/stories/old_stories/sessions-05-session-tab-bar.md:L87)
-- sessions-backlog.md (docs/stories/old_stories/sessions-backlog.md:L1)
-- Sprint Backlog: Persistent Terminal Sessions (docs/stories/old_stories/sessions-backlog.md:L1)
-- Dependency Graph (docs/stories/old_stories/sessions-backlog.md:L17)
-- Parallelization Notes (docs/stories/old_stories/sessions-backlog.md:L27)
-- Sprint Backlog (docs/stories/old_stories/sessions-backlog.md:L3)
 - Files Created/Modified (docs/stories/old_stories/sessions-backlog.md:L34)
 - sessions.ts (frontend/src/lib/stores/sessions.ts:L1)
 - repoSessions (frontend/src/lib/stores/sessions.ts:L11)
@@ -62,15 +58,15 @@ sources:
 - session.ts (frontend/src/types/session.ts:L1)
 - DataFields (frontend/src/types/session.ts:L19)
 - Session (frontend/src/types/session.ts:L40)
-- SessionState (frontend/src/types/session.ts:L48)
 - ListRepoSessions() (frontend/wailsjs/go/main/App.js:L241)
 
 # Depends on
 - [App.js](/modules/app-js.md)
+- [themeConverter.ts](/modules/themeconverter-ts.md)
 - [vitest](/modules/vitest.md)
 
 # Inferred
-- no INFERRED edges; treat any that appear as hints
+- [KillAgent](/modules/killagent.md)
 
 # Features
 - no feature plan names these files

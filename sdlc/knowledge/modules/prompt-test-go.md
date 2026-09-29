@@ -5,9 +5,9 @@ description: "Graphify community 70: internal/uiadapter/prompt.go, internal/uiad
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:15Z" }
-stale_after: "2026-10-13T11:16:15Z"
-source_commit: 412dea92db2fe0033e1ef1b18ae99e119ea06b8c
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:35:20Z" }
+stale_after: "2026-10-13T11:35:20Z"
+source_commit: 4ff58d4a9c9200fdb96164858cc43b268e21e005
 sources:
   - { id: prompt, resource: internal/uiadapter/prompt.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 07d009f8f445be65 }
   - { id: prompt_test, resource: internal/uiadapter/prompt_test.go, last_modified: "2026-04-27T10:45:20+10:00", digest: c0e8d16fee76a549 }
@@ -38,10 +38,10 @@ sources:
 - TestSystemPrompt_ContainsAllSections() (internal/uiadapter/prompt_test.go:L88)
 
 # Depends on
-- [NewDefault](/modules/newdefault.md)
+- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Inferred
-- [NewDefault](/modules/newdefault.md)
+- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Features
 - no feature plan names these files
