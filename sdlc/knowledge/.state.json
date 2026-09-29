@@ -1,31 +1,31 @@
 {
-  "commit": "918616f42268500be0e26faa9f92720109b96761",
-  "graph_commit": "918616f42268500be0e26faa9f92720109b96761",
+  "commit": "c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd",
+  "graph_commit": "c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd",
   "updates": 1,
-  "ts": "2026-09-29T15:22:13Z",
+  "ts": "2026-09-29T20:55:29Z",
   "files": {
     "app.go": [
       "modules/go-pkg-strings.md",
-      "modules/setuptestconfig.md",
-      "modules/doscan.md",
+      "modules/reposcanner.md",
       "modules/loadconfig.md",
-      "modules/context-context.md",
+      "modules/app-config-test-go.md",
       "modules/app-109.md",
-      "modules/sync-mutex.md",
-      "modules/notificationengine.md"
+      "modules/main-go.md",
+      "modules/notificationengine.md",
+      "modules/app-355.md"
+    ],
+    "app_asset_follow_test.go": [
+      "modules/go-pkg-strings.md"
     ],
     "app_bmad.go": [
       "modules/go-pkg-strings.md",
       "modules/assets-test-go.md",
+      "modules/bmad-registry-test-go.md",
       "modules/bmad-types-go.md",
       "modules/app.md",
-      "modules/nodetype.md",
+      "modules/resolveartifactpath.md",
       "modules/getmodules.md",
       "modules/processdef.md"
-    ],
-    "app_bmad_resume_test.go": [
-      "modules/go-pkg-strings.md",
-      "modules/testing-t.md"
     ],
     "app_claude.go": [
       "modules/go-pkg-strings.md",
@@ -37,45 +37,45 @@
     ],
     "app_git.go": [
       "modules/go-pkg-strings.md",
-      "modules/go-pkg-testing.md",
-      "modules/app-73.md"
+      "modules/context-context.md",
+      "modules/app-git-guard-test-go.md",
+      "modules/app-73.md",
+      "modules/pathguard-go.md",
+      "modules/worktree-go.md"
     ],
-    "app_git_file_test.go": [
+    "app_git_spawn_test.go": [
       "modules/go-pkg-strings.md",
-      "modules/app-files-guard-test-go.md",
-      "modules/app-review-scoped-test-go.md"
-    ],
-    "app_git_guard_test.go": [
-      "modules/go-pkg-strings.md",
-      "modules/app-files-guard-test-go.md"
+      "modules/testing-t.md"
     ],
     "app_models.go": [
       "modules/go-pkg-strings.md",
-      "modules/app-review-test-go.md",
+      "modules/testing-t.md",
       "modules/modelinfo.md"
     ],
     "app_review.go": [
       "modules/go-pkg-strings.md",
-      "modules/app-review-test-go.md",
-      "modules/time-duration.md",
-      "modules/loadadvicebody.md"
-    ],
-    "app_review_scoped.go": [
-      "modules/go-pkg-strings.md",
-      "modules/app-review-scoped-test-go.md"
+      "modules/testing-t.md",
+      "modules/loader-test-go.md",
+      "modules/diff-go.md"
     ],
     "app_scan.go": [
       "modules/go-pkg-strings.md",
-      "modules/doscan.md"
+      "modules/reposcanner.md"
+    ],
+    "app_scan_lifecycle_test.go": [
+      "modules/go-pkg-strings.md",
+      "modules/app-git-guard-test-go.md",
+      "modules/app-109.md"
     ],
     "app_sessions.go": [
       "modules/go-pkg-strings.md",
-      "modules/sessiondata.md"
+      "modules/reposcanner.md",
+      "modules/sessions-go.md"
     ],
     "app_spawn.go": [
       "modules/go-pkg-strings.md",
-      "modules/domain-types-go.md",
-      "modules/app-436.md"
+      "modules/sessions-go.md",
+      "modules/app-355.md"
     ],
     "app_terminal_registry.go": [
       "modules/go-pkg-strings.md",
@@ -84,39 +84,28 @@
     "app_uiadapter.go": [
       "modules/go-pkg-strings.md",
       "modules/setuptestconfig.md",
-      "modules/loadconfig.md",
-      "modules/app-356.md"
+      "modules/loadconfig.md"
     ],
     "app_uiadapter_v3.go": [
       "modules/go-pkg-strings.md",
       "modules/loadconfig.md"
     ],
-    "cmd/pty-helper/main.go": [
-      "modules/go-pkg-strings.md"
-    ],
-    "cmd/pty-helper/main_test.go": [
-      "modules/go-pkg-strings.md"
-    ],
     "internal/agent/engine.go": [
       "modules/go-pkg-strings.md",
-      "modules/domain-types-go.md",
+      "modules/time-time.md",
+      "modules/sessions-go.md",
       "modules/notificationengine.md",
       "modules/engineerror.md"
     ],
     "internal/bmad/artifacts.go": [
       "modules/go-pkg-strings.md",
-      "modules/newharness.md",
-      "modules/processbyid.md",
-      "modules/artifacts-test-go.md"
+      "modules/go-pkg-testing.md",
+      "modules/resolveartifactpath.md"
     ],
     "internal/bmad/asset_watcher.go": [
       "modules/go-pkg-strings.md",
-      "modules/asset-watcher-test-go.md",
-      "modules/assetwatcher.md"
-    ],
-    "internal/bmad/assets.go": [
-      "modules/go-pkg-strings.md",
-      "modules/assets-test-go.md"
+      "modules/app-109.md",
+      "modules/asset-watcher-test-go.md"
     ],
     "internal/bmad/assets_write.go": [
       "modules/go-pkg-strings.md",
@@ -124,118 +113,79 @@
     ],
     "internal/bmad/cleanup.go": [
       "modules/go-pkg-strings.md",
-      "modules/context-context.md",
-      "modules/resume-ghost-test-go.md"
+      "modules/resume-go.md"
     ],
     "internal/bmad/condition.go": [
       "modules/go-pkg-strings.md",
-      "modules/testing-t.md"
+      "modules/testing-t.md",
+      "modules/condition.md"
     ],
     "internal/bmad/executor.go": [
       "modules/go-pkg-strings.md",
-      "modules/newharness.md",
       "modules/processbyid.md",
-      "modules/go-pkg-testing.md",
       "modules/executor.md",
       "modules/newexecutor.md",
+      "modules/bmad-types-go.md",
+      "modules/executor-fileloader-test-go.md",
       "modules/context-context.md",
       "modules/app.md",
-      "modules/resolveinputs.md",
+      "modules/resolveartifactpath.md",
       "modules/executor-command-test-go.md",
       "modules/executor-adapter-test-go.md",
-      "modules/nodetype.md",
-      "modules/workflowexecution.md"
+      "modules/wait-idle-test-go.md",
+      "modules/resumeinteractivenode.md",
+      "modules/toposort.md",
+      "modules/extractlines.md",
+      "modules/appendupstreamcontext.md",
+      "modules/registrylookup.md"
+    ],
+    "internal/bmad/executor_anyuseranswer_test.go": [
+      "modules/go-pkg-strings.md",
+      "modules/executor-iteration-test-go.md",
+      "modules/gate-go.md"
+    ],
+    "internal/bmad/executor_flatten_test.go": [
+      "modules/go-pkg-strings.md",
+      "modules/executor-iteration-test-go.md"
     ],
     "internal/bmad/executor_interactive_test.go": [
       "modules/go-pkg-strings.md",
       "modules/newexecutor.md",
       "modules/executor-iteration-test-go.md",
-      "modules/resolveinputs.md",
-      "modules/executor-command-test-go.md"
-    ],
-    "internal/bmad/executor_multifileloader_test.go": [
-      "modules/go-pkg-strings.md",
-      "modules/testing-t.md",
-      "modules/bmad-registry-test-go.md",
-      "modules/executor-fileloader-test-go.md"
+      "modules/executor-command-test-go.md",
+      "modules/storage.md",
+      "modules/appendupstreamcontext.md",
+      "modules/registrylookup.md"
     ],
     "internal/bmad/executor_outputpaths_test.go": [
       "modules/go-pkg-strings.md",
       "modules/newharness.md",
-      "modules/testing-t.md",
-      "modules/processbyid.md"
-    ],
-    "internal/bmad/executor_resume_test.go": [
-      "modules/go-pkg-strings.md",
-      "modules/testing-t.md",
-      "modules/newexecutor.md",
-      "modules/resumeinteractivenode.md"
-    ],
-    "internal/bmad/executor_session_test.go": [
-      "modules/go-pkg-strings.md",
-      "modules/newexecutor.md",
-      "modules/sync-mutex.md"
-    ],
-    "internal/bmad/executor_suspend_test.go": [
-      "modules/go-pkg-strings.md",
-      "modules/suspendforspecwithpane.md",
-      "modules/executor-iteration-test-go.md",
-      "modules/executor-adapter-test-go.md",
-      "modules/executor-respond-test-go.md"
+      "modules/successrunner.md",
+      "modules/resolveartifactpath.md"
     ],
     "internal/bmad/mock_helpers_test.go": [
       "modules/go-pkg-strings.md",
-      "modules/newharness.md"
-    ],
-    "internal/bmad/prompts.go": [
-      "modules/go-pkg-strings.md",
-      "modules/suspendforspecwithpane.md",
-      "modules/executor-fileloader-test-go.md",
-      "modules/prompts-test-go.md"
-    ],
-    "internal/bmad/question.go": [
-      "modules/go-pkg-strings.md",
-      "modules/executor.md",
-      "modules/question-test-go.md",
-      "modules/context-context.md"
-    ],
-    "internal/bmad/resume.go": [
-      "modules/go-pkg-strings.md",
-      "modules/processbyid.md",
-      "modules/resume-ghost-test-go.md",
-      "modules/resumeinteractivenode.md"
-    ],
-    "internal/bmad/session_naming.go": [
-      "modules/go-pkg-strings.md",
-      "modules/session-naming-test-go.md"
+      "modules/successrunner.md",
+      "modules/wait-idle-test-go.md"
     ],
     "internal/bmad/storage.go": [
       "modules/go-pkg-strings.md",
-      "modules/testing-t.md",
-      "modules/bmad-types-go.md",
-      "modules/executor-command-test-go.md"
+      "modules/newexecutor.md",
+      "modules/app.md",
+      "modules/storage.md"
     ],
     "internal/bmad/testutil_interactive_test.go": [
       "modules/go-pkg-strings.md",
       "modules/testing-t.md",
-      "modules/processbyid.md",
       "modules/interactiveharness.md"
     ],
     "internal/bmad/validate.go": [
       "modules/go-pkg-strings.md",
       "modules/go-pkg-testing.md"
     ],
-    "internal/explain/explain.go": [
-      "modules/go-pkg-strings.md",
-      "modules/app-109.md"
-    ],
     "internal/fsutil/atomic.go": [
       "modules/go-pkg-strings.md",
       "modules/writefileatomic.md"
-    ],
-    "internal/git/diff.go": [
-      "modules/go-pkg-strings.md",
-      "modules/app-73.md"
     ],
     "internal/git/refs.go": [
       "modules/go-pkg-strings.md",
@@ -243,38 +193,29 @@
     ],
     "internal/scanner/claude.go": [
       "modules/go-pkg-strings.md",
-      "modules/app-109.md"
-    ],
-    "internal/scanner/processes.go": [
-      "modules/go-pkg-strings.md",
-      "modules/parsepsline.md"
+      "modules/sessions-go.md"
     ],
     "internal/scanner/repos.go": [
       "modules/go-pkg-strings.md",
-      "modules/doscan.md",
-      "modules/time-time.md"
+      "modules/reposcanner.md"
     ],
     "internal/scanner/watcher.go": [
       "modules/go-pkg-strings.md",
-      "modules/assetwatcher.md"
+      "modules/handlefsevent.md"
     ],
     "internal/terminal/bridge.go": [
       "modules/go-pkg-strings.md",
-      "modules/bridge-test-go.md",
-      "modules/bridge.md"
+      "modules/bridge.md",
+      "modules/mocktmuxsession.md"
     ],
     "internal/terminal/helper/client.go": [
-      "modules/go-pkg-strings.md",
-      "modules/server-test-go.md",
-      "modules/sync-mutex.md"
-    ],
-    "internal/terminal/helper/integration_test.go": [
       "modules/go-pkg-strings.md",
       "modules/server-test-go.md"
     ],
     "internal/terminal/helper/protocol.go": [
       "modules/go-pkg-strings.md",
-      "modules/server-test-go.md"
+      "modules/server-test-go.md",
+      "modules/spawnrequest.md"
     ],
     "internal/terminal/helper/server.go": [
       "modules/go-pkg-strings.md",
@@ -283,18 +224,19 @@
     ],
     "internal/terminal/login_path.go": [
       "modules/go-pkg-strings.md",
-      "modules/managedsession.md"
+      "modules/spawnrequest.md"
     ],
     "internal/terminal/manager.go": [
       "modules/go-pkg-strings.md",
       "modules/managedsession.md",
-      "modules/manager-test-go.md",
-      "modules/bridge.md"
+      "modules/newsessionmanager.md",
+      "modules/spawnrequest.md"
     ],
-    "internal/terminal/panes.go": [
+    "internal/terminal/manager_argv_test.go": [
       "modules/go-pkg-strings.md",
-      "modules/sync-mutex.md",
-      "modules/terminalerror.md"
+      "modules/server-test-go.md",
+      "modules/newsessionmanager.md",
+      "modules/spawnrequest.md"
     ],
     "internal/terminal/session.go": [
       "modules/go-pkg-strings.md",
@@ -308,20 +250,24 @@
     "internal/terminal/tmux_escape.go": [
       "modules/go-pkg-strings.md",
       "modules/tmux-adapter-coverage-test-go.md",
-      "modules/sync-mutex.md"
+      "modules/main-go.md"
     ],
     "internal/uiadapter/adapter.go": [
       "modules/go-pkg-strings.md",
-      "modules/config.md",
+      "modules/defaultconfig.md",
       "modules/uiadapter-client-test-go.md",
       "modules/context-context.md",
       "modules/time-time.md"
     ],
+    "internal/uiadapter/backend/backend.go": [
+      "modules/go-pkg-strings.md",
+      "modules/defaultconfig.md",
+      "modules/fastpath-go.md",
+      "modules/context-context.md"
+    ],
     "internal/uiadapter/backend/claudecli/client.go": [
       "modules/go-pkg-strings.md",
-      "modules/config.md",
-      "modules/defaultconfig.md",
-      "modules/mashed-internal-uiadapter-uiast.md",
+      "modules/go-pkg-testing.md",
       "modules/context-context.md"
     ],
     "internal/uiadapter/backend/claudecli/signal_unix.go": [
@@ -332,83 +278,89 @@
     ],
     "internal/uiadapter/backend/lifecycle.go": [
       "modules/go-pkg-strings.md",
-      "modules/backend-registry-test-go.md"
+      "modules/defaultconfig.md",
+      "modules/fastpath-go.md"
+    ],
+    "internal/uiadapter/backend/router.go": [
+      "modules/go-pkg-strings.md",
+      "modules/defaultconfig.md",
+      "modules/fastpath-go.md",
+      "modules/go-pkg-testing.md"
+    ],
+    "internal/uiadapter/backend/stubs.go": [
+      "modules/go-pkg-strings.md",
+      "modules/defaultconfig.md",
+      "modules/context-context.md"
     ],
     "internal/uiadapter/breaker.go": [
       "modules/go-pkg-strings.md",
       "modules/defaultconfig.md",
       "modules/breakerset.md"
     ],
-    "internal/uiadapter/cache.go": [
-      "modules/go-pkg-strings.md",
-      "modules/defaultconfig.md",
-      "modules/fastpath-go.md"
-    ],
     "internal/uiadapter/contextguard.go": [
       "modules/go-pkg-strings.md",
-      "modules/defaultconfig.md",
-      "modules/log-slog-logger.md"
+      "modules/defaultconfig.md"
     ],
-    "internal/uiadapter/eval/scorecard_v3.go": [
+    "internal/uiadapter/fallback.go": [
       "modules/go-pkg-strings.md",
-      "modules/fastpath-go.md",
-      "modules/time-duration.md",
-      "modules/scorecard-v3-test-go.md"
+      "modules/testlogbuffer.md"
+    ],
+    "internal/uiadapter/fallback_tiers.go": [
+      "modules/go-pkg-strings.md",
+      "modules/testlogbuffer.md"
     ],
     "internal/uiadapter/logging.go": [
       "modules/go-pkg-strings.md",
-      "modules/defaultconfig.md",
-      "modules/managedsession.md",
+      "modules/testing-t.md",
+      "modules/log-slog-logger.md",
       "modules/logging-comprehensive-test-go.md",
-      "modules/fanouthandler.md"
+      "modules/fanouthandler.md",
+      "modules/sync-once.md"
+    ],
+    "internal/uiadapter/repair.go": [
+      "modules/go-pkg-strings.md",
+      "modules/defaultconfig.md",
+      "modules/log-slog-logger.md",
+      "modules/repairer.md"
+    ],
+    "internal/uiadapter/sanitize.go": [
+      "modules/go-pkg-strings.md",
+      "modules/log-slog-logger.md"
     ],
     "internal/uiadapter/semaphore.go": [
       "modules/go-pkg-strings.md",
-      "modules/defaultconfig.md",
+      "modules/testlogbuffer.md",
       "modules/context-context.md"
     ],
-    "main.go": [
+    "internal/uiadapter/spotlight.go": [
       "modules/go-pkg-strings.md",
-      "modules/main-test-go.md"
-    ],
-    "main_socket_test.go": [
-      "modules/go-pkg-strings.md"
-    ],
-    "repo_hygiene_test.go": [
-      "modules/go-pkg-strings.md",
-      "modules/testing-t.md"
-    ],
-    "screenshot_fullstack_test.go": [
-      "modules/go-pkg-strings.md",
-      "modules/testing-t.md"
-    ],
-    "theme_scanner.go": [
-      "modules/go-pkg-strings.md",
-      "modules/createmockvsix.md",
-      "modules/readthemefile.md"
+      "modules/testlogbuffer.md"
     ],
     "internal/bmad/executor_test.go": [
       "modules/newharness.md",
       "modules/processbyid.md",
-      "modules/session-naming-test-go.md",
-      "modules/cleanup-test-go.md"
+      "modules/successrunner.md",
+      "modules/resolveartifactpath.md",
+      "modules/toposort.md",
+      "modules/extractlines.md",
+      "modules/parsesessionname.md"
     ],
-    "internal/bmad/wait_idle_test.go": [
-      "modules/newharness.md"
-    ],
-    "app_bmad_question_test.go": [
+    "app_review_test.go": [
       "modules/testing-t.md",
-      "modules/go-pkg-testing.md"
+      "modules/modelinfo.md"
     ],
-    "app_bmad_respond_input_test.go": [
+    "app_terminal_registry_test.go": [
+      "modules/testing-t.md",
+      "modules/managedsession.md",
+      "modules/main-go.md",
+      "modules/panes-go.md"
+    ],
+    "internal/agent/tokensamples.go": [
       "modules/testing-t.md"
     ],
-    "app_shutdown_test.go": [
+    "internal/agent/tokensamples_test.go": [
       "modules/testing-t.md",
-      "modules/go-pkg-testing.md"
-    ],
-    "app_uiadapter_v3_test.go": [
-      "modules/testing-t.md"
+      "modules/notificationengine.md"
     ],
     "internal/bmad/condition_test.go": [
       "modules/testing-t.md"
@@ -418,11 +370,7 @@
     ],
     "internal/bmad/interactive_types_test.go": [
       "modules/testing-t.md",
-      "modules/executor-command-test-go.md"
-    ],
-    "internal/bmad/storage_test.go": [
-      "modules/testing-t.md",
-      "modules/storage-test-go.md"
+      "modules/bmad-types-go.md"
     ],
     "internal/bmad/types_nodetype_test.go": [
       "modules/testing-t.md"
@@ -430,69 +378,23 @@
     "internal/bmad/types_test.go": [
       "modules/testing-t.md"
     ],
-    "internal/terminal/helper/protocol_test.go": [
-      "modules/testing-t.md",
-      "modules/server-test-go.md",
-      "modules/go-pkg-testing.md"
-    ],
-    "internal/uiadapter/adapter_test.go": [
-      "modules/testing-t.md",
-      "modules/uiadapter-client-test-go.md"
-    ],
-    "internal/uiadapter/allowlist_test.go": [
-      "modules/testing-t.md",
-      "modules/defaultconfig.md"
-    ],
     "internal/uiadapter/codegen_test.go": [
       "modules/testing-t.md"
     ],
-    "internal/uiadapter/eval/scorecard_test.go": [
-      "modules/testing-t.md",
-      "modules/mashed-internal-uiadapter-uiast.md"
-    ],
     "internal/uiadapter/logging_handler_test.go": [
-      "modules/testing-t.md",
-      "modules/go-pkg-testing.md",
-      "modules/logging-comprehensive-test-go.md"
-    ],
-    "internal/uiadapter/logging_plumbing_test.go": [
-      "modules/testing-t.md",
-      "modules/defaultconfig.md",
-      "modules/go-pkg-testing.md",
-      "modules/uiadapter-client-test-go.md",
-      "modules/logging-comprehensive-test-go.md"
-    ],
-    "internal/uiadapter/mock_test.go": [
-      "modules/testing-t.md",
-      "modules/defaultconfig.md",
-      "modules/go-pkg-testing.md",
-      "modules/newmock.md"
-    ],
-    "internal/uiadapter/sanitize_adapter_test.go": [
-      "modules/testing-t.md",
-      "modules/go-pkg-testing.md",
-      "modules/uiadapter-client-test-go.md",
-      "modules/log-slog-logger.md"
+      "modules/testing-t.md"
     ],
     "internal/uiadapter/schema_test.go": [
       "modules/testing-t.md",
-      "modules/defaultconfig.md"
+      "modules/testlogbuffer.md"
     ],
     "internal/uiadapter/schemas_test.go": [
       "modules/testing-t.md"
     ],
-    "internal/uiadapter/stages_test.go": [
+    "markdown_menu_test.go": [
       "modules/testing-t.md",
-      "modules/config.md",
-      "modules/defaultconfig.md"
-    ],
-    "readfilebase64_test.go": [
-      "modules/testing-t.md",
-      "modules/go-pkg-testing.md"
-    ],
-    "screenshot_test.go": [
-      "modules/testing-t.md",
-      "modules/go-pkg-testing.md"
+      "modules/setuptestconfig.md",
+      "modules/app-config-test-go.md"
     ],
     "@xyflow/svelte/dist/style.css": [
       "modules/svelte.md"
@@ -500,19 +402,7 @@
     "@xyflow/system": [
       "modules/svelte.md"
     ],
-    "frontend/src/App.svelte": [
-      "modules/svelte.md"
-    ],
     "frontend/src/components/AboutModal.svelte": [
-      "modules/svelte.md"
-    ],
-    "frontend/src/components/NewRepoModal.svelte": [
-      "modules/svelte.md"
-    ],
-    "frontend/src/components/SparkLine.svelte": [
-      "modules/svelte.md"
-    ],
-    "frontend/src/components/TitleBar.svelte": [
       "modules/svelte.md"
     ],
     "frontend/src/components/bmad/AgentConfigModal.svelte": [
@@ -536,14 +426,13 @@
     "frontend/src/components/bmad/ConditionNode.svelte": [
       "modules/svelte.md"
     ],
+    "frontend/src/components/bmad/DecisionGroup.svelte": [
+      "modules/svelte.md"
+    ],
     "frontend/src/components/bmad/DeletableEdge.svelte": [
       "modules/svelte.md"
     ],
     "frontend/src/components/bmad/ExecutionBar.svelte": [
-      "modules/svelte.md",
-      "modules/listrepochoices.md"
-    ],
-    "frontend/src/components/bmad/GitPanel.svelte": [
       "modules/svelte.md"
     ],
     "frontend/src/components/bmad/LoopNode.svelte": [
@@ -577,10 +466,6 @@
       "modules/svelte.md"
     ],
     "frontend/src/components/bmad/QuestionResponseModal.svelte": [
-      "modules/svelte.md",
-      "modules/questionresponsemodal-svelte.md"
-    ],
-    "frontend/src/components/bmad/QuestionSnackbarStack.svelte": [
       "modules/svelte.md"
     ],
     "frontend/src/components/bmad/RepoContextBar.svelte": [
@@ -601,16 +486,25 @@
     "frontend/src/components/bmad/dragMimeTypes.js": [
       "modules/svelte.md"
     ],
+    "frontend/src/components/bmad/inputWidgets/ApprovalWidget.svelte": [
+      "modules/svelte.md"
+    ],
+    "frontend/src/components/bmad/inputWidgets/ChoiceWidget.svelte": [
+      "modules/svelte.md"
+    ],
     "frontend/src/components/bmad/inputWidgets/FileInputWidget.svelte": [
+      "modules/svelte.md"
+    ],
+    "frontend/src/components/bmad/inputWidgets/FreeTextWidget.svelte": [
+      "modules/svelte.md"
+    ],
+    "frontend/src/components/bmad/inputWidgets/JsonInputWidget.svelte": [
       "modules/svelte.md"
     ],
     "frontend/src/components/bmad/inputWidgets/MultiChoiceWidget.svelte": [
       "modules/svelte.md"
     ],
     "frontend/src/components/bmad/nodeUtils.js": [
-      "modules/svelte.md"
-    ],
-    "frontend/src/lib/ptySize.ts": [
       "modules/svelte.md"
     ],
     "frontend/src/lib/sprintColors.js": [
@@ -624,18 +518,6 @@
       "modules/vitest.md",
       "modules/workflowserialisation-ts.md",
       "modules/canvaspanedrophandler-ts.md"
-    ],
-    "frontend/src/views/ForcePushModal.svelte": [
-      "modules/svelte.md"
-    ],
-    "frontend/src/views/MergeModal.svelte": [
-      "modules/svelte.md"
-    ],
-    "frontend/src/views/NotificationFeed.svelte": [
-      "modules/svelte.md"
-    ],
-    "frontend/src/views/Settings.svelte": [
-      "modules/svelte.md"
     ],
     "frontend/src/views/Setup.svelte": [
       "modules/svelte.md"
@@ -655,12 +537,11 @@
     "svelte/easing": [
       "modules/svelte.md"
     ],
-    "svelte/transition": [
+    "svelte/store": [
       "modules/svelte.md"
     ],
-    "internal/bmad/artifacts_test.go": [
-      "modules/processbyid.md",
-      "modules/artifacts-test-go.md"
+    "svelte/transition": [
+      "modules/svelte.md"
     ],
     "internal/bmad/registry.go": [
       "modules/processbyid.md",
@@ -688,139 +569,158 @@
     "internal/bmad/registry_interactive_phase5_test.go": [
       "modules/processbyid.md"
     ],
-    "internal/bmad/registry_interactive_test.go": [
+    "internal/bmad/resume.go": [
       "modules/processbyid.md",
-      "modules/go-pkg-testing.md",
-      "modules/resolveinputs.md"
+      "modules/resume-go.md",
+      "modules/resumeinteractivenode.md"
     ],
-    "internal/uiadapter/allowlist.go": [
-      "modules/processbyid.md",
-      "modules/defaultconfig.md"
+    "internal/uiadapter/accountant.go": [
+      "modules/defaultconfig.md",
+      "modules/accountant.md"
     ],
-    "internal/uiadapter/backend/backend.go": [
-      "modules/config.md",
-      "modules/backend-registry-test-go.md",
-      "modules/mashed-internal-uiadapter-uiast.md"
+    "internal/uiadapter/accountant_test.go": [
+      "modules/defaultconfig.md",
+      "modules/accountant.md"
     ],
     "internal/uiadapter/backend/claudeapi/client.go": [
-      "modules/config.md",
-      "modules/mashed-internal-uiadapter-uiast.md",
+      "modules/defaultconfig.md",
+      "modules/log-slog-logger.md",
       "modules/context-context.md",
-      "modules/sessions-go.md"
+      "modules/claudeapi-client-go.md"
     ],
     "internal/uiadapter/backend/claudeapi/client_test.go": [
-      "modules/config.md"
+      "modules/defaultconfig.md",
+      "modules/log-slog-logger.md"
     ],
-    "internal/uiadapter/backend/claudecli/client_test.go": [
-      "modules/config.md",
+    "internal/uiadapter/backend/lifecycle_test.go": [
+      "modules/defaultconfig.md",
+      "modules/repairer.md"
+    ],
+    "internal/uiadapter/backend/router_test.go": [
       "modules/defaultconfig.md",
       "modules/go-pkg-testing.md"
     ],
+    "internal/uiadapter/breaker_test.go": [
+      "modules/defaultconfig.md",
+      "modules/testlogbuffer.md"
+    ],
+    "internal/uiadapter/cache.go": [
+      "modules/defaultconfig.md",
+      "modules/question-go.md",
+      "modules/responsecache.md"
+    ],
+    "internal/uiadapter/cache_test.go": [
+      "modules/defaultconfig.md",
+      "modules/testlogbuffer.md"
+    ],
     "internal/uiadapter/config.go": [
-      "modules/config.md",
       "modules/defaultconfig.md"
     ],
     "internal/uiadapter/config_test.go": [
-      "modules/config.md",
-      "modules/defaultconfig.md",
-      "modules/go-pkg-testing.md",
-      "modules/uiadapter-client-test-go.md"
-    ],
-    "internal/uiadapter/encode.go": [
-      "modules/config.md",
       "modules/defaultconfig.md"
     ],
-    "internal/uiadapter/encode_test.go": [
-      "modules/config.md",
+    "internal/uiadapter/contextguard_test.go": [
       "modules/defaultconfig.md",
-      "modules/go-pkg-testing.md"
+      "modules/testlogbuffer.md"
+    ],
+    "internal/uiadapter/eval_test.go": [
+      "modules/defaultconfig.md",
+      "modules/uiadapter-client-test-go.md",
+      "modules/scorecard-test-go.md"
+    ],
+    "internal/uiadapter/logging_plumbing_test.go": [
+      "modules/defaultconfig.md",
+      "modules/log-slog-logger.md"
+    ],
+    "internal/uiadapter/logging_story3_sanitize_test.go": [
+      "modules/defaultconfig.md"
     ],
     "internal/uiadapter/logging_story4_sanitize_test.go": [
-      "modules/config.md",
+      "modules/defaultconfig.md"
+    ],
+    "internal/uiadapter/logging_test.go": [
       "modules/defaultconfig.md",
-      "modules/go-pkg-testing.md"
+      "modules/logging-comprehensive-test-go.md"
     ],
-    "internal/uiadapter/stages.go": [
-      "modules/config.md"
+    "internal/uiadapter/prefix_cache.go": [
+      "modules/defaultconfig.md"
     ],
-    "internal/uiadapter/backend/claudeapi/stub.go": [
-      "modules/backend-registry-test-go.md"
+    "internal/uiadapter/prefix_cache_test.go": [
+      "modules/defaultconfig.md",
+      "modules/testlogbuffer.md"
     ],
-    "internal/uiadapter/backend/claudecli/stub.go": [
-      "modules/backend-registry-test-go.md"
+    "internal/uiadapter/repair_test.go": [
+      "modules/defaultconfig.md",
+      "modules/testlogbuffer.md",
+      "modules/log-slog-logger.md"
     ],
-    "internal/uiadapter/backend/lifecycle_test.go": [
-      "modules/backend-registry-test-go.md",
-      "modules/time-duration.md"
+    "internal/uiadapter/translate_e2e_test.go": [
+      "modules/defaultconfig.md",
+      "modules/testlogbuffer.md",
+      "modules/uiadapter-client-test-go.md"
     ],
-    "internal/uiadapter/backend/ollama/stub.go": [
-      "modules/backend-registry-test-go.md"
-    ],
-    "internal/uiadapter/backend/registry.go": [
-      "modules/backend-registry-test-go.md"
-    ],
-    "internal/uiadapter/backend/registry_test.go": [
-      "modules/backend-registry-test-go.md"
-    ],
-    "internal/uiadapter/backend/router.go": [
-      "modules/backend-registry-test-go.md"
-    ],
-    "internal/uiadapter/backend/router_test.go": [
-      "modules/backend-registry-test-go.md"
-    ],
-    "internal/uiadapter/backend/stubs.go": [
-      "modules/backend-registry-test-go.md",
-      "modules/mashed-internal-uiadapter-uiast.md"
+    "internal/uiadapter/fastpath.go": [
+      "modules/fastpath-go.md",
+      "modules/testlogbuffer.md"
     ],
     "internal/terminal/helper/client_test.go": [
+      "modules/server-test-go.md"
+    ],
+    "internal/terminal/helper/integration_test.go": [
+      "modules/server-test-go.md"
+    ],
+    "internal/terminal/helper/protocol_test.go": [
       "modules/server-test-go.md"
     ],
     "internal/terminal/helper/server_test.go": [
       "modules/server-test-go.md"
     ],
+    "docs/stories/old_stories/S03-config-persistence.md": [
+      "modules/spawnrefactorplan.md",
+      "modules/settheme.md"
+    ],
     "docs/stories/old_stories/review-04-refactor-plan-agent.md": [
-      "modules/summarisationmodal-svelte.md",
-      "modules/streamadvice.md"
+      "modules/spawnrefactorplan.md"
     ],
     "docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md": [
-      "modules/summarisationmodal-svelte.md",
+      "modules/spawnrefactorplan.md",
       "modules/streamadvice.md"
     ],
     "docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md": [
-      "modules/summarisationmodal-svelte.md"
+      "modules/spawnrefactorplan.md"
     ],
     "frontend/src/views/SummarisationModal.svelte": [
-      "modules/summarisationmodal-svelte.md"
+      "modules/spawnrefactorplan.md",
+      "modules/app-js.md"
     ],
     "frontend/wailsjs/go/main/App.js": [
-      "modules/summarisationmodal-svelte.md",
+      "modules/spawnrefactorplan.md",
       "modules/app-js.md",
       "modules/inputresponsemodal-svelte.md",
       "modules/listreposessions.md",
-      "modules/listrepochoices.md",
+      "modules/tasks-subtasks.md",
       "modules/spawnagent.md",
       "modules/seteditorsettings.md",
       "modules/writefile.md",
       "modules/uiadaptersettings-ts.md",
+      "modules/13-edge-cases-and-failure-modes.md",
       "modules/themeinit-js.md",
-      "modules/loadbundledthemes.md",
       "modules/streamadvice.md",
-      "modules/theme-js.md",
       "modules/setmarkdownmenusettings.md",
-      "modules/bmad-sprint-backlog-md.md",
       "modules/listollamamodels.md",
       "modules/codeeditor-svelte.md",
-      "modules/uiadaptersettings-v3-test-ts.md",
-      "modules/branchmodal-svelte.md",
-      "modules/story-18-title-bar-dynamic-ui-model-selector.md",
+      "modules/settheme.md",
+      "modules/pr-1-security-branch-repo-health-pr1-security.md",
+      "modules/developer-notes.md",
       "modules/hydrate.md"
     ],
     "sdlc/repo-health-remediation/plan.md": [
-      "modules/summarisationmodal-svelte.md"
+      "modules/spawnrefactorplan.md",
+      "modules/pr-1-security-branch-repo-health-pr1-security.md"
     ],
     "internal/terminal/tmux_adapter_coverage_test.go": [
       "modules/tmux-adapter-coverage-test-go.md",
-      "modules/sync-mutex.md"
+      "modules/main-go.md"
     ],
     "internal/terminal/tmux_adapter_test.go": [
       "modules/tmux-adapter-coverage-test-go.md"
@@ -855,9 +755,6 @@
     "frontend/src/components/bmad/__tests__/DecisionGroup.test.ts": [
       "modules/vitest.md"
     ],
-    "frontend/src/components/bmad/__tests__/DiagnosticsChip.test.ts": [
-      "modules/vitest.md"
-    ],
     "frontend/src/components/bmad/__tests__/HintBanner.test.ts": [
       "modules/vitest.md"
     ],
@@ -876,90 +773,55 @@
     "frontend/src/components/bmad/__tests__/mountSvelte.ts": [
       "modules/vitest.md"
     ],
-    "internal/uiadapter/breaker_test.go": [
-      "modules/defaultconfig.md"
+    "internal/uiadapter/allowlist_test.go": [
+      "modules/testlogbuffer.md",
+      "modules/go-pkg-bytes.md"
     ],
-    "internal/uiadapter/cache_test.go": [
-      "modules/defaultconfig.md"
-    ],
-    "internal/uiadapter/client_test.go": [
-      "modules/defaultconfig.md",
-      "modules/uiadapter-client-test-go.md"
-    ],
-    "internal/uiadapter/contextguard_test.go": [
-      "modules/defaultconfig.md"
-    ],
-    "internal/uiadapter/fallback.go": [
-      "modules/defaultconfig.md"
+    "internal/uiadapter/encode_test.go": [
+      "modules/testlogbuffer.md",
+      "modules/log-slog-logger.md"
     ],
     "internal/uiadapter/fallback_test.go": [
-      "modules/defaultconfig.md"
+      "modules/testlogbuffer.md"
     ],
     "internal/uiadapter/fallback_tiers_test.go": [
-      "modules/defaultconfig.md",
-      "modules/runwithfallback.md"
-    ],
-    "internal/uiadapter/fastpath.go": [
-      "modules/defaultconfig.md",
-      "modules/fastpath-go.md"
+      "modules/testlogbuffer.md"
     ],
     "internal/uiadapter/fastpath_test.go": [
-      "modules/defaultconfig.md"
+      "modules/testlogbuffer.md"
     ],
     "internal/uiadapter/log_test_helper_test.go": [
-      "modules/defaultconfig.md",
+      "modules/testlogbuffer.md",
       "modules/uiadapter-client-test-go.md"
     ],
-    "internal/uiadapter/logging_story3_sanitize_test.go": [
-      "modules/defaultconfig.md",
-      "modules/go-pkg-testing.md"
-    ],
-    "internal/uiadapter/logging_story5_sanitize_test.go": [
-      "modules/defaultconfig.md",
-      "modules/go-pkg-testing.md"
-    ],
-    "internal/uiadapter/logging_test.go": [
-      "modules/defaultconfig.md",
-      "modules/logging-comprehensive-test-go.md"
-    ],
-    "internal/uiadapter/prefix_cache.go": [
-      "modules/defaultconfig.md"
-    ],
-    "internal/uiadapter/prefix_cache_test.go": [
-      "modules/defaultconfig.md"
-    ],
-    "internal/uiadapter/repair_test.go": [
-      "modules/defaultconfig.md",
-      "modules/newrepairer.md"
-    ],
-    "internal/uiadapter/sampling.go": [
-      "modules/defaultconfig.md"
+    "internal/uiadapter/mock_test.go": [
+      "modules/testlogbuffer.md",
+      "modules/go-pkg-bytes.md"
     ],
     "internal/uiadapter/sampling_test.go": [
-      "modules/defaultconfig.md",
-      "modules/go-pkg-testing.md"
+      "modules/testlogbuffer.md",
+      "modules/log-slog-logger.md"
     ],
     "internal/uiadapter/sanitize_test.go": [
-      "modules/defaultconfig.md",
+      "modules/testlogbuffer.md",
       "modules/log-slog-logger.md"
     ],
     "internal/uiadapter/semaphore_test.go": [
-      "modules/defaultconfig.md",
-      "modules/go-pkg-testing.md"
-    ],
-    "internal/uiadapter/spotlight.go": [
-      "modules/defaultconfig.md"
+      "modules/testlogbuffer.md"
     ],
     "internal/uiadapter/spotlight_test.go": [
-      "modules/defaultconfig.md"
+      "modules/testlogbuffer.md"
     ],
-    "internal/uiadapter/translate_e2e_test.go": [
-      "modules/defaultconfig.md",
-      "modules/uiadapter-client-test-go.md"
+    "internal/uiadapter/stages_test.go": [
+      "modules/testlogbuffer.md",
+      "modules/log-slog-logger.md"
     ],
     "internal/uiadapter/validator_test.go": [
-      "modules/defaultconfig.md",
+      "modules/testlogbuffer.md",
       "modules/log-slog-logger.md"
+    ],
+    "internal/bmad/assets.go": [
+      "modules/assets-test-go.md"
     ],
     "internal/bmad/assets_test.go": [
       "modules/assets-test-go.md"
@@ -973,11 +835,6 @@
     "internal/bmad/assets_write_test.go": [
       "modules/assets-test-go.md"
     ],
-    "app_config_test.go": [
-      "modules/setuptestconfig.md",
-      "modules/loadconfig.md",
-      "modules/app-109.md"
-    ],
     "app_uiadapter_bindings_test.go": [
       "modules/setuptestconfig.md",
       "modules/loadconfig.md"
@@ -985,39 +842,47 @@
     "editor_settings_test.go": [
       "modules/setuptestconfig.md"
     ],
-    "markdown_menu_test.go": [
-      "modules/setuptestconfig.md"
+    "app_bmad_question_test.go": [
+      "modules/go-pkg-testing.md"
     ],
-    "internal/bmad/executor_anyuseranswer_test.go": [
-      "modules/go-pkg-testing.md",
-      "modules/executor-iteration-test-go.md",
-      "modules/gate-go.md"
+    "app_bmad_respond_input_test.go": [
+      "modules/go-pkg-testing.md"
     ],
-    "internal/bmad/executor_cleanup_test.go": [
-      "modules/go-pkg-testing.md",
-      "modules/cleanup-test-go.md"
+    "app_shutdown_test.go": [
+      "modules/go-pkg-testing.md"
     ],
-    "internal/bmad/executor_flatten_test.go": [
+    "app_uiadapter_claudecli.go": [
       "modules/go-pkg-testing.md",
-      "modules/executor-iteration-test-go.md"
+      "modules/time-duration.md"
     ],
-    "internal/bmad/fixture_verify_test.go": [
+    "app_uiadapter_v3_test.go": [
+      "modules/go-pkg-testing.md"
+    ],
+    "internal/bmad/artifacts_test.go": [
       "modules/go-pkg-testing.md",
-      "modules/executor.md"
+      "modules/bmad-registry-test-go.md",
+      "modules/resolveartifactpath.md"
     ],
     "internal/bmad/registry_interactive_phase2_helper_test.go": [
       "modules/go-pkg-testing.md",
-      "modules/applyiterativeupgrade.md"
+      "modules/uiast-shape-test-go.md"
+    ],
+    "internal/bmad/registry_interactive_test.go": [
+      "modules/go-pkg-testing.md"
+    ],
+    "internal/bmad/resume_ghost_test.go": [
+      "modules/go-pkg-testing.md",
+      "modules/resume-go.md"
     ],
     "internal/bmad/shell_quote_test.go": [
-      "modules/go-pkg-testing.md"
+      "modules/go-pkg-testing.md",
+      "modules/resumeinteractivenode.md"
     ],
     "internal/bmad/validate_test.go": [
       "modules/go-pkg-testing.md"
     ],
     "internal/git/refs_test.go": [
-      "modules/go-pkg-testing.md",
-      "modules/app-73.md"
+      "modules/go-pkg-testing.md"
     ],
     "internal/terminal/bridge_auth_dev_test.go": [
       "modules/go-pkg-testing.md",
@@ -1027,30 +892,51 @@
       "modules/go-pkg-testing.md",
       "modules/bridge-auth-test-go.md"
     ],
+    "internal/uiadapter/backend/claudecli/client_test.go": [
+      "modules/go-pkg-testing.md",
+      "modules/context-context.md"
+    ],
     "internal/uiadapter/eval/corpus_test.go": [
       "modules/go-pkg-testing.md",
-      "modules/mashed-internal-uiadapter-uiast.md"
-    ],
-    "internal/uiadapter/eval_test.go": [
-      "modules/go-pkg-testing.md",
-      "modules/mashed-internal-uiadapter-uiast.md"
+      "modules/scorecard-go.md"
     ],
     "internal/uiadapter/logging_plumbing_mock_test.go": [
-      "modules/go-pkg-testing.md",
-      "modules/newmock.md"
-    ],
-    "internal/uiadapter/testhelper_eval.go": [
       "modules/go-pkg-testing.md"
+    ],
+    "internal/uiadapter/sanitize_adapter_test.go": [
+      "modules/go-pkg-testing.md",
+      "modules/log-slog-logger.md"
+    ],
+    "readfilebase64_test.go": [
+      "modules/go-pkg-testing.md",
+      "modules/app-git-guard-test-go.md"
+    ],
+    "screenshot_fullstack_test.go": [
+      "modules/go-pkg-testing.md",
+      "modules/app-109.md"
+    ],
+    "screenshot_test.go": [
+      "modules/go-pkg-testing.md"
+    ],
+    "internal/uiadapter/adapter_test.go": [
+      "modules/uiadapter-client-test-go.md"
     ],
     "internal/uiadapter/client.go": [
       "modules/uiadapter-client-test-go.md",
-      "modules/context-context.md"
+      "modules/context-context.md",
+      "modules/uiadapter-client-go.md"
+    ],
+    "internal/uiadapter/client_test.go": [
+      "modules/uiadapter-client-test-go.md"
     ],
     "internal/uiadapter/prompt.go": [
       "modules/uiadapter-client-test-go.md",
-      "modules/mashed-internal-uiadapter-uiast.md"
+      "modules/scorecard-test-go.md"
     ],
     "internal/uiadapter/prompt_test.go": [
+      "modules/uiadapter-client-test-go.md"
+    ],
+    "internal/uiadapter/testhelper_eval.go": [
       "modules/uiadapter-client-test-go.md"
     ],
     "@xterm/addon-fit": [
@@ -1062,12 +948,27 @@
     "@xterm/xterm/css/xterm.css": [
       "modules/monacoeditor-svelte.md"
     ],
+    "docs/playwright_cli_US_validate/pty-06-frontend-cleanup-report.md": [
+      "modules/monacoeditor-svelte.md"
+    ],
+    "frontend/src/App.svelte": [
+      "modules/monacoeditor-svelte.md"
+    ],
     "frontend/src/components/MonacoEditor.svelte": [
       "modules/monacoeditor-svelte.md"
     ],
     "frontend/src/components/Terminal.svelte": [
+      "modules/monacoeditor-svelte.md"
+    ],
+    "frontend/src/components/TitleBar.svelte": [
+      "modules/monacoeditor-svelte.md"
+    ],
+    "frontend/src/components/bmad/QuestionSnackbarStack.svelte": [
+      "modules/monacoeditor-svelte.md"
+    ],
+    "frontend/src/lib/monacoTheme.js": [
       "modules/monacoeditor-svelte.md",
-      "modules/story-pty-06-frontend-terminal-and-session-cleanup.md"
+      "modules/applytheme.md"
     ],
     "frontend/src/lib/stores/editorSettings.js": [
       "modules/monacoeditor-svelte.md",
@@ -1077,7 +978,36 @@
     "frontend/src/lib/stores/font.js": [
       "modules/monacoeditor-svelte.md"
     ],
+    "frontend/src/lib/stores/markdownMenuSettings.test.ts": [
+      "modules/monacoeditor-svelte.md"
+    ],
+    "frontend/src/lib/stores/markdownMenuSettings.ts": [
+      "modules/monacoeditor-svelte.md",
+      "modules/clearmarkdownmenudirty.md",
+      "modules/markdowntoolbarbuilder-test-ts.md"
+    ],
+    "frontend/src/lib/stores/theme.js": [
+      "modules/monacoeditor-svelte.md",
+      "modules/applytheme.md",
+      "modules/themeinit-js.md",
+      "modules/pr-1-security-branch-repo-health-pr1-security.md"
+    ],
+    "frontend/src/lib/themes.js": [
+      "modules/monacoeditor-svelte.md"
+    ],
     "frontend/src/types/pty.ts": [
+      "modules/monacoeditor-svelte.md"
+    ],
+    "frontend/src/views/Settings.svelte": [
+      "modules/monacoeditor-svelte.md"
+    ],
+    "frontend/wailsjs/runtime/runtime.js": [
+      "modules/monacoeditor-svelte.md",
+      "modules/app-js.md",
+      "modules/runtime-js.md",
+      "modules/eventsemit.md"
+    ],
+    "monaco-editor": [
       "modules/monacoeditor-svelte.md"
     ],
     "monaco-editor/esm/vs/basic-languages/css/css.contribution.js": [
@@ -1116,14 +1046,17 @@
     "monaco-editor/esm/vs/basic-languages/yaml/yaml.contribution.js": [
       "modules/monacoeditor-svelte.md"
     ],
+    "monaco-editor/esm/vs/editor/editor.api": [
+      "modules/monacoeditor-svelte.md"
+    ],
     "monaco-editor/esm/vs/editor/editor.api.js": [
       "modules/monacoeditor-svelte.md"
     ],
     "monaco-editor/esm/vs/language/json/monaco.contribution.js": [
       "modules/monacoeditor-svelte.md"
     ],
-    "internal/uiadapter/fallback_tiers.go": [
-      "modules/runwithfallback.md"
+    "docs/plans/svelte-check-migration.md": [
+      "modules/themeconverter-ts.md"
     ],
     "docs/stories/old_stories/theme-02-converter.md": [
       "modules/themeconverter-ts.md"
@@ -1132,28 +1065,24 @@
       "modules/themeconverter-ts.md",
       "modules/workflowserialisation-ts.md"
     ],
-    "docs/stories/svelte-check-complete-report.md": [
-      "modules/themeconverter-ts.md"
-    ],
     "frontend/src/lib/themeConverter.test.ts": [
       "modules/themeconverter-ts.md"
     ],
     "frontend/src/lib/themeConverter.ts": [
       "modules/themeconverter-ts.md",
-      "modules/loadbundledthemes.md"
+      "modules/themeinit-js.md"
     ],
     "frontend/src/types/theme.ts": [
       "modules/themeconverter-ts.md"
     ],
     "internal/advice/loader.go": [
-      "modules/loader-test-go.md",
-      "modules/loader-go.md",
-      "modules/loadadvicebody.md"
+      "modules/loader-test-go.md"
     ],
     "internal/advice/loader_test.go": [
-      "modules/loader-test-go.md",
-      "modules/loader-go.md",
-      "modules/loadadvicebody.md"
+      "modules/loader-test-go.md"
+    ],
+    "internal/advice/types.go": [
+      "modules/loader-test-go.md"
     ],
     "frontend/svelte.config.js": [
       "modules/frontend-package-json.md"
@@ -1198,90 +1127,132 @@
       "modules/interactiveinput-ts.md"
     ],
     "internal/bmad/executor_gate_test.go": [
-      "modules/newexecutor.md",
-      "modules/gate-go.md"
+      "modules/newexecutor.md"
     ],
     "internal/bmad/executor_iteration_test.go": [
       "modules/newexecutor.md",
+      "modules/question-test-go.md",
       "modules/executor-iteration-test-go.md"
+    ],
+    "internal/bmad/executor_resume_test.go": [
+      "modules/newexecutor.md",
+      "modules/resumeinteractivenode.md"
+    ],
+    "internal/bmad/executor_session_test.go": [
+      "modules/newexecutor.md"
+    ],
+    "internal/bmad/storage_test.go": [
+      "modules/newexecutor.md",
+      "modules/storage-test-go.md"
+    ],
+    "@milkdown/crepe": [
+      "modules/app-js.md"
+    ],
+    "@milkdown/crepe/theme/classic-dark.css": [
+      "modules/app-js.md"
+    ],
+    "@milkdown/plugin-listener": [
+      "modules/app-js.md"
     ],
     "docs/SPECIFICATION.md": [
       "modules/app-js.md",
-      "modules/eventsemit.md",
+      "modules/tasks-subtasks.md",
       "modules/seteditorsettings.md",
-      "modules/loadbundledthemes.md",
-      "modules/streamadvice.md"
-    ],
-    "docs/stories/old_stories/bmad-05-wails-bindings.md": [
-      "modules/app-js.md",
-      "modules/bmad-sprint-backlog-md.md"
+      "modules/themeinit-js.md",
+      "modules/streamadvice.md",
+      "modules/developer-notes.md"
     ],
     "docs/stories/old_stories/bmad-07-custom-nodes-components.md": [
       "modules/app-js.md",
-      "modules/bmad-sprint-backlog-md.md"
+      "modules/tasks-subtasks.md"
     ],
-    "docs/stories/old_stories/bmad-08-execution-integration.md": [
-      "modules/app-js.md",
-      "modules/bmad-sprint-backlog-md.md"
-    ],
-    "docs/stories/old_stories/bmad-09-modules-agents.md": [
+    "frontend/src/components/EditorRouter.svelte": [
       "modules/app-js.md"
     ],
-    "frontend/src/lib/stores/markdownMenuSettings.test.ts": [
+    "frontend/src/components/ImageViewer.svelte": [
       "modules/app-js.md"
     ],
-    "frontend/src/lib/stores/markdownMenuSettings.ts": [
+    "frontend/src/components/MarkdownEditor.svelte": [
+      "modules/app-js.md"
+    ],
+    "frontend/src/components/bmad/GitPanel.svelte": [
+      "modules/app-js.md"
+    ],
+    "frontend/src/lib/errorMessage.ts": [
       "modules/app-js.md",
-      "modules/clearmarkdownmenudirty.md",
-      "modules/markdowntoolbarbuilder-test-ts.md"
+      "modules/inputresponsemodal-svelte.md"
     ],
     "frontend/src/views/AgentDetail.svelte": [
+      "modules/app-js.md"
+    ],
+    "frontend/src/views/BranchModal.svelte": [
+      "modules/app-js.md"
+    ],
+    "frontend/src/views/ForcePushModal.svelte": [
+      "modules/app-js.md"
+    ],
+    "frontend/src/views/MergeModal.svelte": [
       "modules/app-js.md"
     ],
     "frontend/src/views/SwitchBranchModal.svelte": [
       "modules/app-js.md"
     ],
+    "panzoom": [
+      "modules/app-js.md"
+    ],
+    "internal/bmad/executor_multifileloader_test.go": [
+      "modules/bmad-registry-test-go.md",
+      "modules/executor-fileloader-test-go.md"
+    ],
     "internal/bmad/registry_test.go": [
       "modules/bmad-registry-test-go.md"
     ],
+    "internal/bmad/skillgen.go": [
+      "modules/bmad-registry-test-go.md",
+      "modules/skillgen-go.md"
+    ],
+    "internal/bmad/skillgen_test.go": [
+      "modules/bmad-registry-test-go.md"
+    ],
+    "internal/bmad/types.go": [
+      "modules/bmad-registry-test-go.md",
+      "modules/bmad-types-go.md",
+      "modules/app.md",
+      "modules/executor-command-test-go.md",
+      "modules/processdef.md"
+    ],
     "internal/bmad/interactive_defaults.go": [
-      "modules/applyiterativeupgrade.md"
+      "modules/uiast-shape-test-go.md"
     ],
     "internal/bmad/interactive_defaults_test.go": [
-      "modules/applyiterativeupgrade.md"
+      "modules/uiast-shape-test-go.md"
     ],
     "internal/bmad/registry_interactive_phase2.go": [
-      "modules/applyiterativeupgrade.md"
+      "modules/uiast-shape-test-go.md"
     ],
     "internal/bmad/registry_interactive_phase3a.go": [
-      "modules/applyiterativeupgrade.md"
+      "modules/uiast-shape-test-go.md"
     ],
     "internal/bmad/registry_interactive_phase3b.go": [
-      "modules/applyiterativeupgrade.md"
+      "modules/uiast-shape-test-go.md"
     ],
     "internal/bmad/registry_interactive_phase3c.go": [
-      "modules/applyiterativeupgrade.md"
+      "modules/uiast-shape-test-go.md"
     ],
     "internal/bmad/registry_interactive_phase3d.go": [
-      "modules/applyiterativeupgrade.md"
+      "modules/uiast-shape-test-go.md"
     ],
     "internal/bmad/registry_interactive_phase4.go": [
-      "modules/applyiterativeupgrade.md"
+      "modules/uiast-shape-test-go.md"
     ],
     "internal/bmad/registry_interactive_phase5.go": [
-      "modules/applyiterativeupgrade.md"
+      "modules/uiast-shape-test-go.md"
+    ],
+    "internal/uiadapter/uiast_shape_test.go": [
+      "modules/uiast-shape-test-go.md"
     ],
     "frontend/src/lib/types/wails.d.ts": [
       "modules/wails-d-ts.md"
-    ],
-    "docs/stories/old_stories/superseded_by_v3/uiadapter-02.md": [
-      "modules/uiast-ts.md"
-    ],
-    "docs/stories/ui-ast-U2-adapter-package.md": [
-      "modules/uiast-ts.md"
-    ],
-    "docs/stories/ui-ast-U6-ast-dispatcher.md": [
-      "modules/uiast-ts.md"
     ],
     "docs/stories/ui-ast-U8-sprint-report.md": [
       "modules/uiast-ts.md",
@@ -1290,7 +1261,7 @@
     "docs/stories/uiadapter-A.md": [
       "modules/uiast-ts.md"
     ],
-    "docs/stories/uiadapter-logging-5-instrument-payload-shaping.md": [
+    "frontend/src/components/bmad/__tests__/DiagnosticsChip.test.ts": [
       "modules/uiast-ts.md"
     ],
     "frontend/src/types/uiAst.ts": [
@@ -1301,8 +1272,27 @@
       "modules/main-ts.md",
       "modules/eventsonmultiple.md"
     ],
+    "internal/domain/types.go": [
+      "modules/reposcanner.md",
+      "modules/sessions-go.md",
+      "modules/notificationengine.md",
+      "modules/handlefsevent.md",
+      "modules/diff-go.md",
+      "modules/worktree-go.md",
+      "modules/app-355.md"
+    ],
     "internal/bmad/events.go": [
       "modules/suspendforspecwithpane.md"
+    ],
+    "internal/bmad/executor_suspend_test.go": [
+      "modules/suspendforspecwithpane.md",
+      "modules/executor-iteration-test-go.md",
+      "modules/executor-adapter-test-go.md"
+    ],
+    "internal/bmad/prompts.go": [
+      "modules/suspendforspecwithpane.md",
+      "modules/executor-fileloader-test-go.md",
+      "modules/prompts-test-go.md"
     ],
     "frontend/src/components/bmad/QuestionSnackbarStack.test.ts": [
       "modules/questionsnackbarstack-test-ts.md"
@@ -1311,70 +1301,45 @@
       "modules/questionsnackbarstack-test-ts.md",
       "modules/questionresponsemodal-test-ts.md"
     ],
-    "app_terminal_registry_test.go": [
-      "modules/managedsession.md",
-      "modules/app-terminal-registry-test-go.md",
-      "modules/sync-mutex.md"
-    ],
     "internal/terminal/stub.go": [
       "modules/managedsession.md"
     ],
-    "internal/bmad/registry_fs.go": [
-      "modules/mashed-internal-uiadapter-uiast.md"
-    ],
     "internal/uiadapter/eval/corpus.go": [
-      "modules/mashed-internal-uiadapter-uiast.md"
+      "modules/scorecard-go.md"
     ],
     "internal/uiadapter/eval/scorecard.go": [
-      "modules/mashed-internal-uiadapter-uiast.md",
-      "modules/time-duration.md"
+      "modules/scorecard-go.md",
+      "modules/scorecard-test-go.md"
     ],
     "docs/stories/markdown-toolbar-02-frontend-store.md": [
-      "modules/clearmarkdownmenudirty.md"
+      "modules/clearmarkdownmenudirty.md",
+      "modules/developer-notes-449.md"
     ],
     "docs/stories/markdown-toolbar-05-markdown-editor-panel.md": [
       "modules/clearmarkdownmenudirty.md"
     ],
     "docs/stories/markdown-toolbar-06-editor-wiring.md": [
-      "modules/clearmarkdownmenudirty.md"
-    ],
-    "tests/ac/ui-ast-rendering.spec.ts": [
       "modules/clearmarkdownmenudirty.md",
-      "modules/ui-ast-rendering-spec-ts.md"
+      "modules/markdowneditor-test-ts.md",
+      "modules/developer-notes-449.md"
+    ],
+    "theme_scanner.go": [
+      "modules/loadconfig.md",
+      "modules/createmockvsix.md",
+      "modules/theme-scanner-go.md"
     ],
     "theme_scanner_test.go": [
       "modules/loadconfig.md",
       "modules/createmockvsix.md",
-      "modules/readthemefile.md"
-    ],
-    "@milkdown/crepe": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "@milkdown/crepe/theme/classic-dark.css": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "@milkdown/plugin-listener": [
-      "modules/inputresponsemodal-svelte.md"
+      "modules/theme-scanner-go.md"
     ],
     "docs/stories/ui-ast-U7-decision-group.md": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/components/EditorRouter.svelte": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/components/ImageViewer.svelte": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/components/MarkdownEditor.svelte": [
       "modules/inputresponsemodal-svelte.md"
     ],
     "frontend/src/components/bmad/AstNode.svelte": [
       "modules/inputresponsemodal-svelte.md"
     ],
     "frontend/src/components/bmad/ComparisonTable.svelte": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/components/bmad/DecisionGroup.svelte": [
       "modules/inputresponsemodal-svelte.md"
     ],
     "frontend/src/components/bmad/DiagnosticsChip.svelte": [
@@ -1386,25 +1351,19 @@
     "frontend/src/components/bmad/InputResponseModal.svelte": [
       "modules/inputresponsemodal-svelte.md"
     ],
+    "frontend/src/components/bmad/MarkdownBlock.svelte": [
+      "modules/inputresponsemodal-svelte.md"
+    ],
     "frontend/src/components/bmad/SummaryCard.svelte": [
       "modules/inputresponsemodal-svelte.md"
     ],
     "frontend/src/components/bmad/TranscriptPane.svelte": [
       "modules/inputresponsemodal-svelte.md"
     ],
+    "frontend/src/components/bmad/__tests__/MarkdownBlock.test.ts": [
+      "modules/inputresponsemodal-svelte.md"
+    ],
     "frontend/src/components/bmad/__tests__/linkSanitiser.test.ts": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/components/bmad/inputWidgets/ApprovalWidget.svelte": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/components/bmad/inputWidgets/ChoiceWidget.svelte": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/components/bmad/inputWidgets/FreeTextWidget.svelte": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "frontend/src/components/bmad/inputWidgets/JsonInputWidget.svelte": [
       "modules/inputresponsemodal-svelte.md"
     ],
     "frontend/src/components/bmad/linkSanitiser.ts": [
@@ -1413,41 +1372,42 @@
     "frontend/src/lib/errorMessage.test.ts": [
       "modules/inputresponsemodal-svelte.md"
     ],
-    "frontend/src/lib/errorMessage.ts": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
     "frontend/src/types/transcript.ts": [
       "modules/inputresponsemodal-svelte.md"
     ],
-    "frontend/wailsjs/runtime/runtime.js": [
-      "modules/inputresponsemodal-svelte.md",
-      "modules/runtime-js.md",
-      "modules/eventsemit.md",
-      "modules/story-pty-06-frontend-terminal-and-session-cleanup.md"
-    ],
-    "panzoom": [
-      "modules/inputresponsemodal-svelte.md"
-    ],
-    "svelte/store": [
+    "markdown-it": [
       "modules/inputresponsemodal-svelte.md"
     ],
     "repomix.config.json": [
       "modules/output.md"
     ],
-    "internal/bmad/types.go": [
-      "modules/bmad-types-go.md",
-      "modules/app.md",
-      "modules/executor-command-test-go.md",
-      "modules/nodetype.md",
-      "modules/processdef.md"
+    "docs/stories/old_stories/S01-theme-definitions.md": [
+      "modules/applytheme.md"
+    ],
+    "docs/stories/old_stories/theme-03-store-refactor.md": [
+      "modules/applytheme.md"
+    ],
+    "internal/bmad/fixture_verify_test.go": [
+      "modules/question-test-go.md"
+    ],
+    "internal/bmad/question.go": [
+      "modules/question-test-go.md",
+      "modules/context-context.md",
+      "modules/question-go.md"
     ],
     "internal/bmad/question_test.go": [
       "modules/question-test-go.md"
     ],
-    "app_uiadapter_claudecli.go": [
+    "internal/uiadapter/encode.go": [
       "modules/log-slog-logger.md"
     ],
-    "internal/uiadapter/sanitize.go": [
+    "internal/uiadapter/logging_story5_sanitize_test.go": [
+      "modules/log-slog-logger.md"
+    ],
+    "internal/uiadapter/sampling.go": [
+      "modules/log-slog-logger.md"
+    ],
+    "internal/uiadapter/stages.go": [
       "modules/log-slog-logger.md"
     ],
     "internal/uiadapter/validator.go": [
@@ -1466,7 +1426,7 @@
       "modules/processdef-498.md",
       "modules/scopeddiff.md",
       "modules/terminalsession.md",
-      "modules/workflowexecution-501.md",
+      "modules/workflowexecution.md",
       "modules/agentinfo.md",
       "modules/bmadagentconfig.md",
       "modules/editorsettings.md",
@@ -1485,8 +1445,15 @@
       "modules/validationissue.md"
     ],
     "internal/bmad/executor_fileloader_test.go": [
-      "modules/executor-fileloader-test-go.md",
-      "modules/resolveinputs.md"
+      "modules/executor-fileloader-test-go.md"
+    ],
+    "internal/bmad/executor_adapter_test.go": [
+      "modules/context-context.md",
+      "modules/executor-adapter-test-go.md"
+    ],
+    "internal/uiadapter/eval/scorecard_test.go": [
+      "modules/context-context.md",
+      "modules/scorecard-test-go.md"
     ],
     "docs/stories/markdown-toolbar-03-toolbar-builder.md": [
       "modules/markdowntoolbarbuilder-test-ts.md"
@@ -1507,54 +1474,65 @@
       "modules/listreposessions.md"
     ],
     "frontend/src/lib/stores/sessions.ts": [
-      "modules/listreposessions.md"
-    ],
-    "frontend/src/types/session.ts": [
-      "modules/listreposessions.md"
-    ],
-    "docs/stories/breadcrumbs-06-downstream-autofill.md": [
-      "modules/listrepochoices.md",
-      "modules/autofill-test-ts.md"
-    ],
-    "docs/stories/old_stories/bmad-06-workflow-view-canvas.md": [
-      "modules/listrepochoices.md"
-    ],
-    "docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md": [
-      "modules/listrepochoices.md"
-    ],
-    "docs/stories/old_stories/sprint2-04-repo-context-flow.md": [
-      "modules/listrepochoices.md"
-    ],
-    "docs/stories/old_stories/sprint2-06-execution-bar-simplification.md": [
-      "modules/listrepochoices.md"
-    ],
-    "docs/stories/old_stories/sprint2-summary.md": [
-      "modules/listrepochoices.md"
+      "modules/listreposessions.md",
+      "modules/bmadevents-ts.md"
     ],
     "internal/terminal/bridge_test.go": [
       "modules/bridge-test-go.md",
-      "modules/bridge.md"
+      "modules/bridge.md",
+      "modules/mocktmuxsession.md"
     ],
     "internal/bmad/executor_respond_test.go": [
       "modules/executor-iteration-test-go.md",
-      "modules/resolveinputs.md",
       "modules/executor-adapter-test-go.md",
-      "modules/executor-respond-test-go.md"
+      "modules/executor-respond-test-go.md",
+      "modules/registrylookup.md"
     ],
     "app_files_guard_test.go": [
-      "modules/app-files-guard-test-go.md"
+      "modules/app-git-guard-test-go.md"
+    ],
+    "app_git_file_test.go": [
+      "modules/app-git-guard-test-go.md",
+      "modules/app-review-scoped-test-go.md"
+    ],
+    "app_git_guard_test.go": [
+      "modules/app-git-guard-test-go.md"
+    ],
+    "internal/uiadapter/testmain_git_test.go": [
+      "modules/app-git-guard-test-go.md"
     ],
     "testutil_git_test.go": [
-      "modules/app-files-guard-test-go.md"
+      "modules/app-git-guard-test-go.md"
+    ],
+    "docs/stories/breadcrumbs-06-downstream-autofill.md": [
+      "modules/tasks-subtasks.md"
+    ],
+    "docs/stories/old_stories/bmad-05-wails-bindings.md": [
+      "modules/tasks-subtasks.md",
+      "modules/spawnagent.md",
+      "modules/developer-notes.md"
+    ],
+    "docs/stories/old_stories/bmad-06-workflow-view-canvas.md": [
+      "modules/tasks-subtasks.md"
+    ],
+    "docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md": [
+      "modules/tasks-subtasks.md"
+    ],
+    "docs/stories/old_stories/sprint2-04-repo-context-flow.md": [
+      "modules/tasks-subtasks.md",
+      "modules/developer-notes.md"
+    ],
+    "docs/stories/old_stories/sprint2-summary.md": [
+      "modules/tasks-subtasks.md"
     ],
     "bundled_themes_test.go": [
       "modules/createmockvsix.md",
-      "modules/readthemefile.md"
-    ],
-    "docs/stories/old_stories/bmad-04-executor.md": [
-      "modules/spawnagent.md"
+      "modules/theme-scanner-go.md"
     ],
     "docs/stories/old_stories/pty-04-app-integration-and-frontend-cleanup.md": [
+      "modules/spawnagent.md"
+    ],
+    "docs/stories/old_stories/pty-04-app-spawn-integration.md": [
       "modules/spawnagent.md"
     ],
     "docs/stories/old_stories/ptyhelper-06-main-integration.md": [
@@ -1569,49 +1547,14 @@
     "docs/stories/old_stories/sessions-01-terminal-session-registry.md": [
       "modules/eventsemit.md"
     ],
-    "frontend/src/components/bmad/MarkdownBlock.svelte": [
+    "docs/stories/skills-watch-01-fsnotify-backend.md": [
       "modules/eventsemit.md"
-    ],
-    "frontend/src/components/bmad/__tests__/MarkdownBlock.test.ts": [
-      "modules/eventsemit.md"
-    ],
-    "markdown-it": [
-      "modules/eventsemit.md"
-    ],
-    "docs/stories/markdown-toolbar-01-backend-config.md": [
-      "modules/seteditorsettings.md",
-      "modules/setmarkdownmenusettings.md"
     ],
     "docs/stories/old_stories/edset-01-backend-editor-settings.md": [
       "modules/seteditorsettings.md"
     ],
     "docs/stories/old_stories/edset-02-editor-settings-ui.md": [
       "modules/seteditorsettings.md"
-    ],
-    "internal/domain/types.go": [
-      "modules/app-73.md",
-      "modules/sessiondata.md",
-      "modules/time-time.md",
-      "modules/domain-types-go.md",
-      "modules/notificationengine.md",
-      "modules/sessions-go.md",
-      "modules/assetwatcher.md",
-      "modules/app-355.md"
-    ],
-    "internal/git/diff_test.go": [
-      "modules/app-73.md"
-    ],
-    "internal/git/worktree.go": [
-      "modules/app-73.md"
-    ],
-    "internal/git/worktree_test.go": [
-      "modules/app-73.md"
-    ],
-    "internal/pathguard/pathguard.go": [
-      "modules/app-73.md"
-    ],
-    "internal/pathguard/pathguard_test.go": [
-      "modules/app-73.md"
     ],
     "frontend/src/components/__tests__/ImageViewer.test.ts": [
       "modules/imageviewerutils-ts.md"
@@ -1622,8 +1565,11 @@
     "internal/uiadapter/schemas/generate_menu.json": [
       "modules/generate-menu-json.md"
     ],
-    "internal/uiadapter/uiast_shape_test.go": [
-      "modules/uiast-shape-test-go.md"
+    "internal/pathguard/pathguard.go": [
+      "modules/pathguard-go.md"
+    ],
+    "internal/pathguard/pathguard_test.go": [
+      "modules/pathguard-go.md"
     ],
     "docs/feasibility-multi-editor.md": [
       "modules/writefile.md"
@@ -1637,84 +1583,94 @@
     "internal/bmad/executor_command_test.go": [
       "modules/executor-command-test-go.md"
     ],
+    "docs/stories/uiadapter-v3-18.md": [
+      "modules/uiadaptersettings-ts.md",
+      "modules/listollamamodels.md",
+      "modules/hydrate.md"
+    ],
     "frontend/src/lib/stores/uiAdapterSettings.test.ts": [
       "modules/uiadaptersettings-ts.md"
     ],
     "frontend/src/lib/stores/uiAdapterSettings.ts": [
       "modules/uiadaptersettings-ts.md",
       "modules/listollamamodels.md",
-      "modules/uiadaptersettings-v3-test-ts.md",
-      "modules/story-18-title-bar-dynamic-ui-model-selector.md",
       "modules/hydrate.md"
     ],
-    "internal/bmad/executor_adapter_test.go": [
-      "modules/executor-adapter-test-go.md",
-      "modules/time-duration.md"
+    "frontend/src/lib/stores/uiAdapterSettings.v3.test.ts": [
+      "modules/uiadaptersettings-ts.md"
     ],
     "docs/stories/skills-cmd-03-canvas-integration.md": [
       "modules/workflowserialisation-ts.md"
     ],
-    "docs/stories/svelte-check-01-report.md": [
+    "docs/stories/svelte-check-complete-report.md": [
       "modules/workflowserialisation-ts.md"
     ],
     "frontend/src/lib/__tests__/workflowSerialisation.test.ts": [
       "modules/workflowserialisation-ts.md"
     ],
     "frontend/src/lib/workflowSerialisation.ts": [
-      "modules/workflowserialisation-ts.md"
+      "modules/workflowserialisation-ts.md",
+      "modules/pr-1-security-branch-repo-health-pr1-security.md"
     ],
     "internal/terminal/manager_test.go": [
-      "modules/manager-test-go.md"
+      "modules/newsessionmanager.md"
+    ],
+    "app_review_scoped.go": [
+      "modules/app-review-scoped-test-go.md"
     ],
     "app_review_scoped_test.go": [
       "modules/app-review-scoped-test-go.md"
     ],
-    "internal/scanner/sessions.go": [
-      "modules/sessiondata.md",
-      "modules/app-109.md",
-      "modules/sessions-go.md"
-    ],
-    "docs/stories/old_stories/S03-config-persistence.md": [
-      "modules/themeinit-js.md"
-    ],
-    "docs/stories/old_stories/S04-titlebar-theme-popover.md": [
-      "modules/themeinit-js.md"
-    ],
-    "docs/stories/old_stories/S05-settings-view.md": [
-      "modules/themeinit-js.md"
-    ],
-    "docs/stories/old_stories/theme-01-backend-scanner.md": [
-      "modules/themeinit-js.md"
+    "app_config_test.go": [
+      "modules/app-config-test-go.md"
     ],
     "docs/stories/old_stories/theme-04-settings-activation.md": [
-      "modules/themeinit-js.md"
+      "modules/activateimportedtheme.md"
     ],
     "docs/stories/old_stories/theme-05-monaco-registration.md": [
-      "modules/themeinit-js.md"
+      "modules/activateimportedtheme.md"
     ],
     "docs/stories/old_stories/vsix-02-frontend-vsix-path-handling.md": [
-      "modules/themeinit-js.md"
+      "modules/activateimportedtheme.md"
     ],
-    "frontend/src/lib/stores/theme.js": [
-      "modules/themeinit-js.md",
-      "modules/loadbundledthemes.md",
-      "modules/theme-js.md"
+    "docs/stories/old_stories/vsix-sprint-backlog.md": [
+      "modules/activateimportedtheme.md"
     ],
     "frontend/src/lib/themeInit.js": [
+      "modules/activateimportedtheme.md",
       "modules/themeinit-js.md",
-      "modules/loadbundledthemes.md",
-      "modules/theme-js.md"
+      "modules/pr-1-security-branch-repo-health-pr1-security.md"
     ],
     "internal/uiadapter/logging_comprehensive_test.go": [
       "modules/logging-comprehensive-test-go.md"
     ],
+    "internal/explain/explain.go": [
+      "modules/app-109.md",
+      "modules/question-go.md"
+    ],
+    "docs/bmad-interactive-process-schema.md": [
+      "modules/13-edge-cases-and-failure-modes.md"
+    ],
+    "docs/stories/bmad-interactive-03-suspension-respond.md": [
+      "modules/13-edge-cases-and-failure-modes.md"
+    ],
+    "docs/stories/old_stories/bmad-08-execution-integration.md": [
+      "modules/13-edge-cases-and-failure-modes.md",
+      "modules/developer-notes.md"
+    ],
     "docs/stories/old_stories/edset-04-autoload-bundled-themes.md": [
-      "modules/loadbundledthemes.md"
+      "modules/themeinit-js.md"
+    ],
+    "docs/stories/old_stories/vsix-01-backend-zip-reading.md": [
+      "modules/themeinit-js.md"
     ],
     "docs/stories/old_stories/review-02-review-backend.md": [
       "modules/streamadvice.md"
     ],
     "docs/stories/old_stories/review-03-summarisation-modal.md": [
+      "modules/streamadvice.md"
+    ],
+    "docs/stories/old_stories/review-05-bundled-advice-files.md": [
       "modules/streamadvice.md"
     ],
     "docs/stories/old_stories/review-06-gitpanel-integration.md": [
@@ -1726,26 +1682,35 @@
     "frontend/src/types/reviewEvents.ts": [
       "modules/streamadvice.md"
     ],
+    "frontend/src/App.test.ts": [
+      "modules/ref-node-path.md"
+    ],
     "frontend/src/components/bmad/__tests__/CanvasFailureToast.colors.test.ts": [
-      "modules/settings-test-ts.md"
+      "modules/ref-node-path.md"
     ],
     "frontend/src/components/bmad/__tests__/CommandNode.colors.test.ts": [
-      "modules/settings-test-ts.md"
+      "modules/ref-node-path.md"
     ],
     "frontend/src/components/bmad/__tests__/ProcessSidebar.colors.test.ts": [
-      "modules/settings-test-ts.md"
+      "modules/ref-node-path.md"
     ],
     "frontend/src/components/bmad/__tests__/SkillEditorModal.colors.test.ts": [
-      "modules/settings-test-ts.md"
+      "modules/ref-node-path.md"
     ],
     "frontend/src/components/bmad/__tests__/tokenAudit.ts": [
-      "modules/settings-test-ts.md"
+      "modules/ref-node-path.md"
     ],
     "frontend/src/views/Settings.test.ts": [
-      "modules/settings-test-ts.md"
+      "modules/ref-node-path.md"
+    ],
+    "internal/bmad/session_naming.go": [
+      "modules/session-naming-test-go.md",
+      "modules/question-go.md",
+      "modules/parsesessionname.md"
     ],
     "internal/bmad/session_naming_test.go": [
-      "modules/session-naming-test-go.md"
+      "modules/session-naming-test-go.md",
+      "modules/parsesessionname.md"
     ],
     "frontend/playwright.config.ts": [
       "modules/playwright-test.md"
@@ -1771,6 +1736,12 @@
     "tests/ac/bmad-input-multi.spec.ts": [
       "modules/playwright-test.md"
     ],
+    "tests/ac/skills-cmd-02-drop.spec.ts": [
+      "modules/playwright-test.md"
+    ],
+    "tests/ac/skills-cmd-03-fail.spec.ts": [
+      "modules/playwright-test.md"
+    ],
     "tests/ac/skills-editor-01-modal.spec.ts": [
       "modules/playwright-test.md"
     ],
@@ -1781,25 +1752,23 @@
       "modules/models-ts.md"
     ],
     "docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md": [
-      "modules/story-bridge-04-stale-session-cleanup-and-frontend-polish.md"
+      "modules/design-brief.md"
     ],
     "frontend/src/lib/bmadSessionName.test.ts": [
-      "modules/story-bridge-04-stale-session-cleanup-and-frontend-polish.md"
+      "modules/design-brief.md"
     ],
     "frontend/src/lib/bmadSessionName.ts": [
-      "modules/story-bridge-04-stale-session-cleanup-and-frontend-polish.md"
+      "modules/design-brief.md"
     ],
-    "frontend/src/lib/monacoTheme.js": [
-      "modules/theme-js.md"
+    "internal/bmad/registry_fs.go": [
+      "modules/main-go.md"
     ],
-    "frontend/src/lib/themes.js": [
-      "modules/theme-js.md"
+    "main.go": [
+      "modules/main-go.md",
+      "modules/main-test-go.md"
     ],
-    "monaco-editor": [
-      "modules/theme-js.md"
-    ],
-    "monaco-editor/esm/vs/editor/editor.api": [
-      "modules/theme-js.md"
+    "main_socket_test.go": [
+      "modules/main-go.md"
     ],
     "internal/uiadapter/schemas/generate_text.json": [
       "modules/generate-text-json.md"
@@ -1811,38 +1780,26 @@
     "font_scanner.go": [
       "modules/font-scanner-go.md"
     ],
-    "frontend/src/App.test.ts": [
-      "modules/ref-node-path.md"
-    ],
-    "frontend/src/__tests__/focus-keyboard-nav.test.ts": [
-      "modules/ref-node-path.md"
+    "frontend/src/__tests__/entry-animations.test.ts": [
+      "modules/ref-node-fs.md"
     ],
     "frontend/src/__tests__/signature-moments.test.ts": [
-      "modules/ref-node-path.md"
+      "modules/ref-node-fs.md"
     ],
     "frontend/src/__tests__/sparkline-render.test.ts": [
-      "modules/ref-node-path.md"
+      "modules/ref-node-fs.md"
     ],
     "frontend/src/components/__tests__/MarkdownEditor.guard.test.ts": [
-      "modules/ref-node-path.md"
+      "modules/ref-node-fs.md"
     ],
     "frontend/src/components/__tests__/MonacoEditor.guard.test.ts": [
-      "modules/ref-node-path.md"
-    ],
-    "frontend/src/components/__tests__/glow-btn.test.ts": [
-      "modules/ref-node-path.md"
+      "modules/ref-node-fs.md"
     ],
     "frontend/src/components/__tests__/tokens.test.ts": [
-      "modules/ref-node-path.md"
+      "modules/ref-node-fs.md"
     ],
     "frontend/src/lib/saveFeedback.ts": [
-      "modules/ref-node-path.md"
-    ],
-    "tests/ac/skills-cmd-02-drop.spec.ts": [
-      "modules/ref-node-path.md"
-    ],
-    "tests/ac/skills-cmd-03-fail.spec.ts": [
-      "modules/ref-node-path.md"
+      "modules/ref-node-fs.md"
     ],
     "internal/uiadapter/schemas/uiast.json": [
       "modules/properties.md",
@@ -1855,21 +1812,14 @@
       "modules/widget.md"
     ],
     "internal/agent/engine_test.go": [
-      "modules/domain-types-go.md",
+      "modules/sessions-go.md",
       "modules/notificationengine.md"
     ],
-    "app_review_test.go": [
-      "modules/app-review-test-go.md",
-      "modules/modelinfo.md"
+    "internal/scanner/sessions.go": [
+      "modules/sessions-go.md"
     ],
-    "frontend/src/lib/bmad/__tests__/autoFill.test.ts": [
-      "modules/autofill-test-ts.md"
-    ],
-    "frontend/src/lib/bmad/__tests__/autoFillMultiFile.test.ts": [
-      "modules/autofill-test-ts.md"
-    ],
-    "frontend/src/lib/bmad/autoFill.ts": [
-      "modules/autofill-test-ts.md"
+    "internal/terminal/panes.go": [
+      "modules/panes-go.md"
     ],
     "frontend/src/app.d.ts": [
       "modules/bmadevents-ts.md"
@@ -1877,45 +1827,60 @@
     "frontend/src/types/bmadEvents.ts": [
       "modules/bmadevents-ts.md"
     ],
+    "frontend/src/types/session.ts": [
+      "modules/bmadevents-ts.md"
+    ],
     "frontend/src/components/__tests__/neon-green.test.ts": [
       "modules/neon-green-test-ts.md"
     ],
     "internal/bmad/templates.go": [
-      "modules/builtintemplates.md"
+      "modules/builtintemplates.md",
+      "modules/templates-go.md"
     ],
     "internal/bmad/templates_test.go": [
       "modules/builtintemplates.md"
     ],
-    "internal/uiadapter/repair.go": [
-      "modules/newrepairer.md"
+    "internal/uiadapter/eval/scorecard_v3.go": [
+      "modules/repairer.md",
+      "modules/time-duration.md",
+      "modules/scorecard-v3-test-go.md"
     ],
     "internal/uiadapter/schemas/generate_yn.json": [
       "modules/generate-yn-json.md"
     ],
-    "internal/agent/tokensamples_test.go": [
-      "modules/notificationengine.md",
-      "modules/tokensamples-test-go.md"
-    ],
     "docs/plans/markdown-toolbar-settings.md": [
       "modules/setmarkdownmenusettings.md"
     ],
-    "docs/stories/breadcrumbs-03-file-loader-and-command-node.md": [
-      "modules/nodepath-ts.md"
+    "docs/stories/markdown-toolbar-01-backend-config.md": [
+      "modules/setmarkdownmenusettings.md"
     ],
-    "docs/stories/breadcrumbs-08-multifileloader-frontend.md": [
-      "modules/nodepath-ts.md"
+    "cmd/pty-helper/main.go": [
+      "modules/claudeapi-client-go.md"
     ],
-    "frontend/src/lib/bmad/__tests__/nodePath.multi.test.ts": [
-      "modules/nodepath-ts.md"
+    "cmd/pty-helper/main_test.go": [
+      "modules/claudeapi-client-go.md"
     ],
-    "frontend/src/lib/bmad/nodePath.test.ts": [
-      "modules/nodepath-ts.md"
+    "internal/uiadapter/backend/claudeapi/stub.go": [
+      "modules/claudeapi-client-go.md"
     ],
-    "frontend/src/lib/bmad/nodePath.ts": [
-      "modules/nodepath-ts.md"
+    "internal/uiadapter/backend/claudecli/stub.go": [
+      "modules/claudeapi-client-go.md"
+    ],
+    "internal/uiadapter/backend/ollama/stub.go": [
+      "modules/claudeapi-client-go.md"
+    ],
+    "internal/uiadapter/backend/registry.go": [
+      "modules/claudeapi-client-go.md",
+      "modules/backend-registry-test-go.md"
+    ],
+    "internal/scanner/processes.go": [
+      "modules/processes-go.md"
     ],
     "internal/scanner/processes_test.go": [
-      "modules/parsepsline.md"
+      "modules/processes-go.md"
+    ],
+    "repo_hygiene_test.go": [
+      "modules/processes-go.md"
     ],
     "docs/stories/markdown-toolbar-08-e2e-verification.md": [
       "modules/markdowneditor-test-ts.md"
@@ -1943,23 +1908,16 @@
     "internal/bmad/cleanup_test.go": [
       "modules/cleanup-test-go.md"
     ],
+    "internal/bmad/executor_cleanup_test.go": [
+      "modules/cleanup-test-go.md"
+    ],
     "internal/terminal/session_test.go": [
       "modules/session-test-go.md"
     ],
-    "docs/bmad-interactive-process-schema.md": [
-      "modules/bmad-sprint-backlog-md.md"
+    "internal/bmad/wait_idle_test.go": [
+      "modules/wait-idle-test-go.md"
     ],
-    "docs/stories/bmad-interactive-05-persistence-resume.md": [
-      "modules/bmad-sprint-backlog-md.md"
-    ],
-    "docs/stories/old_stories/bmad-sprint-backlog.md": [
-      "modules/bmad-sprint-backlog-md.md"
-    ],
-    "frontend/src/components/titlebar/DynamicUiSelector.svelte": [
-      "modules/bmad-sprint-backlog-md.md",
-      "modules/design-brief.md"
-    ],
-    "docs/stories/breadcrumbs-09-ollama-settings-lifecycle.md": [
+    "docs/plans/IMPLEMENTATION_PLAN_v3_final.md": [
       "modules/listollamamodels.md"
     ],
     "docs/stories/ui-ast-U5-settings-ui.md": [
@@ -1968,7 +1926,31 @@
     "frontend/src/components/CodeEditor.svelte": [
       "modules/codeeditor-svelte.md"
     ],
+    "frontend/src/components/NewRepoModal.svelte": [
+      "modules/codeeditor-svelte.md"
+    ],
+    "frontend/src/__tests__/status-token.test.ts": [
+      "modules/newsessionmodal-svelte.md"
+    ],
+    "frontend/src/components/SparkLine.svelte": [
+      "modules/newsessionmodal-svelte.md"
+    ],
+    "frontend/src/components/StatusBadge.svelte": [
+      "modules/newsessionmodal-svelte.md"
+    ],
+    "frontend/src/lib/ptySize.ts": [
+      "modules/newsessionmodal-svelte.md"
+    ],
+    "frontend/src/lib/repoPalette.ts": [
+      "modules/newsessionmodal-svelte.md"
+    ],
+    "frontend/src/types/status.ts": [
+      "modules/newsessionmodal-svelte.md"
+    ],
     "frontend/src/views/NewSessionModal.svelte": [
+      "modules/newsessionmodal-svelte.md"
+    ],
+    "frontend/src/views/NotificationFeed.svelte": [
       "modules/newsessionmodal-svelte.md"
     ],
     "main_test.go": [
@@ -1986,23 +1968,23 @@
     "frontend/src/components/bmad/ProcessNode.test.ts": [
       "modules/processnode-test-ts.md"
     ],
-    "frontend/src/lib/stores/uiAdapterSettings.v3.test.ts": [
-      "modules/uiadaptersettings-v3-test-ts.md"
-    ],
     "internal/bmad/asset_watcher_test.go": [
       "modules/asset-watcher-test-go.md"
     ],
     "internal/uiadapter/uiast.gen.go": [
       "modules/uiast-gen-go.md"
     ],
-    "frontend/src/views/BranchModal.svelte": [
-      "modules/branchmodal-svelte.md"
+    "frontend/src/lib/bmad/__tests__/autoFill.test.ts": [
+      "modules/autofill-test-ts.md"
+    ],
+    "frontend/src/lib/bmad/__tests__/autoFillMultiFile.test.ts": [
+      "modules/autofill-test-ts.md"
+    ],
+    "frontend/src/lib/bmad/autoFill.ts": [
+      "modules/autofill-test-ts.md"
     ],
     "internal/bmad/gate.go": [
       "modules/gate-go.md"
-    ],
-    "internal/bmad/resume_ghost_test.go": [
-      "modules/resume-ghost-test-go.md"
     ],
     "docs/playwright_cli_US_validate/meditor-backlog-report.md": [
       "modules/story-meditor-01-editorrouter-extension-based-editor-switching.md"
@@ -2013,8 +1995,20 @@
     "frontend/src/components/editorUtils.ts": [
       "modules/story-meditor-01-editorrouter-extension-based-editor-switching.md"
     ],
+    "internal/uiadapter/allowlist.go": [
+      "modules/go-pkg-bytes.md"
+    ],
     "internal/uiadapter/mock.go": [
-      "modules/newmock.md"
+      "modules/go-pkg-bytes.md"
+    ],
+    "internal/uiadapter/schema.go": [
+      "modules/go-pkg-bytes.md"
+    ],
+    "internal/git/diff.go": [
+      "modules/diff-go.md"
+    ],
+    "internal/git/diff_test.go": [
+      "modules/diff-go.md"
     ],
     "frontend/src/components/bmad/ProcessNode.awaiting.test.ts": [
       "modules/processnode-awaiting-test-ts.md"
@@ -2031,21 +2025,29 @@
     "internal/bmad/modules_test.go": [
       "modules/getmodules.md"
     ],
-    "internal/uiadapter/accountant.go": [
-      "modules/accountant.md"
-    ],
-    "internal/uiadapter/accountant_test.go": [
-      "modules/accountant.md"
-    ],
     "internal/uiadapter/schemas/generate_form.json": [
       "modules/generate-form-json.md"
     ],
-    "docs/plans/IMPLEMENTATION_PLAN_v3_final.md": [
-      "modules/story-18-title-bar-dynamic-ui-model-selector.md"
+    "docs/stories/breadcrumbs-01-discovery-data-model.md": [
+      "modules/nodepath-ts.md"
     ],
-    "docs/stories/uiadapter-v3-18.md": [
-      "modules/story-18-title-bar-dynamic-ui-model-selector.md",
-      "modules/hydrate.md"
+    "docs/stories/breadcrumbs-03-file-loader-and-command-node.md": [
+      "modules/nodepath-ts.md"
+    ],
+    "frontend/src/lib/bmad/__tests__/nodePath.multi.test.ts": [
+      "modules/nodepath-ts.md"
+    ],
+    "frontend/src/lib/bmad/nodePath.test.ts": [
+      "modules/nodepath-ts.md"
+    ],
+    "frontend/src/lib/bmad/nodePath.ts": [
+      "modules/nodepath-ts.md"
+    ],
+    "docs/stories/old_stories/S05-settings-view.md": [
+      "modules/settheme.md"
+    ],
+    "docs/stories/old_stories/theme-01-backend-scanner.md": [
+      "modules/settheme.md"
     ],
     "frontend/src/components/__tests__/remaining-colors.test.ts": [
       "modules/remaining-colors-test-ts.md"
@@ -2062,11 +2064,11 @@
     "frontend/src/lib/terminalSocket.ts": [
       "modules/terminal-auth-test-ts.md"
     ],
-    "internal/uiadapter/schema.go": [
-      "modules/schema-go.md"
+    "internal/git/worktree.go": [
+      "modules/worktree-go.md"
     ],
-    "internal/agent/tokensamples.go": [
-      "modules/tokensamples-test-go.md"
+    "internal/git/worktree_test.go": [
+      "modules/worktree-go.md"
     ],
     "internal/bmad/prompts_test.go": [
       "modules/prompts-test-go.md"
@@ -2077,20 +2079,33 @@
     "wails.json": [
       "modules/wails-json.md"
     ],
+    "app_bmad_resume_test.go": [
+      "modules/app-bmad-resume-test-go.md"
+    ],
     "internal/scanner/sessions_test.go": [
       "modules/sessions-test-go.md"
+    ],
+    "frontend/src/components/__tests__/glow-btn.test.ts": [
+      "modules/glow-btn-test-ts.md"
     ],
     "internal/scanner/errors.go": [
       "modules/scanner-errors-go.md"
     ],
-    "docs/playwright_cli_US_validate/pty-06-frontend-cleanup-report.md": [
-      "modules/story-pty-06-frontend-terminal-and-session-cleanup.md"
+    "internal/uiadapter/backend/registry_test.go": [
+      "modules/backend-registry-test-go.md"
     ],
     "frontend/src/components/FileTree.svelte": [
       "modules/filetree-svelte.md"
     ],
     "frontend/src/lib/fileTree.js": [
       "modules/filetree-svelte.md"
+    ],
+    "docs/playwright_cli_US_validate/breadcrumbs-04-08-report.md": [
+      "modules/dynamicuiselector-svelte.md"
+    ],
+    "frontend/src/components/titlebar/DynamicUiSelector.svelte": [
+      "modules/dynamicuiselector-svelte.md",
+      "modules/ui-ast-view-raw-spec-ts.md"
     ],
     "frontend/src/lib/bmad/__tests__/multiFileEntries.test.ts": [
       "modules/multifileentries-ts.md"
@@ -2102,10 +2117,10 @@
       "modules/writefileatomic.md"
     ],
     "docs/stories/ui-ast-U8-view-raw-diagnostics.md": [
-      "modules/design-brief.md"
+      "modules/ui-ast-view-raw-spec-ts.md"
     ],
     "tests/ac/ui-ast-view-raw.spec.ts": [
-      "modules/design-brief.md"
+      "modules/ui-ast-view-raw-spec-ts.md"
     ],
     "frontend/scripts/check-orphan-tokens.mjs": [
       "modules/check-orphan-tokens-mjs.md"
@@ -2119,20 +2134,8 @@
     "frontend/src/components/bmad/ValidationBadge.svelte": [
       "modules/validationbadge-svelte.md"
     ],
-    "frontend/src/__tests__/entry-animations.test.ts": [
-      "modules/entry-animations-test-ts.md"
-    ],
     "frontend/src/__tests__/rgba-migration.test.ts": [
       "modules/rgba-migration-test-ts.md"
-    ],
-    "frontend/src/__tests__/status-token.test.ts": [
-      "modules/status-ts.md"
-    ],
-    "frontend/src/components/StatusBadge.svelte": [
-      "modules/status-ts.md"
-    ],
-    "frontend/src/types/status.ts": [
-      "modules/status-ts.md"
     ],
     "frontend/wailsjs/runtime/runtime.d.ts": [
       "modules/runtime-d-ts.md"
@@ -2140,20 +2143,14 @@
     "internal/bmad/exec_verify_test.go": [
       "modules/exec-verify-test-go.md"
     ],
-    "internal/bmad/skillgen.go": [
-      "modules/skillgen-test-go.md"
+    "frontend/src/__tests__/focus-keyboard-nav.test.ts": [
+      "modules/focus-keyboard-nav-test-ts.md"
     ],
-    "internal/bmad/skillgen_test.go": [
-      "modules/skillgen-test-go.md"
-    ],
-    "internal/advice/types.go": [
-      "modules/loadadvicebody.md"
+    "tests/ac/ui-ast-rendering.spec.ts": [
+      "modules/developer-notes-449.md"
     ],
     "internal/git/errors.go": [
       "modules/giterror.md"
-    ],
-    "frontend/src/lib/repoPalette.ts": [
-      "modules/repopalette-ts.md"
     ]
   }
 }

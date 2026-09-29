@@ -1,31 +1,32 @@
 ---
 type: Module
 title: themeConverter.ts
-description: "Graphify community 19: docs/stories/old_stories/theme-02-converter.md, docs/stories/svelte-check-01-js-stores-to-ts.md, docs/stories/svelte-check-complete-report.md, frontend/src/lib/themeConverter.te"
+description: "Graphify community 19: docs/plans/svelte-check-migration.md, docs/stories/old_stories/theme-02-converter.md, docs/stories/svelte-check-01-js-stores-to-ts.md, frontend/src/lib/themeConverter.test.ts, f"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
+  - { id: svelte-check-migration, resource: docs/plans/svelte-check-migration.md, last_modified: "2026-04-22T16:28:45+10:00", digest: 325a663e66176ffe }
   - { id: theme-02-converter, resource: docs/stories/old_stories/theme-02-converter.md, last_modified: "2026-04-08T10:23:03+10:00", digest: f358caa9c259f69b }
   - { id: svelte-check-01-js-stores-to-ts, resource: docs/stories/svelte-check-01-js-stores-to-ts.md, last_modified: "2026-04-22T17:06:36+10:00", digest: 3cdcd1064aabe570 }
-  - { id: svelte-check-complete-report, resource: docs/stories/svelte-check-complete-report.md, last_modified: "2026-04-22T20:20:54+10:00", digest: 19f8a1ad90aa5249 }
   - { id: themeConverter.test, resource: frontend/src/lib/themeConverter.test.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 687a4060b9b73676 }
   - { id: themeConverter, resource: frontend/src/lib/themeConverter.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: dccd00c61ec681ef }
   - { id: theme, resource: frontend/src/types/theme.ts, last_modified: "2026-04-22T17:06:36+10:00", digest: 0c70f7df33f92e72 }
 ---
 
 # Files
+- `docs/plans/svelte-check-migration.md`
 - `docs/stories/old_stories/theme-02-converter.md`
 - `docs/stories/svelte-check-01-js-stores-to-ts.md`
-- `docs/stories/svelte-check-complete-report.md`
 - `frontend/src/lib/themeConverter.test.ts`
 - `frontend/src/lib/themeConverter.ts`
 - `frontend/src/types/theme.ts`
 
 # Symbols
+- Phase 1 — JS stores → TypeScript (1 day, ~130 errors) (docs/plans/svelte-check-migration.md:L43)
 - Reference Files (docs/stories/old_stories/theme-02-converter.md:L107)
 - Acceptance Criteria (docs/stories/old_stories/theme-02-converter.md:L113)
 - Developer Notes (docs/stories/old_stories/theme-02-converter.md:L13)
@@ -34,7 +35,6 @@ sources:
 - Risks & Edge Cases (docs/stories/old_stories/theme-02-converter.md:L99)
 - Tasks / Subtasks (docs/stories/svelte-check-01-js-stores-to-ts.md:L156)
 - Architecture (docs/stories/svelte-check-01-js-stores-to-ts.md:L16)
-- Deferred follow-ups (logged during migration) (docs/stories/svelte-check-complete-report.md:L67)
 - themeConverter.test.ts (frontend/src/lib/themeConverter.test.ts:L1)
 - DRACULA_THEME (frontend/src/lib/themeConverter.test.ts:L14)
 - LIGHT_THEME (frontend/src/lib/themeConverter.test.ts:L72)
@@ -67,12 +67,11 @@ sources:
 - ThemeColorKey (frontend/src/types/theme.ts:L89)
 
 # Depends on
-- [loadBundledThemes](/modules/loadbundledthemes.md)
+- [themeInit.js](/modules/themeinit-js.md)
 - [vitest](/modules/vitest.md)
 
 # Inferred
-- [ListRepoSessions](/modules/listreposessions.md)
-- [workflowSerialisation.ts](/modules/workflowserialisation-ts.md)
+- [bmadEvents.ts](/modules/bmadevents-ts.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

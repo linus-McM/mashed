@@ -5,9 +5,9 @@ description: "Graphify community 402: frontend/src/components/FileTree.svelte, f
 resource: frontend/src
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: FileTree, resource: frontend/src/components/FileTree.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 25e86ff98c9ba349 }
   - { id: fileTree, resource: frontend/src/lib/fileTree.js, last_modified: "2026-04-22T18:59:31+10:00", digest: 335f6cf508a6f6c4 }

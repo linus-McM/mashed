@@ -5,9 +5,9 @@ description: "Graphify community 188: docs/plans/markdown-toolbar-settings.md, d
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: markdown-toolbar-settings, resource: docs/plans/markdown-toolbar-settings.md, last_modified: "2026-04-23T10:53:10+10:00", digest: b031e8aa3523f352 }
   - { id: markdown-toolbar-01-backend-config, resource: docs/stories/markdown-toolbar-01-backend-config.md, last_modified: "2026-04-23T10:53:25+10:00", digest: 14619a436e67dd63 }
@@ -33,13 +33,14 @@ sources:
 - Wails Binding Regeneration (docs/stories/markdown-toolbar-01-backend-config.md:L37)
 - Default Values (authoritative — DO NOT change without updating the plan) (docs/stories/markdown-toolbar-01-backend-config.md:L45)
 - Risks & Edge Cases (docs/stories/markdown-toolbar-01-backend-config.md:L56)
+- Reference Files (docs/stories/markdown-toolbar-01-backend-config.md:L62)
 - Acceptance Criteria (docs/stories/markdown-toolbar-01-backend-config.md:L66)
 - DefaultMarkdownMenuSettings() (frontend/wailsjs/go/main/App.js:L17)
 - SetMarkdownMenuSettings() (frontend/wailsjs/go/main/App.js:L377)
 - GetMarkdownMenuSettings() (frontend/wailsjs/go/main/App.js:L89)
 
 # Depends on
-- [SetEditorSettings](/modules/seteditorsettings.md)
+- no EXTRACTED edges to other modules
 
 # Inferred
 - [SetEditorSettings](/modules/seteditorsettings.md)

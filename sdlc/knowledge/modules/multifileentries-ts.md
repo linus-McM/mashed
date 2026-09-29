@@ -5,9 +5,9 @@ description: "Graphify community 410: frontend/src/lib/bmad/__tests__/multiFileE
 resource: frontend/src/lib/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: multiFileEntries.test, resource: frontend/src/lib/bmad/__tests__/multiFileEntries.test.ts, last_modified: "2026-04-14T22:25:44+10:00", digest: bad13511d075f911 }
   - { id: multiFileEntries, resource: frontend/src/lib/bmad/multiFileEntries.ts, last_modified: "2026-04-14T22:25:44+10:00", digest: 5afadff5ed230788 }

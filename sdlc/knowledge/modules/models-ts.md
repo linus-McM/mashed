@@ -5,9 +5,9 @@ description: "Graphify community 134: frontend/wailsjs/go/main/App.d.ts, fronten
 resource: frontend/wailsjs/go
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: App.d, resource: frontend/wailsjs/go/main/App.d.ts, last_modified: "2026-09-30T01:21:31+10:00", digest: 84dc9fd90b0db86d }
   - { id: models, resource: frontend/wailsjs/go/models.ts, last_modified: "2026-09-30T01:21:31+10:00", digest: 24f2d8ec34abf6b9 }
@@ -71,7 +71,7 @@ sources:
 - [TerminalSession](/modules/terminalsession.md)
 - [ValidationIssue](/modules/validationissue.md)
 - [VSCodeThemeEntry](/modules/vscodethemeentry.md)
-- [WorkflowExecution](/modules/workflowexecution-501.md)
+- [WorkflowExecution](/modules/workflowexecution.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

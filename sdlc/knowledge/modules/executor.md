@@ -1,23 +1,19 @@
 ---
 type: Module
 title: Executor
-description: "Graphify community 17: internal/bmad/executor.go, internal/bmad/fixture_verify_test.go, internal/bmad/question.go"
+description: "Graphify community 17: internal/bmad/executor.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
-  - { id: fixture_verify_test, resource: internal/bmad/fixture_verify_test.go, last_modified: "2026-04-11T19:45:53+10:00", digest: 6c143c3418c90221 }
-  - { id: question, resource: internal/bmad/question.go, last_modified: "2026-04-17T20:58:29+10:00", digest: 81034d253e6ceb12 }
 ---
 
 # Files
 - `internal/bmad/executor.go`
-- `internal/bmad/fixture_verify_test.go`
-- `internal/bmad/question.go`
 
 # Symbols
 - .skipBranchLocked() (internal/bmad/executor.go:L1116)
@@ -52,7 +48,10 @@ sources:
 - .ResumeWorkflow() (internal/bmad/executor.go:L304)
 - .StopWorkflow() (internal/bmad/executor.go:L322)
 - .killWorkflowChainTails() (internal/bmad/executor.go:L340)
+- .GetExecution() (internal/bmad/executor.go:L365)
 - .GetInteractiveTranscript() (internal/bmad/executor.go:L394)
+- .GetCurrentExecution() (internal/bmad/executor.go:L478)
+- cloneExecution() (internal/bmad/executor.go:L514)
 - execState (internal/bmad/executor.go:L54)
 - .RespondToQuestionLegacy() (internal/bmad/executor.go:L548)
 - .getState() (internal/bmad/executor.go:L615)
@@ -61,29 +60,28 @@ sources:
 - Executor (internal/bmad/executor.go:L82)
 - .executeControlNode() (internal/bmad/executor.go:L854)
 - .executeLoopNode() (internal/bmad/executor.go:L916)
-- TestDetectIdlePrompt_RealFixture() (internal/bmad/fixture_verify_test.go:L26)
-- hashQuestion() (internal/bmad/question.go:L159)
-- detectIdlePrompt() (internal/bmad/question.go:L191)
-- hashCapturedOutput() (internal/bmad/question.go:L212)
 
 # Depends on
 - [App](/modules/app.md)
+- [bmad/types.go](/modules/bmad-types-go.md)
 - [executor_command_test.go](/modules/executor-command-test-go.md)
-- [go_pkg_testing](/modules/go-pkg-testing.md)
-- [newHarness](/modules/newharness.md)
-- [NodeType](/modules/nodetype.md)
+- [executor_fileloader_test.go](/modules/executor-fileloader-test-go.md)
+- [extractLines](/modules/extractlines.md)
 - [ProcessByID](/modules/processbyid.md)
-- [question_test.go](/modules/question-test-go.md)
-- [.resolveInputs](/modules/resolveinputs.md)
+- [ResolveArtifactPath](/modules/resolveartifactpath.md)
+- [.resumeInteractiveNode](/modules/resumeinteractivenode.md)
+- [Storage](/modules/storage.md)
+- [topoSort](/modules/toposort.md)
 - [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
-- [WorkflowExecution](/modules/workflowexecution.md)
+- [wait_idle_test.go](/modules/wait-idle-test-go.md)
 
 # Inferred
-- [artifacts_test.go](/modules/artifacts-test-go.md)
 - [gate.go](/modules/gate-go.md)
+- [go_pkg_testing](/modules/go-pkg-testing.md)
 - [ProcessByID](/modules/processbyid.md)
 - [question_test.go](/modules/question-test-go.md)
-- [resume_ghost_test.go](/modules/resume-ghost-test-go.md)
+- [ResolveArtifactPath](/modules/resolveartifactpath.md)
+- [resume.go](/modules/resume-go.md)
 - [session_naming_test.go](/modules/session-naming-test-go.md)
 - [sprint_test.go](/modules/sprint-test-go.md)
 - [.suspendForSpecWithPane](/modules/suspendforspecwithpane.md)

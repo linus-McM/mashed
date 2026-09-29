@@ -5,9 +5,9 @@ description: "Graphify community 68: bundled_themes_test.go, theme_scanner.go, t
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: bundled_themes_test, resource: bundled_themes_test.go, last_modified: "2026-09-30T00:54:22+10:00", digest: efea78a949fc9cff }
   - { id: theme_scanner, resource: theme_scanner.go, last_modified: "2026-09-30T00:54:22+10:00", digest: ade5ed9563586e37 }
@@ -42,18 +42,13 @@ sources:
 - scanVSIXDirectory() (theme_scanner.go:L207)
 - makeVSIXThemePath() (theme_scanner.go:L36)
 - TestReadThemeFile_VSIX_PathTraversal() (theme_scanner_test.go:L1043)
-- TestReadThemeFile_VSIX_SizeLimit() (theme_scanner_test.go:L1073)
 - useBundledThemesDir() (theme_scanner_test.go:L1379)
 - TestReadBundledThemeFile_RejectsOutsideBundledDir() (theme_scanner_test.go:L1387)
 - TestReadBundledThemeFile_RejectsSymlinkEscape() (theme_scanner_test.go:L1412)
-- TestReadThemeFile_VSIX_HappyPath() (theme_scanner_test.go:L800)
 - createMockVSIX() (theme_scanner_test.go:L81)
-- TestReadThemeFile_VSIX_JSONCStripped() (theme_scanner_test.go:L833)
-- TestReadThemeFile_VSIX_IncludeResolution() (theme_scanner_test.go:L873)
-- TestReadThemeFile_VSIX_IncludeMultiLevel() (theme_scanner_test.go:L945)
 
 # Depends on
-- [.ReadThemeFile](/modules/readthemefile.md)
+- [theme_scanner.go](/modules/theme-scanner-go.md)
 
 # Inferred
 - [loadConfig](/modules/loadconfig.md)

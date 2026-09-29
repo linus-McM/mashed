@@ -5,9 +5,9 @@ description: "Graphify community 36: frontend/src/components/bmad/QuestionSnackb
 resource: frontend/src/components/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: QuestionSnackbarStack.test, resource: frontend/src/components/bmad/QuestionSnackbarStack.test.ts, last_modified: "2026-04-11T19:45:53+10:00", digest: 2521496fc654bb79 }
   - { id: questionSnackbarUtils, resource: frontend/src/components/bmad/questionSnackbarUtils.ts, last_modified: "2026-04-11T19:45:53+10:00", digest: 7c6697429c616053 }
@@ -35,7 +35,6 @@ sources:
 - upsertIdle() (frontend/src/components/bmad/questionSnackbarUtils.ts:L154)
 - dismissQuestion() (frontend/src/components/bmad/questionSnackbarUtils.ts:L172)
 - dismissIdle() (frontend/src/components/bmad/questionSnackbarUtils.ts:L185)
-- partitionForDisplay() (frontend/src/components/bmad/questionSnackbarUtils.ts:L196)
 - truncate() (frontend/src/components/bmad/questionSnackbarUtils.ts:L22)
 - getBorderColor() (frontend/src/components/bmad/questionSnackbarUtils.ts:L40)
 - DEFAULT_BORDER_COLOR (frontend/src/components/bmad/questionSnackbarUtils.ts:L7)

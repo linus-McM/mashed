@@ -5,9 +5,9 @@ description: "Graphify community 9: internal/terminal/tmux_adapter.go, internal/
 resource: internal/terminal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: tmux_adapter, resource: internal/terminal/tmux_adapter.go, last_modified: "2026-04-12T15:24:29+10:00", digest: 1a5bf00ab35bc698 }
   - { id: tmux_adapter_coverage_test, resource: internal/terminal/tmux_adapter_coverage_test.go, last_modified: "2026-04-11T19:58:57+10:00", digest: 24b353b6c1480a46 }
@@ -103,8 +103,8 @@ sources:
 - EscapeTmuxLiteral() (internal/terminal/tmux_escape.go:L48)
 
 # Depends on
-- [bridge_test.go](/modules/bridge-test-go.md)
-- [sync.Mutex](/modules/sync-mutex.md)
+- [main.go](/modules/main-go.md)
+- [mockTmuxSession](/modules/mocktmuxsession.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

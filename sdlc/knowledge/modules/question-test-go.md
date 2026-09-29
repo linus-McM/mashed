@@ -1,23 +1,33 @@
 ---
 type: Module
 title: question_test.go
-description: "Graphify community 50: internal/bmad/question.go, internal/bmad/question_test.go"
+description: "Graphify community 50: internal/bmad/executor_iteration_test.go, internal/bmad/fixture_verify_test.go, internal/bmad/question.go, internal/bmad/question_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
+  - { id: executor_iteration_test, resource: internal/bmad/executor_iteration_test.go, last_modified: "2026-04-20T14:19:27+10:00", digest: 57d32c63707a4432 }
+  - { id: fixture_verify_test, resource: internal/bmad/fixture_verify_test.go, last_modified: "2026-04-11T19:45:53+10:00", digest: 6c143c3418c90221 }
   - { id: question, resource: internal/bmad/question.go, last_modified: "2026-04-17T20:58:29+10:00", digest: 81034d253e6ceb12 }
   - { id: question_test, resource: internal/bmad/question_test.go, last_modified: "2026-04-28T12:02:57+10:00", digest: 08a2a97c930cca46 }
 ---
 
 # Files
+- `internal/bmad/executor_iteration_test.go`
+- `internal/bmad/fixture_verify_test.go`
 - `internal/bmad/question.go`
 - `internal/bmad/question_test.go`
 
 # Symbols
+- TestSendToSessionTwoTmuxCalls() (internal/bmad/executor_iteration_test.go:L620)
+- fixture_verify_test.go (internal/bmad/fixture_verify_test.go:L1)
+- TestDetectIdlePrompt_RealFixture() (internal/bmad/fixture_verify_test.go:L26)
+- hashQuestion() (internal/bmad/question.go:L159)
+- detectIdlePrompt() (internal/bmad/question.go:L191)
+- hashCapturedOutput() (internal/bmad/question.go:L212)
 - hasRecentQuestion() (internal/bmad/question.go:L238)
 - escapeTmuxLiteral() (internal/bmad/question.go:L276)
 - stripANSI() (internal/bmad/question.go:L87)
@@ -55,7 +65,7 @@ sources:
 - no EXTRACTED edges to other modules
 
 # Inferred
-- [Executor](/modules/executor.md)
+- [NewExecutor](/modules/newexecutor.md)
 - [newHarness](/modules/newharness.md)
 
 # Features

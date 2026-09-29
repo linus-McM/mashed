@@ -1,19 +1,17 @@
 ---
 type: Module
 title: executor_command_test.go
-description: "Graphify community 83: internal/bmad/executor.go, internal/bmad/executor_command_test.go, internal/bmad/executor_interactive_test.go, internal/bmad/interactive_types_test.go, internal/bmad/storage.go,"
+description: "Graphify community 83: internal/bmad/executor.go, internal/bmad/executor_command_test.go, internal/bmad/executor_interactive_test.go, internal/bmad/types.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: executor_command_test, resource: internal/bmad/executor_command_test.go, last_modified: "2026-04-28T12:02:57+10:00", digest: bc808e46119528f7 }
   - { id: executor_interactive_test, resource: internal/bmad/executor_interactive_test.go, last_modified: "2026-04-28T12:02:57+10:00", digest: 38021efc1dc00f72 }
-  - { id: interactive_types_test, resource: internal/bmad/interactive_types_test.go, last_modified: "2026-04-20T13:01:41+10:00", digest: 0282e550b6b93893 }
-  - { id: storage, resource: internal/bmad/storage.go, last_modified: "2026-09-30T01:08:11+10:00", digest: 39b6c398a492fdb8 }
   - { id: types, resource: internal/bmad/types.go, last_modified: "2026-04-28T09:29:49+10:00", digest: 05a3e7d01f5f08c2 }
 ---
 
@@ -21,8 +19,6 @@ sources:
 - `internal/bmad/executor.go`
 - `internal/bmad/executor_command_test.go`
 - `internal/bmad/executor_interactive_test.go`
-- `internal/bmad/interactive_types_test.go`
-- `internal/bmad/storage.go`
 - `internal/bmad/types.go`
 
 # Symbols
@@ -51,31 +47,17 @@ sources:
 - TestRoutingDispatchesAutonomousNodesToExecuteNode() (internal/bmad/executor_interactive_test.go:L137)
 - TestRoutingDispatchesInteractiveModesToExecuteInteractiveNode() (internal/bmad/executor_interactive_test.go:L178)
 - TestExecuteInteractiveNodeHappyPath() (internal/bmad/executor_interactive_test.go:L266)
-- saveDownstreamWorkflow() (internal/bmad/executor_interactive_test.go:L94)
-- TestConstantJSONValues() (internal/bmad/interactive_types_test.go:L460)
-- .ListWorkflowsByRepo() (internal/bmad/storage.go:L108)
-- .DeleteWorkflow() (internal/bmad/storage.go:L124)
-- .SaveAgent() (internal/bmad/storage.go:L141)
-- .ListAgents() (internal/bmad/storage.go:L151)
-- .DeleteAgent() (internal/bmad/storage.go:L180)
-- Storage (internal/bmad/storage.go:L19)
-- atomicWriteJSON() (internal/bmad/storage.go:L227)
-- validateID() (internal/bmad/storage.go:L38)
-- .SaveWorkflow() (internal/bmad/storage.go:L46)
-- .LoadWorkflow() (internal/bmad/storage.go:L56)
-- .ListWorkflows() (internal/bmad/storage.go:L78)
 - WorkflowNodeStatus (internal/bmad/types.go:L124)
 
 # Depends on
 - [bmad/types.go](/modules/bmad-types-go.md)
 - [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
-- [newHarness](/modules/newharness.md)
-- [NodeType](/modules/nodetype.md)
-- [ProcessDef](/modules/processdef.md)
-- [WriteFileAtomic](/modules/writefileatomic.md)
+- [Storage](/modules/storage.md)
+- [successRunner](/modules/successrunner.md)
 
 # Inferred
 - [newHarness](/modules/newharness.md)
+- [successRunner](/modules/successrunner.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

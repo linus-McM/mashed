@@ -1,16 +1,14 @@
 ---
 type: Module
 title: setupTestConfig
-description: "Graphify community 13: app.go, app_config_test.go, app_uiadapter.go, app_uiadapter_bindings_test.go, editor_settings_test.go, markdown_menu_test.go"
+description: "Graphify community 13: app_uiadapter.go, app_uiadapter_bindings_test.go, editor_settings_test.go, markdown_menu_test.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
-  - { id: app, resource: app.go, last_modified: "2026-09-30T01:21:31+10:00", digest: 774e87e5f070ece0 }
-  - { id: app_config_test, resource: app_config_test.go, last_modified: "2026-09-30T01:14:01+10:00", digest: d2754cf35a1ecb42 }
   - { id: app_uiadapter, resource: app_uiadapter.go, last_modified: "2026-04-21T21:06:39+10:00", digest: eebf36a959a4ef0e }
   - { id: app_uiadapter_bindings_test, resource: app_uiadapter_bindings_test.go, last_modified: "2026-04-21T21:06:39+10:00", digest: 189277263c74d9ce }
   - { id: editor_settings_test, resource: editor_settings_test.go, last_modified: "2026-04-10T09:11:59+10:00", digest: 874a181ff7c1785e }
@@ -18,26 +16,12 @@ sources:
 ---
 
 # Files
-- `app.go`
-- `app_config_test.go`
 - `app_uiadapter.go`
 - `app_uiadapter_bindings_test.go`
 - `editor_settings_test.go`
 - `markdown_menu_test.go`
 
 # Symbols
-- configPath() (app.go:L156)
-- quarantineMalformedConfig() (app.go:L248)
-- app_config_test.go (app_config_test.go:L1)
-- TestConfig_ConcurrentSetters_NoLostUpdate() (app_config_test.go:L131)
-- TestConfig_MalformedIsQuarantinedNotOverwritten() (app_config_test.go:L149)
-- TestConfig_ValidConfigNotQuarantined() (app_config_test.go:L187)
-- TestConfig_ReadsNeverSeeTornWrite() (app_config_test.go:L195)
-- TestU1_AC4_MashedConfig_LegacyLoad_DefaultsApplied() (app_config_test.go:L45)
-- TestU1_AC4_MashedConfig_ExplicitOptOut_Honored() (app_config_test.go:L57)
-- TestU1_AC4_MashedConfig_MalformedJSON_ReturnsDefaults() (app_config_test.go:L67)
-- TestU1_AC4_MashedConfig_MissingFile_ReturnsDefaults() (app_config_test.go:L78)
-- TestU5_LoadConfig_InvalidModelFallsBackToDefault() (app_config_test.go:L90)
 - swapOllamaBaseURLForTest() (app_uiadapter.go:L50)
 - app_uiadapter_bindings_test.go (app_uiadapter_bindings_test.go:L1)
 - TestU5_AC4_App_ProbeOllamaReachable_DeadSocket() (app_uiadapter_bindings_test.go:L153)
@@ -87,27 +71,13 @@ sources:
 - TestGetEditorSettings_AC2_DefaultsWhenNil() (editor_settings_test.go:L83)
 - TestGetEditorSettings_AC2_NoConfigFile() (editor_settings_test.go:L91)
 - TestGetEditorSettings_ExistingConfig() (editor_settings_test.go:L99)
-- markdown_menu_test.go (markdown_menu_test.go:L1)
-- TestConfigMarkdownMenuOmitempty() (markdown_menu_test.go:L121)
-- TestConfigMarkdownMenu_PresentWhenSet() (markdown_menu_test.go:L138)
-- TestSetMarkdownMenuSettings_PreservesOtherConfig() (markdown_menu_test.go:L160)
-- expectedMarkdownMenuDefaults() (markdown_menu_test.go:L17)
-- TestBackwardCompat_LegacyConfigNoMarkdownMenu() (markdown_menu_test.go:L195)
-- TestSetMarkdownMenuSettings_ConcurrentRace() (markdown_menu_test.go:L206)
-- TestMarkdownMenuSettings_JSONTags() (markdown_menu_test.go:L251)
-- TestMarkdownMenuSettings_JSONRoundTrip() (markdown_menu_test.go:L274)
-- TestMarkdownMenu_ConfigPathLocation() (markdown_menu_test.go:L292)
-- TestDefaultMarkdownMenuSettings() (markdown_menu_test.go:L32)
-- TestDefaultMarkdownMenuSettings_Consistent() (markdown_menu_test.go:L47)
-- TestGetMarkdownMenuSettings_DefaultsWhenNil() (markdown_menu_test.go:L57)
-- TestGetMarkdownMenuSettings_NoConfigFile() (markdown_menu_test.go:L75)
 - TestSetGetMarkdownMenuSettings_RoundTrip() (markdown_menu_test.go:L92)
 
 # Depends on
-- [App](/modules/app-109.md)
 - [loadConfig](/modules/loadconfig.md)
 
 # Inferred
+- [app_config_test.go](/modules/app-config-test-go.md)
 - [loadConfig](/modules/loadconfig.md)
 
 # Features

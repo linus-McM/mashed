@@ -5,9 +5,9 @@ description: "Graphify community 283: internal/bmad/asset_watcher.go, internal/b
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: asset_watcher, resource: internal/bmad/asset_watcher.go, last_modified: "2026-04-12T16:58:02+10:00", digest: 25909dc6b81603ba }
   - { id: asset_watcher_test, resource: internal/bmad/asset_watcher_test.go, last_modified: "2026-04-12T16:58:02+10:00", digest: 4e1bcbed1fab098b }
@@ -33,7 +33,7 @@ sources:
 - TestAssetWatcher_AC3_NewSubdirectoryWatchedDynamically() (internal/bmad/asset_watcher_test.go:L87)
 
 # Depends on
-- [AssetWatcher](/modules/assetwatcher.md)
+- [App](/modules/app-109.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

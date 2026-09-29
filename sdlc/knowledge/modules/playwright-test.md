@@ -5,9 +5,9 @@ description: "Graphify community 133: frontend/playwright.config.ts, package.jso
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: playwright.config, resource: frontend/playwright.config.ts, last_modified: "2026-04-12T11:29:01+10:00", digest: 974537bc32ecdda8 }
   - { id: package, resource: package.json, last_modified: "2026-04-12T11:29:01+10:00", digest: 31bb2e462bc86e46 }
@@ -17,6 +17,8 @@ sources:
   - { id: bmad-input-free.spec, resource: tests/ac/bmad-input-free.spec.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: ecd4b4a481f71e13 }
   - { id: bmad-input-json.spec, resource: tests/ac/bmad-input-json.spec.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: 07ce34b1008ae806 }
   - { id: bmad-input-multi.spec, resource: tests/ac/bmad-input-multi.spec.ts, last_modified: "2026-04-20T14:57:51+10:00", digest: e0d8d303ae8a1bff }
+  - { id: skills-cmd-02-drop.spec, resource: tests/ac/skills-cmd-02-drop.spec.ts, last_modified: "2026-04-12T11:29:01+10:00", digest: 6d8caaecffe655bd }
+  - { id: skills-cmd-03-fail.spec, resource: tests/ac/skills-cmd-03-fail.spec.ts, last_modified: "2026-04-12T11:45:37+10:00", digest: 998680b69aac6c32 }
   - { id: skills-editor-01-modal.spec, resource: tests/ac/skills-editor-01-modal.spec.ts, last_modified: "2026-04-12T16:55:09+10:00", digest: e3997cd6498a50bd }
   - { id: ui-ast-decision-group.spec, resource: tests/ac/ui-ast-decision-group.spec.ts, last_modified: "2026-04-22T11:51:34+10:00", digest: 8dc631548335a44f }
 ---
@@ -30,6 +32,8 @@ sources:
 - `tests/ac/bmad-input-free.spec.ts`
 - `tests/ac/bmad-input-json.spec.ts`
 - `tests/ac/bmad-input-multi.spec.ts`
+- `tests/ac/skills-cmd-02-drop.spec.ts`
+- `tests/ac/skills-cmd-03-fail.spec.ts`
 - `tests/ac/skills-editor-01-modal.spec.ts`
 - `tests/ac/ui-ast-decision-group.spec.ts`
 
@@ -51,6 +55,12 @@ sources:
 - bmad-input-free.spec.ts (tests/ac/bmad-input-free.spec.ts:L1)
 - bmad-input-json.spec.ts (tests/ac/bmad-input-json.spec.ts:L1)
 - bmad-input-multi.spec.ts (tests/ac/bmad-input-multi.spec.ts:L1)
+- skills-cmd-02-drop.spec.ts (tests/ac/skills-cmd-02-drop.spec.ts:L1)
+- FIXTURE_PATH (tests/ac/skills-cmd-02-drop.spec.ts:L28)
+- FIXTURE (tests/ac/skills-cmd-02-drop.spec.ts:L32)
+- skills-cmd-03-fail.spec.ts (tests/ac/skills-cmd-03-fail.spec.ts:L1)
+- FIXTURE_PATH (tests/ac/skills-cmd-03-fail.spec.ts:L31)
+- FIXTURE (tests/ac/skills-cmd-03-fail.spec.ts:L35)
 - skills-editor-01-modal.spec.ts (tests/ac/skills-editor-01-modal.spec.ts:L1)
 - ui-ast-decision-group.spec.ts (tests/ac/ui-ast-decision-group.spec.ts:L1)
 - respondCalls() (tests/ac/ui-ast-decision-group.spec.ts:L108)

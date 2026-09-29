@@ -1,13 +1,13 @@
 ---
 type: Module
 title: app_bmad_resume_test.go
-description: "Graphify community 392: app_bmad_resume_test.go"
+description: "Graphify community 356: app_bmad_resume_test.go"
 resource: .
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T12:23:14Z" }
-stale_after: "2026-10-13T12:23:14Z"
-source_commit: ab1f2eb4ec65fc2b1fce15503c11f0e310758404
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: app_bmad_resume_test, resource: app_bmad_resume_test.go, last_modified: "2026-04-20T14:41:10+10:00", digest: 3d0c6fc332298628 }
 ---
@@ -26,9 +26,9 @@ sources:
 - newBmadTestAppWithExec() (app_bmad_resume_test.go:L94)
 
 # Depends on
+- [bmad/types.go](/modules/bmad-types-go.md)
 - [Executor](/modules/executor.md)
 - [NewExecutor](/modules/newexecutor.md)
-- [WorkflowExecution](/modules/workflowexecution.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

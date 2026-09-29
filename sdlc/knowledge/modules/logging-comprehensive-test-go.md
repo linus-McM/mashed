@@ -1,31 +1,26 @@
 ---
 type: Module
 title: logging_comprehensive_test.go
-description: "Graphify community 105: internal/uiadapter/logging.go, internal/uiadapter/logging_comprehensive_test.go, internal/uiadapter/logging_handler_test.go, internal/uiadapter/logging_plumbing_test.go, intern"
+description: "Graphify community 105: internal/uiadapter/logging.go, internal/uiadapter/logging_comprehensive_test.go, internal/uiadapter/logging_test.go"
 resource: internal/uiadapter
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: logging, resource: internal/uiadapter/logging.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f7d1f46bdb4ea215 }
   - { id: logging_comprehensive_test, resource: internal/uiadapter/logging_comprehensive_test.go, last_modified: "2026-04-26T12:39:41+10:00", digest: 446816f0c9fa2be3 }
-  - { id: logging_handler_test, resource: internal/uiadapter/logging_handler_test.go, last_modified: "2026-04-26T09:22:14+10:00", digest: 998f6bb512a268ee }
-  - { id: logging_plumbing_test, resource: internal/uiadapter/logging_plumbing_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 688be06cdc267d83 }
   - { id: logging_test, resource: internal/uiadapter/logging_test.go, last_modified: "2026-04-26T09:22:14+10:00", digest: 744e5721d44f353b }
 ---
 
 # Files
 - `internal/uiadapter/logging.go`
 - `internal/uiadapter/logging_comprehensive_test.go`
-- `internal/uiadapter/logging_handler_test.go`
-- `internal/uiadapter/logging_plumbing_test.go`
 - `internal/uiadapter/logging_test.go`
 
 # Symbols
 - NewProductionLogger() (internal/uiadapter/logging.go:L51)
-- ParseLogLevel() (internal/uiadapter/logging.go:L73)
 - parseSlogLevel() (internal/uiadapter/logging.go:L78)
 - logging_comprehensive_test.go (internal/uiadapter/logging_comprehensive_test.go:L1)
 - TestStory6_AC1_WithAttrs_BothSinks() (internal/uiadapter/logging_comprehensive_test.go:L164)
@@ -36,8 +31,6 @@ sources:
 - readJSONFileLines() (internal/uiadapter/logging_comprehensive_test.go:L31)
 - TestStory6_AC1_FanoutToBothSinks_Comprehensive() (internal/uiadapter/logging_comprehensive_test.go:L57)
 - TestStory6_AC1_LevelFilter_BothSinks() (internal/uiadapter/logging_comprehensive_test.go:L95)
-- TestParseLogLevel_ExportedWrapper() (internal/uiadapter/logging_handler_test.go:L28)
-- TestStory2_AC3_NewDefaultNilParentSafe() (internal/uiadapter/logging_plumbing_test.go:L353)
 - logging_test.go (internal/uiadapter/logging_test.go:L1)
 - TestStory1_AC1_LevelFilter() (internal/uiadapter/logging_test.go:L110)
 - TestStory1_AC2_CloserIdempotent() (internal/uiadapter/logging_test.go:L145)
@@ -52,8 +45,7 @@ sources:
 - [DefaultConfig](/modules/defaultconfig.md)
 
 # Inferred
-- [DefaultConfig](/modules/defaultconfig.md)
-- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
+- [log/slog.Logger](/modules/log-slog-logger.md)
 
 # Features
 - no feature plan names these files

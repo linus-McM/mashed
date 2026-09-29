@@ -1,43 +1,58 @@
 ---
 type: Module
 title: Design Brief
-description: "Graphify community 425: docs/stories/ui-ast-U8-view-raw-diagnostics.md, frontend/src/components/titlebar/DynamicUiSelector.svelte, tests/ac/ui-ast-view-raw.spec.ts"
+description: "Graphify community 140: docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md, frontend/src/lib/bmadSessionName.test.ts, frontend/src/lib/bmadSessionName.ts"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
-  - { id: ui-ast-U8-view-raw-diagnostics, resource: docs/stories/ui-ast-U8-view-raw-diagnostics.md, last_modified: "2026-04-22T12:56:23+10:00", digest: 5f903d3926d8d0e0 }
-  - { id: DynamicUiSelector, resource: frontend/src/components/titlebar/DynamicUiSelector.svelte, last_modified: "2026-04-23T13:17:59+10:00", digest: 5665ff6cccbc963c }
-  - { id: ui-ast-view-raw.spec, resource: tests/ac/ui-ast-view-raw.spec.ts, last_modified: "2026-04-22T12:56:23+10:00", digest: 408f066cec28a02e }
+  - { id: bridge-04-stale-cleanup-and-frontend-polish, resource: docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 22d252e5a0750c99 }
+  - { id: bmadSessionName.test, resource: frontend/src/lib/bmadSessionName.test.ts, last_modified: "2026-04-10T17:42:20+10:00", digest: 2fc81ab01d253ac2 }
+  - { id: bmadSessionName, resource: frontend/src/lib/bmadSessionName.ts, last_modified: "2026-04-10T17:42:20+10:00", digest: d6982a3271e4c430 }
 ---
 
 # Files
-- `docs/stories/ui-ast-U8-view-raw-diagnostics.md`
-- `frontend/src/components/titlebar/DynamicUiSelector.svelte`
-- `tests/ac/ui-ast-view-raw.spec.ts`
+- `docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md`
+- `frontend/src/lib/bmadSessionName.test.ts`
+- `frontend/src/lib/bmadSessionName.ts`
 
 # Symbols
-- Design Brief (docs/stories/ui-ast-U8-view-raw-diagnostics.md:L298)
-- 1. Layout composition (docs/stories/ui-ast-U8-view-raw-diagnostics.md:L300)
-- 2. Typography plan (docs/stories/ui-ast-U8-view-raw-diagnostics.md:L320)
-- 3. Color strategy (docs/stories/ui-ast-U8-view-raw-diagnostics.md:L334)
-- 4. Interaction model (docs/stories/ui-ast-U8-view-raw-diagnostics.md:L366)
-- 5. Component specs (docs/stories/ui-ast-U8-view-raw-diagnostics.md:L384)
-- 6. Signature elements (docs/stories/ui-ast-U8-view-raw-diagnostics.md:L419)
-- Cross-story design coherence (binding rules) (docs/stories/ui-ast-U8-view-raw-diagnostics.md:L428)
-- toggle() (frontend/src/components/titlebar/DynamicUiSelector.svelte:L17)
-- ui-ast-view-raw.spec.ts (tests/ac/ui-ast-view-raw.spec.ts:L1)
-- SeedOpts (tests/ac/ui-ast-view-raw.spec.ts:L28)
-- emitAwaitingInput() (tests/ac/ui-ast-view-raw.spec.ts:L33)
-- setUntrustedExpanded() (tests/ac/ui-ast-view-raw.spec.ts:L70)
-- openModal() (tests/ac/ui-ast-view-raw.spec.ts:L80)
-- ensureHelpers() (tests/ac/ui-ast-view-raw.spec.ts:L85)
+- bridge-04-stale-cleanup-and-frontend-polish.md (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L1)
+- Story bridge-04: Stale Session Cleanup and Frontend Polish (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L1)
+- Developer Notes (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L13)
+- BDD Test Scenarios (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L140)
+- Scenario 1: Cleanup behaviour (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L142)
+- Architecture (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L15)
+- Scenario 2: Frontend parser (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L172)
+- Scenario 3: Modal title (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L193)
+- Tasks / Subtasks (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L209)
+- Definition of Done (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L245)
+- AC Validation Table (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L259)
+- Design Brief (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L273)
+- 1. Title composition (WorkflowBuilder.svelte:759) (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L277)
+- 2. Typography plan (scoped CSS added next to `.terminal-modal-title`) (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L299)
+- 3. Color plan (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L312)
+- 4. Tooltip spec for NodeConfigPanel (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L325)
+- 5. Fallback state (unparseable target) (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L351)
+- 6. Empty/loading state (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L355)
+- 7. Interaction notes (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L359)
+- 8. Signature detail (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L366)
+- Tokens wished-for (not blocking) (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L370)
+- Technical Considerations (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L55)
+- Risks & Edge Cases (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L64)
+- Reference Files (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L73)
+- Acceptance Criteria (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L83)
+- Description (docs/stories/old_stories/bridge-04-stale-cleanup-and-frontend-polish.md:L9)
+- bmadSessionName.test.ts (frontend/src/lib/bmadSessionName.test.ts:L1)
+- bmadSessionName.ts (frontend/src/lib/bmadSessionName.ts:L1)
+- parseFriendlyTarget() (frontend/src/lib/bmadSessionName.ts:L23)
+- FriendlyTarget (frontend/src/lib/bmadSessionName.ts:L5)
 
 # Depends on
-- [@playwright/test](/modules/playwright-test.md)
+- [vitest](/modules/vitest.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

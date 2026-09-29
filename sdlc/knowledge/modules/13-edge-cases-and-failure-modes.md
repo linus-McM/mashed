@@ -5,14 +5,14 @@ description: "Graphify community 111: docs/bmad-interactive-process-schema.md, d
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: bmad-interactive-process-schema, resource: docs/bmad-interactive-process-schema.md, last_modified: "2026-04-21T09:23:33+10:00", digest: d2e33d14af66141f }
   - { id: bmad-interactive-03-suspension-respond, resource: docs/stories/bmad-interactive-03-suspension-respond.md, last_modified: "2026-04-20T13:50:13+10:00", digest: 55cfc56e60c669f1 }
   - { id: bmad-08-execution-integration, resource: docs/stories/old_stories/bmad-08-execution-integration.md, last_modified: "2026-04-08T10:23:03+10:00", digest: 84e85833652d77c6 }
-  - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
+  - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-09-30T01:21:31+10:00", digest: 5d5b17a1b5164973 }
 ---
 
 # Files
@@ -41,15 +41,15 @@ sources:
 - 7.4 Edge cases (docs/bmad-interactive-process-schema.md:L596)
 - Acceptance Criteria (docs/stories/bmad-interactive-03-suspension-respond.md:L208)
 - Tasks / Subtasks (docs/stories/old_stories/bmad-08-execution-integration.md:L247)
-- PauseBmadWorkflow() (frontend/wailsjs/go/main/App.js:L261)
-- ResumeBmadWorkflow() (frontend/wailsjs/go/main/App.js:L321)
-- StopBmadWorkflow() (frontend/wailsjs/go/main/App.js:L441)
+- PauseBmadWorkflow() (frontend/wailsjs/go/main/App.js:L265)
+- ResumeBmadWorkflow() (frontend/wailsjs/go/main/App.js:L325)
+- StopBmadWorkflow() (frontend/wailsjs/go/main/App.js:L445)
 
 # Depends on
 - no EXTRACTED edges to other modules
 
 # Inferred
-- [App.js](/modules/app-js.md)
+- [Developer Notes](/modules/developer-notes.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

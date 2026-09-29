@@ -5,11 +5,11 @@ description: "Graphify community 98: app_git_file_test.go, app_review_scoped.go,
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
-  - { id: app_git_file_test, resource: app_git_file_test.go, last_modified: "2026-09-30T01:02:27+10:00", digest: cbd68b146dc0b467 }
+  - { id: app_git_file_test, resource: app_git_file_test.go, last_modified: "2026-09-30T06:49:47+10:00", digest: e5f67c0708646e56 }
   - { id: app_review_scoped, resource: app_review_scoped.go, last_modified: "2026-09-30T01:02:27+10:00", digest: ff0004675f50a581 }
   - { id: app_review_scoped_test, resource: app_review_scoped_test.go, last_modified: "2026-09-30T01:02:27+10:00", digest: 97225be1ebe84af0 }
 ---
@@ -20,9 +20,8 @@ sources:
 - `app_review_scoped_test.go`
 
 # Symbols
-- TestReadFileAtHead_RejectsAbsolute() (app_git_file_test.go:L35)
-- TestReadFileAtHead_DeletedTrackedFileStillReadable() (app_git_file_test.go:L45)
-- TestReadFileDiff_DashPathCreatesNoFile() (app_git_file_test.go:L60)
+- TestReadFileAtHead_DeletedTrackedFileStillReadable() (app_git_file_test.go:L44)
+- app_review_scoped.go (app_review_scoped.go:L1)
 - assembleScopedPayload() (app_review_scoped.go:L106)
 - scopedAdviceEvent() (app_review_scoped.go:L115)
 - App (app_review_scoped.go:L128)
@@ -49,12 +48,12 @@ sources:
 - TestBuildScopedDiff_AC1_OnlySelectedFiles() (app_review_scoped_test.go:L70)
 
 # Depends on
-- [App](/modules/app-73.md)
-- [LoadAdviceBody](/modules/loadadvicebody.md)
+- [loader_test.go](/modules/loader-test-go.md)
+- [pathguard.go](/modules/pathguard-go.md)
 
 # Inferred
 - [App](/modules/app-73.md)
-- [app_files_guard_test.go](/modules/app-files-guard-test-go.md)
+- [app_git_guard_test.go](/modules/app-git-guard-test-go.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

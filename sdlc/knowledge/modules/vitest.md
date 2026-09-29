@@ -5,9 +5,9 @@ description: "Graphify community 10: frontend/package.json, frontend/src/compone
 resource: frontend
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: package, resource: frontend/package.json, last_modified: "2026-04-22T16:28:45+10:00", digest: 5a2c6b5e36bbccae }
   - { id: RawViewToggle, resource: frontend/src/components/bmad/RawViewToggle.svelte, last_modified: "2026-04-22T12:56:23+10:00", digest: 21457097a1637e7e }
@@ -17,7 +17,6 @@ sources:
   - { id: CommandNode.status.test, resource: frontend/src/components/bmad/__tests__/CommandNode.status.test.ts, last_modified: "2026-04-22T20:01:25+10:00", digest: 3fa251016ae15b6d }
   - { id: ComparisonTable.test, resource: frontend/src/components/bmad/__tests__/ComparisonTable.test.ts, last_modified: "2026-04-22T08:19:28+10:00", digest: a201a2122ed92e1c }
   - { id: DecisionGroup.test, resource: frontend/src/components/bmad/__tests__/DecisionGroup.test.ts, last_modified: "2026-04-22T11:51:34+10:00", digest: 3bdedd5f8c85ea3d }
-  - { id: DiagnosticsChip.test, resource: frontend/src/components/bmad/__tests__/DiagnosticsChip.test.ts, last_modified: "2026-04-22T20:01:25+10:00", digest: 5a1b2aad12debba0 }
   - { id: HintBanner.test, resource: frontend/src/components/bmad/__tests__/HintBanner.test.ts, last_modified: "2026-04-22T08:19:28+10:00", digest: 436fcbc3d6cca993 }
   - { id: MultiFileLoaderNode.test, resource: frontend/src/components/bmad/__tests__/MultiFileLoaderNode.test.ts, last_modified: "2026-04-22T20:01:25+10:00", digest: 05eb5149cdc50787 }
   - { id: ProcessNode.multiInput.test, resource: frontend/src/components/bmad/__tests__/ProcessNode.multiInput.test.ts, last_modified: "2026-04-22T20:01:25+10:00", digest: b50d732d5ea73c1a }
@@ -36,7 +35,6 @@ sources:
 - `frontend/src/components/bmad/__tests__/CommandNode.status.test.ts`
 - `frontend/src/components/bmad/__tests__/ComparisonTable.test.ts`
 - `frontend/src/components/bmad/__tests__/DecisionGroup.test.ts`
-- `frontend/src/components/bmad/__tests__/DiagnosticsChip.test.ts`
 - `frontend/src/components/bmad/__tests__/HintBanner.test.ts`
 - `frontend/src/components/bmad/__tests__/MultiFileLoaderNode.test.ts`
 - `frontend/src/components/bmad/__tests__/ProcessNode.multiInput.test.ts`
@@ -68,11 +66,6 @@ sources:
 - $on() (frontend/src/components/bmad/__tests__/DecisionGroup.test.ts:L112)
 - CASES (frontend/src/components/bmad/__tests__/DecisionGroup.test.ts:L20)
 - $destroy() (frontend/src/components/bmad/__tests__/DecisionGroup.test.ts:L66)
-- DiagnosticsChip.test.ts (frontend/src/components/bmad/__tests__/DiagnosticsChip.test.ts:L1)
-- mount (frontend/src/components/bmad/__tests__/DiagnosticsChip.test.ts:L12)
-- render() (frontend/src/components/bmad/__tests__/DiagnosticsChip.test.ts:L13)
-- findUntrusted() (frontend/src/components/bmad/__tests__/DiagnosticsChip.test.ts:L18)
-- findNotesChip() (frontend/src/components/bmad/__tests__/DiagnosticsChip.test.ts:L23)
 - HintBanner.test.ts (frontend/src/components/bmad/__tests__/HintBanner.test.ts:L1)
 - Tone (frontend/src/components/bmad/__tests__/HintBanner.test.ts:L10)
 - TONES (frontend/src/components/bmad/__tests__/HintBanner.test.ts:L9)
@@ -105,7 +98,6 @@ sources:
 - [InputResponseModal.svelte](/modules/inputresponsemodal-svelte.md)
 - [interactiveInput.ts](/modules/interactiveinput-ts.md)
 - [svelte](/modules/svelte.md)
-- [uiAst.ts](/modules/uiast-ts.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

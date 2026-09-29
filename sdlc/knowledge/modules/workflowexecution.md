@@ -1,27 +1,28 @@
 ---
 type: Module
 title: WorkflowExecution
-description: "Graphify community 470: internal/bmad/executor.go"
-resource: internal/bmad
+description: "Graphify community 501: frontend/wailsjs/go/models.ts"
+resource: frontend/wailsjs/go
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
-  - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
+  - { id: models, resource: frontend/wailsjs/go/models.ts, last_modified: "2026-09-30T01:21:31+10:00", digest: 24f2d8ec34abf6b9 }
 ---
 
 # Files
-- `internal/bmad/executor.go`
+- `frontend/wailsjs/go/models.ts`
 
 # Symbols
-- .GetExecution() (internal/bmad/executor.go:L365)
-- .GetCurrentExecution() (internal/bmad/executor.go:L478)
-- cloneExecution() (internal/bmad/executor.go:L514)
+- WorkflowExecution (frontend/wailsjs/go/models.ts:L682)
+- .createFrom() (frontend/wailsjs/go/models.ts:L697)
+- .constructor() (frontend/wailsjs/go/models.ts:L701)
+- .convertValues() (frontend/wailsjs/go/models.ts:L718)
 
 # Depends on
-- [Executor](/modules/executor.md)
+- [.convertValues](/modules/convertvalues.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints

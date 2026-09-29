@@ -5,9 +5,9 @@ description: "Graphify community 281: frontend/src/components/bmad/ProcessNode.t
 resource: frontend/src/components/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: ProcessNode.test, resource: frontend/src/components/bmad/ProcessNode.test.ts, last_modified: "2026-04-13T21:36:37+10:00", digest: 1021ab697b815200 }
 ---

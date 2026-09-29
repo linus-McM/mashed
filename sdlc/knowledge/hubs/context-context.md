@@ -1,15 +1,15 @@
 ---
 type: Hub
 title: context.Context
-description: Graphify god node with degree 110
+description: Graphify god node with degree 116
 resource: graphify-out/graph.json
 tags: [hub, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
-  - { id: graph, resource: graphify-out/graph.json, last_modified: "2026-09-29T15:22:13Z", digest: 2f26ea5b8a3e22ec }
+  - { id: graph, resource: graphify-out/graph.json, last_modified: "2026-09-29T20:55:29Z", digest: b45c0de7233bf63a }
 ---
 
 # Where
@@ -19,4 +19,4 @@ sources:
 - no module concept covers this node
 
 # Why it matters
-- degree 110: many modules reach this symbol; changes here have a wide blast radius
+- degree 116: many modules reach this symbol; changes here have a wide blast radius

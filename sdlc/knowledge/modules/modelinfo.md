@@ -5,12 +5,12 @@ description: "Graphify community 262: app_models.go, app_review_test.go, interna
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: app_models, resource: app_models.go, last_modified: "2026-04-10T11:36:27+10:00", digest: cf387264112e9ff8 }
-  - { id: app_review_test, resource: app_review_test.go, last_modified: "2026-04-10T15:03:59+10:00", digest: cd3cd948419c464e }
+  - { id: app_review_test, resource: app_review_test.go, last_modified: "2026-09-30T06:45:21+10:00", digest: f0e8175dd8bd9ac2 }
   - { id: models, resource: internal/domain/models.go, last_modified: "2026-04-10T10:55:13+10:00", digest: 66a73fbeed36ede6 }
 ---
 
@@ -35,7 +35,7 @@ sources:
 - ModelInfo (internal/domain/models.go:L4)
 
 # Depends on
-- [app_review_test.go](/modules/app-review-test-go.md)
+- [testing.T](/modules/testing-t.md)
 
 # Inferred
 - [App](/modules/app-73.md)

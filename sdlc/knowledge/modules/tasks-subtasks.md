@@ -1,13 +1,13 @@
 ---
 type: Module
 title: Tasks / Subtasks
-description: "Graphify community 65: docs/SPECIFICATION.md, docs/stories/breadcrumbs-06-downstream-autofill.md, docs/stories/old_stories/bmad-05-wails-bindings.md, docs/stories/old_stories/bmad-06-workflow-view-can"
+description: "Graphify community 67: docs/SPECIFICATION.md, docs/stories/breadcrumbs-06-downstream-autofill.md, docs/stories/old_stories/bmad-05-wails-bindings.md, docs/stories/old_stories/bmad-06-workflow-view-can"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: SPECIFICATION, resource: docs/SPECIFICATION.md, last_modified: "2026-04-12T09:58:35+10:00", digest: 2150575fba9a1ee2 }
   - { id: breadcrumbs-06-downstream-autofill, resource: docs/stories/breadcrumbs-06-downstream-autofill.md, last_modified: "2026-04-14T16:10:56+10:00", digest: 9c851abd94d1be99 }
@@ -16,7 +16,8 @@ sources:
   - { id: bmad-07-custom-nodes-components, resource: docs/stories/old_stories/bmad-07-custom-nodes-components.md, last_modified: "2026-04-08T10:23:03+10:00", digest: 0706808ed6acd792 }
   - { id: sprint2-03-repo-scoped-workflows, resource: docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md, last_modified: "2026-04-08T17:10:27+10:00", digest: ebb314fdf3143516 }
   - { id: sprint2-04-repo-context-flow, resource: docs/stories/old_stories/sprint2-04-repo-context-flow.md, last_modified: "2026-04-08T17:10:27+10:00", digest: bee256727da15650 }
-  - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
+  - { id: sprint2-summary, resource: docs/stories/old_stories/sprint2-summary.md, last_modified: "2026-04-08T17:10:27+10:00", digest: 009d52ec3dbe26db }
+  - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-09-30T01:21:31+10:00", digest: 5d5b17a1b5164973 }
 ---
 
 # Files
@@ -27,39 +28,37 @@ sources:
 - `docs/stories/old_stories/bmad-07-custom-nodes-components.md`
 - `docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md`
 - `docs/stories/old_stories/sprint2-04-repo-context-flow.md`
+- `docs/stories/old_stories/sprint2-summary.md`
 - `frontend/wailsjs/go/main/App.js`
 
 # Symbols
 - BMAD Workflows (docs/SPECIFICATION.md:L934)
 - Acceptance Criteria (docs/stories/breadcrumbs-06-downstream-autofill.md:L52)
-- bmad-05-wails-bindings.md (docs/stories/old_stories/bmad-05-wails-bindings.md:L1)
-- Wails Bindings: BMAD API Surface (docs/stories/old_stories/bmad-05-wails-bindings.md:L1)
-- Technical Considerations (docs/stories/old_stories/bmad-05-wails-bindings.md:L119)
-- Developer Notes (docs/stories/old_stories/bmad-05-wails-bindings.md:L12)
-- Reference Files (docs/stories/old_stories/bmad-05-wails-bindings.md:L133)
-- Architecture (docs/stories/old_stories/bmad-05-wails-bindings.md:L14)
 - Acceptance Criteria (docs/stories/old_stories/bmad-05-wails-bindings.md:L141)
-- BDD Test Scenarios (docs/stories/old_stories/bmad-05-wails-bindings.md:L151)
-- Scenario 1: Binding initialization (docs/stories/old_stories/bmad-05-wails-bindings.md:L153)
-- Scenario 2: Process and template queries (docs/stories/old_stories/bmad-05-wails-bindings.md:L173)
-- Scenario 3: Workflow CRUD via bindings (docs/stories/old_stories/bmad-05-wails-bindings.md:L196)
 - Tasks / Subtasks (docs/stories/old_stories/bmad-05-wails-bindings.md:L216)
-- Definition of Done (docs/stories/old_stories/bmad-05-wails-bindings.md:L236)
-- Description (docs/stories/old_stories/bmad-05-wails-bindings.md:L8)
-- CreateFromTemplate Logic (docs/stories/old_stories/bmad-05-wails-bindings.md:L85)
-- Error Handling Pattern (docs/stories/old_stories/bmad-05-wails-bindings.md:L99)
 - Acceptance Criteria (docs/stories/old_stories/bmad-06-workflow-view-canvas.md:L190)
 - Risks & Edge Cases (docs/stories/old_stories/bmad-07-custom-nodes-components.md:L155)
+- Developer Notes (docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md:L13)
+- Architecture (docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md:L15)
+- Type Changes (docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md:L22)
+- Storage Changes (docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md:L40)
 - Technical Considerations (docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md:L59)
+- Risks & Edge Cases (docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md:L65)
+- Reference Files (docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md:L70)
 - Tasks / Subtasks (docs/stories/old_stories/sprint2-04-repo-context-flow.md:L157)
-- ListBmadTemplates() (frontend/wailsjs/go/main/App.js:L197)
-- ListBmadWorkflows() (frontend/wailsjs/go/main/App.js:L201)
+- Technical Considerations (docs/stories/old_stories/sprint2-04-repo-context-flow.md:L70)
+- Story 3: Add RepoPath to WorkflowDef + Storage Filtering (P0, Backend, M) (docs/stories/old_stories/sprint2-summary.md:L103)
+- Go Backend (docs/stories/old_stories/sprint2-summary.md:L30)
+- GetSprintStatus() (frontend/wailsjs/go/main/App.js:L109)
+- ListBmadTemplates() (frontend/wailsjs/go/main/App.js:L201)
+- ListBmadWorkflows() (frontend/wailsjs/go/main/App.js:L205)
+- ListBmadWorkflowsByRepo() (frontend/wailsjs/go/main/App.js:L209)
 - DeleteBmadAgent() (frontend/wailsjs/go/main/App.js:L21)
 - DeleteBmadWorkflow() (frontend/wailsjs/go/main/App.js:L25)
-- SaveBmadWorkflow() (frontend/wailsjs/go/main/App.js:L329)
+- SaveBmadWorkflow() (frontend/wailsjs/go/main/App.js:L333)
 - GetBmadModules() (frontend/wailsjs/go/main/App.js:L49)
+- CreateFromTemplate() (frontend/wailsjs/go/main/App.js:L5)
 - GetBmadProcesses() (frontend/wailsjs/go/main/App.js:L53)
-- GetBmadProcessesByPhase() (frontend/wailsjs/go/main/App.js:L57)
 - GetBmadWorkflow() (frontend/wailsjs/go/main/App.js:L61)
 
 # Depends on
@@ -68,8 +67,7 @@ sources:
 # Inferred
 - [13. Edge Cases and Failure Modes](/modules/13-edge-cases-and-failure-modes.md)
 - [App.js](/modules/app-js.md)
-- [CreateFromTemplate](/modules/createfromtemplate.md)
-- [SpawnAgent](/modules/spawnagent.md)
+- [Developer Notes](/modules/developer-notes.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)

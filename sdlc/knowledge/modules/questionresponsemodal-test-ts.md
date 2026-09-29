@@ -5,9 +5,9 @@ description: "Graphify community 340: frontend/src/components/bmad/QuestionRespo
 resource: frontend/src/components/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: QuestionResponseModal.test, resource: frontend/src/components/bmad/QuestionResponseModal.test.ts, last_modified: "2026-04-10T14:16:40+10:00", digest: a798f0e107780ec5 }
   - { id: questionSnackbarUtils, resource: frontend/src/components/bmad/questionSnackbarUtils.ts, last_modified: "2026-04-11T19:45:53+10:00", digest: 7c6697429c616053 }
@@ -30,8 +30,8 @@ sources:
 # Depends on
 - [App.js](/modules/app-js.md)
 - [interactiveInput.ts](/modules/interactiveinput-ts.md)
-- [QuestionResponseModal.svelte](/modules/questionresponsemodal-svelte.md)
 - [QuestionSnackbarStack.test.ts](/modules/questionsnackbarstack-test-ts.md)
+- [svelte](/modules/svelte.md)
 - [vitest](/modules/vitest.md)
 
 # Inferred

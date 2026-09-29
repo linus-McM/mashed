@@ -5,9 +5,9 @@ description: "Graphify community 259: main.go, main_test.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: main, resource: main.go, last_modified: "2026-09-30T01:04:54+10:00", digest: 0f960b8e19b80a82 }
   - { id: main_test, resource: main_test.go, last_modified: "2026-04-08T23:16:35+10:00", digest: e65839083faadcd9 }

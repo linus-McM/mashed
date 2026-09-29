@@ -1,39 +1,49 @@
 ---
 type: Module
 title: bmad/types.go
-description: "Graphify community 48: app_bmad.go, internal/bmad/storage.go, internal/bmad/types.go"
+description: "Graphify community 48: app_bmad.go, internal/bmad/executor.go, internal/bmad/interactive_types_test.go, internal/bmad/types.go"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: app_bmad, resource: app_bmad.go, last_modified: "2026-04-28T12:36:05+10:00", digest: fca7c61a439c150e }
-  - { id: storage, resource: internal/bmad/storage.go, last_modified: "2026-09-30T01:08:11+10:00", digest: 39b6c398a492fdb8 }
+  - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
+  - { id: interactive_types_test, resource: internal/bmad/interactive_types_test.go, last_modified: "2026-04-20T13:01:41+10:00", digest: 0282e550b6b93893 }
   - { id: types, resource: internal/bmad/types.go, last_modified: "2026-04-28T09:29:49+10:00", digest: 05a3e7d01f5f08c2 }
 ---
 
 # Files
 - `app_bmad.go`
-- `internal/bmad/storage.go`
+- `internal/bmad/executor.go`
+- `internal/bmad/interactive_types_test.go`
 - `internal/bmad/types.go`
 
 # Symbols
+- .GetBmadExecution() (app_bmad.go:L205)
 - .ListBmadAgents() (app_bmad.go:L308)
 - .SaveBmadAgent() (app_bmad.go:L316)
-- .ListAllAgents() (app_bmad.go:L333)
-- ListClaudeAgents() (internal/bmad/storage.go:L199)
+- .GetControlFlowNodes() (app_bmad.go:L468)
+- ExecStatusEvent (internal/bmad/executor.go:L48)
+- TestConstantJSONValues() (internal/bmad/interactive_types_test.go:L460)
 - bmad/types.go (internal/bmad/types.go:L1)
 - InputSource (internal/bmad/types.go:L138)
 - InputShape (internal/bmad/types.go:L149)
 - InputSpec (internal/bmad/types.go:L161)
 - OutputTarget (internal/bmad/types.go:L178)
 - OutputSpec (internal/bmad/types.go:L187)
+- InteractionMode (internal/bmad/types.go:L196)
 - GateKind (internal/bmad/types.go:L213)
 - IterationGate (internal/bmad/types.go:L223)
+- NodeType (internal/bmad/types.go:L232)
 - MultiFileEntry (internal/bmad/types.go:L250)
+- WorkflowNode (internal/bmad/types.go:L256)
+- .EffectiveType() (internal/bmad/types.go:L295)
 - Position (internal/bmad/types.go:L303)
+- WorkflowExecStatus (internal/bmad/types.go:L332)
+- WorkflowExecution (internal/bmad/types.go:L343)
 - PendingPrompt (internal/bmad/types.go:L364)
 - NodeInputEntry (internal/bmad/types.go:L392)
 - BmadAgentConfig (internal/bmad/types.go:L404)
@@ -42,12 +52,13 @@ sources:
 - ArtifactType (internal/bmad/types.go:L428)
 - ArtifactSpec (internal/bmad/types.go:L438)
 - NodeArtifactEvent (internal/bmad/types.go:L448)
+- ControlFlowNodeDef (internal/bmad/types.go:L460)
 - BmadAgentRole (internal/bmad/types.go:L69)
 
 # Depends on
 - [App](/modules/app.md)
+- [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
 - [executor_command_test.go](/modules/executor-command-test-go.md)
-- [NodeType](/modules/nodetype.md)
 - [ProcessDef](/modules/processdef.md)
 
 # Inferred

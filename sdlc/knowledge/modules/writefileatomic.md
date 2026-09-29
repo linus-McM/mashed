@@ -5,9 +5,9 @@ description: "Graphify community 416: internal/fsutil/atomic.go, internal/fsutil
 resource: internal/fsutil
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: atomic, resource: internal/fsutil/atomic.go, last_modified: "2026-09-30T01:08:11+10:00", digest: 7b0fe58799b5232f }
   - { id: atomic_test, resource: internal/fsutil/atomic_test.go, last_modified: "2026-09-30T01:08:11+10:00", digest: 5511de8351e87dc7 }

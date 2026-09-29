@@ -5,9 +5,9 @@ description: "Graphify community 89: internal/bmad/executor.go, internal/bmad/ex
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: executor, resource: internal/bmad/executor.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 244fdd7f469d5870 }
   - { id: executor_adapter_test, resource: internal/bmad/executor_adapter_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f79102c9f400d28f }
@@ -35,18 +35,13 @@ sources:
 - drainAfter() (internal/bmad/executor_adapter_test.go:L70)
 - TestExecutor_NilAdapter_ShortCircuits() (internal/bmad/executor_adapter_test.go:L89)
 - TestRespondToInputConcurrencyNoPanic() (internal/bmad/executor_respond_test.go:L509)
-- TestSuspendForSpecEntersAwaitingInput() (internal/bmad/executor_suspend_test.go:L110)
-- TestSuspendForSpecCtxCancellationAborts() (internal/bmad/executor_suspend_test.go:L190)
-- containsSubstr() (internal/bmad/executor_suspend_test.go:L259)
 - newSuspendState() (internal/bmad/executor_suspend_test.go:L29)
 - pollForStatus() (internal/bmad/executor_suspend_test.go:L87)
 
 # Depends on
+- [context.Context](/modules/context-context.md)
 - [executor_command_test.go](/modules/executor-command-test-go.md)
-- [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
-- [executor_respond_test.go](/modules/executor-respond-test-go.md)
-- [NewMock](/modules/newmock.md)
-- [time.Duration](/modules/time-duration.md)
+- [go_pkg_bytes](/modules/go-pkg-bytes.md)
 - [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
 
 # Inferred

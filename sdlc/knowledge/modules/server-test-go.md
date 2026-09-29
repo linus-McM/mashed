@@ -2,12 +2,12 @@
 type: Module
 title: server_test.go
 description: "Graphify community 7: internal/terminal/helper/client.go, internal/terminal/helper/client_test.go, internal/terminal/helper/integration_test.go, internal/terminal/helper/protocol.go, internal/terminal"
-resource: internal/terminal/helper
+resource: internal/terminal
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: client, resource: internal/terminal/helper/client.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 46fc572e21238bfb }
   - { id: client_test, resource: internal/terminal/helper/client_test.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 4004a3d885df1db3 }
@@ -16,6 +16,7 @@ sources:
   - { id: protocol_test, resource: internal/terminal/helper/protocol_test.go, last_modified: "2026-04-09T16:46:50+10:00", digest: 500bab47812315f3 }
   - { id: server, resource: internal/terminal/helper/server.go, last_modified: "2026-04-09T21:03:43+10:00", digest: e54a6a9ea36ca59d }
   - { id: server_test, resource: internal/terminal/helper/server_test.go, last_modified: "2026-04-09T21:03:43+10:00", digest: d9814bf07caafe77 }
+  - { id: manager_argv_test, resource: internal/terminal/manager_argv_test.go, last_modified: "2026-09-30T06:41:13+10:00", digest: 8de0ab57649ae98b }
 ---
 
 # Files
@@ -26,10 +27,14 @@ sources:
 - `internal/terminal/helper/protocol_test.go`
 - `internal/terminal/helper/server.go`
 - `internal/terminal/helper/server_test.go`
+- `internal/terminal/manager_argv_test.go`
 
 # Symbols
+- .Close() (internal/terminal/helper/client.go:L106)
+- Client (internal/terminal/helper/client.go:L16)
 - Dial() (internal/terminal/helper/client.go:L23)
 - .Spawn() (internal/terminal/helper/client.go:L34)
+- .Kill() (internal/terminal/helper/client.go:L98)
 - helper/client_test.go (internal/terminal/helper/client_test.go:L1)
 - TestClientSpawn_Serialization() (internal/terminal/helper/client_test.go:L111)
 - TestClientSpawn_ContextCancelled() (internal/terminal/helper/client_test.go:L171)
@@ -43,6 +48,7 @@ sources:
 - TestDial_Success() (internal/terminal/helper/client_test.go:L302)
 - TestClientSpawn_Success() (internal/terminal/helper/client_test.go:L44)
 - TestClientSpawn_Error() (internal/terminal/helper/client_test.go:L89)
+- integration_test.go (internal/terminal/helper/integration_test.go:L1)
 - TestIntegration_BidirectionalIO() (internal/terminal/helper/integration_test.go:L133)
 - TestIntegration_ConcurrentSpawnsFdIsolation() (internal/terminal/helper/integration_test.go:L174)
 - catSpawnReq() (internal/terminal/helper/integration_test.go:L22)
@@ -55,11 +61,11 @@ sources:
 - RecvFd() (internal/terminal/helper/protocol.go:L124)
 - MessageType (internal/terminal/helper/protocol.go:L14)
 - Envelope (internal/terminal/helper/protocol.go:L29)
-- SpawnRequest (internal/terminal/helper/protocol.go:L35)
 - SpawnResponse (internal/terminal/helper/protocol.go:L46)
 - KillRequest (internal/terminal/helper/protocol.go:L53)
 - WriteMessage() (internal/terminal/helper/protocol.go:L60)
 - ReadMessage() (internal/terminal/helper/protocol.go:L91)
+- protocol_test.go (internal/terminal/helper/protocol_test.go:L1)
 - TestWriteReadMessage_SpawnResponse() (internal/terminal/helper/protocol_test.go:L110)
 - TestWriteReadMessage_LargePayload() (internal/terminal/helper/protocol_test.go:L143)
 - TestWriteReadMessage_SpawnRequest() (internal/terminal/helper/protocol_test.go:L17)
@@ -70,7 +76,10 @@ sources:
 - TestWriteMessage_MultipleMessages() (internal/terminal/helper/protocol_test.go:L216)
 - TestSendRecvFd() (internal/terminal/helper/protocol_test.go:L235)
 - TestRecvFd_ClosedConn() (internal/terminal/helper/protocol_test.go:L286)
+- TestSentinelErrors() (internal/terminal/helper/protocol_test.go:L307)
 - TestMessageTypeConstants() (internal/terminal/helper/protocol_test.go:L313)
+- TestEnvelopeJSONTags() (internal/terminal/helper/protocol_test.go:L318)
+- TestSpawnResponseOmitEmpty() (internal/terminal/helper/protocol_test.go:L329)
 - createSocketPair() (internal/terminal/helper/protocol_test.go:L342)
 - TestWriteReadMessage_KillRequest() (internal/terminal/helper/protocol_test.go:L72)
 - .handleKill() (internal/terminal/helper/server.go:L162)
@@ -105,12 +114,13 @@ sources:
 - startTestServer() (internal/terminal/helper/server_test.go:L58)
 - sendSpawn() (internal/terminal/helper/server_test.go:L78)
 - sendKill() (internal/terminal/helper/server_test.go:L94)
+- .Kill() (internal/terminal/manager_argv_test.go:L34)
 
 # Depends on
-- [sync.Mutex](/modules/sync-mutex.md)
+- [SpawnRequest](/modules/spawnrequest.md)
 
 # Inferred
 - no INFERRED edges; treat any that appear as hints
 
 # Features
-- no feature plan names these files
+- [Repo health remediation](/features/repo-health-remediation.md)

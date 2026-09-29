@@ -5,9 +5,9 @@ description: "Graphify community 33: internal/bmad/events.go, internal/bmad/exec
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: events, resource: internal/bmad/events.go, last_modified: "2026-04-27T10:45:20+10:00", digest: 38b90b66f8c11c26 }
   - { id: executor_suspend_test, resource: internal/bmad/executor_suspend_test.go, last_modified: "2026-04-20T20:17:58+10:00", digest: b5f7b6a982bf834b }
@@ -35,6 +35,7 @@ sources:
 - TestUpsertAndRemovePromptHelpers() (internal/bmad/executor_suspend_test.go:L298)
 - TestFindPendingPrompt() (internal/bmad/executor_suspend_test.go:L336)
 - TestFindInputSpec() (internal/bmad/executor_suspend_test.go:L359)
+- prompts.go (internal/bmad/prompts.go:L1)
 - .waiter() (internal/bmad/prompts.go:L103)
 - execState (internal/bmad/prompts.go:L103)
 - .releaseWaiter() (internal/bmad/prompts.go:L120)
@@ -61,10 +62,10 @@ sources:
 - [prompts_test.go](/modules/prompts-test-go.md)
 
 # Inferred
-- [Executor](/modules/executor.md)
 - [go_pkg_testing](/modules/go-pkg-testing.md)
 - [ProcessByID](/modules/processbyid.md)
-- [.resolveInputs](/modules/resolveinputs.md)
+- [question_test.go](/modules/question-test-go.md)
+- [registryLookup](/modules/registrylookup.md)
 
 # Features
 - no feature plan names these files

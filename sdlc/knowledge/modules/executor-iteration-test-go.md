@@ -5,9 +5,9 @@ description: "Graphify community 64: internal/bmad/executor_anyuseranswer_test.g
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: executor_anyuseranswer_test, resource: internal/bmad/executor_anyuseranswer_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: c5b7c0a594991958 }
   - { id: executor_flatten_test, resource: internal/bmad/executor_flatten_test.go, last_modified: "2026-04-26T09:47:45+10:00", digest: 620dfc16866d8fff }
@@ -49,17 +49,25 @@ sources:
 - buildIterationProcess() (internal/bmad/executor_iteration_test.go:L56)
 - buildGuidedProcess() (internal/bmad/executor_iteration_test.go:L88)
 - TestRespondToInputNoPendingPrompt() (internal/bmad/executor_respond_test.go:L358)
+- executor_suspend_test.go (internal/bmad/executor_suspend_test.go:L1)
+- TestSuspendForSpecEntersAwaitingInput() (internal/bmad/executor_suspend_test.go:L110)
+- TestSuspendForSpecCtxCancellationAborts() (internal/bmad/executor_suspend_test.go:L190)
+- containsSubstr() (internal/bmad/executor_suspend_test.go:L259)
 - hookEvents() (internal/bmad/executor_suspend_test.go:L46)
+- eventsNamed() (internal/bmad/executor_suspend_test.go:L67)
 - registerTestProcess() (internal/bmad/executor_suspend_test.go:L79)
 
 # Depends on
+- [executor_adapter_test.go](/modules/executor-adapter-test-go.md)
 - [executor_command_test.go](/modules/executor-command-test-go.md)
+- [go_pkg_bytes](/modules/go-pkg-bytes.md)
 - [NewExecutor](/modules/newexecutor.md)
-- [NewMock](/modules/newmock.md)
+- [question_test.go](/modules/question-test-go.md)
+- [Storage](/modules/storage.md)
+- [.suspendForSpecWithPane](/modules/suspendforspecwithpane.md)
 
 # Inferred
 - [executor_adapter_test.go](/modules/executor-adapter-test-go.md)
-- [executor_respond_test.go](/modules/executor-respond-test-go.md)
 - [NewExecutor](/modules/newexecutor.md)
 - [newHarness](/modules/newharness.md)
 

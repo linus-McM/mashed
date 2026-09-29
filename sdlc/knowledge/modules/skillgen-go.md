@@ -5,9 +5,9 @@ description: "Graphify community 451: internal/bmad/skillgen.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T14:46:21Z" }
-stale_after: "2026-10-13T14:46:21Z"
-source_commit: 7c9b1d72863df713a8f6811089f72bc851d9337b
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: skillgen, resource: internal/bmad/skillgen.go, last_modified: "2026-04-09T22:26:45+10:00", digest: 925f4004ca59e699 }
 ---
@@ -25,7 +25,7 @@ sources:
 - [bmad/registry_test.go](/modules/bmad-registry-test-go.md)
 
 # Inferred
-- [ProcessByID](/modules/processbyid.md)
+- [ResolveArtifactPath](/modules/resolveartifactpath.md)
 
 # Features
 - no feature plan names these files

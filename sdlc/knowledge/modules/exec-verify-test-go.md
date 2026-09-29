@@ -5,9 +5,9 @@ description: "Graphify community 434: internal/bmad/exec_verify_test.go"
 resource: internal/bmad
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: exec_verify_test, resource: internal/bmad/exec_verify_test.go, last_modified: "2026-04-12T12:10:44+10:00", digest: a70b7212071a6a80 }
 ---
@@ -29,7 +29,7 @@ sources:
 - no EXTRACTED edges to other modules
 
 # Inferred
-- [Executor](/modules/executor.md)
+- [question_test.go](/modules/question-test-go.md)
 
 # Features
 - no feature plan names these files

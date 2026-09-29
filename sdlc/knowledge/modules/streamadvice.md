@@ -1,18 +1,18 @@
 ---
 type: Module
 title: StreamAdvice
-description: "Graphify community 117: docs/SPECIFICATION.md, docs/stories/old_stories/review-02-review-backend.md, docs/stories/old_stories/review-03-summarisation-modal.md, docs/stories/old_stories/review-04-refac"
+description: "Graphify community 117: docs/SPECIFICATION.md, docs/stories/old_stories/review-02-review-backend.md, docs/stories/old_stories/review-03-summarisation-modal.md, docs/stories/old_stories/review-05-bundl"
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T15:22:13Z" }
-stale_after: "2026-10-13T15:22:13Z"
-source_commit: 918616f42268500be0e26faa9f92720109b96761
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
 sources:
   - { id: SPECIFICATION, resource: docs/SPECIFICATION.md, last_modified: "2026-04-12T09:58:35+10:00", digest: 2150575fba9a1ee2 }
   - { id: review-02-review-backend, resource: docs/stories/old_stories/review-02-review-backend.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 897b72d9f41644f3 }
   - { id: review-03-summarisation-modal, resource: docs/stories/old_stories/review-03-summarisation-modal.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 81afe9ff7b51b451 }
-  - { id: review-04-refactor-plan-agent, resource: docs/stories/old_stories/review-04-refactor-plan-agent.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 209b70908e44c963 }
+  - { id: review-05-bundled-advice-files, resource: docs/stories/old_stories/review-05-bundled-advice-files.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 8938eac8a0da6011 }
   - { id: review-06-gitpanel-integration, resource: docs/stories/old_stories/review-06-gitpanel-integration.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 05598baa95b4f568 }
   - { id: review-backlog, resource: docs/stories/old_stories/review-backlog.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 225e9d8bb7cf6c45 }
   - { id: review-scoped-01-backend-scoped-advice, resource: docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 24ac699c8ee46519 }
@@ -24,7 +24,7 @@ sources:
 - `docs/SPECIFICATION.md`
 - `docs/stories/old_stories/review-02-review-backend.md`
 - `docs/stories/old_stories/review-03-summarisation-modal.md`
-- `docs/stories/old_stories/review-04-refactor-plan-agent.md`
+- `docs/stories/old_stories/review-05-bundled-advice-files.md`
 - `docs/stories/old_stories/review-06-gitpanel-integration.md`
 - `docs/stories/old_stories/review-backlog.md`
 - `docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md`
@@ -73,7 +73,7 @@ sources:
 - Reference Files (docs/stories/old_stories/review-03-summarisation-modal.md:L73)
 - Acceptance Criteria (docs/stories/old_stories/review-03-summarisation-modal.md:L80)
 - Description (docs/stories/old_stories/review-03-summarisation-modal.md:L9)
-- review-04-refactor-plan-agent.md (docs/stories/old_stories/review-04-refactor-plan-agent.md:L1)
+- review-05-bundled-advice-files.md (docs/stories/old_stories/review-05-bundled-advice-files.md:L1)
 - review-06-gitpanel-integration.md (docs/stories/old_stories/review-06-gitpanel-integration.md:L1)
 - Story 6: GitPanel Integration & Wiring (docs/stories/old_stories/review-06-gitpanel-integration.md:L1)
 - BDD Test Scenarios (docs/stories/old_stories/review-06-gitpanel-integration.md:L122)
@@ -115,10 +115,10 @@ sources:
 - StreamCodeReviewSummary() (frontend/wailsjs/go/main/App.js:L453)
 
 # Depends on
-- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
+- [SpawnRefactorPlan](/modules/spawnrefactorplan.md)
 
 # Inferred
-- [SummarisationModal.svelte](/modules/summarisationmodal-svelte.md)
+- [SpawnRefactorPlan](/modules/spawnrefactorplan.md)
 
 # Features
 - [Repo health remediation](/features/repo-health-remediation.md)
