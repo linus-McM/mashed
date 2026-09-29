@@ -36,9 +36,17 @@ const REPO_CONTEXT_BAR = resolve(
   'components/bmad/RepoContextBar.svelte',
 );
 const TITLE_BAR = resolve(FRONTEND_SRC, 'components/TitleBar.svelte');
-const SETTINGS = resolve(FRONTEND_SRC, 'views/Settings.svelte');
+// Settings.svelte was split into child components (spec R31); the view's
+// source is the parent plus its extracted children, concatenated.
+const SETTINGS_FILES = [
+  'views/Settings.svelte',
+  'components/settings/EditorSettings.svelte',
+  'components/settings/VSCodiumThemes.svelte',
+  'components/settings/UIAdapterSettings.svelte',
+].map((p) => resolve(FRONTEND_SRC, p));
 
 const read = (p: string) => readFileSync(p, 'utf8');
+const readSettings = () => SETTINGS_FILES.map(read).join('\n');
 const readFeed = () => FEED_FILES.map(read).join('\n');
 
 function walk(dir: string, exts: Set<string>): string[] {
@@ -232,7 +240,7 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
       ['#febc2e'],
       ['#28c840'],
     ])('AC-6: Settings.svelte still contains %s', (hex) => {
-      expect(read(SETTINGS)).toContain(hex);
+      expect(readSettings()).toContain(hex);
     });
   });
 });

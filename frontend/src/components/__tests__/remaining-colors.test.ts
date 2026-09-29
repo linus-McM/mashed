@@ -15,7 +15,14 @@ const FRONTEND_SRC = resolve(__dirname, '../..');
 
 const EXECUTION_BAR = resolve(FRONTEND_SRC, 'components/bmad/ExecutionBar.svelte');
 const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
-const SETTINGS = resolve(FRONTEND_SRC, 'views/Settings.svelte');
+// Settings.svelte was split into child components (spec R31); the view's
+// source is the parent plus its extracted children, concatenated.
+const SETTINGS_FILES = [
+  'views/Settings.svelte',
+  'components/settings/EditorSettings.svelte',
+  'components/settings/VSCodiumThemes.svelte',
+  'components/settings/UIAdapterSettings.svelte',
+].map((p) => resolve(FRONTEND_SRC, p));
 const PROCESS_NODE = resolve(FRONTEND_SRC, 'components/bmad/ProcessNode.svelte');
 // WorkflowBuilder.svelte was split into child components (spec R31); the
 // builder's source is the parent plus its extracted children, concatenated.
@@ -28,6 +35,7 @@ const TITLE_BAR = resolve(FRONTEND_SRC, 'components/TitleBar.svelte');
 const STYLE_CSS_PATH = resolve(FRONTEND_SRC, 'style.css');
 
 const read = (p: string) => readFileSync(p, 'utf8');
+const readSettings = () => SETTINGS_FILES.map(read).join('\n');
 const readWorkflowBuilder = () => WORKFLOW_BUILDER_FILES.map(read).join('\n');
 
 // Extract the contiguous { ... } block that follows a selector. Handles single
@@ -131,36 +139,36 @@ describe('uiqa-03: remaining hardcoded colors', () => {
 
   describe('AC-3: Settings indicators and text-shadow use tokens', () => {
     it('AC-3: Settings.svelte contains zero #565670 literals', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       expect(src).not.toMatch(/#565670/i);
     });
 
     it('AC-3: Settings.svelte contains zero #c0c0d0 literals', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       expect(src).not.toMatch(/#c0c0d0/i);
     });
 
     it('AC-3: Settings.svelte contains zero rgba(0, 229, 122, ...) literals', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       expect(src).not.toMatch(/rgba\(\s*0\s*,\s*229\s*,\s*122/);
     });
 
     it('AC-3: .import-indicator.dark background references var(--text-muted)', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       const block = extractRule(src, /\.import-indicator\.dark\s*\{/);
       expect(block, '.import-indicator.dark rule must exist').not.toBeNull();
       expect(block!).toMatch(/background:\s*var\(--text-muted\)/);
     });
 
     it('AC-3: .import-indicator.light background references var(--text-dim)', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       const block = extractRule(src, /\.import-indicator\.light\s*\{/);
       expect(block, '.import-indicator.light rule must exist').not.toBeNull();
       expect(block!).toMatch(/background:\s*var\(--text-dim\)/);
     });
 
     it('AC-3: .back-btn:hover text-shadow uses var(--glow-spread) and color-mix with --accent-green', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       const block = extractRule(src, /\.back-btn:hover\s*\{/);
       expect(block, '.back-btn:hover rule must exist').not.toBeNull();
       expect(block!).toMatch(/text-shadow:[^;]*var\(--glow-spread\)/);
@@ -273,7 +281,7 @@ describe('uiqa-03: remaining hardcoded colors', () => {
       ['#febc2e'],
       ['#28c840'],
     ])('AC-6: Settings.svelte theme preview still contains %s', (hex) => {
-      expect(read(SETTINGS)).toContain(hex);
+      expect(readSettings()).toContain(hex);
     });
   });
 });

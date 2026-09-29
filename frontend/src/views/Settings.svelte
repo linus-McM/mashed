@@ -2,37 +2,20 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { ArrowLeft } from 'lucide-svelte';
   import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
-  import { GetConfig, SetTheme, SetImportedTheme, SetVSCodiumExtPath, PickDirectory, ListVSCodiumThemes, ListLocalFonts, SetMonoFont, SetFontSize, SetSidebarWidth } from '../../wailsjs/go/main/App.js';
-  import { activateImportedTheme, removeImportedTheme, makeThemeId } from '../lib/themeInit.js';
+  import { GetConfig, SetTheme, SetImportedTheme, ListLocalFonts, SetMonoFont, SetFontSize, SetSidebarWidth } from '../../wailsjs/go/main/App.js';
+  import { removeImportedTheme } from '../lib/themeInit.js';
   import { builtInThemeIds } from '../lib/stores/theme.js';
   import { applyFont, registerLocalFonts } from '../lib/stores/font.js';
-  import { editorSettings, updateEditorSetting } from '../lib/stores/editorSettings.js';
   import {
     markdownMenuSettings,
     updateMarkdownMenuItem,
     clearMarkdownMenuDirty,
   } from '../lib/stores/markdownMenuSettings';
-  import {
-    uiAdapterEnabled,
-    uiAdapterTimeoutMs,
-    ollamaModel,
-    ollamaEnabled,
-    uiAdapterUntrustedExpanded,
-    ollamaReachable,
-    ollamaModels,
-    hydrate as hydrateUIAdapter,
-    refreshModels as refreshUIAdapterModels,
-    setEnabled as setUIAdapterEnabled,
-    setTimeoutMs as setUIAdapterTimeoutMs,
-    setModel as setUIAdapterModel,
-    setOllamaEnabled as setUIAdapterOllamaEnabled,
-    setUntrustedExpanded as setUIAdapterUntrustedExpanded,
-    validOllamaModelName,
-  } from '../lib/stores/uiAdapterSettings';
-  import { BrowserOpenURL } from '../../wailsjs/runtime/runtime.js';
-  import { RefreshCw, TriangleAlert } from 'lucide-svelte';
-  import { errorMessage } from '../lib/errorMessage';
-  import type { LocalFontFamily, VSCodeThemeEntry } from '../lib/types/wails';
+  import { hydrate as hydrateUIAdapter } from '../lib/stores/uiAdapterSettings';
+  import type { LocalFontFamily } from '../lib/types/wails';
+  import EditorSettings from '../components/settings/EditorSettings.svelte';
+  import VSCodiumThemes from '../components/settings/VSCodiumThemes.svelte';
+  import UIAdapterSettings from '../components/settings/UIAdapterSettings.svelte';
 
   /** A theme entry as stored in `allThemes`. Mirrors the JSDoc-typed
    * `ThemeEntry` in `lib/stores/theme.js` — each imported VSCodium theme
@@ -69,10 +52,7 @@
 
   let vscodiumPath = '';
   let saveStatus = '';
-  let vscodiumThemes: VSCodeThemeEntry[] = [];
-  let loadingThemes = false;
-  let themeLoadError = '';
-  let activatingThemePath = '';
+  let vscodiumThemesPanel: VSCodiumThemes;
 
   let localFonts: LocalFontFamily[] = [];
   let allFonts: FontOption[] = [];
@@ -80,32 +60,6 @@
   let selectedFont = '';
   let selectedFontSize = 13;
   let selectedSidebarWidth = 280;
-
-  // UI AST adapter — local form state mirrors the store; binds to inputs so
-  // blur-validated edits don't push partial keystrokes to disk.
-  let timeoutInput = 3000;
-  let timeoutError = '';
-  let modelSelectValue = 'gemma3:4b';
-  let customModelInput = '';
-  let customModelError = '';
-  let refreshingModels = false;
-
-  const OLLAMA_INSTALL_URL = 'https://ollama.com/download';
-  const CUSTOM_MODEL_SENTINEL = '__custom__';
-
-  $: if ($uiAdapterTimeoutMs !== undefined) timeoutInput = $uiAdapterTimeoutMs;
-  $: if ($ollamaModel) {
-    modelSelectValue = resolveModelSelectValue($ollamaModel, $ollamaModels);
-    if (modelSelectValue === CUSTOM_MODEL_SENTINEL && !customModelInput) {
-      customModelInput = $ollamaModel;
-    }
-  }
-
-  function resolveModelSelectValue(model: string, availableModels: string[]): string {
-    if (!model) return CUSTOM_MODEL_SENTINEL;
-    if (availableModels && availableModels.includes(model)) return model;
-    return CUSTOM_MODEL_SENTINEL;
-  }
 
   onMount(async () => {
     let hasVscodiumPath = false;
@@ -118,83 +72,11 @@
       hasVscodiumPath = !!vscodiumPath;
     } catch {}
     await Promise.all([
-      hasVscodiumPath ? scanThemes() : Promise.resolve(),
+      hasVscodiumPath ? vscodiumThemesPanel.scanThemes() : Promise.resolve(),
       scanFonts(),
       hydrateUIAdapter(),
     ]);
   });
-
-  async function toggleUIAdapter() {
-    const ok = await setUIAdapterEnabled(!$uiAdapterEnabled);
-    if (ok) {
-      flashSave();
-      if ($uiAdapterEnabled) await refreshUIAdapterModels();
-    }
-  }
-
-  async function toggleOllamaEnabled() {
-    const ok = await setUIAdapterOllamaEnabled(!$ollamaEnabled);
-    if (ok) flashSave();
-  }
-
-  async function toggleUntrustedExpanded() {
-    const ok = await setUIAdapterUntrustedExpanded(!$uiAdapterUntrustedExpanded);
-    if (ok) flashSave();
-  }
-
-  async function commitTimeout() {
-    const ms = Number(timeoutInput);
-    if (!Number.isFinite(ms) || ms < 500 || ms > 30000) {
-      timeoutError = 'must be 500-30000';
-      return;
-    }
-    timeoutError = '';
-    if (ms === $uiAdapterTimeoutMs) return;
-    const ok = await setUIAdapterTimeoutMs(ms);
-    if (ok) flashSave();
-    else timeoutError = 'save failed';
-  }
-
-  async function onModelSelect(value: string): Promise<void> {
-    modelSelectValue = value;
-    if (value === CUSTOM_MODEL_SENTINEL) {
-      customModelInput = $ollamaModel;
-      return;
-    }
-    customModelError = '';
-    const ok = await setUIAdapterModel(value);
-    if (ok) flashSave();
-  }
-
-  async function commitCustomModel() {
-    if (!validOllamaModelName(customModelInput)) {
-      customModelError = 'only [a-zA-Z0-9._:-], 1-64 chars';
-      return;
-    }
-    customModelError = '';
-    if (customModelInput === $ollamaModel) return;
-    const ok = await setUIAdapterModel(customModelInput);
-    if (ok) flashSave();
-    else customModelError = 'save failed';
-  }
-
-  async function manualRefreshModels() {
-    refreshingModels = true;
-    try {
-      await refreshUIAdapterModels();
-    } finally {
-      refreshingModels = false;
-    }
-  }
-
-  function openOllamaDocs() {
-    BrowserOpenURL(OLLAMA_INSTALL_URL);
-  }
-
-  $: sortedOllamaModels = [...($ollamaModels || [])].sort((a, b) => a.localeCompare(b));
-  $: configuredModelMissing =
-    $ollamaModel && !sortedOllamaModels.includes($ollamaModel);
-  $: showOfflineBanner = $uiAdapterEnabled && $ollamaReachable === false;
 
   // Narrow the store value to the friendly ThemeMap shape — `allThemes` is
   // authored in JS as a loose object, but every entry structurally matches.
@@ -208,55 +90,8 @@
     } catch {}
   }
 
-  async function scanThemes(): Promise<void> {
-    loadingThemes = true;
-    themeLoadError = '';
-    try {
-      vscodiumThemes = await ListVSCodiumThemes();
-    } catch (err) {
-      themeLoadError = errorMessage(err) || 'Failed to scan themes';
-      vscodiumThemes = [];
-    } finally {
-      loadingThemes = false;
-    }
-  }
-
-  async function handleImportedThemeClick(entry: VSCodeThemeEntry): Promise<void> {
-    activatingThemePath = entry.themePath;
-    try {
-      await activateImportedTheme(entry.themePath, entry.extensionId);
-    } catch (err) {
-      themeLoadError = 'Failed to activate theme: ' + (errorMessage(err) || 'unknown error');
-    } finally {
-      activatingThemePath = '';
-    }
-  }
-
   async function handleRemoveTheme(id: string): Promise<void> {
     await removeImportedTheme(id);
-  }
-
-  function isDarkTheme(uiTheme: string): boolean {
-    return uiTheme !== 'vs' && uiTheme !== 'vs-light';
-  }
-
-  async function browseVSCodium() {
-    try {
-      const dir = await PickDirectory();
-      if (dir) {
-        vscodiumPath = dir;
-        await SetVSCodiumExtPath(dir);
-        flashSave();
-        await scanThemes();
-      }
-    } catch {}
-  }
-
-  async function saveVSCodiumPath() {
-    try {
-      await SetVSCodiumExtPath(vscodiumPath);
-      flashSave();
-    } catch {}
   }
 
   function flashSave() {
@@ -299,17 +134,6 @@
     if (e.key === 'Escape') {
       goBack();
     }
-  }
-
-  /**
-   * Narrow an `<input>` / `<select>` change-event target to an `HTMLInputElement`.
-   * svelte-check reports `'e.target' is possibly null` + `Property 'value' does
-   * not exist on type 'EventTarget'`; routing every handler through this helper
-   * keeps the setting row templates tidy.
-   */
-  function fieldValue(e: Event): string {
-    const t = e.currentTarget as HTMLInputElement | HTMLSelectElement | null;
-    return t?.value ?? '';
   }
 </script>
 
@@ -420,334 +244,13 @@
       </section>
       </div>
 
-      <!-- Editor -->
-      <div class="settings-panel">
-      <section class="settings-section">
-        <h2 class="section-title">Editor</h2>
-
-        <!-- Cursor -->
-        <h3 class="subsection-title">Cursor</h3>
-        <div class="setting-row">
-          <label class="setting-label" for="cursorStyle">Cursor Style</label>
-          <select id="cursorStyle" class="setting-select" value={$editorSettings.cursorStyle}
-            on:change={(e) => updateEditorSetting('cursorStyle', fieldValue(e))}>
-            <option value="line">line</option>
-            <option value="line-thin">line-thin</option>
-            <option value="block">block</option>
-            <option value="block-outline">block-outline</option>
-            <option value="underline">underline</option>
-            <option value="underline-thin">underline-thin</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="cursorBlinking">Cursor Blinking</label>
-          <select id="cursorBlinking" class="setting-select" value={$editorSettings.cursorBlinking}
-            on:change={(e) => updateEditorSetting('cursorBlinking', fieldValue(e))}>
-            <option value="blink">blink</option>
-            <option value="smooth">smooth</option>
-            <option value="phase">phase</option>
-            <option value="expand">expand</option>
-            <option value="solid">solid</option>
-          </select>
-        </div>
-
-        <!-- Display -->
-        <h3 class="subsection-title">Display</h3>
-        <div class="setting-row">
-          <label class="setting-label" for="wordWrap">Word Wrap</label>
-          <select id="wordWrap" class="setting-select" value={$editorSettings.wordWrap}
-            on:change={(e) => updateEditorSetting('wordWrap', fieldValue(e))}>
-            <option value="off">off</option>
-            <option value="on">on</option>
-            <option value="wordWrapColumn">wordWrapColumn</option>
-            <option value="bounded">bounded</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="lineNumbers">Line Numbers</label>
-          <select id="lineNumbers" class="setting-select" value={$editorSettings.lineNumbers}
-            on:change={(e) => updateEditorSetting('lineNumbers', fieldValue(e))}>
-            <option value="on">on</option>
-            <option value="off">off</option>
-            <option value="relative">relative</option>
-            <option value="interval">interval</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="renderLineHighlight">Line Highlight</label>
-          <select id="renderLineHighlight" class="setting-select" value={$editorSettings.renderLineHighlight}
-            on:change={(e) => updateEditorSetting('renderLineHighlight', fieldValue(e))}>
-            <option value="none">none</option>
-            <option value="gutter">gutter</option>
-            <option value="line">line</option>
-            <option value="all">all</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="renderWhitespace">Whitespace</label>
-          <select id="renderWhitespace" class="setting-select" value={$editorSettings.renderWhitespace}
-            on:change={(e) => updateEditorSetting('renderWhitespace', fieldValue(e))}>
-            <option value="none">none</option>
-            <option value="boundary">boundary</option>
-            <option value="selection">selection</option>
-            <option value="trailing">trailing</option>
-            <option value="all">all</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="minimapEnabled">Minimap</label>
-          <button id="minimapEnabled" class="setting-toggle" class:active={$editorSettings.minimapEnabled}
-            on:click={() => updateEditorSetting('minimapEnabled', !$editorSettings.minimapEnabled)}>
-            {$editorSettings.minimapEnabled ? 'On' : 'Off'}
-          </button>
-        </div>
-
-        <!-- Editing -->
-        <h3 class="subsection-title">Editing</h3>
-        <div class="setting-row">
-          <label class="setting-label" for="tabSize">Tab Size</label>
-          <input id="tabSize" class="setting-number" type="number" min="2" max="8"
-            value={$editorSettings.tabSize}
-            on:change={(e) => updateEditorSetting('tabSize', Math.min(8, Math.max(2, parseInt(fieldValue(e)) || 2)))} />
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="insertSpaces">Insert Spaces</label>
-          <button id="insertSpaces" class="setting-toggle" class:active={$editorSettings.insertSpaces}
-            on:click={() => updateEditorSetting('insertSpaces', !$editorSettings.insertSpaces)}>
-            {$editorSettings.insertSpaces ? 'On' : 'Off'}
-          </button>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="bracketPairColorization">Bracket Colors</label>
-          <button id="bracketPairColorization" class="setting-toggle" class:active={$editorSettings.bracketPairColorization}
-            on:click={() => updateEditorSetting('bracketPairColorization', !$editorSettings.bracketPairColorization)}>
-            {$editorSettings.bracketPairColorization ? 'On' : 'Off'}
-          </button>
-        </div>
-
-        <!-- Behavior -->
-        <h3 class="subsection-title">Behavior</h3>
-        <div class="setting-row">
-          <label class="setting-label" for="fontLigatures">Font Ligatures</label>
-          <button id="fontLigatures" class="setting-toggle" class:active={$editorSettings.fontLigatures}
-            on:click={() => updateEditorSetting('fontLigatures', !$editorSettings.fontLigatures)}>
-            {$editorSettings.fontLigatures ? 'On' : 'Off'}
-          </button>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="scrollBeyondLastLine">Scroll Beyond End</label>
-          <button id="scrollBeyondLastLine" class="setting-toggle" class:active={$editorSettings.scrollBeyondLastLine}
-            on:click={() => updateEditorSetting('scrollBeyondLastLine', !$editorSettings.scrollBeyondLastLine)}>
-            {$editorSettings.scrollBeyondLastLine ? 'On' : 'Off'}
-          </button>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="smoothScrolling">Smooth Scrolling</label>
-          <button id="smoothScrolling" class="setting-toggle" class:active={$editorSettings.smoothScrolling}
-            on:click={() => updateEditorSetting('smoothScrolling', !$editorSettings.smoothScrolling)}>
-            {$editorSettings.smoothScrolling ? 'On' : 'Off'}
-          </button>
-        </div>
-      </section>
-      </div>
+      <EditorSettings />
       </div>
 
       <div class="settings-col settings-col-2">
-      <!-- VSCodium Extension path -->
-      <div class="settings-panel">
-      <section class="settings-section">
-        <h2 class="section-title">Theme Extensions</h2>
-        <p class="section-desc">Path to .vsix theme files.</p>
-        <div class="path-input-row">
-          <input
-            class="path-input"
-            type="text"
-            bind:value={vscodiumPath}
-            placeholder="e.g. ~/.vscode-oss/extensions"
-            on:blur={saveVSCodiumPath}
-          />
-          <button class="browse-btn" on:click={browseVSCodium}>Browse</button>
-        </div>
-        {#if saveStatus}
-          <span class="save-status">{saveStatus}</span>
-        {/if}
+      <VSCodiumThemes bind:this={vscodiumThemesPanel} bind:vscodiumPath {saveStatus} onSaved={flashSave} />
 
-        {#if vscodiumPath}
-          <div class="import-row">
-            <button class="browse-btn" on:click={scanThemes} disabled={loadingThemes}>
-              {loadingThemes ? 'Scanning...' : 'Scan & Import'}
-            </button>
-            {#if themeLoadError}
-              <span class="error-text">{themeLoadError}</span>
-            {/if}
-          </div>
-          {#if vscodiumThemes.length > 0}
-            <div class="import-list">
-              {#each vscodiumThemes as entry}
-                {@const themeId = makeThemeId(entry.themePath, entry.extensionId)}
-                {@const alreadyImported = !!themes[themeId]}
-                <button
-                  class="import-item"
-                  class:imported={alreadyImported}
-                  disabled={activatingThemePath === entry.themePath}
-                  on:click={() => handleImportedThemeClick(entry)}
-                >
-                  <span class="import-indicator" class:dark={isDarkTheme(entry.uiTheme)} class:light={!isDarkTheme(entry.uiTheme)} />
-                  <span class="import-label">{entry.label}</span>
-                  {#if activatingThemePath === entry.themePath}
-                    <span class="activating-indicator">...</span>
-                  {:else if alreadyImported}
-                    <span class="imported-check">&#10003;</span>
-                  {/if}
-                </button>
-              {/each}
-            </div>
-          {/if}
-        {/if}
-      </section>
-      </div>
-
-      <!-- UI AST adapter -->
-      <div class="settings-panel">
-      <section class="settings-section" data-testid="ui-adapter-section">
-        <h2 class="section-title">UI AST adapter</h2>
-        <p class="section-desc">
-          Translates Claude's round output into typed widgets. Requires Ollama running locally.
-          Changes take effect on next app launch.
-        </p>
-
-        <div class="setting-row">
-          <label class="setting-label" for="uiAdapterEnabled">Enable UI AST adapter</label>
-          <button
-            id="uiAdapterEnabled"
-            class="setting-toggle"
-            class:active={$uiAdapterEnabled}
-            data-testid="ui-adapter-toggle"
-            on:click={toggleUIAdapter}
-          >
-            {$uiAdapterEnabled ? 'On' : 'Off'}
-          </button>
-        </div>
-
-        <div class="setting-row">
-          <label class="setting-label" for="ollamaEnabled">Ollama enabled</label>
-          <button
-            id="ollamaEnabled"
-            class="setting-toggle"
-            class:active={$ollamaEnabled}
-            on:click={toggleOllamaEnabled}
-          >
-            {$ollamaEnabled ? 'On' : 'Off'}
-          </button>
-        </div>
-
-        <div class="setting-row">
-          <label class="setting-label" for="uiAdapterTimeout">Timeout (ms)</label>
-          <input
-            id="uiAdapterTimeout"
-            class="setting-number"
-            class:invalid={timeoutError}
-            type="number"
-            min="500"
-            max="30000"
-            step="100"
-            bind:value={timeoutInput}
-            on:blur={commitTimeout}
-          />
-        </div>
-        {#if timeoutError}
-          <div class="setting-error" role="alert">{timeoutError}</div>
-        {/if}
-
-        <div class="setting-row">
-          <label class="setting-label" for="ollamaModel">Ollama model</label>
-          <div class="model-row-controls">
-            <select
-              id="ollamaModel"
-              class="setting-select"
-              data-testid="ui-adapter-model-select"
-              value={modelSelectValue}
-              on:change={(e) => onModelSelect(e.currentTarget.value)}
-            >
-              {#each sortedOllamaModels as m}
-                <option value={m}>{m}</option>
-                  {/each}
-              {#if configuredModelMissing}
-                <option value={$ollamaModel}
-                  >{$ollamaModel}{sortedOllamaModels.length > 0 ? ' (not pulled)' : ''}</option
-                >
-              {/if}
-              <option value={CUSTOM_MODEL_SENTINEL}>Custom…</option>
-            </select>
-            <button
-              class="icon-btn"
-              type="button"
-              aria-label="Refresh model list"
-              title="Refresh model list"
-              data-testid="ui-adapter-refresh"
-              disabled={refreshingModels}
-              on:click={manualRefreshModels}
-            >
-              <RefreshCw size={12} />
-            </button>
-          </div>
-        </div>
-
-        {#if modelSelectValue === '__custom__'}
-          <div class="setting-row custom-model-row">
-            <label class="setting-label" for="customOllamaModel">Custom model</label>
-            <input
-              id="customOllamaModel"
-              class="path-input custom-model-input"
-              class:invalid={customModelError}
-              type="text"
-              placeholder="e.g. llama3.2:3b"
-              bind:value={customModelInput}
-              on:blur={commitCustomModel}
-              data-testid="ui-adapter-custom-model"
-            />
-          </div>
-          {#if customModelError}
-            <div class="setting-error" role="alert">{customModelError}</div>
-          {/if}
-        {/if}
-
-        <div class="setting-row">
-          <label class="setting-label" for="untrustedExpanded">
-            Expand "View raw" by default when a translation is flagged as untrusted
-          </label>
-          <button
-            id="untrustedExpanded"
-            class="setting-toggle"
-            class:active={$uiAdapterUntrustedExpanded}
-            on:click={toggleUntrustedExpanded}
-          >
-            {$uiAdapterUntrustedExpanded ? 'On' : 'Off'}
-          </button>
-        </div>
-
-        {#if showOfflineBanner}
-          <aside class="offline-banner" role="status" data-testid="ui-adapter-offline-banner">
-            <span class="offline-banner-icon" aria-hidden="true">
-              <TriangleAlert size={14} />
-            </span>
-            <div class="offline-banner-body">
-              <div class="offline-banner-title">Ollama not reachable at localhost:11434.</div>
-              <div class="offline-banner-text">
-                Install Ollama and pull the model to enable this.
-              </div>
-              <a
-                class="offline-banner-link"
-                href={OLLAMA_INSTALL_URL}
-                on:click|preventDefault={openOllamaDocs}
-              >
-                Install docs
-              </a>
-            </div>
-          </aside>
-        {/if}
-      </section>
-      </div>
+      <UIAdapterSettings onSaved={flashSave} />
 
       <!-- Markdown Editor — selection toolbar toggles (story 05) -->
       <div class="settings-panel">
@@ -1131,162 +634,12 @@
     letter-spacing: 2px;
   }
 
-  /* VSCodium / import */
-  .path-input-row {
-    display: flex;
-    gap: var(--sp-sm);
-  }
-
-  .path-input {
-    flex: 1;
-    padding: var(--sp-xs) 10px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: var(--text-body);
-    outline: none;
-  }
-
-  .path-input:focus {
-    border-color: var(--accent-green);
-  }
-
-  .path-input::placeholder {
-    color: var(--text-muted);
-  }
-
-  .browse-btn {
-    padding: var(--sp-xs) 14px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-    font-size: var(--text-body);
-    cursor: pointer;
-    transition: all 100ms ease;
-    white-space: nowrap;
-  }
-
-  .browse-btn:hover {
-    color: var(--text-primary);
-    border-color: var(--border-emphasis);
-    background: var(--bg-active);
-  }
-
-  .save-status {
-    display: inline-block;
-    margin-top: var(--sp-xs);
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    color: var(--accent-green);
-  }
-
-  .import-row {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-sm);
-    margin-top: var(--sp-md);
-  }
-
-  .import-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    margin-top: var(--sp-sm);
-    max-height: 200px;
-    overflow-y: auto;
-  }
-
-  .import-item {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-sm);
-    padding: 4px 8px;
-    background: none;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    text-align: left;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    transition: all 100ms ease;
-  }
-
-  .import-item:hover {
-    background: var(--bg-elevated);
-    color: var(--text-primary);
-  }
-
-  .import-item.imported {
-    color: var(--text-muted);
-  }
-
-  .import-item:disabled {
-    opacity: 0.6;
-    cursor: wait;
-  }
-
-  .import-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .import-indicator.dark {
-    background: var(--text-muted);
-  }
-
-  .import-indicator.light {
-    background: var(--text-dim);
-  }
-
-  .import-label {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .activating-indicator {
-    color: var(--text-muted);
-    margin-left: auto;
-  }
-
-  .imported-check {
-    color: var(--accent-green);
-    margin-left: auto;
-    font-size: var(--text-label);
-  }
-
   .loading-text {
     color: var(--text-dim);
     font-style: italic;
   }
 
-  .error-text {
-    color: var(--accent-red);
-    font-size: 11px;
-  }
-
-  /* Editor settings: subsections, rows, controls */
-  .subsection-title {
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin: var(--sp-lg) 0 var(--sp-sm);
-  }
-
-  .subsection-title:first-of-type {
-    margin-top: 0;
-  }
-
+  /* Setting rows (Markdown Editor toggles; children carry their own copies) */
   .setting-row {
     display: flex;
     align-items: center;
@@ -1300,47 +653,6 @@
     font-size: var(--text-body);
     color: var(--text-dim);
     white-space: nowrap;
-  }
-
-  .setting-select {
-    padding: 4px 8px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    outline: none;
-    cursor: pointer;
-    min-width: 120px;
-    transition: border-color 100ms ease;
-  }
-
-  .setting-select:focus {
-    border-color: var(--accent-green);
-  }
-
-  .setting-select:hover {
-    border-color: var(--border-emphasis);
-  }
-
-  .setting-number {
-    width: 60px;
-    padding: 4px 8px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-variant-numeric: tabular-nums;
-    outline: none;
-    text-align: center;
-    transition: border-color 100ms ease;
-  }
-
-  .setting-number:focus {
-    border-color: var(--accent-green);
   }
 
   .setting-toggle {
@@ -1366,120 +678,6 @@
     background: var(--bg-active);
     border-color: var(--accent-green);
     color: var(--accent-green);
-  }
-
-  /* UI AST adapter section */
-  .setting-number.invalid,
-  .path-input.invalid {
-    border-color: var(--accent-red);
-  }
-
-  .setting-error {
-    padding-left: var(--sp-xs);
-    margin-top: var(--sp-2xs);
-    font-family: var(--font-ui);
-    font-size: var(--text-label);
-    font-weight: 500;
-    color: var(--accent-red);
-  }
-
-  .model-row-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-xs);
-  }
-
-  .icon-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    color: var(--text-dim);
-    cursor: pointer;
-    transition: color var(--duration-short) var(--ease-move),
-      border-color var(--duration-short) var(--ease-move);
-  }
-
-  .icon-btn:hover:not(:disabled) {
-    color: var(--text-primary);
-    border-color: var(--border-emphasis);
-  }
-
-  .icon-btn:disabled {
-    opacity: 0.5;
-    cursor: wait;
-  }
-
-  .custom-model-row {
-    align-items: stretch;
-  }
-
-  .custom-model-input {
-    flex: 1;
-    max-width: 260px;
-  }
-
-  .offline-banner {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--sp-sm);
-    margin-top: var(--sp-md);
-    padding: var(--sp-sm) var(--sp-md);
-    background: color-mix(in srgb, var(--accent-amber) 10%, transparent);
-    border-left: 3px solid var(--accent-amber);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  }
-
-  .offline-banner-icon {
-    display: inline-flex;
-    align-items: center;
-    color: var(--accent-amber);
-    margin-top: 2px;
-    flex-shrink: 0;
-  }
-
-  .offline-banner-body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-2xs);
-    min-width: 0;
-  }
-
-  .offline-banner-title {
-    font-family: var(--font-ui);
-    font-size: var(--text-body);
-    font-weight: 600;
-    color: var(--accent-amber);
-  }
-
-  .offline-banner-text {
-    font-family: var(--font-ui);
-    font-size: var(--text-label);
-    color: var(--text-dim);
-  }
-
-  .offline-banner-link {
-    align-self: flex-start;
-    margin-top: var(--sp-2xs);
-    padding: 0;
-    background: none;
-    border: none;
-    font-family: var(--font-ui);
-    font-size: var(--text-label);
-    font-weight: 500;
-    color: var(--accent-green);
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  .offline-banner-link:hover {
-    text-shadow: var(--glow-spread) color-mix(in srgb, var(--accent-green) 60%, transparent);
   }
 
   /* Footer */
