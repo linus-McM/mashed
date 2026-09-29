@@ -24,12 +24,28 @@ var (
 type SessionManager struct {
 	mu           sync.Mutex
 	sessions     map[string]*ManagedSession
-	helperClient *helper.Client
+	helperClient helperSpawner
+}
+
+// helperSpawner is the part of *helper.Client the manager uses; tests supply
+// a fake.
+type helperSpawner interface {
+	Spawn(ctx context.Context, req helper.SpawnRequest) (*os.File, int, error)
+	Kill(id string, sig syscall.Signal) error
+	Close() error
 }
 
 // NewSessionManager creates a new SessionManager. The client may be nil;
 // Spawn will return ErrHelperNotRunning in that case.
 func NewSessionManager(client *helper.Client) *SessionManager {
+	if client == nil {
+		// Keep the interface field untyped-nil so the nil checks hold.
+		return newSessionManagerWith(nil)
+	}
+	return newSessionManagerWith(client)
+}
+
+func newSessionManagerWith(client helperSpawner) *SessionManager {
 	return &SessionManager{
 		sessions:     make(map[string]*ManagedSession),
 		helperClient: client,
@@ -40,27 +56,34 @@ func NewSessionManager(client *helper.Client) *SessionManager {
 // If command is empty, the user's default shell is used.
 // cols/rows set the initial PTY winsize; pass 0 to use the defaults (80x24).
 // The helper client must be non-nil; otherwise ErrHelperNotRunning is returned.
+//
+// command is split on whitespace, so quoted arguments are not supported; use
+// SpawnArgv for programmatic commands with arguments containing spaces.
 func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath string, command string, cols, rows uint16) (*ManagedSession, error) {
-	if sm.helperClient == nil {
-		return nil, ErrHelperNotRunning
-	}
-
-	var parts []string
 	if command == "" {
 		shell := os.Getenv("SHELL")
 		if shell == "" {
 			shell = "/bin/zsh"
 		}
-		parts = []string{shell}
-	} else {
-		// NOTE: strings.Fields splits on whitespace only — quoted arguments are not
-		// handled. This is a documented limitation per the story spec. Callers with
-		// complex commands should pre-split arguments.
-		parts = strings.Fields(command)
-		if len(parts) == 0 {
-			return nil, &TerminalError{Op: "spawn", Err: fmt.Errorf("empty command for session %q", name)}
-		}
+		return sm.SpawnArgv(ctx, name, repoPath, []string{shell}, cols, rows)
 	}
+	parts := strings.Fields(command)
+	if len(parts) == 0 {
+		return nil, &TerminalError{Op: "spawn", Err: fmt.Errorf("empty command for session %q", name)}
+	}
+	return sm.SpawnArgv(ctx, name, repoPath, parts, cols, rows)
+}
+
+// SpawnArgv creates a new PTY session running argv[0] with argv[1:] passed
+// through unchanged, one element per argument (R15).
+func (sm *SessionManager) SpawnArgv(ctx context.Context, name string, repoPath string, argv []string, cols, rows uint16) (*ManagedSession, error) {
+	if sm.helperClient == nil {
+		return nil, ErrHelperNotRunning
+	}
+	if len(argv) == 0 || argv[0] == "" {
+		return nil, &TerminalError{Op: "spawn", Err: fmt.Errorf("empty argv for session %q", name)}
+	}
+	parts := argv
 
 	sm.mu.Lock()
 	if _, exists := sm.sessions[name]; exists {

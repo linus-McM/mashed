@@ -29,3 +29,5 @@
 {"phase": "green", "step": "s1.2-terminal-auth-ui", "exit": 0, "ts": "2026-09-29"}
 {"phase": "red", "step": "s1.13-denylist-case", "exit": 1, "ts": "2026-09-29"}
 {"phase": "green", "step": "s1.13-denylist-case", "exit": 0, "ts": "2026-09-29"}
+{"phase": "red", "step": "s2.1-spawn-argv", "exit": 1, "ts": "2026-09-29"}
+{"phase": "green", "step": "s2.1-spawn-argv", "exit": 0, "ts": "2026-09-29"}
