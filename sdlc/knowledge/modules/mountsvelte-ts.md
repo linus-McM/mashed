@@ -5,9 +5,9 @@ description: "Graphify community 3: docs/stories/bmad-interactive-07-registry-en
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:08Z" }
+stale_after: "2026-10-13T11:16:08Z"
+source_commit: 85e7124b5a77a2f29bd9db818781712ea7a1049b
 sources:
   - { id: bmad-interactive-07-registry-entries, resource: docs/stories/bmad-interactive-07-registry-entries.md, last_modified: "2026-04-20T15:36:58+10:00", digest: 47d47db81112ff4e }
   - { id: MarkdownBlock, resource: frontend/src/components/bmad/MarkdownBlock.svelte, last_modified: "2026-04-22T20:18:54+10:00", digest: 3f0e52590dddfec2 }
@@ -30,7 +30,7 @@ sources:
   - { id: mountSvelte, resource: frontend/src/components/bmad/__tests__/mountSvelte.ts, last_modified: "2026-04-22T20:01:25+10:00", digest: becfbd6c142f9b1b }
   - { id: linkSanitiser, resource: frontend/src/components/bmad/linkSanitiser.ts, last_modified: "2026-04-22T08:19:28+10:00", digest: c487727219545c6a }
   - { id: workflow, resource: frontend/src/types/workflow.ts, last_modified: "2026-04-23T13:05:14+10:00", digest: dde86e2d10f68917 }
-  - { id: markdown-it, resource: markdown-it, last_modified: "2026-09-29T10:00:58Z", digest: missing }
+  - { id: markdown-it, resource: markdown-it, last_modified: "2026-09-29T11:16:08Z", digest: missing }
 ---
 
 # Files

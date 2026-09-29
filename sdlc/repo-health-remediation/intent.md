@@ -1,5 +1,5 @@
 # Intent: Repo health remediation
-Author: linus. Status: draft. Risk: high.
+Author: linus. Status: accepted. Risk: high.
 
 ## Problem
 The Mashed desktop app (Wails, Go + Svelte, macOS) has security holes, broken features and a build that does not work from a fresh clone. Source review: `docs/plans/repo-health-remediation.md` (measured on `main` @ `5ca92ae`, before the `dev` merge; line references there must be re-pinned).

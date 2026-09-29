@@ -5,13 +5,13 @@ description: "Graphify community 21: @xterm/addon-fit, @xterm/xterm, @xterm/xter
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:08Z" }
+stale_after: "2026-10-13T11:16:08Z"
+source_commit: 85e7124b5a77a2f29bd9db818781712ea7a1049b
 sources:
-  - { id: addon-fit, resource: "@xterm/addon-fit", last_modified: "2026-09-29T10:00:58Z", digest: missing }
-  - { id: xterm, resource: "@xterm/xterm", last_modified: "2026-09-29T10:00:58Z", digest: missing }
-  - { id: xterm, resource: "@xterm/xterm/css/xterm.css", last_modified: "2026-09-29T10:00:58Z", digest: missing }
+  - { id: addon-fit, resource: "@xterm/addon-fit", last_modified: "2026-09-29T11:16:08Z", digest: missing }
+  - { id: xterm, resource: "@xterm/xterm", last_modified: "2026-09-29T11:16:08Z", digest: missing }
+  - { id: xterm, resource: "@xterm/xterm/css/xterm.css", last_modified: "2026-09-29T11:16:08Z", digest: missing }
   - { id: package, resource: frontend/package.json, last_modified: "2026-04-22T16:28:45+10:00", digest: 5a2c6b5e36bbccae }
   - { id: Terminal, resource: frontend/src/components/Terminal.svelte, last_modified: "2026-05-07T21:00:01+10:00", digest: a8e6e1c9090de774 }
   - { id: pty, resource: frontend/src/types/pty.ts, last_modified: "2026-04-22T19:23:56+10:00", digest: 44628db4a836ad08 }

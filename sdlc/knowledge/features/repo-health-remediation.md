@@ -3,13 +3,15 @@ type: Feature
 title: Repo health remediation
 description: "The Mashed desktop app (Wails, Go + Svelte, macOS) has security holes, broken features and a build that does not work from a fresh clone. Source review: `docs/plans/repo-health-remediation.md` (measur"
 resource: sdlc/repo-health-remediation
-tags: [feature, draft]
-status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+tags: [feature, accepted]
+status: stable
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:08Z" }
+stale_after: "2026-10-13T11:16:08Z"
+source_commit: 85e7124b5a77a2f29bd9db818781712ea7a1049b
 sources:
-  - { id: intent, resource: sdlc/repo-health-remediation/intent.md, last_modified: "2026-09-29T10:00:58Z", digest: 54ff55c599dd493c }
+  - { id: intent, resource: sdlc/repo-health-remediation/intent.md, last_modified: "2026-09-29T20:00:59+10:00", digest: 476d74d6341cb18a }
+verified:
+  - { by: "human:linus-mcmanamey", at: "2026-09-29T11:16:08Z" }
 ---
 
 # Problem
@@ -50,11 +52,11 @@ Success measure (done means all of):
 - no review yet
 
 # Status
-- intent.md: draft
+- intent.md: accepted
 - spec.md: missing
 - plan.md: missing
 - test-report: missing or failed
 - deployed: nowhere
 
 # Documents
-- none
+- plan: sdlc/repo-health-remediation/docs/plan.html (9/9 showcase, 0 errors, 0 warnings)

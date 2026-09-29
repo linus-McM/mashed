@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Repo health remediation",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "Local user",
+      "sublabel": "macOS desktop",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "frontend",
+      "type": "frontend",
+      "label": "Svelte webview",
+      "sublabel": "Terminal / CodeEditor / GitPanel",
+      "pos": [
+        250,
+        300
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "sends WS token"
+    },
+    {
+      "id": "bindings",
+      "type": "backend",
+      "label": "Wails bindings",
+      "sublabel": "app_git / app_review / app.go",
+      "pos": [
+        470,
+        300
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "bridge",
+      "type": "security",
+      "label": "Terminal bridge",
+      "sublabel": "internal/terminal",
+      "pos": [
+        690,
+        300
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "token + origin"
+    },
+    {
+      "id": "pty",
+      "type": "external",
+      "label": "Shell / claude PTY",
+      "sublabel": "argv []string",
+      "pos": [
+        910,
+        300
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "attacker",
+      "type": "external",
+      "label": "Foreign web page",
+      "sublabel": "any browser tab",
+      "pos": [
+        690,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "scan",
+      "type": "backend",
+      "label": "Scanning goroutines",
+      "sublabel": "SetDevDir re-entrant",
+      "pos": [
+        470,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "ci",
+      "type": "cloud",
+      "label": "GitHub Actions",
+      "sublabel": "ci.yml main + dev",
+      "pos": [
+        250,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "fresh clone"
+    },
+    {
+      "id": "git",
+      "type": "external",
+      "label": "git CLI",
+      "sublabel": "-- and no leading dash",
+      "pos": [
+        250,
+        480
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "guard",
+      "type": "security",
+      "label": "Path guard",
+      "sublabel": "under $HOME, no symlink escape",
+      "pos": [
+        470,
+        480
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "fs",
+      "type": "database",
+      "label": "Files + config",
+      "sublabel": "atomic saveConfig",
+      "pos": [
+        690,
+        480
+      ],
+      "size": [
+        150,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Mashed app (changes)",
+      "wraps": [
+        "frontend",
+        "bindings",
+        "bridge",
+        "scan",
+        "guard"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "user-ui",
+      "from": "user",
+      "to": "frontend",
+      "label": "uses",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ui-bindings",
+      "from": "frontend",
+      "to": "bindings",
+      "label": "Wails IPC",
+      "variant": "emphasis"
+    },
+    {
+      "id": "bindings-bridge",
+      "from": "bindings",
+      "to": "bridge",
+      "label": "SpawnArgs",
+      "variant": "emphasis"
+    },
+    {
+      "id": "bridge-pty",
+      "from": "bridge",
+      "to": "pty",
+      "label": "WebSocket",
+      "variant": "emphasis"
+    },
+    {
+      "id": "attack-blocked",
+      "from": "attacker",
+      "to": "bridge",
+      "label": "403",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        790,
+        237
+      ]
+    },
+    {
+      "id": "bindings-scan",
+      "from": "bindings",
+      "to": "scan",
+      "label": "cancel + restart",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "ci-ui",
+      "from": "ci",
+      "to": "frontend",
+      "label": "go test -race, vitest",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        390,
+        237
+      ]
+    },
+    {
+      "id": "bindings-git",
+      "from": "bindings",
+      "to": "git",
+      "label": "guarded args",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "bindings-guard",
+      "from": "bindings",
+      "to": "guard",
+      "label": "Read/WriteFile",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        590,
+        422
+      ]
+    },
+    {
+      "id": "guard-fs",
+      "from": "guard",
+      "to": "fs"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "slate",
+      "title": "Summary",
+      "items": [
+        "Generated by sdlc from plan sources @ 9b00a14ff719; drafts are Claude's reading of the artifact, the acceptor decides",
+        "All 5 phases of docs/plans/repo-health-remediation.md, one PR per phase",
+        "Done = fresh-clone CI green + attack tests + /security-review no highs"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Security (P0)",
+      "items": [
+        "Terminal WS: per-launch token + Wails origin allowlist",
+        "git args: -- and leading-dash rejection",
+        "File bindings confined to $HOME; pty-helper socket 0600"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Stays the same",
+      "items": [
+        "BMAD interactive behaviour and invariants",
+        "macOS-only integrations",
+        "No history rewrite; LFS for new binary versions only"
+      ]
+    }
+  ]
+}

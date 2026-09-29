@@ -5,15 +5,15 @@ description: "Graphify community 73: docs/plans/repo-health-remediation.md, docs
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:08Z" }
+stale_after: "2026-10-13T11:16:08Z"
+source_commit: 85e7124b5a77a2f29bd9db818781712ea7a1049b
 sources:
   - { id: repo-health-remediation, resource: docs/plans/repo-health-remediation.md, last_modified: "2026-09-29T06:03:48Z", digest: f5a96b797d990d0e }
   - { id: meditor-02-readfilebase64-binding, resource: docs/stories/old_stories/meditor-02-readfilebase64-binding.md, last_modified: "2026-04-12T10:43:48+10:00", digest: c3e539f11ac58af8 }
   - { id: meditor-04-markdown-editor, resource: docs/stories/old_stories/meditor-04-markdown-editor.md, last_modified: "2026-04-12T10:43:48+10:00", digest: 2c11f30e526240e8 }
   - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
-  - { id: intent, resource: sdlc/repo-health-remediation/intent.md, last_modified: "2026-09-29T10:00:58Z", digest: 54ff55c599dd493c }
+  - { id: intent, resource: sdlc/repo-health-remediation/intent.md, last_modified: "2026-09-29T20:00:59+10:00", digest: 476d74d6341cb18a }
 ---
 
 # Files

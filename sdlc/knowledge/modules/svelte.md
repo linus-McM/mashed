@@ -5,12 +5,12 @@ description: "Graphify community 6: @xyflow/svelte/dist/style.css, @xyflow/syste
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:08Z" }
+stale_after: "2026-10-13T11:16:08Z"
+source_commit: 85e7124b5a77a2f29bd9db818781712ea7a1049b
 sources:
-  - { id: style, resource: "@xyflow/svelte/dist/style.css", last_modified: "2026-09-29T10:00:58Z", digest: missing }
-  - { id: system, resource: "@xyflow/system", last_modified: "2026-09-29T10:00:58Z", digest: missing }
+  - { id: style, resource: "@xyflow/svelte/dist/style.css", last_modified: "2026-09-29T11:16:08Z", digest: missing }
+  - { id: system, resource: "@xyflow/system", last_modified: "2026-09-29T11:16:08Z", digest: missing }
   - { id: ui-ast-U7-decision-group, resource: docs/stories/ui-ast-U7-decision-group.md, last_modified: "2026-04-22T11:51:34+10:00", digest: 2aab4f5ddd2f6bdb }
   - { id: App, resource: frontend/src/App.svelte, last_modified: "2026-04-23T11:09:52+10:00", digest: 10db755a7a0e5abe }
   - { id: AboutModal, resource: frontend/src/components/AboutModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 4371891538f83733 }
@@ -63,7 +63,7 @@ sources:
   - { id: errorMessage, resource: frontend/src/lib/errorMessage.ts, last_modified: "2026-04-22T17:53:53+10:00", digest: 01d52ec3146aae0e }
   - { id: ptySize, resource: frontend/src/lib/ptySize.ts, last_modified: "2026-05-07T18:18:02+10:00", digest: 819faf79772ff83a }
   - { id: sprintColors, resource: frontend/src/lib/sprintColors.js, last_modified: "2026-04-08T15:23:40+10:00", digest: 615bf277a88f2117 }
-  - { id: wails, resource: frontend/src/lib/types/wails, last_modified: "2026-09-29T10:00:58Z", digest: missing }
+  - { id: wails, resource: frontend/src/lib/types/wails, last_modified: "2026-09-29T11:16:08Z", digest: missing }
   - { id: workflow, resource: frontend/src/types/workflow.ts, last_modified: "2026-04-23T13:05:14+10:00", digest: dde86e2d10f68917 }
   - { id: BranchModal, resource: frontend/src/views/BranchModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 6d3c58fc0fa1902c }
   - { id: ForcePushModal, resource: frontend/src/views/ForcePushModal.svelte, last_modified: "2026-04-22T17:53:53+10:00", digest: 6f35f823b43cd232 }
@@ -76,11 +76,11 @@ sources:
   - { id: WorkflowBuilder, resource: frontend/src/views/WorkflowBuilder.svelte, last_modified: "2026-04-27T10:45:20+10:00", digest: 40a1956dcdb95828 }
   - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
   - { id: runtime, resource: frontend/wailsjs/runtime/runtime.js, last_modified: "2026-05-07T09:55:31+10:00", digest: e25fe86d3c590de7 }
-  - { id: lucide-svelte, resource: lucide-svelte, last_modified: "2026-09-29T10:00:58Z", digest: missing }
-  - { id: animate, resource: svelte/animate, last_modified: "2026-09-29T10:00:58Z", digest: missing }
-  - { id: easing, resource: svelte/easing, last_modified: "2026-09-29T10:00:58Z", digest: missing }
-  - { id: store, resource: svelte/store, last_modified: "2026-09-29T10:00:58Z", digest: missing }
-  - { id: transition, resource: svelte/transition, last_modified: "2026-09-29T10:00:58Z", digest: missing }
+  - { id: lucide-svelte, resource: lucide-svelte, last_modified: "2026-09-29T11:16:08Z", digest: missing }
+  - { id: animate, resource: svelte/animate, last_modified: "2026-09-29T11:16:08Z", digest: missing }
+  - { id: easing, resource: svelte/easing, last_modified: "2026-09-29T11:16:08Z", digest: missing }
+  - { id: store, resource: svelte/store, last_modified: "2026-09-29T11:16:08Z", digest: missing }
+  - { id: transition, resource: svelte/transition, last_modified: "2026-09-29T11:16:08Z", digest: missing }
 ---
 
 # Files

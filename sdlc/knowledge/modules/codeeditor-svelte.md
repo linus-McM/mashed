@@ -5,13 +5,13 @@ description: "Graphify community 248: @milkdown/crepe, @milkdown/crepe/theme/cla
 resource: ""
 tags: [module, graphify]
 status: draft
-generated: { by: sdlc/0.8.1, at: "2026-09-29T10:00:58Z" }
-stale_after: "2026-10-13T10:00:58Z"
-source_commit: 54a45892a8f0a2af4b1dccb63269c628ab15b3cd
+generated: { by: sdlc/0.8.1, at: "2026-09-29T11:16:08Z" }
+stale_after: "2026-10-13T11:16:08Z"
+source_commit: 85e7124b5a77a2f29bd9db818781712ea7a1049b
 sources:
-  - { id: crepe, resource: "@milkdown/crepe", last_modified: "2026-09-29T10:00:58Z", digest: missing }
-  - { id: classic-dark, resource: "@milkdown/crepe/theme/classic-dark.css", last_modified: "2026-09-29T10:00:58Z", digest: missing }
-  - { id: plugin-listener, resource: "@milkdown/plugin-listener", last_modified: "2026-09-29T10:00:58Z", digest: missing }
+  - { id: crepe, resource: "@milkdown/crepe", last_modified: "2026-09-29T11:16:08Z", digest: missing }
+  - { id: classic-dark, resource: "@milkdown/crepe/theme/classic-dark.css", last_modified: "2026-09-29T11:16:08Z", digest: missing }
+  - { id: plugin-listener, resource: "@milkdown/plugin-listener", last_modified: "2026-09-29T11:16:08Z", digest: missing }
   - { id: CodeEditor, resource: frontend/src/components/CodeEditor.svelte, last_modified: "2026-04-22T20:32:12+10:00", digest: 1bb474a9cd8f0465 }
   - { id: EditorRouter, resource: frontend/src/components/EditorRouter.svelte, last_modified: "2026-04-22T20:18:54+10:00", digest: 86fac6035745e901 }
   - { id: ImageViewer, resource: frontend/src/components/ImageViewer.svelte, last_modified: "2026-04-22T19:23:56+10:00", digest: 4abd3a97e70be2b9 }
@@ -19,7 +19,7 @@ sources:
   - { id: ImageViewer.test, resource: frontend/src/components/__tests__/ImageViewer.test.ts, last_modified: "2026-04-09T12:11:12+10:00", digest: 53d820a8d332d63b }
   - { id: imageViewerUtils, resource: frontend/src/components/imageViewerUtils.ts, last_modified: "2026-04-09T12:11:12+10:00", digest: 2bec4b44eedc3260 }
   - { id: App, resource: frontend/wailsjs/go/main/App.js, last_modified: "2026-05-07T18:18:02+10:00", digest: bdc3ffd8e98df7d8 }
-  - { id: panzoom, resource: panzoom, last_modified: "2026-09-29T10:00:58Z", digest: missing }
+  - { id: panzoom, resource: panzoom, last_modified: "2026-09-29T11:16:08Z", digest: missing }
 ---
 
 # Files
