@@ -19,15 +19,7 @@ import (
 // initTestGitRepo creates a temporary git repo with an initial commit.
 func initTestGitRepo(t *testing.T) string {
 	t.Helper()
-	dir := t.TempDir()
-	gitRun(t, dir, "init")
-	gitRun(t, dir, "config", "user.email", "test@test.com")
-	gitRun(t, dir, "config", "user.name", "Test")
-	readme := filepath.Join(dir, "README.md")
-	require.NoError(t, os.WriteFile(readme, []byte("# Test\n"), 0o644))
-	gitRun(t, dir, "add", ".")
-	gitRun(t, dir, "commit", "-m", "initial")
-	return dir
+	return initTestGitRepoAt(t, t.TempDir())
 }
 
 // gitRun runs a git command in the given directory.
@@ -35,7 +27,6 @@ func gitRun(t *testing.T, dir string, args ...string) {
 	t.Helper()
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
-	cmd.Env = cleanGitEnv()
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "git %v failed: %s", args, string(out))
 }

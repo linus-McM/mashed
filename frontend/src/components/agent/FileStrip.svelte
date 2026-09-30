@@ -32,12 +32,6 @@
   export let onPR: () => void;
   export let onReview: () => void;
 
-  let allFilesSearch = ''; // search filter for all files tab
-
-  $: filteredAllFiles = allFilesSearch
-    ? allFiles.filter(f => f.toLowerCase().includes(allFilesSearch.toLowerCase()))
-    : allFiles;
-
   function selectFile(file: RepoFile) {
     if (selectedFile?.path === file.path) {
       selectedFile = null; // toggle off

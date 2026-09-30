@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { FEED_FILES, readJoined } from './splitSources';
 
 // Story uiqa-10 — Signature Moments: running agent pulse, status-bar ambient
 // SparkLine + pulse dot, terminal-style commit panel. Source-level assertions
@@ -14,19 +15,9 @@ import { resolve } from 'node:path';
 
 const FRONTEND_SRC = resolve(__dirname, '..');
 const STYLE_CSS = resolve(FRONTEND_SRC, 'style.css');
-const NOTIFICATION_FEED = resolve(FRONTEND_SRC, 'views/NotificationFeed.svelte');
-// R31: NotificationFeed was split into components/feed/* children (and
-// lib/feed/repoTree.ts). Scoped markup/CSS moved with the child that renders
-// it, so feed assertions read the parent plus its children as one source.
-const FEED_FILES = [
-  NOTIFICATION_FEED,
-  ...['RepoHeader', 'AgentList', 'RepoActions', 'CommitOutputPanel'].map((n) =>
-    resolve(FRONTEND_SRC, `components/feed/${n}.svelte`),
-  ),
-];
 
 const read = (p: string) => readFileSync(p, 'utf8');
-const readFeed = () => FEED_FILES.map(read).join('\n');
+const readFeed = () => readJoined(FEED_FILES);
 
 /**
  * Extract every `@media (prefers-reduced-motion: no-preference) { ... }` block

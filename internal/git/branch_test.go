@@ -22,22 +22,10 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// cleanGitEnv returns the process environment without GIT_* variables.
-func cleanGitEnv() []string {
-	var out []string
-	for _, kv := range os.Environ() {
-		if !strings.HasPrefix(kv, "GIT_") {
-			out = append(out, kv)
-		}
-	}
-	return out
-}
-
 // runGit runs git in dir for test setup and fails the test on error.
 func runGit(t *testing.T, dir string, args ...string) string {
 	t.Helper()
 	cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
-	cmd.Env = cleanGitEnv()
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("git %v: %v\n%s", args, err, out)

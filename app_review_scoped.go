@@ -11,6 +11,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"mashed/internal/advice"
+	"mashed/internal/git"
 	"mashed/internal/pathguard"
 )
 
@@ -43,9 +44,9 @@ func buildScopedDiff(ctx context.Context, repoPath string, filePaths []string) (
 		}
 
 		if tracked[fp] {
-			out, _ := exec.CommandContext(ctx, "git", "-C", repoPath, "diff", "HEAD", "--", fp).Output()
+			out, _ := git.FileDiff(ctx, repoPath, fp)
 			if len(out) > 0 {
-				parts = append(parts, string(out))
+				parts = append(parts, out)
 			}
 			continue
 		}
@@ -59,9 +60,9 @@ func buildScopedDiff(ctx context.Context, repoPath string, filePaths []string) (
 		if err != nil {
 			continue
 		}
-		noIdxOut, _ := exec.CommandContext(ctx, "git", "-C", repoPath, "diff", "--no-index", "--", "/dev/null", resolved).Output()
+		noIdxOut, _ := git.NoIndexDiff(ctx, repoPath, resolved)
 		if len(noIdxOut) > 0 {
-			parts = append(parts, string(noIdxOut))
+			parts = append(parts, noIdxOut)
 		}
 	}
 

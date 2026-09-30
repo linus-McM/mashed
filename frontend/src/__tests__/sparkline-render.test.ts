@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { FEED_FILES, readJoined } from './splitSources';
 
 // Story uiqa-09 — Render SparkLine in NotificationFeed.
 // Grep-based contract tests that ensure SparkLine is actually wired into
@@ -9,22 +10,12 @@ import { resolve } from 'node:path';
 // differences between dev, build, and vitest environments.
 
 const FRONTEND_SRC = resolve(__dirname, '..');
-const NOTIFICATION_FEED = resolve(FRONTEND_SRC, 'views/NotificationFeed.svelte');
 const SPARKLINE = resolve(FRONTEND_SRC, 'components/SparkLine.svelte');
-// R31: NotificationFeed was split into components/feed/* children (and
-// lib/feed/repoTree.ts). Scoped markup/CSS moved with the child that renders
-// it, so feed assertions read the parent plus its children as one source.
-const FEED_FILES = [
-  NOTIFICATION_FEED,
-  ...['RepoHeader', 'AgentList', 'RepoActions', 'CommitOutputPanel'].map((n) =>
-    resolve(FRONTEND_SRC, `components/feed/${n}.svelte`),
-  ),
-];
 
 const read = (p: string) => readFileSync(p, 'utf8');
 
 describe('uiqa-09 SparkLine render in NotificationFeed', () => {
-  const feed = FEED_FILES.map(read).join('\n');
+  const feed = readJoined(FEED_FILES);
 
   it('AC-7: keeps SparkLine import and uses it at least once', () => {
     // Import site

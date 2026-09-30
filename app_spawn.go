@@ -17,40 +17,30 @@ import (
 // If command is empty, the session starts the user's default shell.
 // cols/rows set the initial PTY winsize; 0 falls back to defaults (80x24).
 func (a *App) spawnSession(prefix, repoPath, command string, sessionType domain.SessionType, model string, cols, rows uint16) (string, error) {
-	now := time.Now()
-	repoName := repoNameFromDir(repoPath)
-	sessionName := fmt.Sprintf("%s-%s-%d", prefix, repoName, now.Unix())
-
-	if _, err := a.manager.Spawn(a.ctx, sessionName, repoPath, command, cols, rows); err != nil {
-		return "", fmt.Errorf("spawn session failed: %w", err)
-	}
-
-	session := domain.TerminalSession{
-		SessionName: sessionName,
-		PaneTarget:  sessionName,
-		RepoPath:    repoPath,
-		RepoName:    repoName,
-		SessionType: sessionType,
-		Model:       model,
-		SpawnedAt:   now,
-		IsAlive:     true,
-	}
-	a.registerSession(session)
-	runtime.EventsEmit(a.ctx, eventSessionAdded, session)
-
-	log.Printf("spawned session %s at %s", sessionName, repoPath)
-	return sessionName, nil
+	return a.spawnRegistered(prefix, repoPath, sessionType, model, func(name string) error {
+		_, err := a.manager.Spawn(a.ctx, name, repoPath, command, cols, rows)
+		return err
+	})
 }
 
 // spawnSessionArgv is spawnSession for a pre-split argv: every element
 // reaches the process unchanged (R15/R16). Use it for commands built in code,
 // such as claude with a multi-line prompt.
 func (a *App) spawnSessionArgv(prefix, repoPath string, argv []string, sessionType domain.SessionType, model string) (string, error) {
+	return a.spawnRegistered(prefix, repoPath, sessionType, model, func(name string) error {
+		_, err := a.manager.SpawnArgv(a.ctx, name, repoPath, argv, 0, 0)
+		return err
+	})
+}
+
+// spawnRegistered names a session, starts it with spawn, then registers it
+// and emits eventSessionAdded.
+func (a *App) spawnRegistered(prefix, repoPath string, sessionType domain.SessionType, model string, spawn func(name string) error) (string, error) {
 	now := time.Now()
 	repoName := repoNameFromDir(repoPath)
 	sessionName := fmt.Sprintf("%s-%s-%d", prefix, repoName, now.Unix())
 
-	if _, err := a.manager.SpawnArgv(a.ctx, sessionName, repoPath, argv, 0, 0); err != nil {
+	if err := spawn(sessionName); err != nil {
 		return "", fmt.Errorf("spawn session failed: %w", err)
 	}
 

@@ -2,8 +2,8 @@ package main
 
 import (
 	"embed"
-	"io/fs"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"os/exec"
@@ -234,17 +234,17 @@ func main() {
 	}()
 
 	err := wails.Run(&options.App{
-		Title:            "Mashed",
-		Width:            1280,
-		Height:           800,
-		MinWidth:         800,
-		MinHeight:        600,
-		DisableResize:    false,
-		Frameless:        true,
+		Title:         "Mashed",
+		Width:         1280,
+		Height:        800,
+		MinWidth:      800,
+		MinHeight:     600,
+		DisableResize: false,
+		Frameless:     true,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		Menu:             buildMenu(app),
+		Menu: buildMenu(app),
 		// Design system: --bg-deepest #07080a
 		BackgroundColour: &options.RGBA{R: 7, G: 8, B: 10, A: 255},
 		OnStartup:        app.startup,
@@ -253,7 +253,7 @@ func main() {
 			app,
 		},
 		Mac: &mac.Options{
-			TitleBar: mac.TitleBarHiddenInset(),
+			TitleBar:             mac.TitleBarHiddenInset(),
 			WebviewIsTransparent: true,
 			WindowIsTranslucent:  false,
 		},

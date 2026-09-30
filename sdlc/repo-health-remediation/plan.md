@@ -198,6 +198,7 @@ From: spec.md (2026-09-29). Status: accepted. Risk: high.
 - frontend/src/components/EditorRouter.svelte
 - frontend/src/components/__tests__/EditorRouter.lazy.test.ts (new)
 - frontend/src/components/LazyView.svelte (new, s5.8: dynamic-import wrapper with aria-busy placeholder)
+- frontend/src/__tests__/splitSources.ts (new, /simplify: shared parent+children source lists for style tests)
 - frontend/src/components/__tests__/LazyView.test.ts (new)
 - frontend/src/components/__tests__/fixtures/LazyProbe.svelte (new, test fixture)
 - frontend/src/App.svelte (s5.8: WorkflowBuilder lazy-loaded)

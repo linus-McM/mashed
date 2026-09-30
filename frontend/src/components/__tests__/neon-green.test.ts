@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { AGENT_DETAIL_FILES, FEED_FILES, REPO_TREE, SETTINGS_FILES, readJoined } from '../../__tests__/splitSources';
 
 // Story uiqa-02 — Eradicate the legacy neon green hex.
 // Covers AC-1..AC-6 and the 7 BDD scenarios. Tests read source files from
@@ -19,44 +20,16 @@ const FRONTEND_SRC = resolve(__dirname, '../..');
 const STYLE_CSS_PATH = resolve(FRONTEND_SRC, 'style.css');
 
 const STATUS_BADGE = resolve(FRONTEND_SRC, 'components/StatusBadge.svelte');
-const NOTIFICATION_FEED = resolve(FRONTEND_SRC, 'views/NotificationFeed.svelte');
-// R31: NotificationFeed was split into components/feed/* children (and
-// lib/feed/repoTree.ts). Scoped markup/CSS moved with the child that renders
-// it, so feed assertions read the parent plus its children as one source.
-const FEED_FILES = [
-  NOTIFICATION_FEED,
-  ...['RepoHeader', 'AgentList', 'RepoActions', 'CommitOutputPanel'].map((n) =>
-    resolve(FRONTEND_SRC, `components/feed/${n}.svelte`),
-  ),
-  resolve(FRONTEND_SRC, 'lib/feed/repoTree.ts'),
-];
-const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
-// R31: AgentDetail was split into components/agent/* children; the view's
-// source is the parent plus its extracted children, concatenated.
-const AGENT_DETAIL_FILES = [
-  AGENT_DETAIL,
-  ...['FileStrip', 'CommitOutputPanel', 'SubAgentPanel', 'SessionTabs'].map((n) =>
-    resolve(FRONTEND_SRC, `components/agent/${n}.svelte`),
-  ),
-];
 const REPO_CONTEXT_BAR = resolve(
   FRONTEND_SRC,
   'components/bmad/RepoContextBar.svelte',
 );
 const TITLE_BAR = resolve(FRONTEND_SRC, 'components/TitleBar.svelte');
-// Settings.svelte was split into child components (spec R31); the view's
-// source is the parent plus its extracted children, concatenated.
-const SETTINGS_FILES = [
-  'views/Settings.svelte',
-  'components/settings/EditorSettings.svelte',
-  'components/settings/VSCodiumThemes.svelte',
-  'components/settings/UIAdapterSettings.svelte',
-].map((p) => resolve(FRONTEND_SRC, p));
 
 const read = (p: string) => readFileSync(p, 'utf8');
-const readAgentDetail = () => AGENT_DETAIL_FILES.map(read).join('\n');
-const readSettings = () => SETTINGS_FILES.map(read).join('\n');
-const readFeed = () => FEED_FILES.map(read).join('\n');
+const readAgentDetail = () => readJoined(AGENT_DETAIL_FILES);
+const readSettings = () => readJoined(SETTINGS_FILES);
+const readFeed = () => readJoined([...FEED_FILES, REPO_TREE]);
 
 function walk(dir: string, exts: Set<string>): string[] {
   const out: string[] = [];

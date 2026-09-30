@@ -187,10 +187,10 @@ func TestRepo_CIWorkflow(t *testing.T) {
 		"go vet ./...",
 		"go test -race ./...",
 		"go test -count=50 -run 'AC2|LateClient' ./internal/terminal/", // R20 on ubuntu
-		"sudo -E env \"PATH=$PATH\" go test ./internal/bmad/",           // R23 as root
-		"! git ls-files | grep -E",                                      // R26 junk
-		"! git grep -l -F \"/Users/",                                    // R26 personal paths
-		"! git grep -l -E '5X8A9U",                                      // R27 signing id / email
+		"sudo -E env \"PATH=$PATH\" go test ./internal/bmad/",          // R23 as root
+		"! git ls-files | grep -E",                                     // R26 junk
+		"! git grep -l -F \"/Users/",                                   // R26 personal paths
+		"! git grep -l -E '5X8A9U",                                     // R27 signing id / email
 	} {
 		if !strings.Contains(runs["go"], want) {
 			t.Errorf("go job lacks %q", want)
@@ -253,7 +253,6 @@ func gitGrepFiles(t *testing.T, extended bool, needle string) []string {
 		":!docs/plans", ":!sdlc", ":!repo_hygiene_test.go", ":!.github/workflows/ci.yml")
 	cmd := exec.Command("git", args...)
 	cmd.Dir = repoRoot(t)
-	cmd.Env = cleanGitEnv()
 	out, err := cmd.Output()
 	if err != nil {
 		if ee, ok := err.(*exec.ExitError); ok && ee.ExitCode() == 1 {
@@ -274,10 +273,7 @@ func TestRepo_NoTrackedJunk(t *testing.T) {
 		if p == "todo.md" {
 			probe = p
 		}
-		cmd := exec.Command("git", "check-ignore", "-q", "--no-index", probe)
-		cmd.Dir = repoRoot(t)
-		cmd.Env = cleanGitEnv()
-		if err := cmd.Run(); err != nil {
+		if !ignored(t, probe) {
 			t.Errorf("%s is not git-ignored", probe)
 		}
 	}
@@ -333,7 +329,7 @@ func TestRepo_JustfileLFSGuard(t *testing.T) {
 	run := func(dir string) error {
 		cmd := exec.Command(justBin, "--justfile", filepath.Join(repoRoot(t), "justfile"),
 			"--working-directory", repoRoot(t), "check-lfs")
-		cmd.Env = append(cleanGitEnv(), "MASHED_ASSET_DIRS="+dir)
+		cmd.Env = append(os.Environ(), "MASHED_ASSET_DIRS="+dir)
 		return cmd.Run()
 	}
 
@@ -363,7 +359,6 @@ func ignored(t *testing.T, path string) bool {
 	t.Helper()
 	cmd := exec.Command("git", "check-ignore", "-q", "--no-index", path)
 	cmd.Dir = repoRoot(t)
-	cmd.Env = cleanGitEnv()
 	return cmd.Run() == nil
 }
 
@@ -457,7 +452,9 @@ func viewUnder1000(t *testing.T, name string) {
 	}
 }
 
-func TestRepo_NotificationFeedUnder1000Lines(t *testing.T) { viewUnder1000(t, "NotificationFeed.svelte") }
+func TestRepo_NotificationFeedUnder1000Lines(t *testing.T) {
+	viewUnder1000(t, "NotificationFeed.svelte")
+}
 
 func TestRepo_WorkflowBuilderUnder1000Lines(t *testing.T) { viewUnder1000(t, "WorkflowBuilder.svelte") }
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { WORKFLOW_BUILDER_FILES, readJoined } from './splitSources';
 
 // Story uiqa-05 — rgba() → color-mix() migration.
 // Covers AC-1..AC-7. Walks frontend/src recursively and scans *.svelte/*.css
@@ -10,14 +11,6 @@ import { resolve, join } from 'node:path';
 const FRONTEND_SRC = resolve(__dirname, '..');
 const STYLE_CSS = resolve(FRONTEND_SRC, 'style.css');
 
-// WorkflowBuilder.svelte was split into child components (spec R31); its
-// entry is the parent plus its extracted children, read as one source.
-const WORKFLOW_BUILDER_GROUP = [
-  'views/WorkflowBuilder.svelte',
-  'components/bmad/BuilderToolbar.svelte',
-  'components/bmad/TerminalModal.svelte',
-].map((p) => resolve(FRONTEND_SRC, p));
-
 const BACKDROP_FILES: (string | string[])[] = [
   'views/NewSessionModal.svelte',
   'views/SpawnAgent.svelte',
@@ -26,7 +19,7 @@ const BACKDROP_FILES: (string | string[])[] = [
   'views/SummarisationModal.svelte',
   'views/MergeModal.svelte',
   'views/ForcePushModal.svelte',
-  WORKFLOW_BUILDER_GROUP,
+  WORKFLOW_BUILDER_FILES,
   'components/NewRepoModal.svelte',
   'components/AboutModal.svelte',
   'components/bmad/OutputViewerModal.svelte',
@@ -35,7 +28,7 @@ const BACKDROP_FILES: (string | string[])[] = [
 ].map((p) => (Array.isArray(p) ? p : resolve(FRONTEND_SRC, p)));
 
 const read = (p: string) => readFileSync(p, 'utf8');
-const readEntry = (p: string | string[]) => (Array.isArray(p) ? p.map(read).join('\n') : read(p));
+const readEntry = (p: string | string[]) => (Array.isArray(p) ? readJoined(p) : read(p));
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {

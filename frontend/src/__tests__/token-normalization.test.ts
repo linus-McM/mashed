@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { execSync } from 'node:child_process';
+import { AGENT_DETAIL_FILES, FEED_FILES, readJoined } from './splitSources';
 
 // Story uiqa-07 — Token scale normalization.
 // Covers AC-1..AC-6. Walks frontend/src/{views,components} and scans *.svelte
@@ -90,15 +91,7 @@ describe('uiqa-07: token scale normalization', () => {
   });
 
   describe('AC-3: AgentDetail uses --text-data token', () => {
-    const AGENT_DETAIL = resolve(VIEWS_DIR, 'AgentDetail.svelte');
-    // R31: AgentDetail was split into components/agent/*; read parent + children.
-    const AGENT_DETAIL_FILES = [
-      AGENT_DETAIL,
-      ...['FileStrip', 'CommitOutputPanel', 'SubAgentPanel', 'SessionTabs'].map((n) =>
-        resolve(COMPONENTS_DIR, `agent/${n}.svelte`),
-      ),
-    ];
-    const readAgentDetail = () => AGENT_DETAIL_FILES.map(read).join('\n');
+    const readAgentDetail = () => readJoined(AGENT_DETAIL_FILES);
 
     it('AC-3a (BDD#4): AgentDetail.svelte has zero font-size: 14px literal', () => {
       const src = readAgentDetail();
@@ -112,22 +105,7 @@ describe('uiqa-07: token scale normalization', () => {
   });
 
   describe('AC-4: numeric displays use tabular-nums', () => {
-    const NOTIF = resolve(VIEWS_DIR, 'NotificationFeed.svelte');
-    // R31: agent-row CSS moved to components/feed/*; read parent + children.
-    const NOTIF_FILES = [
-      NOTIF,
-      ...['RepoHeader', 'AgentList', 'RepoActions', 'CommitOutputPanel'].map((n) =>
-        resolve(COMPONENTS_DIR, `feed/${n}.svelte`),
-      ),
-    ];
-    const readNotif = () => NOTIF_FILES.map(read).join('\n');
-    const AGENT = resolve(VIEWS_DIR, 'AgentDetail.svelte');
-    const AGENT_FILES = [
-      AGENT,
-      ...['FileStrip', 'CommitOutputPanel', 'SubAgentPanel', 'SessionTabs'].map((n) =>
-        resolve(COMPONENTS_DIR, `agent/${n}.svelte`),
-      ),
-    ];
+    const readNotif = () => readJoined(FEED_FILES);
 
     function ruleBody(src: string, selector: string): string | null {
       const esc = selector.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -161,7 +139,7 @@ describe('uiqa-07: token scale normalization', () => {
     });
 
     it('AC-4d: AgentDetail .token-mini-label declares tabular-nums', () => {
-      const src = AGENT_FILES.map(read).join('\n');
+      const src = readJoined(AGENT_DETAIL_FILES);
       const rule = ruleBody(src, '.token-mini-label');
       expect(rule, '.token-mini-label rule not found').not.toBeNull();
       expect(rule!).toMatch(/font-variant-numeric:\s*tabular-nums/);

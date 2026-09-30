@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { AGENT_DETAIL_FILES, FEED_FILES, readJoined } from '../../__tests__/splitSources';
 
 // Story uiqa-04 — Shared .glow-btn class. Covers AC-1..AC-6 and all 7 BDD
 // scenarios. Reads source files from disk and injects style.css into jsdom
@@ -8,26 +9,6 @@ import { resolve } from 'node:path';
 
 const FRONTEND_SRC = resolve(__dirname, '../..');
 const STYLE_CSS = resolve(FRONTEND_SRC, 'style.css');
-const NOTIFICATION_FEED = resolve(FRONTEND_SRC, 'views/NotificationFeed.svelte');
-const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
-// R31: AgentDetail was split into components/agent/* children; scoped
-// markup/CSS moved with the child that renders it, so AgentDetail assertions
-// read the parent plus its children (style/template extracted per file).
-const AGENT_FILES = [
-  AGENT_DETAIL,
-  ...['FileStrip', 'CommitOutputPanel', 'SubAgentPanel', 'SessionTabs'].map((n) =>
-    resolve(FRONTEND_SRC, `components/agent/${n}.svelte`),
-  ),
-];
-// R31: NotificationFeed was split into components/feed/* children (and
-// lib/feed/repoTree.ts). Scoped markup/CSS moved with the child that renders
-// it, so feed assertions read the parent plus its children as one source.
-const FEED_FILES = [
-  NOTIFICATION_FEED,
-  ...['RepoHeader', 'AgentList', 'RepoActions', 'CommitOutputPanel'].map((n) =>
-    resolve(FRONTEND_SRC, `components/feed/${n}.svelte`),
-  ),
-];
 
 const read = (p: string) => readFileSync(p, 'utf8');
 
@@ -44,11 +25,11 @@ function templateOnly(src: string): string {
 }
 
 // Feed style blocks / templates extracted per file, then joined.
-const feedStyles = () => FEED_FILES.map((f) => styleBlock(read(f))).join('\n');
-const feedTemplates = () => FEED_FILES.map((f) => templateOnly(read(f))).join('\n');
+const feedStyles = () => readJoined(FEED_FILES, styleBlock);
+const feedTemplates = () => readJoined(FEED_FILES, templateOnly);
 // AgentDetail style blocks / templates extracted per file, then joined.
-const agentStyles = () => AGENT_FILES.map((f) => styleBlock(read(f))).join('\n');
-const agentTemplates = () => AGENT_FILES.map((f) => templateOnly(read(f))).join('\n');
+const agentStyles = () => readJoined(AGENT_DETAIL_FILES, styleBlock);
+const agentTemplates = () => readJoined(AGENT_DETAIL_FILES, templateOnly);
 
 let injectedStyle: HTMLStyleElement;
 beforeAll(() => {

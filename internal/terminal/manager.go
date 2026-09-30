@@ -14,9 +14,9 @@ import (
 
 // Sentinel errors for SessionManager.
 var (
-	ErrSessionExists      = errors.New("terminal: session already exists")
-	ErrSessionNotFound    = errors.New("terminal: session not found")
-	ErrHelperNotRunning   = errors.New("terminal: PTY helper not running")
+	ErrSessionExists    = errors.New("terminal: session already exists")
+	ErrSessionNotFound  = errors.New("terminal: session not found")
+	ErrHelperNotRunning = errors.New("terminal: PTY helper not running")
 )
 
 // SessionManager owns a map of named ManagedSession instances and provides
@@ -83,7 +83,6 @@ func (sm *SessionManager) SpawnArgv(ctx context.Context, name string, repoPath s
 	if len(argv) == 0 || argv[0] == "" {
 		return nil, &TerminalError{Op: "spawn", Err: fmt.Errorf("empty argv for session %q", name)}
 	}
-	parts := argv
 
 	sm.mu.Lock()
 	if _, exists := sm.sessions[name]; exists {
@@ -103,8 +102,8 @@ func (sm *SessionManager) SpawnArgv(ctx context.Context, name string, repoPath s
 	env := applyLoginPATH(append(os.Environ(), "TERM=xterm-256color"))
 	ptmx, pid, err := sm.helperClient.Spawn(ctx, helper.SpawnRequest{
 		ID:    name,
-		Shell: resolveExecutable(parts[0]),
-		Args:  parts[1:],
+		Shell: resolveExecutable(argv[0]),
+		Args:  argv[1:],
 		Env:   env,
 		Cwd:   repoPath,
 		Cols:  cols,

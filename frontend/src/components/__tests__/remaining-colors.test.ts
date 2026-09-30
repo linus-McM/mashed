@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { AGENT_DETAIL_FILES, SETTINGS_FILES, WORKFLOW_BUILDER_FILES, readJoined } from '../../__tests__/splitSources';
 
 // Story uiqa-03 — Remaining hardcoded colors.
 // Covers AC-1..AC-6 and the 7 BDD scenarios.
@@ -14,38 +15,14 @@ import { resolve } from 'node:path';
 const FRONTEND_SRC = resolve(__dirname, '../..');
 
 const EXECUTION_BAR = resolve(FRONTEND_SRC, 'components/bmad/ExecutionBar.svelte');
-const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
-// R31: AgentDetail was split into components/agent/* children; the view's
-// source is the parent plus its extracted children, concatenated.
-const AGENT_DETAIL_FILES = [
-  AGENT_DETAIL,
-  ...['FileStrip', 'CommitOutputPanel', 'SubAgentPanel', 'SessionTabs'].map((n) =>
-    resolve(FRONTEND_SRC, `components/agent/${n}.svelte`),
-  ),
-];
-// Settings.svelte was split into child components (spec R31); the view's
-// source is the parent plus its extracted children, concatenated.
-const SETTINGS_FILES = [
-  'views/Settings.svelte',
-  'components/settings/EditorSettings.svelte',
-  'components/settings/VSCodiumThemes.svelte',
-  'components/settings/UIAdapterSettings.svelte',
-].map((p) => resolve(FRONTEND_SRC, p));
 const PROCESS_NODE = resolve(FRONTEND_SRC, 'components/bmad/ProcessNode.svelte');
-// WorkflowBuilder.svelte was split into child components (spec R31); the
-// builder's source is the parent plus its extracted children, concatenated.
-const WORKFLOW_BUILDER_FILES = [
-  'views/WorkflowBuilder.svelte',
-  'components/bmad/BuilderToolbar.svelte',
-  'components/bmad/TerminalModal.svelte',
-].map((p) => resolve(FRONTEND_SRC, p));
 const TITLE_BAR = resolve(FRONTEND_SRC, 'components/TitleBar.svelte');
 const STYLE_CSS_PATH = resolve(FRONTEND_SRC, 'style.css');
 
 const read = (p: string) => readFileSync(p, 'utf8');
-const readAgentDetail = () => AGENT_DETAIL_FILES.map(read).join('\n');
-const readSettings = () => SETTINGS_FILES.map(read).join('\n');
-const readWorkflowBuilder = () => WORKFLOW_BUILDER_FILES.map(read).join('\n');
+const readAgentDetail = () => readJoined(AGENT_DETAIL_FILES);
+const readSettings = () => readJoined(SETTINGS_FILES);
+const readWorkflowBuilder = () => readJoined(WORKFLOW_BUILDER_FILES);
 
 // Extract the contiguous { ... } block that follows a selector. Handles single
 // nesting depth (sufficient for plain CSS rules in <style> blocks).
