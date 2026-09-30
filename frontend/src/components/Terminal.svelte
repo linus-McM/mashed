@@ -12,6 +12,7 @@
   import type { FitAddon } from '@xterm/addon-fit';
   import { GetTerminalAuth, GetAgentLog } from '../../wailsjs/go/main/App.js';
   import { openTerminalSocket, watchEarlyClose, TERMINAL_AUTH_FAILED_MESSAGE } from '../lib/terminalSocket';
+  import { createKeyHandler } from '../lib/terminalKeys';
   import { EventsOn, ClipboardGetText, ClipboardSetText } from '../../wailsjs/runtime/runtime.js';
   import { currentTheme } from '../lib/stores/theme.js';
   import { currentMonoFont, currentFontSize } from '../lib/stores/font.js';
@@ -135,8 +136,9 @@
     const fitAddon: FitAddon = new FitAddon();
     localTerm.loadAddon(fitAddon);
 
-    // NOTE: @xterm/addon-canvas removed — it breaks text selection and scrolling
-    // in macOS WKWebView. xterm.js 5.x default renderer handles both correctly.
+    // NOTE: no canvas/WebGL renderer addon — canvas broke text selection and
+    // scrolling in macOS WKWebView, and GPU rendering is a known source of
+    // garbled Claude Code output. The default DOM renderer handles both.
 
     if (!terminalEl) return;
     localTerm.open(terminalEl);
@@ -163,9 +165,17 @@
     }
     pasteFn = pasteToTerminal;
 
+    // Shift+Enter inserts a newline in Claude Code instead of submitting.
+    const handleShiftEnter = createKeyHandler((data: string) => {
+      if (ws && ws.readyState === WebSocket.OPEN && paneTarget) {
+        ws.send(new TextEncoder().encode(data));
+      }
+    });
+
     // Cmd+C copies selection (or sends ^C if nothing selected),
     // Cmd+V pastes from clipboard into the terminal.
     localTerm.attachCustomKeyEventHandler((ev: KeyboardEvent): boolean => {
+      if (!handleShiftEnter(ev)) return false;
       const isMeta = ev.metaKey || ev.ctrlKey;
       if (ev.type !== 'keydown') return true;
 

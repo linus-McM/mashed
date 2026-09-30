@@ -57,6 +57,16 @@ func TestSpawnArgv_PassesArgsVerbatim(t *testing.T) {
 	assert.Equal(t, []string{"--model", "sonnet", "-p", prompt}, req.Args)
 }
 
+// xterm.js 6 supports synchronized output (DEC 2026); tell Claude Code so,
+// since it only auto-detects a fixed list of terminals.
+func TestSpawnArgv_EnvForcesClaudeSyncOutput(t *testing.T) {
+	fs := &fakeSpawner{}
+	sm := newSessionManagerWith(fs)
+	_, err := sm.SpawnArgv(context.Background(), "s-env", t.TempDir(), []string{"sh"}, 0, 0)
+	require.NoError(t, err)
+	assert.Contains(t, fs.last(t).Env, "CLAUDE_CODE_FORCE_SYNC_OUTPUT=1")
+}
+
 func TestSpawnArgv_RejectsEmpty(t *testing.T) {
 	sm := newSessionManagerWith(&fakeSpawner{})
 	for _, argv := range [][]string{nil, {}, {""}} {
