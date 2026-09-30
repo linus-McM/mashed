@@ -106,12 +106,25 @@ func TestWriteFile_RejectsDenylistCaseVariants(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(home, "Library", "LaunchAgents"), 0o755); err != nil {
 		t.Fatal(err)
 	}
+	// On a case-insensitive filesystem (default macOS APFS) the variants reach
+	// the real files, so the denylist must name them. On a case-sensitive one
+	// (Linux CI) they are distinct paths whose parents do not exist; the write
+	// must still fail, just not necessarily with ErrDeniedPath.
+	caseInsensitive := false
+	if _, err := os.Stat(filepath.Join(home, ".ZSHRC")); err == nil {
+		caseInsensitive = true
+	}
 	for _, rel := range []string{
 		".ZSHRC",
 		filepath.Join(".SSH", "authorized_keys"),
 		filepath.Join("library", "launchagents", "evil.plist"),
 	} {
-		if err := app.WriteFile(filepath.Join(home, rel), "pwned"); !errors.Is(err, pathguard.ErrDeniedPath) {
+		err := app.WriteFile(filepath.Join(home, rel), "pwned")
+		if err == nil {
+			t.Errorf("WriteFile(%s) succeeded, want an error", rel)
+			continue
+		}
+		if (caseInsensitive || rel == ".ZSHRC") && !errors.Is(err, pathguard.ErrDeniedPath) {
 			t.Errorf("WriteFile(%s) err = %v, want ErrDeniedPath", rel, err)
 		}
 	}
