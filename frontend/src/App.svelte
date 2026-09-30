@@ -7,7 +7,7 @@
   import AgentDetail from './views/AgentDetail.svelte';
   import SpawnAgent from './views/SpawnAgent.svelte';
   import Settings from './views/Settings.svelte';
-  import WorkflowBuilder from './views/WorkflowBuilder.svelte';
+  import LazyView from './components/LazyView.svelte';
   import NewRepoModal from './components/NewRepoModal.svelte';
   import AboutModal from './components/AboutModal.svelte';
   import QuestionSnackbarStack from './components/bmad/QuestionSnackbarStack.svelte';
@@ -23,6 +23,10 @@
     IdleEventLike,
   } from './components/bmad/questionSnackbarUtils';
   import { Hexagon } from 'lucide-svelte';
+
+  // WorkflowBuilder pulls in @xyflow/svelte, d3 and markdown-it; code-split it
+  // (R31) so the entry chunk stays small. Module-level for a stable identity.
+  const loadWorkflowBuilder = () => import('./views/WorkflowBuilder.svelte');
   import TitleBar from './components/TitleBar.svelte';
   import { applyTheme } from './lib/stores/theme.js';
   import { loadSavedThemes, restoreImportedThemeFromConfig, loadBundledThemes } from './lib/themeInit.js';
@@ -373,19 +377,22 @@
       on:open-workspace={(e) => { builderRepoPath = e.detail.path; builderRepoBranch = e.detail.branch || ''; currentView = 'workflows'; }}
     />
   {:else if currentView === 'workflows'}
-    <WorkflowBuilder
-      repoPath={builderRepoPath}
-      repoBranch={builderRepoBranch}
-      {pendingQuestion}
-      {pendingTmuxTarget}
-      on:back={goBack}
-      on:question-responded={(e) => {
-        const nodeId = e.detail?.nodeId;
-        pendingQuestion = null;
-        if (nodeId) questionQueue = dismissQuestion(questionQueue, nodeId);
-      }}
-      on:tmux-opened={() => { pendingTmuxTarget = ''; }}
-    />
+    <LazyView loader={loadWorkflowBuilder} loadingLabel="Loading workflow builder…" let:component={WorkflowBuilder}>
+      <svelte:component
+        this={WorkflowBuilder}
+        repoPath={builderRepoPath}
+        repoBranch={builderRepoBranch}
+        {pendingQuestion}
+        {pendingTmuxTarget}
+        on:back={goBack}
+        on:question-responded={(e) => {
+          const nodeId = e.detail?.nodeId;
+          pendingQuestion = null;
+          if (nodeId) questionQueue = dismissQuestion(questionQueue, nodeId);
+        }}
+        on:tmux-opened={() => { pendingTmuxTarget = ''; }}
+      />
+    </LazyView>
   {:else if currentView === 'settings'}
     <Settings on:back={goBack} />
   {:else if selectedAgent}

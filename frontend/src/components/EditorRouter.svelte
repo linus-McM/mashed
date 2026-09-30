@@ -2,7 +2,11 @@
   import { getEditorType } from './editorUtils';
   import MonacoEditor from './MonacoEditor.svelte';
   import ImageViewer from './ImageViewer.svelte';
-  import MarkdownEditor from './MarkdownEditor.svelte';
+  import LazyView from './LazyView.svelte';
+
+  // MarkdownEditor is code-split (R31) so it stays out of the entry chunk.
+  // Module-level loader keeps its identity stable for LazyView's cache.
+  const loadMarkdownEditor = () => import('./MarkdownEditor.svelte');
 
   type EditorMode = 'source' | 'diff';
 
@@ -15,7 +19,7 @@
 </script>
 
 {#if editorType === 'markdown'}
-  <MarkdownEditor {filePath} {repoPath} {editable} />
+  <LazyView loader={loadMarkdownEditor} {filePath} {repoPath} {editable} />
 {:else if editorType === 'image'}
   <ImageViewer {filePath} {repoPath} />
 {:else}

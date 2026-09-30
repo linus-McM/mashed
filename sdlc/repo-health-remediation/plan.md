@@ -197,6 +197,10 @@ From: spec.md (2026-09-29). Status: accepted. Risk: high.
 - app_terminal_registry.go
 - frontend/src/components/EditorRouter.svelte
 - frontend/src/components/__tests__/EditorRouter.lazy.test.ts (new)
+- frontend/src/components/LazyView.svelte (new, s5.8: dynamic-import wrapper with aria-busy placeholder)
+- frontend/src/components/__tests__/LazyView.test.ts (new)
+- frontend/src/components/__tests__/fixtures/LazyProbe.svelte (new, test fixture)
+- frontend/src/App.svelte (s5.8: WorkflowBuilder lazy-loaded)
 - scripts/check-entry-chunk.mjs (new)
 - internal/terminal/bridge_auth_dev_test.go (new)
 - .playwright-cli/page-2026-04-08T02-07-40-459Z.yml (s4.1 untracked)
@@ -623,7 +627,9 @@ Guard for every step: `scripts/api-diff.sh` (new) compares `go doc -all ./intern
     - Every phase 1 validator and `--` stays in place, and `app_git_guard_test.go` stays green.
 35. **s5.7-recover-stub (R31).** Write TestRepo_NoRecoverSessionsStub first (the source no longer declares `recoverSessions()`).
     - Delete the stub at `app_terminal_registry.go:15-16`, and its no-op test at `app_terminal_registry_test.go:573-584`.
-36. **s5.8-lazy-markdown (R31).** Blocked until the R31 spec amendment in Risks is accepted.
+36. **s5.8-lazy-markdown (R31).** R31 amendment approved by linus on 2026-09-30:
+    - Monaco and its worker chunks are lazy and exempt, and `chunkSizeWarningLimit: 2600` stays.
+    - The 500 kB target applies to the entry chunk the app boots from. It was measured at 986 kB, so it is met by lazy-loading heavy views (WorkflowBuilder/xyflow, Terminal/xterm, MarkdownEditor), each behind an aria-busy placeholder, and enforced by `scripts/check-entry-chunk.mjs` in the ci.yml frontend job.
     - Write `frontend/src/components/__tests__/EditorRouter.lazy.test.ts` first. It checks that an `aria-busy="true"` placeholder renders until the dynamic import resolves, and that MarkdownEditor mounts after it.
     - Write `scripts/check-entry-chunk.mjs` as the second red: after `npm run build`, it fails if the entry chunk in `frontend/dist/assets` is 500 kB or larger. Run it before the lazy import.
     - Change the static import at `frontend/src/components/EditorRouter.svelte:5` to `import()`. Call the check script from the ci.yml frontend job.

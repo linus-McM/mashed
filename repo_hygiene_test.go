@@ -196,7 +196,9 @@ func TestRepo_CIWorkflow(t *testing.T) {
 			t.Errorf("go job lacks %q", want)
 		}
 	}
-	for _, want := range []string{"npm ci", "npm run lint:tokens", "npx vitest run", "npm run build", "git status --porcelain"} {
+	for _, want := range []string{"npm ci", "npm run lint:tokens", "npx vitest run", "npm run build", "git status --porcelain",
+		"node ../scripts/check-entry-chunk.mjs", // R31 (amended): entry chunk < 500 kB
+	} {
 		if !strings.Contains(runs["frontend"], want) {
 			t.Errorf("frontend job lacks %q", want)
 		}

@@ -71,3 +71,5 @@
 {"phase": "green", "step": "s5.6-git-shellouts", "exit": 0, "ts": "2026-09-29"}
 {"phase": "red", "step": "s5.7-recover-stub", "exit": 1, "ts": "2026-09-29"}
 {"phase": "green", "step": "s5.7-recover-stub", "exit": 0, "ts": "2026-09-29"}
+{"phase": "red", "step": "s5.8-lazy-markdown", "exit": 1, "ts": "2026-09-30"}
+{"phase": "green", "step": "s5.8-lazy-markdown", "exit": 0, "ts": "2026-09-30"}

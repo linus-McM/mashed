@@ -89,5 +89,8 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Entry chunk under 500 kB (R31)
+        run: node ../scripts/check-entry-chunk.mjs
+
       - name: Build leaves the tree clean
         run: test -z "$(git status --porcelain)"
