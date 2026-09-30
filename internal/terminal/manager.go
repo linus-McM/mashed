@@ -99,7 +99,9 @@ func (sm *SessionManager) SpawnArgv(ctx context.Context, name string, repoPath s
 		rows = 24
 	}
 
-	env := applyLoginPATH(append(os.Environ(), "TERM=xterm-256color"))
+	// The embedded xterm.js (6.x) supports synchronized output (DEC 2026),
+	// but Claude Code only auto-detects a fixed list of terminals.
+	env := applyLoginPATH(append(os.Environ(), "TERM=xterm-256color", "CLAUDE_CODE_FORCE_SYNC_OUTPUT=1"))
 	ptmx, pid, err := sm.helperClient.Spawn(ctx, helper.SpawnRequest{
 		ID:    name,
 		Shell: resolveExecutable(argv[0]),
