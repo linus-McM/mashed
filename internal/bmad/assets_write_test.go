@@ -207,6 +207,7 @@ func TestWriteMashedAssetFrontmatter_PathValidation(t *testing.T) {
 }
 
 func TestWriteMashedAssetFrontmatter_WriteFailure(t *testing.T) {
+	skipIfRoot(t)
 	// AC-3: simulate write failure via read-only directory.
 	dir := t.TempDir()
 	assetDir := filepath.Join(dir, ".claude", "skills", "test-skill")

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { AGENT_DETAIL_FILES, SETTINGS_FILES, WORKFLOW_BUILDER_FILES, readJoined } from '../../__tests__/splitSources';
 
 // Story uiqa-03 — Remaining hardcoded colors.
 // Covers AC-1..AC-6 and the 7 BDD scenarios.
@@ -14,14 +15,14 @@ import { resolve } from 'node:path';
 const FRONTEND_SRC = resolve(__dirname, '../..');
 
 const EXECUTION_BAR = resolve(FRONTEND_SRC, 'components/bmad/ExecutionBar.svelte');
-const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
-const SETTINGS = resolve(FRONTEND_SRC, 'views/Settings.svelte');
 const PROCESS_NODE = resolve(FRONTEND_SRC, 'components/bmad/ProcessNode.svelte');
-const WORKFLOW_BUILDER = resolve(FRONTEND_SRC, 'views/WorkflowBuilder.svelte');
 const TITLE_BAR = resolve(FRONTEND_SRC, 'components/TitleBar.svelte');
 const STYLE_CSS_PATH = resolve(FRONTEND_SRC, 'style.css');
 
 const read = (p: string) => readFileSync(p, 'utf8');
+const readAgentDetail = () => readJoined(AGENT_DETAIL_FILES);
+const readSettings = () => readJoined(SETTINGS_FILES);
+const readWorkflowBuilder = () => readJoined(WORKFLOW_BUILDER_FILES);
 
 // Extract the contiguous { ... } block that follows a selector. Handles single
 // nesting depth (sufficient for plain CSS rules in <style> blocks).
@@ -110,12 +111,12 @@ describe('uiqa-03: remaining hardcoded colors', () => {
 
   describe('AC-2: AgentDetail tab-close hover uses --accent-red', () => {
     it('AC-2: AgentDetail.svelte contains zero #ff5f57 literals', () => {
-      const src = read(AGENT_DETAIL);
+      const src = readAgentDetail();
       expect(src).not.toMatch(/#ff5f57/i);
     });
 
     it('AC-2: .tab-close:hover declares color: var(--accent-red)', () => {
-      const src = read(AGENT_DETAIL);
+      const src = readAgentDetail();
       const block = extractRule(src, /\.tab-close:hover[^{]*\{/);
       expect(block, '.tab-close:hover rule must exist').not.toBeNull();
       expect(block!).toMatch(/color:\s*var\(--accent-red\)/);
@@ -124,36 +125,36 @@ describe('uiqa-03: remaining hardcoded colors', () => {
 
   describe('AC-3: Settings indicators and text-shadow use tokens', () => {
     it('AC-3: Settings.svelte contains zero #565670 literals', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       expect(src).not.toMatch(/#565670/i);
     });
 
     it('AC-3: Settings.svelte contains zero #c0c0d0 literals', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       expect(src).not.toMatch(/#c0c0d0/i);
     });
 
     it('AC-3: Settings.svelte contains zero rgba(0, 229, 122, ...) literals', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       expect(src).not.toMatch(/rgba\(\s*0\s*,\s*229\s*,\s*122/);
     });
 
     it('AC-3: .import-indicator.dark background references var(--text-muted)', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       const block = extractRule(src, /\.import-indicator\.dark\s*\{/);
       expect(block, '.import-indicator.dark rule must exist').not.toBeNull();
       expect(block!).toMatch(/background:\s*var\(--text-muted\)/);
     });
 
     it('AC-3: .import-indicator.light background references var(--text-dim)', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       const block = extractRule(src, /\.import-indicator\.light\s*\{/);
       expect(block, '.import-indicator.light rule must exist').not.toBeNull();
       expect(block!).toMatch(/background:\s*var\(--text-dim\)/);
     });
 
     it('AC-3: .back-btn:hover text-shadow uses var(--glow-spread) and color-mix with --accent-green', () => {
-      const src = read(SETTINGS);
+      const src = readSettings();
       const block = extractRule(src, /\.back-btn:hover\s*\{/);
       expect(block, '.back-btn:hover rule must exist').not.toBeNull();
       expect(block!).toMatch(/text-shadow:[^;]*var\(--glow-spread\)/);
@@ -175,19 +176,19 @@ describe('uiqa-03: remaining hardcoded colors', () => {
     });
 
     it('AC-4: WorkflowBuilder.svelte contains zero rgba(248, 81, 73, ...) literals', () => {
-      const src = read(WORKFLOW_BUILDER);
+      const src = readWorkflowBuilder();
       expect(src).not.toMatch(/rgba\(\s*248\s*,\s*81\s*,\s*73/);
     });
 
     it('AC-4: .exec-error background uses color-mix with --accent-red at 10%', () => {
-      const src = read(WORKFLOW_BUILDER);
+      const src = readWorkflowBuilder();
       const block = extractRule(src, /\.exec-error\s*\{/);
       expect(block, '.exec-error rule must exist').not.toBeNull();
       expect(block!).toMatch(/background:[^;]*color-mix\([^)]*var\(--accent-red\)[^)]*10%/);
     });
 
     it('AC-4: .exec-error-dismiss:hover background uses color-mix with --accent-red at 15%', () => {
-      const src = read(WORKFLOW_BUILDER);
+      const src = readWorkflowBuilder();
       const block = extractRule(src, /\.exec-error-dismiss:hover\s*\{/);
       expect(block, '.exec-error-dismiss:hover rule must exist').not.toBeNull();
       expect(block!).toMatch(/background:[^;]*color-mix\([^)]*var\(--accent-red\)[^)]*15%/);
@@ -266,7 +267,7 @@ describe('uiqa-03: remaining hardcoded colors', () => {
       ['#febc2e'],
       ['#28c840'],
     ])('AC-6: Settings.svelte theme preview still contains %s', (hex) => {
-      expect(read(SETTINGS)).toContain(hex);
+      expect(readSettings()).toContain(hex);
     });
   });
 });

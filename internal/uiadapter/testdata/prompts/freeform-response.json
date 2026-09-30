@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "generated_by": "",
+  "turn_summary": "Open-ended feature question",
+  "nodes": [
+    {"type": "markdown", "content": "What feature should we tackle together today?"}
+  ],
+  "fallback_answer_shape": "free"
+}

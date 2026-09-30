@@ -1,0 +1,9 @@
+method_name,prompt
+critique,What assumptions might be wrong here?
+devils-advocate,Argue the opposite position
+red-team,Attack this from an adversary's perspective
+pre-mortem,Imagine it failed; what happened?
+first-principles,Decompose to foundational truths and rebuild
+inversion,What would guarantee the worst outcome?
+steelman,Strongest possible version of the counter-argument
+second-order,What are the downstream effects two steps out?

@@ -1,0 +1,208 @@
+---
+type: Module
+title: DefaultConfig
+description: "Graphify community 5: internal/uiadapter/accountant.go, internal/uiadapter/accountant_test.go, internal/uiadapter/adapter.go, internal/uiadapter/backend/backend.go, internal/uiadapter/backend/claudeap"
+resource: internal/uiadapter
+tags: [module, graphify]
+status: draft
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
+sources:
+  - { id: accountant, resource: internal/uiadapter/accountant.go, last_modified: "2026-04-23T11:29:34+10:00", digest: ae4389c89ff37e93 }
+  - { id: accountant_test, resource: internal/uiadapter/accountant_test.go, last_modified: "2026-04-23T11:29:34+10:00", digest: 60c344b0cdff2ce8 }
+  - { id: adapter, resource: internal/uiadapter/adapter.go, last_modified: "2026-04-28T12:36:05+10:00", digest: aad905dbc8e94a13 }
+  - { id: backend, resource: internal/uiadapter/backend/backend.go, last_modified: "2026-04-23T11:09:52+10:00", digest: d0eac5646b5c1ef3 }
+  - { id: client, resource: internal/uiadapter/backend/claudeapi/client.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 3e20643bf928e2f2 }
+  - { id: client_test, resource: internal/uiadapter/backend/claudeapi/client_test.go, last_modified: "2026-04-23T11:34:52+10:00", digest: e3e3d9c28e77effe }
+  - { id: lifecycle, resource: internal/uiadapter/backend/lifecycle.go, last_modified: "2026-04-23T11:34:52+10:00", digest: e57a307fa43599dd }
+  - { id: lifecycle_test, resource: internal/uiadapter/backend/lifecycle_test.go, last_modified: "2026-04-23T11:34:52+10:00", digest: 7f78d92ee9e83203 }
+  - { id: router, resource: internal/uiadapter/backend/router.go, last_modified: "2026-04-23T11:34:52+10:00", digest: 456b1b3b77e3a38e }
+  - { id: router_test, resource: internal/uiadapter/backend/router_test.go, last_modified: "2026-04-23T11:34:52+10:00", digest: 0a276fac34b2f9ab }
+  - { id: stubs, resource: internal/uiadapter/backend/stubs.go, last_modified: "2026-04-23T11:09:52+10:00", digest: 60bb478e1146d7a5 }
+  - { id: breaker, resource: internal/uiadapter/breaker.go, last_modified: "2026-04-26T10:14:41+10:00", digest: ce7fb713c254dda5 }
+  - { id: breaker_test, resource: internal/uiadapter/breaker_test.go, last_modified: "2026-04-26T10:14:41+10:00", digest: c08c33460a000e4b }
+  - { id: cache, resource: internal/uiadapter/cache.go, last_modified: "2026-04-26T10:14:41+10:00", digest: 10b083d2f056ef95 }
+  - { id: cache_test, resource: internal/uiadapter/cache_test.go, last_modified: "2026-04-26T10:14:41+10:00", digest: e8cf326b1dcc1d7a }
+  - { id: config, resource: internal/uiadapter/config.go, last_modified: "2026-04-26T09:22:14+10:00", digest: d9832db7180bc48b }
+  - { id: config_test, resource: internal/uiadapter/config_test.go, last_modified: "2026-04-23T11:43:31+10:00", digest: 748e88156e161a65 }
+  - { id: contextguard, resource: internal/uiadapter/contextguard.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 417a5e0974dc194b }
+  - { id: contextguard_test, resource: internal/uiadapter/contextguard_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 0cf07afee9915c31 }
+  - { id: eval_test, resource: internal/uiadapter/eval_test.go, last_modified: "2026-04-22T14:13:03+10:00", digest: 170e442f3eb11320 }
+  - { id: logging_plumbing_test, resource: internal/uiadapter/logging_plumbing_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 688be06cdc267d83 }
+  - { id: logging_story3_sanitize_test, resource: internal/uiadapter/logging_story3_sanitize_test.go, last_modified: "2026-04-26T10:14:41+10:00", digest: a4de64483e766cb6 }
+  - { id: logging_story4_sanitize_test, resource: internal/uiadapter/logging_story4_sanitize_test.go, last_modified: "2026-04-26T10:43:55+10:00", digest: b4229ff1bc6c01ad }
+  - { id: logging_test, resource: internal/uiadapter/logging_test.go, last_modified: "2026-04-26T09:22:14+10:00", digest: 744e5721d44f353b }
+  - { id: prefix_cache, resource: internal/uiadapter/prefix_cache.go, last_modified: "2026-04-26T10:14:41+10:00", digest: 8963dac6e4ff7cab }
+  - { id: prefix_cache_test, resource: internal/uiadapter/prefix_cache_test.go, last_modified: "2026-04-26T10:14:41+10:00", digest: 448153a81ce2894c }
+  - { id: repair, resource: internal/uiadapter/repair.go, last_modified: "2026-04-26T10:43:55+10:00", digest: cc21726252779f85 }
+  - { id: repair_test, resource: internal/uiadapter/repair_test.go, last_modified: "2026-04-26T10:43:55+10:00", digest: 7d95d0c21f4ee4e3 }
+  - { id: translate_e2e_test, resource: internal/uiadapter/translate_e2e_test.go, last_modified: "2026-04-26T12:39:41+10:00", digest: 45f6254d2ea3d0bc }
+---
+
+# Files
+- `internal/uiadapter/accountant.go`
+- `internal/uiadapter/accountant_test.go`
+- `internal/uiadapter/adapter.go`
+- `internal/uiadapter/backend/backend.go`
+- `internal/uiadapter/backend/claudeapi/client.go`
+- `internal/uiadapter/backend/claudeapi/client_test.go`
+- `internal/uiadapter/backend/lifecycle.go`
+- `internal/uiadapter/backend/lifecycle_test.go`
+- `internal/uiadapter/backend/router.go`
+- `internal/uiadapter/backend/router_test.go`
+- `internal/uiadapter/backend/stubs.go`
+- `internal/uiadapter/breaker.go`
+- `internal/uiadapter/breaker_test.go`
+- `internal/uiadapter/cache.go`
+- `internal/uiadapter/cache_test.go`
+- `internal/uiadapter/config.go`
+- `internal/uiadapter/config_test.go`
+- `internal/uiadapter/contextguard.go`
+- `internal/uiadapter/contextguard_test.go`
+- `internal/uiadapter/eval_test.go`
+- `internal/uiadapter/logging_plumbing_test.go`
+- `internal/uiadapter/logging_story3_sanitize_test.go`
+- `internal/uiadapter/logging_story4_sanitize_test.go`
+- `internal/uiadapter/logging_test.go`
+- `internal/uiadapter/prefix_cache.go`
+- `internal/uiadapter/prefix_cache_test.go`
+- `internal/uiadapter/repair.go`
+- `internal/uiadapter/repair_test.go`
+- `internal/uiadapter/translate_e2e_test.go`
+
+# Symbols
+- NewAccountant() (internal/uiadapter/accountant.go:L84)
+- accountant_test.go (internal/uiadapter/accountant_test.go:L1)
+- TestAccountant_TripsBeforeHard429() (internal/uiadapter/accountant_test.go:L27)
+- TestAccountant_USDBudgetSoftLimit() (internal/uiadapter/accountant_test.go:L45)
+- TestAccountant_Snapshot() (internal/uiadapter/accountant_test.go:L59)
+- TestAccountant_SlidingWindow() (internal/uiadapter/accountant_test.go:L72)
+- Config (internal/uiadapter/adapter.go:L32)
+- Kind (internal/uiadapter/backend/backend.go:L17)
+- apiKey (internal/uiadapter/backend/claudeapi/client.go:L34)
+- .String() (internal/uiadapter/backend/claudeapi/client.go:L36)
+- NewClient() (internal/uiadapter/backend/claudeapi/client.go:L41)
+- claudeapi/client_test.go (internal/uiadapter/backend/claudeapi/client_test.go:L1)
+- TestClaudeAPI_AnthropicVersionHeader() (internal/uiadapter/backend/claudeapi/client_test.go:L122)
+- TestClaudeAPI_StopReasonNotToolUseErrors() (internal/uiadapter/backend/claudeapi/client_test.go:L142)
+- TestClaudeAPI_ToolUseRoundtrip() (internal/uiadapter/backend/claudeapi/client_test.go:L22)
+- TestClaudeAPI_RetryAfter429() (internal/uiadapter/backend/claudeapi/client_test.go:L53)
+- TestClaudeAPI_KeyNotLogged() (internal/uiadapter/backend/claudeapi/client_test.go:L89)
+- TestClaudeAPI_WarmUpMissingKeyErrors() (internal/uiadapter/backend/claudeapi/client_test.go:L99)
+- NewLifecycle() (internal/uiadapter/backend/lifecycle.go:L29)
+- lifecycle_test.go (internal/uiadapter/backend/lifecycle_test.go:L1)
+- TestLifecycle_WarmUpConcurrentSafe() (internal/uiadapter/backend/lifecycle_test.go:L102)
+- TestLifecycle_WarmUpAllInParallel() (internal/uiadapter/backend/lifecycle_test.go:L30)
+- TestLifecycle_WarmUpRecordsResults() (internal/uiadapter/backend/lifecycle_test.go:L49)
+- TestLifecycle_TickerDisableable() (internal/uiadapter/backend/lifecycle_test.go:L63)
+- TestLifecycle_HealthTickerFeedsRouter() (internal/uiadapter/backend/lifecycle_test.go:L80)
+- NewRouter() (internal/uiadapter/backend/router.go:L42)
+- TestRouter_DefaultPolicyFallsBackToLocalWhenClaudeAbsent() (internal/uiadapter/backend/router_test.go:L59)
+- TestRouter_ConfigurablePrivacyPatterns() (internal/uiadapter/backend/router_test.go:L92)
+- NewStub() (internal/uiadapter/backend/stubs.go:L28)
+- NewBreakerSet() (internal/uiadapter/breaker.go:L49)
+- breaker_test.go (internal/uiadapter/breaker_test.go:L1)
+- TestBreaker_TripsAfterThree() (internal/uiadapter/breaker_test.go:L16)
+- TestBreaker_PerBackendIsolation() (internal/uiadapter/breaker_test.go:L43)
+- TestBreaker_StateOnIdleIsClosed() (internal/uiadapter/breaker_test.go:L65)
+- TestBreaker_ConcurrentConstruction() (internal/uiadapter/breaker_test.go:L73)
+- NewResponseCache() (internal/uiadapter/cache.go:L46)
+- Key() (internal/uiadapter/cache.go:L80)
+- cache_test.go (internal/uiadapter/cache_test.go:L1)
+- TestCache_HitRate() (internal/uiadapter/cache_test.go:L119)
+- TestCache_SingleflightPropagatesError() (internal/uiadapter/cache_test.go:L139)
+- TestCache_KeyDeterministic() (internal/uiadapter/cache_test.go:L151)
+- TestCache_HashHit() (internal/uiadapter/cache_test.go:L17)
+- TestCache_SingleflightCoalesces() (internal/uiadapter/cache_test.go:L38)
+- TestCache_HashKeyIncludesBackendAndModel() (internal/uiadapter/cache_test.go:L71)
+- TestCache_DisabledWhenZeroCapacity() (internal/uiadapter/cache_test.go:L83)
+- config.go (internal/uiadapter/config.go:L1)
+- DefaultConfig() (internal/uiadapter/config.go:L10)
+- mergeWithDefaults() (internal/uiadapter/config.go:L61)
+- configFieldSet() (internal/uiadapter/config.go:L98)
+- config_test.go (internal/uiadapter/config_test.go:L1)
+- TestConfig_PrivacyPatternsUsable() (internal/uiadapter/config_test.go:L113)
+- TestDefaultConfig_Bootable_AllBackends() (internal/uiadapter/config_test.go:L20)
+- TestDefaultConfig_ZeroValueBootsAdapter() (internal/uiadapter/config_test.go:L59)
+- TestDefaultConfig_MergeOntoZeroValued() (internal/uiadapter/config_test.go:L75)
+- TestConfig_HasEveryPlanField() (internal/uiadapter/config_test.go:L87)
+- .ApplyClaude() (internal/uiadapter/contextguard.go:L135)
+- .OllamaOptions() (internal/uiadapter/contextguard.go:L176)
+- ContextGuard (internal/uiadapter/contextguard.go:L20)
+- NewContextGuard() (internal/uiadapter/contextguard.go:L41)
+- contextguard_test.go (internal/uiadapter/contextguard_test.go:L1)
+- TestContextGuard_TruncatesLongCapture_Ollama() (internal/uiadapter/contextguard_test.go:L15)
+- TestContextGuard_NoTruncationUnderBudget() (internal/uiadapter/contextguard_test.go:L30)
+- TestContextGuard_OllamaOptions() (internal/uiadapter/contextguard_test.go:L42)
+- TestContextGuard_RefusesLongCapture_Claude() (internal/uiadapter/contextguard_test.go:L53)
+- TestContextGuard_AcceptsShortClaude() (internal/uiadapter/contextguard_test.go:L68)
+- TestContextGuard_ZeroConfigDefaults() (internal/uiadapter/contextguard_test.go:L80)
+- eval_test.go (internal/uiadapter/eval_test.go:L1)
+- logging_plumbing_test.go (internal/uiadapter/logging_plumbing_test.go:L1)
+- TestStory2_AC3_NewDefaultScopesWithGroup() (internal/uiadapter/logging_plumbing_test.go:L300)
+- keysOf() (internal/uiadapter/logging_plumbing_test.go:L343)
+- TestStory2_AC3_NewDefaultNilParentSafe() (internal/uiadapter/logging_plumbing_test.go:L353)
+- TestStory2_AC6_NoNewLogCallsInProduction() (internal/uiadapter/logging_plumbing_test.go:L389)
+- TestStory2_AC5_NilSafeLogger() (internal/uiadapter/logging_plumbing_test.go:L40)
+- TestStory2_AC2_AC1_ConstructorsAcceptNilLogger() (internal/uiadapter/logging_plumbing_test.go:L98)
+- logging_story3_sanitize_test.go (internal/uiadapter/logging_story3_sanitize_test.go:L1)
+- TestStory3_AC8_HotPathZeroAllocs_DebugOff() (internal/uiadapter/logging_story3_sanitize_test.go:L159)
+- captureWriter (internal/uiadapter/logging_story3_sanitize_test.go:L247)
+- .Write() (internal/uiadapter/logging_story3_sanitize_test.go:L252)
+- randomPayload() (internal/uiadapter/logging_story3_sanitize_test.go:L34)
+- containsSlice() (internal/uiadapter/logging_story3_sanitize_test.go:L55)
+- TestStory3_AC7_SanitizeDisciplineAcrossFiles() (internal/uiadapter/logging_story3_sanitize_test.go:L73)
+- logging_story4_sanitize_test.go (internal/uiadapter/logging_story4_sanitize_test.go:L1)
+- TestStory4_AC8_HotPathZeroAllocs_DebugOff() (internal/uiadapter/logging_story4_sanitize_test.go:L182)
+- story4RandomPayload() (internal/uiadapter/logging_story4_sanitize_test.go:L67)
+- TestStory4_AC7_SanitizeDisciplineAcrossPipeline() (internal/uiadapter/logging_story4_sanitize_test.go:L90)
+- TestStory1_AC5_ConfigDefaults() (internal/uiadapter/logging_test.go:L260)
+- prefix_cache.go (internal/uiadapter/prefix_cache.go:L1)
+- ClaudeSystemBlock() (internal/uiadapter/prefix_cache.go:L20)
+- cacheControlType() (internal/uiadapter/prefix_cache.go:L53)
+- OllamaKeepAliveEncoded() (internal/uiadapter/prefix_cache.go:L65)
+- ClaudeSystemBlockJSON() (internal/uiadapter/prefix_cache.go:L86)
+- prefix_cache_test.go (internal/uiadapter/prefix_cache_test.go:L1)
+- TestClaudeSystemBlock_HasCacheControl() (internal/uiadapter/prefix_cache_test.go:L14)
+- TestClaudeSystemBlock_OffTTLSkipsMarker() (internal/uiadapter/prefix_cache_test.go:L26)
+- TestPrompt_StaticPrefix_ByteStable() (internal/uiadapter/prefix_cache_test.go:L39)
+- TestOllamaKeepAliveEncoded() (internal/uiadapter/prefix_cache_test.go:L59)
+- TestClaudeSystemBlock_EmptyPrefixNil() (internal/uiadapter/prefix_cache_test.go:L73)
+- TestStory3_AC6_PrefixCacheBuildEvents() (internal/uiadapter/prefix_cache_test.go:L89)
+- NewRepairer() (internal/uiadapter/repair.go:L109)
+- repair_test.go (internal/uiadapter/repair_test.go:L1)
+- TestRepair_PropagatesGenerateError() (internal/uiadapter/repair_test.go:L129)
+- TestRepair_RecoveryRate() (internal/uiadapter/repair_test.go:L17)
+- TestRepair_NeverExceedsBudget() (internal/uiadapter/repair_test.go:L50)
+- TestRepair_FastPathNoWastedCalls() (internal/uiadapter/repair_test.go:L71)
+- TestRepair_Gated_PerBackend() (internal/uiadapter/repair_test.go:L92)
+- translate_e2e_test.go (internal/uiadapter/translate_e2e_test.go:L1)
+- decodeOps() (internal/uiadapter/translate_e2e_test.go:L114)
+- hasOpPrefix() (internal/uiadapter/translate_e2e_test.go:L136)
+- TestStory6_AC2_Translate_HappyPath_AllPhasesLog() (internal/uiadapter/translate_e2e_test.go:L156)
+- scanBufferForLeak() (internal/uiadapter/translate_e2e_test.go:L309)
+- TestStory6_AC3_TenMessageNoLeak() (internal/uiadapter/translate_e2e_test.go:L329)
+- driveLeakProbes() (internal/uiadapter/translate_e2e_test.go:L376)
+- drivePerPhaseHelpers() (internal/uiadapter/translate_e2e_test.go:L63)
+
+# Depends on
+- [Accountant](/modules/accountant.md)
+- [BreakerSet](/modules/breakerset.md)
+- [context.Context](/modules/context-context.md)
+- [fastpath.go](/modules/fastpath-go.md)
+- [log/slog.Logger](/modules/log-slog-logger.md)
+- [Repairer](/modules/repairer.md)
+- [ResponseCache](/modules/responsecache.md)
+- [scorecard_test.go](/modules/scorecard-test-go.md)
+- [testLogBuffer](/modules/testlogbuffer.md)
+- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
+
+# Inferred
+- [log/slog.Logger](/modules/log-slog-logger.md)
+- [logging_comprehensive_test.go](/modules/logging-comprehensive-test-go.md)
+- [testLogBuffer](/modules/testlogbuffer.md)
+- [uiadapter/client_test.go](/modules/uiadapter-client-test-go.md)
+
+# Features
+- no feature plan names these files

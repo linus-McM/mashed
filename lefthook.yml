@@ -29,26 +29,20 @@ pre-commit:
       run: npx vite build --mode development 2>&1 | tail -5
       fail_text: "frontend build failed"
 
-    # desloppify:
-    #   Temporarily disabled during the breadcrumbs sprint: the queue carries
-    #   ~20 pre-existing items unrelated to the sprint scope, which blocks
-    #   every commit. Restore this block after running `desloppify next`
-    #   through the backlog (triage target: strict >= 85).
-    # desloppify:
-    #   glob: "*.{go,svelte,ts,js}"
-    #   run: |
-    #     REPO_ROOT="$(git rev-parse --show-toplevel)"
-    #     DESLOPPIFY="$REPO_ROOT/.venv-desloppify/bin/desloppify"
-    #     if [ -x "$DESLOPPIFY" ]; then
-    #       "$DESLOPPIFY" scan --skip-slow
-    #     fi
-    #   fail_text: "desloppify scan found issues"
+    # Strict svelte-check gate. The 1520→0 migration completed in story
+    # svelte-check-07 (see docs/plans/svelte-check-baseline.md). Any commit
+    # that introduces a svelte-check error is rejected.
+    # If this fails, fix types — do NOT add // @ts-ignore / // @ts-nocheck / any.
+    frontend-svelte-check:
+      glob: "frontend/**/*.{svelte,ts,js}"
+      run: just sveltecheck
+      fail_text: "svelte-check found errors. Fix types — do NOT add @ts-ignore / @ts-nocheck / any. Run `just sveltecheck-by-file` to locate errors."
 
 pre-push:
   parallel: true
   commands:
     go-test-all:
-      run: go test -short -count=1 ./internal/...
+      run: go test -short -count=1 ./...
       fail_text: "go tests failed"
 
     go-coverage:
@@ -57,5 +51,5 @@ pre-push:
 
     frontend-test:
       root: "frontend/"
-      run: npx vitest run
-      fail_text: "frontend tests failed"
+      run: npm test
+      fail_text: "frontend tests failed (includes svelte-check zero-error gate)"

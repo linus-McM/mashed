@@ -24,7 +24,7 @@ func main() {
 	// Clean stale socket.
 	os.Remove(sockPath)
 
-	ln, err := net.ListenUnix("unix", &net.UnixAddr{Name: sockPath, Net: "unix"})
+	ln, err := listenSocket(sockPath)
 	if err != nil {
 		log.Fatalf("listen: %v", err)
 	}
@@ -48,4 +48,20 @@ func main() {
 	}()
 
 	srv.Serve(ln)
+}
+
+// listenSocket listens on a Unix socket that only the owner can connect to
+// (R12). The umask covers the window between bind and chmod.
+func listenSocket(path string) (*net.UnixListener, error) {
+	old := syscall.Umask(0o177)
+	ln, err := net.ListenUnix("unix", &net.UnixAddr{Name: path, Net: "unix"})
+	syscall.Umask(old)
+	if err != nil {
+		return nil, err
+	}
+	if err := os.Chmod(path, 0o600); err != nil {
+		ln.Close()
+		return nil, fmt.Errorf("chmod socket: %w", err)
+	}
+	return ln, nil
 }

@@ -14,7 +14,7 @@ Wire the frontend file selection (Story 2) to the backend `StreamScopedAdvice` m
 
 ### Architecture
 
-- **File to modify:** `/Users/linus/Development/mashed/frontend/src/views/SummarisationModal.svelte`
+- **File to modify:** `/Users/dev/Development/mashed/frontend/src/views/SummarisationModal.svelte`
 - **Binding to import:** `StreamScopedAdvice` from `../../wailsjs/go/main/App.js` (auto-generated after Story 1 + `wails dev` restart)
 - **No backend changes** -- Story 1 provides the backend; this story wires it.
 
@@ -136,9 +136,9 @@ Note: `StreamAdvice` can remain imported for backward compatibility but is no lo
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/frontend/src/views/SummarisationModal.svelte` -- primary file
-- `/Users/linus/Development/mashed/app_review.go` -- `StreamScopedAdvice` signature (Story 1), `SpawnRefactorPlan` input handling (line 324)
-- `/Users/linus/Development/mashed/frontend/wailsjs/go/main/App.d.ts` -- verify binding exists after Story 1
+- `/Users/dev/Development/mashed/frontend/src/views/SummarisationModal.svelte` -- primary file
+- `/Users/dev/Development/mashed/app_review.go` -- `StreamScopedAdvice` signature (Story 1), `SpawnRefactorPlan` input handling (line 324)
+- `/Users/dev/Development/mashed/frontend/wailsjs/go/main/App.d.ts` -- verify binding exists after Story 1
 
 ## Acceptance Criteria
 

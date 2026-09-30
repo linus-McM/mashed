@@ -1,0 +1,13 @@
+Reference doc: https://example.com/rfc-9999
+
+Paste the config block verbatim, then I'll diff:
+
+```yaml
+service: eval
+version: 2
+flags:
+  - strict
+  - preserve_urls
+```
+
+Go ahead when ready.

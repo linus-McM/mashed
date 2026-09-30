@@ -1,0 +1,5 @@
+Stage 6 — Supporting doc
+
+Attach a supporting research doc or competitive analysis (optional).
+
+Accepts .md, .pdf, or .txt — relative to the repo root.

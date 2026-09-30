@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mashed.dev/schemas/generate_yn.json",
+  "title": "GenerateYN",
+  "description": "Strict subset of uiast.json for yes/no (binary) widget payloads.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type"],
+  "properties": {
+    "type": { "type": "string", "const": "yn" },
+    "yes_label": { "type": "string" },
+    "no_label": { "type": "string" },
+    "default": { "type": "string" }
+  }
+}

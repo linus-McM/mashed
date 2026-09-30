@@ -14,7 +14,7 @@ Replace the directory-based theme scanner with one that reads `.vsix` files (whi
 
 ### Architecture
 
-All changes are in **`/Users/linus/Development/mashed/theme_scanner.go`** (single file). No new packages needed.
+All changes are in **`/Users/dev/Development/mashed/theme_scanner.go`** (single file). No new packages needed.
 
 **New constants and helpers to add (top of file, after imports):**
 
@@ -100,9 +100,9 @@ if isVSIXThemePath(themePath) {
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/theme_scanner.go` -- all modifications go here
-- `/Users/linus/Development/mashed/theme_scanner_test.go` -- existing test patterns to follow
-- `/Users/linus/Development/mashed/app.go` lines 43-49 -- `VSCodeThemeEntry` struct (no changes needed)
+- `/Users/dev/Development/mashed/theme_scanner.go` -- all modifications go here
+- `/Users/dev/Development/mashed/theme_scanner_test.go` -- existing test patterns to follow
+- `/Users/dev/Development/mashed/app.go` lines 43-49 -- `VSCodeThemeEntry` struct (no changes needed)
 
 ## Acceptance Criteria
 

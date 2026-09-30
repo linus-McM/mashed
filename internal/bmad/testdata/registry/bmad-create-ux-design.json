@@ -1,0 +1,1 @@
+{"id":"bmad-create-ux-design","name":"Create UX Design","phase":"planning","agentRole":"ux-designer","skillName":"bmad-create-ux-design","description":"Design the user experience including flows, wireframes, and interaction patterns.","inputs":["PRD.md"],"outputs":["ux-spec.md","PRD.md"],"moduleId":"core","version":"1.0.0"}

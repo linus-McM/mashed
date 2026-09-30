@@ -1,0 +1,1 @@
+{"id":"bmad-create-story","name":"Create Story","phase":"implementation","agentRole":"developer","skillName":"bmad-create-story","description":"Create a detailed implementation story from epics with tasks and acceptance criteria.","inputs":["epics/"],"outputs":["story-*.md"],"moduleId":"core","version":"1.0.0"}

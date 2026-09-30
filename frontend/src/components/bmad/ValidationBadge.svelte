@@ -9,9 +9,13 @@
   export let assetId = '';
 
   let showTooltip = false;
+  /** @type {HTMLButtonElement | undefined} */
   let badgeEl;
+  /** @type {HTMLDivElement | undefined} */
   let tooltipEl;
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
   let hoverTimeout;
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
   let leaveTimeout;
 
   // Highest severity wins: warn > info.
@@ -40,6 +44,7 @@
     leaveTimeout = setTimeout(closeTooltip, 100);
   }
 
+  /** @param {MouseEvent | KeyboardEvent} e */
   function handleClick(e) {
     e.stopPropagation();
     if (showTooltip) {
@@ -49,6 +54,7 @@
     }
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') {
       closeTooltip();

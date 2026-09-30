@@ -147,6 +147,7 @@ func TestAC5_VerifyArtifacts_DirectoryArtifact(t *testing.T) {
 }
 
 func TestAC3_VerifyArtifacts_StatErrorNotNotExist(t *testing.T) {
+	skipIfRoot(t)
 	// Verify that non-NotExist os.Stat errors (e.g. permission denied) are
 	// explicitly handled and still treated as missing.
 	repo := t.TempDir()

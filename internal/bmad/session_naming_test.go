@@ -48,7 +48,7 @@ func assertValidHash(t *testing.T, context, hash string) {
 
 func TestBuildSessionName_AC1_HappyPath(t *testing.T) {
 	const (
-		repoPath = "/Users/linus/Development/surfseer"
+		repoPath = "/Users/dev/Development/surfseer"
 		branch   = "main"
 		label    = "Create Story"
 		nodeID   = "node-1775795467345"

@@ -14,8 +14,8 @@ Add a new `StreamScopedAdvice` method to `app_review.go` that generates methodol
 
 ### Architecture
 
-- **File to modify:** `/Users/linus/Development/mashed/app_review.go`
-- **Test file to modify:** `/Users/linus/Development/mashed/app_review_test.go`
+- **File to modify:** `/Users/dev/Development/mashed/app_review.go`
+- **Test file to modify:** `/Users/dev/Development/mashed/app_review_test.go`
 - **New method signature:**
   ```go
   func (a *App) StreamScopedAdvice(repoPath, modeName, model string, filePaths []string, additionalContext string)
@@ -48,11 +48,11 @@ Add a new `StreamScopedAdvice` method to `app_review.go` that generates methodol
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/app_review.go` -- `StreamAdvice` method to clone and modify (line 237)
-- `/Users/linus/Development/mashed/app_git.go` -- `ReadFileDiff` pattern for untracked fallback (line 813)
-- `/Users/linus/Development/mashed/app_claude.go` -- `claudeCommand` helper
-- `/Users/linus/Development/mashed/app_review_test.go` -- existing test patterns to follow
-- `/Users/linus/Development/mashed/internal/advice/loader.go` -- `LoadAdviceBody` function
+- `/Users/dev/Development/mashed/app_review.go` -- `StreamAdvice` method to clone and modify (line 237)
+- `/Users/dev/Development/mashed/app_git.go` -- `ReadFileDiff` pattern for untracked fallback (line 813)
+- `/Users/dev/Development/mashed/app_claude.go` -- `claudeCommand` helper
+- `/Users/dev/Development/mashed/app_review_test.go` -- existing test patterns to follow
+- `/Users/dev/Development/mashed/internal/advice/loader.go` -- `LoadAdviceBody` function
 
 ## Acceptance Criteria
 

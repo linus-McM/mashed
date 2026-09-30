@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { execSync } from 'node:child_process';
+import { AGENT_DETAIL_FILES, FEED_FILES, readJoined } from './splitSources';
 
 // Story uiqa-07 — Token scale normalization.
 // Covers AC-1..AC-6. Walks frontend/src/{views,components} and scans *.svelte
@@ -90,22 +91,21 @@ describe('uiqa-07: token scale normalization', () => {
   });
 
   describe('AC-3: AgentDetail uses --text-data token', () => {
-    const AGENT_DETAIL = resolve(VIEWS_DIR, 'AgentDetail.svelte');
+    const readAgentDetail = () => readJoined(AGENT_DETAIL_FILES);
 
     it('AC-3a (BDD#4): AgentDetail.svelte has zero font-size: 14px literal', () => {
-      const src = read(AGENT_DETAIL);
+      const src = readAgentDetail();
       expect(src).not.toMatch(/font-size:\s*14px/);
     });
 
     it('AC-3b: AgentDetail.svelte uses font-size: var(--text-data) at least once', () => {
-      const src = read(AGENT_DETAIL);
+      const src = readAgentDetail();
       expect(src).toMatch(/font-size:\s*var\(--text-data\)/);
     });
   });
 
   describe('AC-4: numeric displays use tabular-nums', () => {
-    const NOTIF = resolve(VIEWS_DIR, 'NotificationFeed.svelte');
-    const AGENT = resolve(VIEWS_DIR, 'AgentDetail.svelte');
+    const readNotif = () => readJoined(FEED_FILES);
 
     function ruleBody(src: string, selector: string): string | null {
       const esc = selector.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -118,28 +118,28 @@ describe('uiqa-07: token scale normalization', () => {
     }
 
     it('AC-4a (BDD#5): NotificationFeed .sub-count declares tabular-nums', () => {
-      const src = read(NOTIF);
+      const src = readNotif();
       const rule = ruleBody(src, '.sub-count');
       expect(rule, '.sub-count rule not found').not.toBeNull();
       expect(rule!).toMatch(/font-variant-numeric:\s*tabular-nums/);
     });
 
     it('AC-4b (BDD#6): NotificationFeed .agent-tokens declares tabular-nums', () => {
-      const src = read(NOTIF);
+      const src = readNotif();
       const rule = ruleBody(src, '.agent-tokens');
       expect(rule, '.agent-tokens rule not found').not.toBeNull();
       expect(rule!).toMatch(/font-variant-numeric:\s*tabular-nums/);
     });
 
     it('AC-4c: NotificationFeed .agent-elapsed declares tabular-nums', () => {
-      const src = read(NOTIF);
+      const src = readNotif();
       const rule = ruleBody(src, '.agent-elapsed');
       expect(rule, '.agent-elapsed rule not found').not.toBeNull();
       expect(rule!).toMatch(/font-variant-numeric:\s*tabular-nums/);
     });
 
     it('AC-4d: AgentDetail .token-mini-label declares tabular-nums', () => {
-      const src = read(AGENT);
+      const src = readJoined(AGENT_DETAIL_FILES);
       const rule = ruleBody(src, '.token-mini-label');
       expect(rule, '.token-mini-label rule not found').not.toBeNull();
       expect(rule!).toMatch(/font-variant-numeric:\s*tabular-nums/);

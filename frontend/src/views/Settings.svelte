@@ -1,44 +1,88 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
   import { ArrowLeft } from 'lucide-svelte';
   import { allThemes, themeIds, currentThemeId, applyTheme } from '../lib/stores/theme.js';
-  import { GetConfig, SetTheme, SetImportedTheme, SetVSCodiumExtPath, PickDirectory, ListVSCodiumThemes, ListLocalFonts, SetMonoFont, SetFontSize, SetSidebarWidth } from '../../wailsjs/go/main/App.js';
-  import { activateImportedTheme, removeImportedTheme, convertedCache, makeThemeId } from '../lib/themeInit.js';
+  import { GetConfig, SetTheme, SetImportedTheme, ListLocalFonts, SetMonoFont, SetFontSize, SetSidebarWidth } from '../../wailsjs/go/main/App.js';
+  import { removeImportedTheme } from '../lib/themeInit.js';
   import { builtInThemeIds } from '../lib/stores/theme.js';
-  import { currentMonoFont, currentFontSize, applyFont, registerLocalFonts } from '../lib/stores/font.js';
-  import { editorSettings, updateEditorSetting } from '../lib/stores/editorSettings.js';
+  import { applyFont, registerLocalFonts } from '../lib/stores/font.js';
+  import {
+    markdownMenuSettings,
+    updateMarkdownMenuItem,
+    clearMarkdownMenuDirty,
+  } from '../lib/stores/markdownMenuSettings';
+  import { hydrate as hydrateUIAdapter } from '../lib/stores/uiAdapterSettings';
+  import type { LocalFontFamily } from '../lib/types/wails';
+  import EditorSettings from '../components/settings/EditorSettings.svelte';
+  import VSCodiumThemes from '../components/settings/VSCodiumThemes.svelte';
+  import UIAdapterSettings from '../components/settings/UIAdapterSettings.svelte';
 
-  const dispatch = createEventDispatcher();
+  /** A theme entry as stored in `allThemes`. Mirrors the JSDoc-typed
+   * `ThemeEntry` in `lib/stores/theme.js` — each imported VSCodium theme
+   * has the same structural shape. */
+  type ThemeEntry = {
+    label: string;
+    css: Record<string, string>;
+    monaco?: unknown;
+    xterm?: import('@xterm/xterm').ITheme;
+  };
+  type ThemeMap = Record<string, ThemeEntry>;
+
+  /** Entry used by the local-font option list in the font picker. */
+  type FontOption = { family: string; source: 'bundled' };
+
+  const dispatch = createEventDispatcher<{ back: void }>();
+
+  const TOOLBAR_ITEMS = [
+    { key: 'bold',          label: 'Bold' },
+    { key: 'italic',        label: 'Italic' },
+    { key: 'strikethrough', label: 'Strikethrough' },
+    { key: 'code',          label: 'Code' },
+    { key: 'link',          label: 'Link' },
+    { key: 'latex',         label: 'LaTeX' },
+  ] as const;
+
+  /** Dispatch `back` after clearing the markdown-menu dirty flag so
+   * MarkdownEditor's re-init guard (story 06) sees a fresh state.
+   * Call order is load-bearing — unit tests assert it explicitly. */
+  function goBack(): void {
+    clearMarkdownMenuDirty();
+    dispatch('back');
+  }
 
   let vscodiumPath = '';
   let saveStatus = '';
-  let vscodiumThemes = [];
-  let loadingThemes = false;
-  let themeLoadError = '';
-  let activatingThemePath = '';
+  let vscodiumThemesPanel: VSCodiumThemes;
 
-  let localFonts = [];
-  let allFonts = [];
+  let localFonts: LocalFontFamily[] = [];
+  let allFonts: FontOption[] = [];
   let loadingFonts = false;
   let selectedFont = '';
   let selectedFontSize = 13;
   let selectedSidebarWidth = 280;
 
   onMount(async () => {
+    let hasVscodiumPath = false;
     try {
       const cfg = await GetConfig();
       vscodiumPath = cfg.vscodiumExtPath || '';
       selectedFont = cfg.monoFont || '';
       selectedFontSize = cfg.fontSize || 13;
       selectedSidebarWidth = cfg.sidebarWidth || 280;
-      if (vscodiumPath) {
-        await scanThemes();
-      }
-      await scanFonts();
+      hasVscodiumPath = !!vscodiumPath;
     } catch {}
+    await Promise.all([
+      hasVscodiumPath ? vscodiumThemesPanel.scanThemes() : Promise.resolve(),
+      scanFonts(),
+      hydrateUIAdapter(),
+    ]);
   });
 
-  async function selectTheme(id) {
+  // Narrow the store value to the friendly ThemeMap shape — `allThemes` is
+  // authored in JS as a loose object, but every entry structurally matches.
+  $: themes = $allThemes as unknown as ThemeMap;
+
+  async function selectTheme(id: string): Promise<void> {
     applyTheme(id);
     try {
       await SetTheme(id);
@@ -46,55 +90,8 @@
     } catch {}
   }
 
-  async function scanThemes() {
-    loadingThemes = true;
-    themeLoadError = '';
-    try {
-      vscodiumThemes = await ListVSCodiumThemes();
-    } catch (err) {
-      themeLoadError = err?.message || 'Failed to scan themes';
-      vscodiumThemes = [];
-    } finally {
-      loadingThemes = false;
-    }
-  }
-
-  async function handleImportedThemeClick(entry) {
-    activatingThemePath = entry.themePath;
-    try {
-      await activateImportedTheme(entry.themePath, entry.extensionId);
-    } catch (err) {
-      themeLoadError = 'Failed to activate theme: ' + (err?.message || 'unknown error');
-    } finally {
-      activatingThemePath = '';
-    }
-  }
-
-  async function handleRemoveTheme(id) {
+  async function handleRemoveTheme(id: string): Promise<void> {
     await removeImportedTheme(id);
-  }
-
-  function isDarkTheme(uiTheme) {
-    return uiTheme !== 'vs' && uiTheme !== 'vs-light';
-  }
-
-  async function browseVSCodium() {
-    try {
-      const dir = await PickDirectory();
-      if (dir) {
-        vscodiumPath = dir;
-        await SetVSCodiumExtPath(dir);
-        flashSave();
-        await scanThemes();
-      }
-    } catch {}
-  }
-
-  async function saveVSCodiumPath() {
-    try {
-      await SetVSCodiumExtPath(vscodiumPath);
-      flashSave();
-    } catch {}
   }
 
   function flashSave() {
@@ -102,12 +99,12 @@
     setTimeout(() => { saveStatus = ''; }, 2000);
   }
 
-  async function scanFonts() {
+  async function scanFonts(): Promise<void> {
     loadingFonts = true;
     try {
-      localFonts = await ListLocalFonts() || [];
+      localFonts = (await ListLocalFonts()) || [];
       registerLocalFonts(localFonts);
-      allFonts = localFonts.map(f => ({ family: f.family, source: 'bundled' }));
+      allFonts = localFonts.map((f) => ({ family: f.family, source: 'bundled' as const }));
     } catch {
       localFonts = [];
       allFonts = [];
@@ -116,26 +113,26 @@
     }
   }
 
-  async function selectFont(family) {
+  async function selectFont(family: string): Promise<void> {
     selectedFont = family;
     applyFont(family, selectedFontSize);
     try { await SetMonoFont(family); } catch {}
   }
 
-  async function changeFontSize(size) {
+  async function changeFontSize(size: number): Promise<void> {
     selectedFontSize = size;
     applyFont(selectedFont, size);
     try { await SetFontSize(size); } catch {}
   }
 
-  async function changeSidebarWidth(width) {
+  async function changeSidebarWidth(width: number): Promise<void> {
     selectedSidebarWidth = width;
     try { await SetSidebarWidth(width); } catch {}
   }
 
-  function handleKeydown(e) {
+  function handleKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape') {
-      dispatch('back');
+      goBack();
     }
   }
 </script>
@@ -144,7 +141,7 @@
 
 <div class="settings">
   <div class="settings-header">
-    <button class="back-btn" on:click={() => dispatch('back')}><ArrowLeft size={14} /> Back</button>
+    <button class="back-btn" on:click={goBack}><ArrowLeft size={14} /> Back</button>
     <span class="settings-title">Settings</span>
   </div>
 
@@ -154,7 +151,7 @@
       <h2 class="section-title">Themes</h2>
       <div class="theme-list">
         {#each $themeIds as id}
-          {@const theme = $allThemes[id]}
+          {@const theme = themes[id]}
           <button
             class="theme-list-btn"
             class:active={$currentThemeId === id}
@@ -184,7 +181,9 @@
 
     <!-- Right column: font, extensions, import -->
     <div class="col-settings">
+      <div class="settings-col settings-col-1">
       <!-- Mono Font -->
+      <div class="settings-panel">
       <section class="settings-section">
         <h2 class="section-title">Font</h2>
 
@@ -228,8 +227,10 @@
           </div>
         {/if}
       </section>
+      </div>
 
       <!-- Sidebar Width -->
+      <div class="settings-panel">
       <section class="settings-section">
         <h2 class="section-title">Sidebar Width</h2>
         <p class="section-desc">Default width for the workflow process sidebar.</p>
@@ -241,187 +242,41 @@
                  on:input={() => changeSidebarWidth(selectedSidebarWidth)} class="size-slider" />
         </div>
       </section>
+      </div>
 
-      <!-- Editor -->
-      <section class="settings-section">
-        <h2 class="section-title">Editor</h2>
+      <EditorSettings />
+      </div>
 
-        <!-- Cursor -->
-        <h3 class="subsection-title">Cursor</h3>
-        <div class="setting-row">
-          <label class="setting-label" for="cursorStyle">Cursor Style</label>
-          <select id="cursorStyle" class="setting-select" value={$editorSettings.cursorStyle}
-            on:change={(e) => updateEditorSetting('cursorStyle', e.target.value)}>
-            <option value="line">line</option>
-            <option value="line-thin">line-thin</option>
-            <option value="block">block</option>
-            <option value="block-outline">block-outline</option>
-            <option value="underline">underline</option>
-            <option value="underline-thin">underline-thin</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="cursorBlinking">Cursor Blinking</label>
-          <select id="cursorBlinking" class="setting-select" value={$editorSettings.cursorBlinking}
-            on:change={(e) => updateEditorSetting('cursorBlinking', e.target.value)}>
-            <option value="blink">blink</option>
-            <option value="smooth">smooth</option>
-            <option value="phase">phase</option>
-            <option value="expand">expand</option>
-            <option value="solid">solid</option>
-          </select>
-        </div>
+      <div class="settings-col settings-col-2">
+      <VSCodiumThemes bind:this={vscodiumThemesPanel} bind:vscodiumPath {saveStatus} onSaved={flashSave} />
 
-        <!-- Display -->
-        <h3 class="subsection-title">Display</h3>
-        <div class="setting-row">
-          <label class="setting-label" for="wordWrap">Word Wrap</label>
-          <select id="wordWrap" class="setting-select" value={$editorSettings.wordWrap}
-            on:change={(e) => updateEditorSetting('wordWrap', e.target.value)}>
-            <option value="off">off</option>
-            <option value="on">on</option>
-            <option value="wordWrapColumn">wordWrapColumn</option>
-            <option value="bounded">bounded</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="lineNumbers">Line Numbers</label>
-          <select id="lineNumbers" class="setting-select" value={$editorSettings.lineNumbers}
-            on:change={(e) => updateEditorSetting('lineNumbers', e.target.value)}>
-            <option value="on">on</option>
-            <option value="off">off</option>
-            <option value="relative">relative</option>
-            <option value="interval">interval</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="renderLineHighlight">Line Highlight</label>
-          <select id="renderLineHighlight" class="setting-select" value={$editorSettings.renderLineHighlight}
-            on:change={(e) => updateEditorSetting('renderLineHighlight', e.target.value)}>
-            <option value="none">none</option>
-            <option value="gutter">gutter</option>
-            <option value="line">line</option>
-            <option value="all">all</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="renderWhitespace">Whitespace</label>
-          <select id="renderWhitespace" class="setting-select" value={$editorSettings.renderWhitespace}
-            on:change={(e) => updateEditorSetting('renderWhitespace', e.target.value)}>
-            <option value="none">none</option>
-            <option value="boundary">boundary</option>
-            <option value="selection">selection</option>
-            <option value="trailing">trailing</option>
-            <option value="all">all</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="minimapEnabled">Minimap</label>
-          <button id="minimapEnabled" class="setting-toggle" class:active={$editorSettings.minimapEnabled}
-            on:click={() => updateEditorSetting('minimapEnabled', !$editorSettings.minimapEnabled)}>
-            {$editorSettings.minimapEnabled ? 'On' : 'Off'}
-          </button>
-        </div>
+      <UIAdapterSettings onSaved={flashSave} />
 
-        <!-- Editing -->
-        <h3 class="subsection-title">Editing</h3>
-        <div class="setting-row">
-          <label class="setting-label" for="tabSize">Tab Size</label>
-          <input id="tabSize" class="setting-number" type="number" min="2" max="8"
-            value={$editorSettings.tabSize}
-            on:change={(e) => updateEditorSetting('tabSize', Math.min(8, Math.max(2, parseInt(e.target.value) || 2)))} />
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="insertSpaces">Insert Spaces</label>
-          <button id="insertSpaces" class="setting-toggle" class:active={$editorSettings.insertSpaces}
-            on:click={() => updateEditorSetting('insertSpaces', !$editorSettings.insertSpaces)}>
-            {$editorSettings.insertSpaces ? 'On' : 'Off'}
-          </button>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="bracketPairColorization">Bracket Colors</label>
-          <button id="bracketPairColorization" class="setting-toggle" class:active={$editorSettings.bracketPairColorization}
-            on:click={() => updateEditorSetting('bracketPairColorization', !$editorSettings.bracketPairColorization)}>
-            {$editorSettings.bracketPairColorization ? 'On' : 'Off'}
-          </button>
-        </div>
+      <!-- Markdown Editor — selection toolbar toggles (story 05) -->
+      <div class="settings-panel">
+      <section class="settings-section" data-testid="markdown-menu-section">
+        <h2 class="section-title">Markdown Editor</h2>
+        <p class="section-desc">
+          Selection toolbar items. Changes apply when you close Settings.
+        </p>
 
-        <!-- Behavior -->
-        <h3 class="subsection-title">Behavior</h3>
-        <div class="setting-row">
-          <label class="setting-label" for="fontLigatures">Font Ligatures</label>
-          <button id="fontLigatures" class="setting-toggle" class:active={$editorSettings.fontLigatures}
-            on:click={() => updateEditorSetting('fontLigatures', !$editorSettings.fontLigatures)}>
-            {$editorSettings.fontLigatures ? 'On' : 'Off'}
-          </button>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="scrollBeyondLastLine">Scroll Beyond End</label>
-          <button id="scrollBeyondLastLine" class="setting-toggle" class:active={$editorSettings.scrollBeyondLastLine}
-            on:click={() => updateEditorSetting('scrollBeyondLastLine', !$editorSettings.scrollBeyondLastLine)}>
-            {$editorSettings.scrollBeyondLastLine ? 'On' : 'Off'}
-          </button>
-        </div>
-        <div class="setting-row">
-          <label class="setting-label" for="smoothScrolling">Smooth Scrolling</label>
-          <button id="smoothScrolling" class="setting-toggle" class:active={$editorSettings.smoothScrolling}
-            on:click={() => updateEditorSetting('smoothScrolling', !$editorSettings.smoothScrolling)}>
-            {$editorSettings.smoothScrolling ? 'On' : 'Off'}
-          </button>
-        </div>
-      </section>
-
-      <!-- VSCodium Extension path -->
-      <section class="settings-section">
-        <h2 class="section-title">Theme Extensions</h2>
-        <p class="section-desc">Path to .vsix theme files.</p>
-        <div class="path-input-row">
-          <input
-            class="path-input"
-            type="text"
-            bind:value={vscodiumPath}
-            placeholder="e.g. ~/.vscode-oss/extensions"
-            on:blur={saveVSCodiumPath}
-          />
-          <button class="browse-btn" on:click={browseVSCodium}>Browse</button>
-        </div>
-        {#if saveStatus}
-          <span class="save-status">{saveStatus}</span>
-        {/if}
-
-        {#if vscodiumPath}
-          <div class="import-row">
-            <button class="browse-btn" on:click={scanThemes} disabled={loadingThemes}>
-              {loadingThemes ? 'Scanning...' : 'Scan & Import'}
+        {#each TOOLBAR_ITEMS as item}
+          <div class="setting-row">
+            <span class="setting-label">{item.label}</span>
+            <button
+              class="setting-toggle"
+              class:active={$markdownMenuSettings[item.key]}
+              aria-pressed={$markdownMenuSettings[item.key]}
+              data-testid={`toolbar-toggle-${item.key}`}
+              on:click={() => updateMarkdownMenuItem(item.key, !$markdownMenuSettings[item.key])}
+            >
+              {$markdownMenuSettings[item.key] ? 'On' : 'Off'}
             </button>
-            {#if themeLoadError}
-              <span class="error-text">{themeLoadError}</span>
-            {/if}
           </div>
-          {#if vscodiumThemes.length > 0}
-            <div class="import-list">
-              {#each vscodiumThemes as entry}
-                {@const themeId = makeThemeId(entry.themePath, entry.extensionId)}
-                {@const alreadyImported = !!$allThemes[themeId]}
-                <button
-                  class="import-item"
-                  class:imported={alreadyImported}
-                  disabled={activatingThemePath === entry.themePath}
-                  on:click={() => handleImportedThemeClick(entry)}
-                >
-                  <span class="import-indicator" class:dark={isDarkTheme(entry.uiTheme)} class:light={!isDarkTheme(entry.uiTheme)} />
-                  <span class="import-label">{entry.label}</span>
-                  {#if activatingThemePath === entry.themePath}
-                    <span class="activating-indicator">...</span>
-                  {:else if alreadyImported}
-                    <span class="imported-check">&#10003;</span>
-                  {/if}
-                </button>
-              {/each}
-            </div>
-          {/if}
-        {/if}
+        {/each}
       </section>
+      </div>
+      </div>
     </div>
   </div>
 
@@ -595,12 +450,41 @@
     color: var(--accent-red);
   }
 
-  /* Right column: other settings */
+  /* Right column: other settings — 2-column panel grid (story 04) */
   .col-settings {
     flex: 1;
     overflow-y: auto;
     padding: var(--sp-lg) var(--sp-xl);
     min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-lg);
+    align-items: start;
+  }
+
+  .settings-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-lg);
+    min-width: 0;
+  }
+
+  .settings-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--sp-lg);
+  }
+
+  /* Panel padding owns bottom spacing; neutralise the legacy section margin. */
+  .settings-panel .settings-section {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 1100px) {
+    .col-settings {
+      grid-template-columns: 1fr;
+    }
   }
 
   .section-title {
@@ -750,162 +634,12 @@
     letter-spacing: 2px;
   }
 
-  /* VSCodium / import */
-  .path-input-row {
-    display: flex;
-    gap: var(--sp-sm);
-  }
-
-  .path-input {
-    flex: 1;
-    padding: var(--sp-xs) 10px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: var(--text-body);
-    outline: none;
-  }
-
-  .path-input:focus {
-    border-color: var(--accent-green);
-  }
-
-  .path-input::placeholder {
-    color: var(--text-muted);
-  }
-
-  .browse-btn {
-    padding: var(--sp-xs) 14px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-    font-size: var(--text-body);
-    cursor: pointer;
-    transition: all 100ms ease;
-    white-space: nowrap;
-  }
-
-  .browse-btn:hover {
-    color: var(--text-primary);
-    border-color: var(--border-emphasis);
-    background: var(--bg-active);
-  }
-
-  .save-status {
-    display: inline-block;
-    margin-top: var(--sp-xs);
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    color: var(--accent-green);
-  }
-
-  .import-row {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-sm);
-    margin-top: var(--sp-md);
-  }
-
-  .import-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    margin-top: var(--sp-sm);
-    max-height: 200px;
-    overflow-y: auto;
-  }
-
-  .import-item {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-sm);
-    padding: 4px 8px;
-    background: none;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    text-align: left;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    transition: all 100ms ease;
-  }
-
-  .import-item:hover {
-    background: var(--bg-elevated);
-    color: var(--text-primary);
-  }
-
-  .import-item.imported {
-    color: var(--text-muted);
-  }
-
-  .import-item:disabled {
-    opacity: 0.6;
-    cursor: wait;
-  }
-
-  .import-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .import-indicator.dark {
-    background: var(--text-muted);
-  }
-
-  .import-indicator.light {
-    background: var(--text-dim);
-  }
-
-  .import-label {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .activating-indicator {
-    color: var(--text-muted);
-    margin-left: auto;
-  }
-
-  .imported-check {
-    color: var(--accent-green);
-    margin-left: auto;
-    font-size: var(--text-label);
-  }
-
   .loading-text {
     color: var(--text-dim);
     font-style: italic;
   }
 
-  .error-text {
-    color: var(--accent-red);
-    font-size: 11px;
-  }
-
-  /* Editor settings: subsections, rows, controls */
-  .subsection-title {
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin: var(--sp-lg) 0 var(--sp-sm);
-  }
-
-  .subsection-title:first-of-type {
-    margin-top: 0;
-  }
-
+  /* Setting rows (Markdown Editor toggles; children carry their own copies) */
   .setting-row {
     display: flex;
     align-items: center;
@@ -919,47 +653,6 @@
     font-size: var(--text-body);
     color: var(--text-dim);
     white-space: nowrap;
-  }
-
-  .setting-select {
-    padding: 4px 8px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    outline: none;
-    cursor: pointer;
-    min-width: 120px;
-    transition: border-color 100ms ease;
-  }
-
-  .setting-select:focus {
-    border-color: var(--accent-green);
-  }
-
-  .setting-select:hover {
-    border-color: var(--border-emphasis);
-  }
-
-  .setting-number {
-    width: 60px;
-    padding: 4px 8px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-variant-numeric: tabular-nums;
-    outline: none;
-    text-align: center;
-    transition: border-color 100ms ease;
-  }
-
-  .setting-number:focus {
-    border-color: var(--accent-green);
   }
 
   .setting-toggle {

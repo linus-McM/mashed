@@ -1,0 +1,247 @@
+---
+type: Module
+title: testing.T
+description: "Graphify community 2: app_git_spawn_test.go, app_models.go, app_review.go, app_review_test.go, app_terminal_registry_test.go, internal/agent/tokensamples.go, internal/agent/tokensamples_test.go, inter"
+resource: ""
+tags: [module, graphify]
+status: draft
+generated: { by: sdlc/0.8.1, at: "2026-09-29T20:55:29Z" }
+stale_after: "2026-10-13T20:55:29Z"
+source_commit: c5568e08ac3c9ebbe5442e8f9b0ce4b6fe270ffd
+sources:
+  - { id: app_git_spawn_test, resource: app_git_spawn_test.go, last_modified: "2026-09-30T06:45:21+10:00", digest: 9540154105621c17 }
+  - { id: app_models, resource: app_models.go, last_modified: "2026-04-10T11:36:27+10:00", digest: cf387264112e9ff8 }
+  - { id: app_review, resource: app_review.go, last_modified: "2026-09-30T06:45:21+10:00", digest: f17cdf1f6df7fb1a }
+  - { id: app_review_test, resource: app_review_test.go, last_modified: "2026-09-30T06:45:21+10:00", digest: f0e8175dd8bd9ac2 }
+  - { id: app_terminal_registry_test, resource: app_terminal_registry_test.go, last_modified: "2026-09-30T06:45:21+10:00", digest: 2844ed2cca730a69 }
+  - { id: tokensamples, resource: internal/agent/tokensamples.go, last_modified: "2026-04-11T17:08:28+10:00", digest: 281db4a1d2ab32a0 }
+  - { id: tokensamples_test, resource: internal/agent/tokensamples_test.go, last_modified: "2026-04-11T17:08:28+10:00", digest: e73f3aa2bb785df4 }
+  - { id: condition, resource: internal/bmad/condition.go, last_modified: "2026-04-08T17:10:27+10:00", digest: 956ffd61999ceb65 }
+  - { id: condition_test, resource: internal/bmad/condition_test.go, last_modified: "2026-04-08T17:10:27+10:00", digest: 0058fbc2d3f1868b }
+  - { id: executor_interactive_smoke_test, resource: internal/bmad/executor_interactive_smoke_test.go, last_modified: "2026-04-20T15:36:58+10:00", digest: 75f14883e4b4821b }
+  - { id: interactive_types_test, resource: internal/bmad/interactive_types_test.go, last_modified: "2026-04-20T13:01:41+10:00", digest: 0282e550b6b93893 }
+  - { id: testutil_interactive_test, resource: internal/bmad/testutil_interactive_test.go, last_modified: "2026-04-20T15:36:58+10:00", digest: f165a17bd64570bc }
+  - { id: types_nodetype_test, resource: internal/bmad/types_nodetype_test.go, last_modified: "2026-04-08T17:10:27+10:00", digest: 63313f7f3a1e92c3 }
+  - { id: types_test, resource: internal/bmad/types_test.go, last_modified: "2026-04-21T20:21:32+10:00", digest: f7fe93cfdff41ed5 }
+  - { id: codegen_test, resource: internal/uiadapter/codegen_test.go, last_modified: "2026-04-23T11:04:07+10:00", digest: a4cb53187a0fa90c }
+  - { id: logging, resource: internal/uiadapter/logging.go, last_modified: "2026-04-26T09:47:45+10:00", digest: f7d1f46bdb4ea215 }
+  - { id: logging_handler_test, resource: internal/uiadapter/logging_handler_test.go, last_modified: "2026-04-26T09:22:14+10:00", digest: 998f6bb512a268ee }
+  - { id: schema_test, resource: internal/uiadapter/schema_test.go, last_modified: "2026-04-26T11:30:52+10:00", digest: 706f4f8efc89d9d5 }
+  - { id: schemas_test, resource: internal/uiadapter/schemas_test.go, last_modified: "2026-04-23T11:04:07+10:00", digest: e7499deb809d563b }
+  - { id: markdown_menu_test, resource: markdown_menu_test.go, last_modified: "2026-04-23T10:53:25+10:00", digest: 625b5fa30cfeec7d }
+---
+
+# Files
+- `app_git_spawn_test.go`
+- `app_models.go`
+- `app_review.go`
+- `app_review_test.go`
+- `app_terminal_registry_test.go`
+- `internal/agent/tokensamples.go`
+- `internal/agent/tokensamples_test.go`
+- `internal/bmad/condition.go`
+- `internal/bmad/condition_test.go`
+- `internal/bmad/executor_interactive_smoke_test.go`
+- `internal/bmad/interactive_types_test.go`
+- `internal/bmad/testutil_interactive_test.go`
+- `internal/bmad/types_nodetype_test.go`
+- `internal/bmad/types_test.go`
+- `internal/uiadapter/codegen_test.go`
+- `internal/uiadapter/logging.go`
+- `internal/uiadapter/logging_handler_test.go`
+- `internal/uiadapter/schema_test.go`
+- `internal/uiadapter/schemas_test.go`
+- `markdown_menu_test.go`
+
+# Symbols
+- spawnFixture() (app_git_spawn_test.go:L18)
+- TestSpawnPRReview_ArgvExact() (app_git_spawn_test.go:L43)
+- TestSpawnPRReview_RejectsNonDigitPRNumber() (app_git_spawn_test.go:L64)
+- parseModelResponse() (app_models.go:L76)
+- refactorPlanFilename() (app_review.go:L395)
+- slugifyPlanPath() (app_review.go:L431)
+- truncateDiffLines() (app_review.go:L463)
+- app_review_test.go (app_review_test.go:L1)
+- TestReviewConcurrencyGuard_DifferentRepos() (app_review_test.go:L123)
+- TestTruncateDiffLines() (app_review_test.go:L151)
+- TestReviewSummary_StructConstruction() (app_review_test.go:L21)
+- TestTruncateDiffLines_PreservesContent() (app_review_test.go:L212)
+- TestFileSummarySystemPrompt() (app_review_test.go:L232)
+- TestReviewConstants() (app_review_test.go:L242)
+- TestParseModelResponse_ValidJSON() (app_review_test.go:L294)
+- TestParseModelResponse_EmptyInput() (app_review_test.go:L307)
+- TestParseModelResponse_InvalidJSON() (app_review_test.go:L312)
+- TestParseModelResponse_JSONInCodeFence() (app_review_test.go:L317)
+- TestParseModelResponse_JSONWithSurroundingProse() (app_review_test.go:L327)
+- TestSpawnRefactorPlan_InputValidation() (app_review_test.go:L340)
+- TestSpawnRefactorPlan_ArgvExact() (app_review_test.go:L373)
+- TestSpawnRefactorPlan_PlanPathFormat() (app_review_test.go:L395)
+- TestRefactorPlanFilename() (app_review_test.go:L411)
+- TestSlugifyPlanPath() (app_review_test.go:L502)
+- TestFileSummary_BinaryFlag() (app_review_test.go:L74)
+- TestReviewConcurrencyGuard() (app_review_test.go:L92)
+- app_terminal_registry_test.go (app_terminal_registry_test.go:L1)
+- testApp() (app_terminal_registry_test.go:L117)
+- TestStory1_AC1_TerminalSessionJSONTags() (app_terminal_registry_test.go:L127)
+- TestStory1_AC1_TerminalSessionRoundTrip() (app_terminal_registry_test.go:L153)
+- TestStory1_AC2_FilterByRepo() (app_terminal_registry_test.go:L183)
+- TestStory1_AC2_EmptyRepoPath() (app_terminal_registry_test.go:L203)
+- TestStory1_AC2_SortBySpawnedAt() (app_terminal_registry_test.go:L215)
+- TestStory1_AC3_PruneDeadSessions() (app_terminal_registry_test.go:L237)
+- TestStory1_AC3_AllSessionsDead() (app_terminal_registry_test.go:L259)
+- TestStory1_AC4_KillRemovesFromRegistry() (app_terminal_registry_test.go:L276)
+- TestStory1_AC5_KillAlreadyDead() (app_terminal_registry_test.go:L298)
+- TestStory1_AC5_KillNotFound() (app_terminal_registry_test.go:L313)
+- TestStory1_RegisterOverwrite() (app_terminal_registry_test.go:L324)
+- TestStory2_AC1_RecoverTerminalAndAgent() (app_terminal_registry_test.go:L351)
+- TestStory2_AC2_FilterNonMatchingPrefixes() (app_terminal_registry_test.go:L374)
+- TestStory2_AC3_TmuxNotRunning() (app_terminal_registry_test.go:L390)
+- TestStory2_AC4_IdempotentRecovery() (app_terminal_registry_test.go:L401)
+- TestStory2_ParsesRepoNameFromSessionName() (app_terminal_registry_test.go:L416)
+- TestStory2_NoTimestampSuffix() (app_terminal_registry_test.go:L445)
+- TestStory2_EmptyAndWhitespaceLines() (app_terminal_registry_test.go:L457)
+- TestStory3_AC1_SpawnRegistersAgentSession() (app_terminal_registry_test.go:L470)
+- TestStory3_AC2_SpawnRegistersTerminalSession() (app_terminal_registry_test.go:L497)
+- TestStory3_AC3_KillAgentDeregisters() (app_terminal_registry_test.go:L521)
+- TestStory3_AC4_FailedSpawnNoRegistration() (app_terminal_registry_test.go:L551)
+- TestStory1_RegisterSessionConcurrent() (app_terminal_registry_test.go:L565)
+- TestStory4_AC7_RecoverSessionsIsNoOp() (app_terminal_registry_test.go:L591)
+- TestStory5_ResolveTmuxTarget() (app_terminal_registry_test.go:L605)
+- newFakeManager() (app_terminal_registry_test.go:L67)
+- tokensamples.go (internal/agent/tokensamples.go:L1)
+- MaybeAppendTokenSample() (internal/agent/tokensamples.go:L24)
+- tokensamples_test.go (internal/agent/tokensamples_test.go:L1)
+- TestNotificationEventJSON_IncludesTokenSamples() (internal/agent/tokensamples_test.go:L112)
+- TestNotificationEventJSON_OmitEmptyTokenSamples() (internal/agent/tokensamples_test.go:L129)
+- TestMaybeAppendTokenSample_CapEnforced() (internal/agent/tokensamples_test.go:L15)
+- TestMaybeAppendTokenSample_FirstSampleAlwaysAppends() (internal/agent/tokensamples_test.go:L34)
+- TestMaybeAppendTokenSample_DeltaThrottle() (internal/agent/tokensamples_test.go:L41)
+- TestMaybeAppendTokenSample_DeltaBypassedForDecreases() (internal/agent/tokensamples_test.go:L61)
+- TestMaybeAppendTokenSample_ThreadSafeRace() (internal/agent/tokensamples_test.go:L70)
+- TestAgentJSON_IncludesTokenSamples() (internal/agent/tokensamples_test.go:L97)
+- ParseCondition() (internal/bmad/condition.go:L91)
+- condition_test.go (internal/bmad/condition_test.go:L1)
+- TestCondition_Evaluate_ExitCode() (internal/bmad/condition_test.go:L101)
+- TestCondition_Evaluate_Contains() (internal/bmad/condition_test.go:L12)
+- TestCondition_Evaluate_FileExists() (internal/bmad/condition_test.go:L133)
+- TestCondition_Evaluate_Always() (internal/bmad/condition_test.go:L166)
+- TestCondition_Evaluate_MissingSourceNode() (internal/bmad/condition_test.go:L187)
+- TestCondition_Evaluate_UnknownType() (internal/bmad/condition_test.go:L224)
+- TestParseCondition_Valid() (internal/bmad/condition_test.go:L234)
+- TestParseCondition_Invalid() (internal/bmad/condition_test.go:L290)
+- TestCondition_Evaluate_NilOutputs() (internal/bmad/condition_test.go:L311)
+- TestCondition_Evaluate_NotContains() (internal/bmad/condition_test.go:L43)
+- TestCondition_Evaluate_Regex() (internal/bmad/condition_test.go:L70)
+- executor_interactive_smoke_test.go (internal/bmad/executor_interactive_smoke_test.go:L1)
+- TestSmoke_PartyMode_ExitToken() (internal/bmad/executor_interactive_smoke_test.go:L114)
+- TestSmoke_AdvancedElicitation_XAccept() (internal/bmad/executor_interactive_smoke_test.go:L142)
+- TestSmoke_Brainstorming_ThreeRoundsDone() (internal/bmad/executor_interactive_smoke_test.go:L17)
+- TestSmoke_Brainstorming_RejectAbort() (internal/bmad/executor_interactive_smoke_test.go:L49)
+- TestSmoke_ProductBrief_GuidedApproval() (internal/bmad/executor_interactive_smoke_test.go:L82)
+- interactive_types_test.go (internal/bmad/interactive_types_test.go:L1)
+- TestIterationGateNilVsPopulated() (internal/bmad/interactive_types_test.go:L259)
+- TestNodeAwaitingInputJSONRoundTrip() (internal/bmad/interactive_types_test.go:L29)
+- TestWorkflowExecutionInteractiveState() (internal/bmad/interactive_types_test.go:L357)
+- TestPendingPromptRoundTrip() (internal/bmad/interactive_types_test.go:L417)
+- TestOutputSpecRoundTrip() (internal/bmad/interactive_types_test.go:L503)
+- TestProcessDefLegacyShape() (internal/bmad/interactive_types_test.go:L53)
+- TestProcessDefInteractiveFieldsRoundTrip() (internal/bmad/interactive_types_test.go:L570)
+- TestNodeInputEntryRoundTrip() (internal/bmad/interactive_types_test.go:L623)
+- TestWorkflowExecutionLegacyShape() (internal/bmad/interactive_types_test.go:L652)
+- TestInputSpecShapes() (internal/bmad/interactive_types_test.go:L92)
+- newInteractiveHarness() (internal/bmad/testutil_interactive_test.go:L70)
+- types_nodetype_test.go (internal/bmad/types_nodetype_test.go:L1)
+- TestNodeTypeConstants() (internal/bmad/types_nodetype_test.go:L11)
+- TestWorkflowExecution_NodeOutputs_JSONRoundTrip() (internal/bmad/types_nodetype_test.go:L126)
+- TestWorkflowNode_EffectiveType() (internal/bmad/types_nodetype_test.go:L28)
+- TestWorkflowNode_NodeType_JSONRoundTrip() (internal/bmad/types_nodetype_test.go:L50)
+- TestWorkflowEdge_Handles_JSONRoundTrip() (internal/bmad/types_nodetype_test.go:L93)
+- types_test.go (internal/bmad/types_test.go:L1)
+- TestAC4_ArtifactTypeConstants() (internal/bmad/types_test.go:L13)
+- TestU0_AC1_ProcessDef_EnableAstAdapter_RoundTrip() (internal/bmad/types_test.go:L169)
+- TestPendingPrompt_Structured_RoundTrip() (internal/bmad/types_test.go:L216)
+- TestNodeInputEntry_RoundAndKey_RoundTrip() (internal/bmad/types_test.go:L279)
+- TestAC4_ArtifactSpec_JSONRoundTrip() (internal/bmad/types_test.go:L32)
+- TestAC4_ArtifactSpec_ZeroValue() (internal/bmad/types_test.go:L62)
+- TestStory1_AC4_LegacyWorkflowRoundTrip() (internal/bmad/types_test.go:L78)
+- codegen_test.go (internal/uiadapter/codegen_test.go:L1)
+- TestCodegen_AC_A1_GenDirectiveFileIsBuildTagFree() (internal/uiadapter/codegen_test.go:L108)
+- TestCodegen_AC_A1_GeneratedFileExists() (internal/uiadapter/codegen_test.go:L124)
+- TestCodegen_AC_A1_GeneratedFileDeclaresUIASTPackage() (internal/uiadapter/codegen_test.go:L135)
+- TestCodegen_AC_A1_GeneratedPackageDirectoryExists() (internal/uiadapter/codegen_test.go:L149)
+- TestCodegen_NoDrift() (internal/uiadapter/codegen_test.go:L179)
+- ensureGoJsonschemaOnPATH() (internal/uiadapter/codegen_test.go:L40)
+- TestCodegen_AC_A1_GenDirectiveFileExists() (internal/uiadapter/codegen_test.go:L84)
+- TestCodegen_AC_A1_GenDirectiveFileDeclaresGoGenerate() (internal/uiadapter/codegen_test.go:L96)
+- ParseLogLevel() (internal/uiadapter/logging.go:L73)
+- logging_handler_test.go (internal/uiadapter/logging_handler_test.go:L1)
+- TestNoopCloser_AlwaysNil() (internal/uiadapter/logging_handler_test.go:L118)
+- TestParseLogLevel_ExportedWrapper() (internal/uiadapter/logging_handler_test.go:L28)
+- TestFanoutHandler_WithAttrs() (internal/uiadapter/logging_handler_test.go:L39)
+- TestFanoutHandler_WithGroup() (internal/uiadapter/logging_handler_test.go:L60)
+- TestFanoutHandler_EnabledShortCircuit() (internal/uiadapter/logging_handler_test.go:L83)
+- TestFileCloser_ConcurrentDoubleClose() (internal/uiadapter/logging_handler_test.go:L99)
+- schema_test.go (internal/uiadapter/schema_test.go:L1)
+- TestU2_Schema_UINode_Table_RoundTrip() (internal/uiadapter/schema_test.go:L124)
+- TestU2_Schema_UIAST_RoundTrip() (internal/uiadapter/schema_test.go:L14)
+- TestU2_Schema_UINode_Summary_RoundTrip() (internal/uiadapter/schema_test.go:L144)
+- TestU2_Schema_UINode_Hint_RoundTrip() (internal/uiadapter/schema_test.go:L157)
+- TestU2_Schema_UINode_Code_RoundTrip() (internal/uiadapter/schema_test.go:L166)
+- TestU2_Schema_UINode_OptionalFieldsOmitted() (internal/uiadapter/schema_test.go:L178)
+- TestStory5_AC7_NoLoggerFallback() (internal/uiadapter/schema_test.go:L251)
+- TestU2_Schema_WidgetOption_RoundTrip() (internal/uiadapter/schema_test.go:L269)
+- TestU2_Schema_Diagnostics_CancelReasonNotSerialized() (internal/uiadapter/schema_test.go:L42)
+- TestU2_Schema_WidgetNode_RoundTrip() (internal/uiadapter/schema_test.go:L56)
+- TestU2_Schema_UINode_DecisionGroup_RoundTrip() (internal/uiadapter/schema_test.go:L93)
+- schemas_test.go (internal/uiadapter/schemas_test.go:L1)
+- TestUIASTSchemas_ValidJSONSchema() (internal/uiadapter/schemas_test.go:L101)
+- TestSchemas_AC_A1_DirectoryExists() (internal/uiadapter/schemas_test.go:L159)
+- TestSchemas_AC_A1_UIASTFileExistsAndIsJSON() (internal/uiadapter/schemas_test.go:L167)
+- TestSchemas_AC_A1_UIASTDeclaresDraftSchema() (internal/uiadapter/schemas_test.go:L175)
+- TestSchemas_AC_A1_UIASTDescribesEnvelope() (internal/uiadapter/schemas_test.go:L190)
+- TestSchemas_AC_A1_UIASTEnvelopeRequired() (internal/uiadapter/schemas_test.go:L209)
+- TestSchemas_AC_A1_UIASTRejectsAdditionalProperties() (internal/uiadapter/schemas_test.go:L234)
+- TestSchemas_AC_A1_PerKindShardsExist() (internal/uiadapter/schemas_test.go:L248)
+- TestSchemas_AC_A1_PerKindDeclareDraftSchema() (internal/uiadapter/schemas_test.go:L261)
+- TestSchemas_AC_A1_PerKindSubsetsOfUIAST() (internal/uiadapter/schemas_test.go:L279)
+- TestSchemas_AC_A1_PerKindRejectsAdditionalProperties() (internal/uiadapter/schemas_test.go:L304)
+- collectSchemaPropertyKeys() (internal/uiadapter/schemas_test.go:L53)
+- readSchema() (internal/uiadapter/schemas_test.go:L86)
+- markdown_menu_test.go (markdown_menu_test.go:L1)
+- TestConfigMarkdownMenuOmitempty() (markdown_menu_test.go:L121)
+- TestConfigMarkdownMenu_PresentWhenSet() (markdown_menu_test.go:L138)
+- TestSetMarkdownMenuSettings_PreservesOtherConfig() (markdown_menu_test.go:L160)
+- expectedMarkdownMenuDefaults() (markdown_menu_test.go:L17)
+- TestBackwardCompat_LegacyConfigNoMarkdownMenu() (markdown_menu_test.go:L195)
+- TestSetMarkdownMenuSettings_ConcurrentRace() (markdown_menu_test.go:L206)
+- TestMarkdownMenuSettings_JSONTags() (markdown_menu_test.go:L251)
+- TestMarkdownMenuSettings_JSONRoundTrip() (markdown_menu_test.go:L274)
+- TestDefaultMarkdownMenuSettings() (markdown_menu_test.go:L32)
+- TestDefaultMarkdownMenuSettings_Consistent() (markdown_menu_test.go:L47)
+- TestGetMarkdownMenuSettings_DefaultsWhenNil() (markdown_menu_test.go:L57)
+- TestGetMarkdownMenuSettings_NoConfigFile() (markdown_menu_test.go:L75)
+
+# Depends on
+- [app_config_test.go](/modules/app-config-test-go.md)
+- [bmad/types.go](/modules/bmad-types-go.md)
+- [Condition](/modules/condition.md)
+- [interactiveHarness](/modules/interactiveharness.md)
+- [logging_comprehensive_test.go](/modules/logging-comprehensive-test-go.md)
+- [main.go](/modules/main-go.md)
+- [ManagedSession](/modules/managedsession.md)
+- [ModelInfo](/modules/modelinfo.md)
+- [NotificationEngine](/modules/notificationengine.md)
+- [panes.go](/modules/panes-go.md)
+- [setupTestConfig](/modules/setuptestconfig.md)
+- [testLogBuffer](/modules/testlogbuffer.md)
+
+# Inferred
+- [app_config_test.go](/modules/app-config-test-go.md)
+- [bmad/types.go](/modules/bmad-types-go.md)
+- [executor_iteration_test.go](/modules/executor-iteration-test-go.md)
+- [loadConfig](/modules/loadconfig.md)
+- [newHarness](/modules/newharness.md)
+- [setupTestConfig](/modules/setuptestconfig.md)
+
+# Features
+- [Repo health remediation](/features/repo-health-remediation.md)

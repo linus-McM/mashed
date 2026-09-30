@@ -102,14 +102,14 @@ export function applyTheme(id) {
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/frontend/src/lib/stores/theme.js` -- the file being modified (17 lines currently)
-- `/Users/linus/Development/mashed/frontend/src/lib/themes.js` -- source of built-in themes, exported as `themes` and `themeIds`
-- `/Users/linus/Development/mashed/frontend/src/lib/monacoTheme.js` -- add `defineImportedTheme` helper
-- `/Users/linus/Development/mashed/frontend/src/components/TitleBar.svelte` -- lines 5, 50-51 must change
-- `/Users/linus/Development/mashed/frontend/src/views/Settings.svelte` -- lines 4, 67-68 must change
-- `/Users/linus/Development/mashed/frontend/src/components/Terminal.svelte` -- line 77 and 182, uses `$currentTheme.xterm` (should work without changes, but verify)
-- `/Users/linus/Development/mashed/frontend/src/components/MonacoEditor.svelte` -- lines 6, 430-432, uses `currentThemeId` (no change needed)
-- `/Users/linus/Development/mashed/frontend/src/App.svelte` -- line 12, imports `applyTheme` (no change needed)
+- `/Users/dev/Development/mashed/frontend/src/lib/stores/theme.js` -- the file being modified (17 lines currently)
+- `/Users/dev/Development/mashed/frontend/src/lib/themes.js` -- source of built-in themes, exported as `themes` and `themeIds`
+- `/Users/dev/Development/mashed/frontend/src/lib/monacoTheme.js` -- add `defineImportedTheme` helper
+- `/Users/dev/Development/mashed/frontend/src/components/TitleBar.svelte` -- lines 5, 50-51 must change
+- `/Users/dev/Development/mashed/frontend/src/views/Settings.svelte` -- lines 4, 67-68 must change
+- `/Users/dev/Development/mashed/frontend/src/components/Terminal.svelte` -- line 77 and 182, uses `$currentTheme.xterm` (should work without changes, but verify)
+- `/Users/dev/Development/mashed/frontend/src/components/MonacoEditor.svelte` -- lines 6, 430-432, uses `currentThemeId` (no change needed)
+- `/Users/dev/Development/mashed/frontend/src/App.svelte` -- line 12, imports `applyTheme` (no change needed)
 
 ## Acceptance Criteria
 

@@ -1,0 +1,9 @@
+We can wire the event handler in like this:
+
+```go
+func main() {
+    runtime.EventsOn(ctx, "data", handler)
+}
+```
+
+Should I continue with the rest of the integration?

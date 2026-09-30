@@ -1,13 +1,17 @@
 <script>
   import { Handle, Position } from '@xyflow/svelte';
-  import { Search, Briefcase, Palette, Building2, Code, FileText, TestTube } from 'lucide-svelte';
+  import { Search, Briefcase, Palette, Building2, Code, FileText, TestTube, MessageCircleQuestion } from 'lucide-svelte';
   import { getNodePath, formatBreadcrumb } from '../../lib/bmad/nodePath';
 
+  /** @typedef {import('../../types/workflow').CanvasNodeData} CanvasNodeData */
+  /** @typedef {import('../../lib/types/wails').ProcessDef} ProcessDef */
+  /** @type {CanvasNodeData} */
   export let data = {};
   // svelte-ignore unused-export-let
   export let id = '';
   export let selected = false;
 
+  /** @type {Record<string, string>} */
   const phaseColors = {
     analysis: 'var(--accent-blue, #3d9eff)',
     planning: 'var(--accent-green, #00e57a)',
@@ -16,6 +20,7 @@
     support: 'var(--text-dim, #4a5a6a)',
   };
 
+  /** @type {Record<string, typeof Search>} */
   const roleIcons = {
     analyst: Search,
     pm: Briefcase,
@@ -26,6 +31,7 @@
     qa: TestTube,
   };
 
+  /** @type {ProcessDef | Partial<ProcessDef>} */
   $: process = data.process || {};
   $: phase = process.phase || 'support';
   $: phaseColor = phaseColors[phase] || phaseColors.support;
@@ -38,12 +44,27 @@
   $: storyId = data.storyId || '';
   $: storyStatus = data.storyStatus || '';
   $: artifactStatus = data.artifactStatus || null;
-  $: hasArtifacts = artifactStatus && (artifactStatus.found?.length > 0 || artifactStatus.missing?.length > 0);
+  $: hasArtifacts = artifactStatus && ((artifactStatus.found?.length ?? 0) > 0 || (artifactStatus.missing?.length ?? 0) > 0);
+  $: nodeRound = data.nodeRound || 0;
+  $: maxRounds = process.gate?.maxRounds || 0;
+  $: gateFlash = !!data.gateFlash;
+  $: sessionDead = !!data.sessionDead;
+  $: roundText = (() => {
+    if (!nodeRound || nodeRound <= 0) return '';
+    if (maxRounds > 0) return `${nodeRound} / ${maxRounds}`;
+    return `${nodeRound} rounds`;
+  })();
 
   import { storyStatusColors } from '../../lib/sprintColors.js';
 </script>
 
-<div class="process-node" class:selected class:running={status === 'running'}>
+<div
+  class="process-node"
+  class:selected
+  class:running={status === 'running'}
+  class:awaiting={status === 'awaiting_input'}
+  class:gate-flash={gateFlash}
+>
   <div class="phase-bar" style="background: {phaseColor}" />
 
   <div class="node-body">
@@ -84,6 +105,10 @@
       </div>
     {/each}
 
+    {#if roundText}
+      <div class="round-counter" data-testid="round-counter">{roundText}</div>
+    {/if}
+
     <div class="status-row">
       {#if status === 'pending'}
         <span class="status-dot pending" />
@@ -91,6 +116,16 @@
       {:else if status === 'running'}
         <span class="status-dot running-dot" />
         <span class="status-text running-text">running</span>
+      {:else if status === 'awaiting_input'}
+        <span class="awaiting-badge" aria-label="Awaiting input" data-testid="awaiting-badge">
+          <MessageCircleQuestion size={11} />
+        </span>
+        <span class="status-text awaiting-text">awaiting</span>
+        {#if sessionDead}
+          <span class="session-dead-badge" title="Tmux session ended — respond will fail">
+            session ended
+          </span>
+        {/if}
       {:else if status === 'complete'}
         <span class="status-check">&#10003;</span>
         <span class="status-text complete-text">complete</span>
@@ -103,12 +138,12 @@
       {/if}
     </div>
 
-    {#if status === 'complete' && hasArtifacts}
+    {#if status === 'complete' && hasArtifacts && artifactStatus}
       <div class="artifact-indicators">
-        {#each artifactStatus.found as name}
+        {#each artifactStatus.found ?? [] as name}
           <span class="artifact-icon found" title="{name} found">&#10003;</span>
         {/each}
-        {#each artifactStatus.missing as name}
+        {#each artifactStatus.missing ?? [] as name}
           <span class="artifact-icon missing" title="{name} missing">!</span>
         {/each}
       </div>
@@ -116,7 +151,7 @@
 
     {#if storyId}
       <div class="story-badge">
-        <span class="story-badge-dot" style="background: {storyStatusColors[storyStatus] || storyStatusColors.backlog}" />
+        <span class="story-badge-dot" style="background: {/** @type {Record<string, string>} */ (storyStatusColors)[storyStatus] || /** @type {Record<string, string>} */ (storyStatusColors).backlog}" />
         <span class="story-badge-id">{storyId}</span>
       </div>
     {/if}
@@ -145,12 +180,20 @@
 
   .process-node.running {
     border-color: var(--accent-green, #00e57a);
-    animation: node-pulse 2s ease-in-out infinite;
+    animation: node-pulse 1.4s ease-in-out infinite;
   }
 
   @keyframes node-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-green) 0%, transparent); }
-    50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-green) 25%, transparent); }
+    0%, 100% {
+      box-shadow:
+        0 0 0 0 color-mix(in srgb, var(--accent-green) 0%, transparent),
+        0 0 8px 0 color-mix(in srgb, var(--accent-green) 20%, transparent);
+    }
+    50% {
+      box-shadow:
+        0 0 0 6px color-mix(in srgb, var(--accent-green) 55%, transparent),
+        0 0 24px 4px color-mix(in srgb, var(--accent-green) 50%, transparent);
+    }
   }
 
   .phase-bar {
@@ -194,7 +237,7 @@
   }
 
   .artifact-label {
-    color: var(--text-muted);
+    color: var(--text-secondary);
     flex-shrink: 0;
     font-weight: 600;
     text-transform: uppercase;
@@ -203,7 +246,7 @@
 
   .artifact-list {
     color: var(--text-primary);
-    font-weight: 500;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -220,7 +263,8 @@
 
   .status-text {
     font-size: 9px;
-    color: var(--text-muted);
+    color: var(--text-secondary);
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
   }
@@ -233,17 +277,26 @@
   }
 
   .status-dot.pending {
-    background: var(--text-muted, #8b949e);
+    background: var(--text-secondary, #8a9cae);
   }
 
   .status-dot.running-dot {
     background: var(--accent-green, #00e57a);
-    animation: dot-pulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-green) 80%, transparent);
+    animation: dot-pulse 1s ease-in-out infinite;
   }
 
   @keyframes dot-pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
+    0%, 100% {
+      opacity: 0.35;
+      transform: scale(0.85);
+      box-shadow: 0 0 4px color-mix(in srgb, var(--accent-green) 40%, transparent);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.25);
+      box-shadow: 0 0 14px color-mix(in srgb, var(--accent-green) 100%, transparent);
+    }
   }
 
   .running-text { color: var(--accent-green, #00e57a); }
@@ -337,7 +390,7 @@
     font-weight: 400;
     line-height: 1.3;
     font-variant-numeric: tabular-nums;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -347,10 +400,89 @@
   }
 
   .breadcrumb-row.unresolved {
-    opacity: 0.7;
+    color: var(--text-dim);
+    opacity: 1;
   }
 
   .artifacts.out-first {
     margin-top: var(--sp-2xs);
+  }
+
+  /* S6: awaiting_input badge + round counter */
+  .awaiting-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent-amber) 15%, transparent);
+    color: var(--accent-amber);
+    flex-shrink: 0;
+  }
+
+  .awaiting-text { color: var(--accent-amber); }
+
+  .session-dead-badge {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent-red, #f85149);
+    background: color-mix(in srgb, var(--accent-red, #f85149) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-red, #f85149) 40%, transparent);
+    padding: 1px var(--sp-xs);
+    border-radius: var(--radius-sm);
+  }
+
+  .round-counter {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent-amber);
+    letter-spacing: 0.04em;
+    padding-top: var(--sp-2xs);
+    margin-top: var(--sp-2xs);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .process-node.awaiting .awaiting-badge {
+      animation: awaiting-pulse 1800ms var(--ease-move) infinite;
+    }
+    .process-node.awaiting {
+      animation: awaiting-node-pulse 1800ms var(--ease-move) infinite;
+    }
+  }
+
+  @keyframes awaiting-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-amber) 0%, transparent);
+      background: color-mix(in srgb, var(--accent-amber) 15%, transparent);
+    }
+    50% {
+      box-shadow: var(--glow-spread) color-mix(in srgb, var(--accent-amber) 60%, transparent);
+      background: color-mix(in srgb, var(--accent-amber) 30%, transparent);
+    }
+  }
+
+  @keyframes awaiting-node-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-amber) 0%, transparent); }
+    50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-amber) 25%, transparent); }
+  }
+
+  .process-node.gate-flash {
+    animation: gate-flash var(--duration-flash) var(--ease-exit) 1;
+  }
+
+  @keyframes gate-flash {
+    0% { background: color-mix(in srgb, var(--accent-amber) 30%, transparent); }
+    50% {
+      background: color-mix(in srgb, var(--accent-green) 40%, transparent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-green) 35%, transparent);
+    }
+    100% { background: var(--bg-elevated); }
   }
 </style>

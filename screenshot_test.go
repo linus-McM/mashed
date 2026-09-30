@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"os"
 	"regexp"
 	"testing"
 
@@ -10,7 +11,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// skipUnlessInteractiveScreenshotsEnabled is the gate for tests that invoke
+// app.TakeScreenshot, which spawns the macOS screencapture dialog and requires
+// the user to operate the mouse / press Escape. Default behaviour is SKIP so
+// `go test ./...` is non-interactive. Opt in via:
+//   MASHED_RUN_INTERACTIVE_SCREENSHOT_TESTS=1 go test ./...
+func skipUnlessInteractiveScreenshotsEnabled(t *testing.T) {
+	t.Helper()
+	if os.Getenv("MASHED_RUN_INTERACTIVE_SCREENSHOT_TESTS") != "1" {
+		t.Skip("interactive: requires user dismissing macOS screencapture dialog — set MASHED_RUN_INTERACTIVE_SCREENSHOT_TESTS=1 to run")
+	}
+}
+
 func TestTakeScreenshot_AC3_FilenameFormat(t *testing.T) {
+	skipUnlessInteractiveScreenshotsEnabled(t)
 	pattern := regexp.MustCompile(
 		`^.*/\.screenshots/screenshot-\d{8}-\d{6}\.png$`,
 	)
@@ -32,6 +46,7 @@ func TestTakeScreenshot_AC3_FilenameFormat(t *testing.T) {
 }
 
 func TestTakeScreenshot_AC6_Cancellation(t *testing.T) {
+	skipUnlessInteractiveScreenshotsEnabled(t)
 	// Cancellation (Escape) returns ("", nil). Full test requires macOS interaction;
 	// here we verify the method compiles and returns correct types.
 
@@ -49,6 +64,7 @@ func TestTakeScreenshot_AC6_Cancellation(t *testing.T) {
 }
 
 func TestTakeScreenshot_AC3_ErrorWrapping(t *testing.T) {
+	skipUnlessInteractiveScreenshotsEnabled(t)
 	tmpDir := t.TempDir()
 	app := &App{ctx: context.Background()}
 	_, err := app.TakeScreenshot(tmpDir, "test:agent")
@@ -65,6 +81,7 @@ func TestTakeScreenshot_AC3_ErrorWrapping(t *testing.T) {
 }
 
 func TestTakeScreenshot_NilContext(t *testing.T) {
+	skipUnlessInteractiveScreenshotsEnabled(t)
 	app := &App{}
 	tmpDir := t.TempDir()
 

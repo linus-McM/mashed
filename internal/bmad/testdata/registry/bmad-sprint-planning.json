@@ -1,0 +1,1 @@
+{"id":"bmad-sprint-planning","name":"Sprint Planning","phase":"implementation","agentRole":"pm","skillName":"bmad-sprint-planning","description":"Plan a sprint by selecting and prioritizing stories from the backlog.","inputs":["epics/"],"outputs":["sprint-status.yaml"],"moduleId":"core","version":"1.0.0"}

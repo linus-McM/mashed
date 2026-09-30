@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { AGENT_DETAIL_FILES, FEED_FILES, REPO_TREE, SETTINGS_FILES, readJoined } from '../../__tests__/splitSources';
 
 // Story uiqa-02 — Eradicate the legacy neon green hex.
 // Covers AC-1..AC-6 and the 7 BDD scenarios. Tests read source files from
@@ -19,16 +20,16 @@ const FRONTEND_SRC = resolve(__dirname, '../..');
 const STYLE_CSS_PATH = resolve(FRONTEND_SRC, 'style.css');
 
 const STATUS_BADGE = resolve(FRONTEND_SRC, 'components/StatusBadge.svelte');
-const NOTIFICATION_FEED = resolve(FRONTEND_SRC, 'views/NotificationFeed.svelte');
-const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
 const REPO_CONTEXT_BAR = resolve(
   FRONTEND_SRC,
   'components/bmad/RepoContextBar.svelte',
 );
 const TITLE_BAR = resolve(FRONTEND_SRC, 'components/TitleBar.svelte');
-const SETTINGS = resolve(FRONTEND_SRC, 'views/Settings.svelte');
 
 const read = (p: string) => readFileSync(p, 'utf8');
+const readAgentDetail = () => readJoined(AGENT_DETAIL_FILES);
+const readSettings = () => readJoined(SETTINGS_FILES);
+const readFeed = () => readJoined([...FEED_FILES, REPO_TREE]);
 
 function walk(dir: string, exts: Set<string>): string[] {
   const out: string[] = [];
@@ -111,7 +112,7 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
     });
 
     it('AC-2: NotificationFeed statusColors uses CSS var strings', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       expect(src).toMatch(/running:\s*'var\(--accent-green\)'/);
       expect(src).toMatch(/open:\s*'var\(--accent-teal\)'/);
     });
@@ -158,7 +159,7 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
     });
 
     it('AC-4: NotificationFeed hot buttons use var(--accent-green) via .glow-btn', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       // uiqa-04 replaced .action-hot with the shared .glow-btn utility.
       // NotificationFeed must no longer contain #39ff14, and its template
       // must bind class:glow-btn (hot-button equivalent). The .glow-btn
@@ -168,7 +169,7 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
     });
 
     it('AC-4: AgentDetail .back-btn / .git-hot use var(--accent-green)', () => {
-      const src = read(AGENT_DETAIL);
+      const src = readAgentDetail();
       const backBlocks = src.match(/\.back-btn[^{]*\{[^}]*\}/g) ?? [];
       expect(backBlocks.length).toBeGreaterThan(0);
       for (const block of backBlocks) {
@@ -198,7 +199,7 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
 
   describe('AC-5: .color-swatch.active uses --text-primary', () => {
     it('AC-5: NotificationFeed .color-swatch.active border-color references --text-primary', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       const match = src.match(/\.color-swatch\.active\s*\{[^}]*\}/);
       expect(match, '.color-swatch.active rule must exist').not.toBeNull();
       const block = match![0];
@@ -221,7 +222,7 @@ describe('uiqa-02: eradicate legacy neon green hex', () => {
       ['#febc2e'],
       ['#28c840'],
     ])('AC-6: Settings.svelte still contains %s', (hex) => {
-      expect(read(SETTINGS)).toContain(hex);
+      expect(readSettings()).toContain(hex);
     });
   });
 });

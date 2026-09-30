@@ -14,6 +14,10 @@ export function DefaultEditorSettings() {
   return window['go']['main']['App']['DefaultEditorSettings']();
 }
 
+export function DefaultMarkdownMenuSettings() {
+  return window['go']['main']['App']['DefaultMarkdownMenuSettings']();
+}
+
 export function DeleteBmadAgent(arg1) {
   return window['go']['main']['App']['DeleteBmadAgent'](arg1);
 }
@@ -78,6 +82,14 @@ export function GetFontsDir() {
   return window['go']['main']['App']['GetFontsDir']();
 }
 
+export function GetInteractiveTranscript(arg1, arg2) {
+  return window['go']['main']['App']['GetInteractiveTranscript'](arg1, arg2);
+}
+
+export function GetMarkdownMenuSettings() {
+  return window['go']['main']['App']['GetMarkdownMenuSettings']();
+}
+
 export function GetNodeOutput(arg1, arg2) {
   return window['go']['main']['App']['GetNodeOutput'](arg1, arg2);
 }
@@ -96,6 +108,10 @@ export function GetScopedDiff(arg1) {
 
 export function GetSprintStatus(arg1) {
   return window['go']['main']['App']['GetSprintStatus'](arg1);
+}
+
+export function GetTerminalAuth() {
+  return window['go']['main']['App']['GetTerminalAuth']();
 }
 
 export function GetTerminalPort() {
@@ -174,6 +190,10 @@ export function ListAllMashedAssets(arg1) {
   return window['go']['main']['App']['ListAllMashedAssets'](arg1);
 }
 
+export function ListBackendsAvailable() {
+  return window['go']['main']['App']['ListBackendsAvailable']();
+}
+
 export function ListBmadAgents() {
   return window['go']['main']['App']['ListBmadAgents']();
 }
@@ -194,6 +214,10 @@ export function ListBundledThemes() {
   return window['go']['main']['App']['ListBundledThemes']();
 }
 
+export function ListClaudeModels() {
+  return window['go']['main']['App']['ListClaudeModels']();
+}
+
 export function ListLocalFonts() {
   return window['go']['main']['App']['ListLocalFonts']();
 }
@@ -206,6 +230,10 @@ export function ListNerdFonts() {
   return window['go']['main']['App']['ListNerdFonts']();
 }
 
+export function ListOllamaModels() {
+  return window['go']['main']['App']['ListOllamaModels']();
+}
+
 export function ListRepoChoices() {
   return window['go']['main']['App']['ListRepoChoices']();
 }
@@ -216,6 +244,10 @@ export function ListRepoFiles(arg1) {
 
 export function ListRepoSessions(arg1) {
   return window['go']['main']['App']['ListRepoSessions'](arg1);
+}
+
+export function ListRouterPolicies() {
+  return window['go']['main']['App']['ListRouterPolicies']();
 }
 
 export function ListVSCodiumThemes() {
@@ -240,6 +272,10 @@ export function PickDirectory() {
 
 export function PickFile(arg1) {
   return window['go']['main']['App']['PickFile'](arg1);
+}
+
+export function ProbeOllamaReachable() {
+  return window['go']['main']['App']['ProbeOllamaReachable']();
 }
 
 export function ReadBundledThemeFile(arg1) {
@@ -278,6 +314,10 @@ export function RepoStatus(arg1) {
   return window['go']['main']['App']['RepoStatus'](arg1);
 }
 
+export function RespondToInput(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['RespondToInput'](arg1, arg2, arg3, arg4);
+}
+
 export function RespondToQuestion(arg1, arg2, arg3) {
   return window['go']['main']['App']['RespondToQuestion'](arg1, arg2, arg3);
 }
@@ -306,6 +346,18 @@ export function SetActiveContext(arg1, arg2) {
   return window['go']['main']['App']['SetActiveContext'](arg1, arg2);
 }
 
+export function SetBackend(arg1) {
+  return window['go']['main']['App']['SetBackend'](arg1);
+}
+
+export function SetCLIModel(arg1) {
+  return window['go']['main']['App']['SetCLIModel'](arg1);
+}
+
+export function SetClaudeModel(arg1) {
+  return window['go']['main']['App']['SetClaudeModel'](arg1);
+}
+
 export function SetDevDir(arg1) {
   return window['go']['main']['App']['SetDevDir'](arg1);
 }
@@ -322,8 +374,24 @@ export function SetImportedTheme(arg1) {
   return window['go']['main']['App']['SetImportedTheme'](arg1);
 }
 
+export function SetMarkdownMenuSettings(arg1) {
+  return window['go']['main']['App']['SetMarkdownMenuSettings'](arg1);
+}
+
 export function SetMonoFont(arg1) {
   return window['go']['main']['App']['SetMonoFont'](arg1);
+}
+
+export function SetOllamaEnabled(arg1) {
+  return window['go']['main']['App']['SetOllamaEnabled'](arg1);
+}
+
+export function SetOllamaModel(arg1) {
+  return window['go']['main']['App']['SetOllamaModel'](arg1);
+}
+
+export function SetRouterPolicy(arg1) {
+  return window['go']['main']['App']['SetRouterPolicy'](arg1);
 }
 
 export function SetSidebarWidth(arg1) {
@@ -334,16 +402,28 @@ export function SetTheme(arg1) {
   return window['go']['main']['App']['SetTheme'](arg1);
 }
 
+export function SetUIAdapterEnabled(arg1) {
+  return window['go']['main']['App']['SetUIAdapterEnabled'](arg1);
+}
+
+export function SetUIAdapterTimeoutMs(arg1) {
+  return window['go']['main']['App']['SetUIAdapterTimeoutMs'](arg1);
+}
+
+export function SetUIAdapterUntrustedExpanded(arg1) {
+  return window['go']['main']['App']['SetUIAdapterUntrustedExpanded'](arg1);
+}
+
 export function SetVSCodiumExtPath(arg1) {
   return window['go']['main']['App']['SetVSCodiumExtPath'](arg1);
 }
 
-export function SpawnAgent(arg1, arg2) {
-  return window['go']['main']['App']['SpawnAgent'](arg1, arg2);
+export function SpawnAgent(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['SpawnAgent'](arg1, arg2, arg3, arg4);
 }
 
-export function SpawnAgentWithCommand(arg1, arg2) {
-  return window['go']['main']['App']['SpawnAgentWithCommand'](arg1, arg2);
+export function SpawnAgentWithCommand(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['SpawnAgentWithCommand'](arg1, arg2, arg3, arg4);
 }
 
 export function SpawnPRReview(arg1) {
@@ -354,8 +434,8 @@ export function SpawnRefactorPlan(arg1, arg2, arg3) {
   return window['go']['main']['App']['SpawnRefactorPlan'](arg1, arg2, arg3);
 }
 
-export function SpawnTerminal(arg1) {
-  return window['go']['main']['App']['SpawnTerminal'](arg1);
+export function SpawnTerminal(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SpawnTerminal'](arg1, arg2, arg3);
 }
 
 export function StartBmadWorkflow(arg1, arg2, arg3) {

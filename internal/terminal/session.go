@@ -220,6 +220,16 @@ func (ms *ManagedSession) AddClient(ws *websocket.Conn) {
 	defer ms.mu.Unlock()
 
 	if ms.clients == nil {
+		// The process has exited (readLoop cleared the client map). A late
+		// client still gets the full scrollback, read-only, then a normal
+		// close (R20). The bridge only reaches here after authorize().
+		snap := ms.scroll.Snapshot()
+		_ = ws.SetWriteDeadline(time.Now().Add(wsWriteTimeout))
+		if len(snap) > 0 {
+			_ = ws.WriteMessage(websocket.BinaryMessage, snap)
+		}
+		_ = ws.WriteMessage(websocket.CloseMessage,
+			websocket.FormatCloseMessage(websocket.CloseNormalClosure, "process exited"))
 		ws.Close()
 		return
 	}

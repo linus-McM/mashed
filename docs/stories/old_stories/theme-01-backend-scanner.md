@@ -149,9 +149,9 @@ Apply the same pattern to `SetTheme`, `SetVSCodiumExtPath`, and `SetDevDir`.
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/app.go` -- all modifications go here. Study the existing Wails-bound methods pattern (lines 498-1250) and the `loadConfig`/`saveConfig` pattern (lines 56-78).
-- `/Users/linus/Development/mashed/app.go:317` -- existing `a.mu.Lock()` usage pattern for the notification list.
-- `/Users/linus/Development/mashed/app.go:44-78` -- existing `conductorConfig` struct and config helpers.
+- `/Users/dev/Development/mashed/app.go` -- all modifications go here. Study the existing Wails-bound methods pattern (lines 498-1250) and the `loadConfig`/`saveConfig` pattern (lines 56-78).
+- `/Users/dev/Development/mashed/app.go:317` -- existing `a.mu.Lock()` usage pattern for the notification list.
+- `/Users/dev/Development/mashed/app.go:44-78` -- existing `conductorConfig` struct and config helpers.
 
 ## Acceptance Criteria
 

@@ -93,13 +93,13 @@ AC-1: Repo dropdown is removed
 - And a repo name label is shown instead
 
 AC-2: Repo label shows current repo
-- Given WorkflowBuilder has repoPath "/Users/linus/Development/my-project"
+- Given WorkflowBuilder has repoPath "/Users/dev/Development/my-project"
 - When ExecutionBar renders
 - Then it shows "my-project" as the repo label
 - And the full path is available as a tooltip
 
 AC-3: Execution uses prop repoPath
-- Given ExecutionBar has repoPath="/Users/linus/Development/my-project"
+- Given ExecutionBar has repoPath="/Users/dev/Development/my-project"
 - When the user clicks Run
 - Then the start event is dispatched with the selected model only
 - And WorkflowBuilder uses its repoPath prop for the StartBmadWorkflow call
@@ -117,7 +117,7 @@ AC-4: Start disabled without repoPath
 Feature: ExecutionBar without repo dropdown
 
   Scenario: Repo displayed as label not dropdown
-    Given ExecutionBar rendered with repoPath "/Users/linus/Development/my-app"
+    Given ExecutionBar rendered with repoPath "/Users/dev/Development/my-app"
     Then a text label "my-app" is visible in the bar
     And no <select> element for repos exists
     And the model dropdown still exists
@@ -134,9 +134,9 @@ Feature: ExecutionBar without repo dropdown
     And the model dropdown is still enabled
 
   Scenario: Tooltip shows full path
-    Given ExecutionBar with repoPath "/Users/linus/Development/my-long-project-name"
+    Given ExecutionBar with repoPath "/Users/dev/Development/my-long-project-name"
     When the user hovers over the repo label
-    Then the tooltip shows "/Users/linus/Development/my-long-project-name"
+    Then the tooltip shows "/Users/dev/Development/my-long-project-name"
 ```
 
 ## Tasks / Subtasks

@@ -1,0 +1,1 @@
+{"id":"util-multi-file-loader","name":"Multi File Loader","phase":"utilities","agentRole":"","skillName":"","description":"Emit one output path per configured {label, path} entry for downstream consumption.","inputs":[],"outputs":[],"moduleId":"core","version":"1.0.0"}

@@ -1,0 +1,15 @@
+I found three candidate libraries. All docs inline:
+
+1. https://example.com/libA — minimalist
+2. https://example.com/libB — batteries-included
+3. https://example.com/libC — zero-dep
+
+Sample usage (libA):
+
+```rust
+fn main() {
+    println!("hello, eval");
+}
+```
+
+Which one do you want to go with?

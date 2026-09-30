@@ -4,13 +4,15 @@
 
   export let repoPath = '';
   export let repoBranch = '';
+  /** @type {import('../../lib/types/wails').SprintStatus | null} */
   export let sprintStatus = null;
 
+  /** @type {import('svelte').EventDispatcher<{ back: void }>} */
   const dispatch = createEventDispatcher();
 
   $: repoName = repoPath ? repoPath.split('/').pop() : 'No repo';
-  $: totalStories = sprintStatus?.epics?.reduce((sum, e) => sum + (e.stories?.length || 0), 0) || 0;
-  $: doneStories = sprintStatus?.epics?.reduce((sum, e) => sum + (e.stories?.filter(s => s.status === 'done').length || 0), 0) || 0;
+  $: totalStories = sprintStatus?.epics?.reduce((/** @type {number} */ sum, /** @type {import('../../lib/types/wails').SprintEpic} */ e) => sum + (e.stories?.length || 0), 0) || 0;
+  $: doneStories = sprintStatus?.epics?.reduce((/** @type {number} */ sum, /** @type {import('../../lib/types/wails').SprintEpic} */ e) => sum + (e.stories?.filter((/** @type {import('../../lib/types/wails').SprintStory} */ s) => s.status === 'done').length || 0), 0) || 0;
   $: progressPct = totalStories > 0 ? (doneStories / totalStories) * 100 : 0;
   $: hasSprint = sprintStatus && sprintStatus.epics && sprintStatus.epics.length > 0;
 </script>

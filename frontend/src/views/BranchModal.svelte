@@ -4,7 +4,9 @@
   import { cubicOut } from 'svelte/easing';
   import { GitBranch } from 'lucide-svelte';
   import { GitCreateBranch } from '../../wailsjs/go/main/App.js';
+  import { errorMessage } from '../lib/errorMessage';
 
+  /** @type {import('svelte').EventDispatcher<{ created: { branch: string }; cancel: void }>} */
   const dispatch = createEventDispatcher();
 
   // uiqa-06: modal fade entry/exit. prefers-reduced-motion zeroes durations.
@@ -39,6 +41,7 @@
   let error = '';
 
   // Sanitize branch name as the user types
+  /** @param {string} raw */
   function sanitize(raw) {
     return raw
       .toLowerCase()
@@ -51,8 +54,10 @@
       .replace(/[.\-\/]+$/, '');   // no trailing dot/dash/slash
   }
 
+  /** @param {Event} e */
   function handleInput(e) {
-    name = sanitize(e.target.value);
+    const target = /** @type {HTMLInputElement} */ (e.target);
+    name = sanitize(target.value);
   }
 
   $: fullName = prefix ? prefix + '/' + name : name;
@@ -66,7 +71,7 @@
       await GitCreateBranch(repoPath, prefix, name, autoCommit);
       dispatch('created', { branch: fullName });
     } catch (e) {
-      error = e?.message || 'Failed to create branch';
+      error = errorMessage(e) || 'Failed to create branch';
       creating = false;
     }
   }
@@ -75,6 +80,7 @@
     dispatch('cancel');
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') cancel();
     if (e.key === 'Enter' && valid && !creating) create();

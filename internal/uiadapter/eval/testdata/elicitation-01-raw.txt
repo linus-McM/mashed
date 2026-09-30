@@ -1,0 +1,13 @@
+Choose an elicitation method:
+
+1. Expand or explain
+2. Critique and refine
+3. Analyze logical flow
+4. Identify risks
+5. Assess alignment with goals
+
+r) Reject and retry
+a) Accept as-is
+x) Exit
+
+Enter option:

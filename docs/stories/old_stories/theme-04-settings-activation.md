@@ -129,11 +129,11 @@ async function selectBuiltInTheme(id) {
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/frontend/src/views/Settings.svelte` -- current Settings view (330 lines)
-- `/Users/linus/Development/mashed/frontend/src/App.svelte` -- current App.svelte (174 lines), startup logic at lines 19-36
-- `/Users/linus/Development/mashed/frontend/src/lib/stores/theme.js` -- store after Story 3 refactor
-- `/Users/linus/Development/mashed/frontend/src/lib/themeConverter.js` -- converter from Story 2
-- `/Users/linus/Development/mashed/docs/vscodium-theme-loading-plan.md` lines 925-1069 -- Phase 4 Settings UI code
+- `/Users/dev/Development/mashed/frontend/src/views/Settings.svelte` -- current Settings view (330 lines)
+- `/Users/dev/Development/mashed/frontend/src/App.svelte` -- current App.svelte (174 lines), startup logic at lines 19-36
+- `/Users/dev/Development/mashed/frontend/src/lib/stores/theme.js` -- store after Story 3 refactor
+- `/Users/dev/Development/mashed/frontend/src/lib/themeConverter.js` -- converter from Story 2
+- `/Users/dev/Development/mashed/docs/vscodium-theme-loading-plan.md` lines 925-1069 -- Phase 4 Settings UI code
 
 ## Acceptance Criteria
 
@@ -280,7 +280,7 @@ Feature: Settings theme scanning
 ## Tasks / Subtasks
 
 - [ ] Task 1: Create shared themeInit.js module (AC: AC-2, AC-5, AC-6)
-  - [ ] Create `/Users/linus/Development/mashed/frontend/src/lib/themeInit.js`
+  - [ ] Create `/Users/dev/Development/mashed/frontend/src/lib/themeInit.js`
   - [ ] Implement `activateImportedTheme(themePath, extensionId)` with caching
   - [ ] Implement `restoreImportedThemeFromConfig(cfg)` with fallback logic
   - [ ] Include activation guard variable to prevent double-loading

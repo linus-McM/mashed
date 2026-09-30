@@ -24,6 +24,12 @@ var (
 	// injection — the "stuck at idle baseline" failure mode, distinct
 	// from a completion timeout that fires during normal processing.
 	ErrIdleTimeoutNoStart = errors.New("bmad: idle wait timed out before claude produced output")
+	// ErrAwaitingPaneActive is returned by suspendForSpec when the tmux pane
+	// resumes activity (claude began producing output again, e.g. user typed
+	// directly into the pane) while the node was blocked in NodeAwaitingInput.
+	// The caller demotes the node to NodeRunning and re-runs the idle-wait +
+	// suspend cycle so the modal reflects the FRESH capture, not a stale one.
+	ErrAwaitingPaneActive = errors.New("bmad: pane resumed activity while awaiting input")
 	// ErrDuplicateMultiFileLabel is returned when a MultiFileLoader node's
 	// entries contain two labels with the same non-empty value. Positional
 	// fallback labels (empty user-provided label) never collide because the
@@ -32,6 +38,19 @@ var (
 	// ErrMultiFileTooMany is returned when a MultiFileLoader config exceeds
 	// the per-node entry cap (64).
 	ErrMultiFileTooMany = errors.New("bmad: too many multiFileLoader entries")
+
+	// Interactive-process sentinels (schema §5.3 / §8 / §14). Consumers test
+	// wrapped errors with errors.Is for type-safe flow control.
+	ErrInvalidInput       = errors.New("bmad: invalid input")
+	ErrPathOutsideRepo    = errors.New("bmad: path outside repository root")
+	ErrNoPendingPrompt    = errors.New("bmad: no pending prompt")
+	ErrUnknownInput       = errors.New("bmad: unknown input")
+	ErrStalePrompt        = errors.New("bmad: stale prompt")
+	ErrInvalidRegistryRef = errors.New("bmad: invalid registry ref")
+	// ErrExecNotInitialized is returned by *App bindings when bmadExecutor
+	// is nil. The message carries both "bmad" and "not initialized" so
+	// existing tests of the legacy RespondToQuestion shim still pass.
+	ErrExecNotInitialized = errors.New("bmad executor not initialized")
 )
 
 // BmadPhase groups processes into lifecycle stages.
@@ -71,18 +90,143 @@ type ProcessDef struct {
 	Outputs     []string      `json:"outputs"`
 	ModuleID    string        `json:"moduleId"`
 	Version     string        `json:"version"`
+	// Interactive process fields (schema §3). Absent on legacy processes.
+	Mode InteractionMode `json:"mode,omitempty"`
+	// EnableAstAdapter opts the process into the Mashed UI AST adapter
+	// (docs/mashed-ui-ast-schema.md §9 Phase 0). Wired by U4; declarative
+	// only in U0. Default false; omitempty keeps pre-U0 JSON byte-identical.
+	EnableAstAdapter bool            `json:"enableAstAdapter,omitempty"`
+	InputSpecs       []InputSpec     `json:"inputSpecs,omitempty"`
+	OutputSpecs      []OutputSpec    `json:"outputSpecs,omitempty"`
+	Gate             *IterationGate  `json:"gate,omitempty"`
+}
+
+// iterationInput returns the InputSpec that represents the recurring per-round
+// user prompt for an iterative process (schema §5.2). Convention: exactly one
+// InputSpec with Source=InputFromUser, Prompt != "", Shape != "", Required=false
+// and Default == "" (specs with a Default are resolved one-shot during the
+// pre-process pass and therefore cannot be the iteration slot).
+// Returns the zero value and false when no such spec exists.
+func (p ProcessDef) iterationInput() (InputSpec, bool) {
+	for _, s := range p.InputSpecs {
+		if s.Source == InputFromUser &&
+			s.Prompt != "" &&
+			s.Shape != "" &&
+			!s.Required &&
+			s.Default == "" {
+			return s, true
+		}
+	}
+	return InputSpec{}, false
 }
 
 // WorkflowNodeStatus tracks execution state of a single node.
 type WorkflowNodeStatus string
 
 const (
-	NodePending  WorkflowNodeStatus = "pending"
-	NodeRunning  WorkflowNodeStatus = "running"
-	NodeComplete WorkflowNodeStatus = "complete"
-	NodeFailed   WorkflowNodeStatus = "failed"
-	NodeSkipped  WorkflowNodeStatus = "skipped"
+	NodePending WorkflowNodeStatus = "pending"
+	NodeRunning WorkflowNodeStatus = "running"
+	// NodeAwaitingInput is the suspension state for interactive processes
+	// blocked on a user-supplied input (see schema §3.5).
+	NodeAwaitingInput WorkflowNodeStatus = "awaiting_input"
+	NodeComplete      WorkflowNodeStatus = "complete"
+	NodeFailed        WorkflowNodeStatus = "failed"
+	NodeSkipped       WorkflowNodeStatus = "skipped"
 )
+
+// InputSource identifies where the value for an InputSpec originates.
+type InputSource string
+
+const (
+	InputFromFile     InputSource = "file"
+	InputFromUpstream InputSource = "upstream"
+	InputFromUser     InputSource = "user"
+	InputFromEnv      InputSource = "env"
+	InputFromRegistry InputSource = "registry"
+)
+
+// InputShape describes the interactive UI presentation for a user input.
+type InputShape string
+
+const (
+	ShapeFree        InputShape = "free"
+	ShapeChoice      InputShape = "choice"
+	ShapeMultiChoice InputShape = "multi"
+	ShapeApproval    InputShape = "approval"
+	ShapeFile        InputShape = "file"
+	ShapeJSON        InputShape = "json"
+)
+
+// InputSpec declares a single input slot for an interactive process (schema §3.1).
+type InputSpec struct {
+	ID             string      `json:"id"`
+	Source         InputSource `json:"source"`
+	Shape          InputShape  `json:"shape,omitempty"`
+	Required       bool        `json:"required"`
+	ArtifactName   string      `json:"artifactName,omitempty"`
+	UpstreamNodeID string      `json:"upstreamNodeId,omitempty"`
+	Prompt         string      `json:"prompt,omitempty"`
+	Options        []string    `json:"options,omitempty"`
+	OptionsRef     string      `json:"optionsRef,omitempty"`
+	Default        string      `json:"default,omitempty"`
+	Validation     string      `json:"validation,omitempty"`
+	MaxLength      int         `json:"maxLength,omitempty"`
+	HelpText       string      `json:"helpText,omitempty"`
+}
+
+// OutputTarget declares where a produced output is persisted.
+type OutputTarget string
+
+const (
+	OutputToFile   OutputTarget = "file"
+	OutputToMemory OutputTarget = "memory"
+	OutputToBoth   OutputTarget = "both"
+)
+
+// OutputSpec declares a single output slot for an interactive process (schema §3.2).
+type OutputSpec struct {
+	ID           string       `json:"id"`
+	Target       OutputTarget `json:"target"`
+	ArtifactName string       `json:"artifactName,omitempty"`
+	Description  string       `json:"description,omitempty"`
+	Optional     bool         `json:"optional,omitempty"`
+}
+
+// InteractionMode selects the orchestration style for an interactive process.
+type InteractionMode string
+
+const (
+	InteractAutonomous InteractionMode = "autonomous"
+	InteractGuided     InteractionMode = "guided"
+	InteractIterative  InteractionMode = "iterative"
+	InteractParty      InteractionMode = "party"
+)
+
+// Wire-level slot IDs referenced by the executor, registry, and frontend.
+// Promoted to exported constants so call sites cannot drift.
+const (
+	RoundResponseInputID = "round-response"
+	PartyMessageInputID  = "message"
+)
+
+// GateKind discriminates the rule used to exit an iterative loop.
+type GateKind string
+
+const (
+	GateUserConfirm    GateKind = "userConfirm"
+	GateArtifactExists GateKind = "artifact"
+	GateExpression     GateKind = "expression"
+	GateRoundLimit     GateKind = "rounds"
+)
+
+// IterationGate configures the exit condition for iterative processes (§3.3).
+type IterationGate struct {
+	Kind         GateKind `json:"kind"`
+	MaxRounds    int      `json:"maxRounds,omitempty"`
+	AcceptTokens []string `json:"acceptTokens,omitempty"`
+	RejectTokens []string `json:"rejectTokens,omitempty"`
+	CustomExpr   string   `json:"customExpr,omitempty"`
+}
 
 // NodeType discriminates between process nodes and control flow nodes.
 type NodeType string
@@ -139,6 +283,11 @@ type WorkflowNode struct {
 	// InputPaths holds resolved absolute paths for input artifacts,
 	// reserved for a future pass. See Story breadcrumbs-05.
 	InputPaths map[string]string `json:"inputPaths,omitempty"`
+	// InputSpecs optionally overrides the registry-derived InputSpecs for
+	// this node. Primary use: test harnesses that construct an execState
+	// without going through registry registration. When empty, the executor
+	// falls back to ProcessByID(ProcessID).InputSpecs.
+	InputSpecs []InputSpec `json:"inputSpecs,omitempty"`
 }
 
 // EffectiveType returns the node's type, defaulting to NodeTypeProcess for
@@ -200,6 +349,55 @@ type WorkflowExecution struct {
 	StartedAt   string             `json:"startedAt"`
 	CurrentNode string             `json:"currentNode"`
 	NodeOutputs map[string]string  `json:"nodeOutputs,omitempty"`
+	// Interactive execution state (schema §3.5). Keyed by node ID.
+	NodeRounds       map[string]int              `json:"nodeRounds,omitempty"`
+	PendingPrompts   []PendingPrompt             `json:"pendingPrompts,omitempty"`
+	NodeInputs       map[string]map[string]string `json:"nodeInputs,omitempty"`
+	NodeInputHistory map[string][]NodeInputEntry  `json:"nodeInputHistory,omitempty"`
+	// Version tags the snapshot schema for forward-compat (§16.5). Writers
+	// set Version=2 when any interactive field is non-zero; absence (0) is
+	// treated as v1/legacy by readers.
+	Version int `json:"version,omitempty"`
+}
+
+// PendingPrompt is an outstanding user-input request for a suspended node (§3.5).
+type PendingPrompt struct {
+	// ExecID is the workflow execution that owns this prompt. Populated at
+	// suspend time so the frontend can call RespondToInput without relying
+	// on view-local state (which is unset when the user re-enters the
+	// builder for an in-flight run).
+	ExecID    string     `json:"execId,omitempty"`
+	NodeID    string     `json:"nodeId"`
+	InputID   string     `json:"inputId"`
+	Prompt    string     `json:"prompt"`
+	Shape     InputShape `json:"shape"`
+	Options   []string   `json:"options,omitempty"`
+	Round     int        `json:"round"`
+	CreatedAt int64      `json:"createdAt"`
+	PromptID  string     `json:"promptId"`
+	// LastOutput carries the tmux pane capture from the previous round so
+	// the frontend modal can show what Claude just said. Empty on the
+	// first suspension (before any Claude turn exists). Future enhancement:
+	// if the capture contains a <MASHED_PROMPT>…</MASHED_PROMPT> sentinel
+	// (skill-authored), extract it and use that instead of the raw tail.
+	LastOutput string `json:"lastOutput,omitempty"`
+
+	// Structured is the serialized UIAST JSON string emitted by the UI AST
+	// adapter (ui-ast-U4 §5.1). Empty when the adapter is disabled or a
+	// process opts out via Shape; the frontend decodes on receipt.
+	Structured string `json:"structured,omitempty"`
+}
+
+// NodeInputEntry is one historical user answer for a node input (§3.5).
+type NodeInputEntry struct {
+	InputID   string `json:"inputId"`
+	Round     int    `json:"round,omitempty"`
+	Value     string `json:"value"`
+	Timestamp int64  `json:"timestamp"`
+	// Key is the composite sub-answer identifier ("<specID>:<subKey>") written
+	// by the flatten-on-receipt path for ShapeJSON submissions (ui-ast-U4
+	// §5.3.1). Empty for legacy single-string answers.
+	Key string `json:"key,omitempty"`
 }
 
 // BmadAgentConfig defines a custom BMAD user agent.

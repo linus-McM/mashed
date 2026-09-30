@@ -1,0 +1,19 @@
+# golangci-lint v2 (repo health R29). Only issues introduced after the PR 4
+# base are reported, so existing findings do not block; fix them over time.
+version: "2"
+
+linters:
+  enable:
+    - govet
+    - errcheck
+    - staticcheck
+    - gosec
+  exclusions:
+    rules:
+      # Tests legitimately shell out and write temp fixtures.
+      - path: _test\.go
+        linters:
+          - gosec
+
+issues:
+  new-from-rev: 43a8e35c55176c2a3ceddd38a5dc0e060c861ba2

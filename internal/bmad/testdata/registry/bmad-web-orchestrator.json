@@ -1,0 +1,1 @@
+{"id":"bmad-web-orchestrator","name":"Web Orchestrator","phase":"implementation","agentRole":"developer","skillName":"bmad-web-orchestrator","description":"Orchestrate full-stack web application development from architecture and epics.","inputs":["architecture.md","epics/"],"outputs":["code"],"moduleId":"core","version":"1.0.0"}

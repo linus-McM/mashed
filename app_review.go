@@ -110,6 +110,12 @@ func (a *App) ListAdviceModes(repoPath string) ([]advice.AdviceMode, error) {
 // streams progress events to the frontend. Runs asynchronously.
 // The model parameter selects which Claude model to use (alias or full ID).
 func (a *App) StreamCodeReviewSummary(repoPath, model string) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		a.emitEvent("review:summary:done", map[string]interface{}{
+			"repoPath": repoPath, "summary": nil, "error": err.Error(),
+		})
+		return
+	}
 	if model == "" {
 		model = "sonnet" // fast model for per-file summaries
 	}
@@ -235,6 +241,12 @@ func (a *App) StreamCodeReviewSummary(repoPath, model string) {
 // line-by-line to the frontend.
 // The model parameter selects which Claude model to use (alias or full ID).
 func (a *App) StreamAdvice(repoPath, modeName, model string) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		a.emitEvent("review:advice:progress", map[string]interface{}{
+			"repoPath": repoPath, "text": "", "done": true, "error": err.Error(),
+		})
+		return
+	}
 	if model == "" {
 		model = "sonnet"
 	}
@@ -355,9 +367,20 @@ func (a *App) SpawnRefactorPlan(repoPath, adviceText string, filePaths []string)
 - Be specific: include file paths, function names, line references
 - Order by priority (critical first, cosmetic last)`, planPath, adviceText)
 
+	// R16 / C3: one argv element for the prompt; read-only tools plus a Write
+	// rule for exactly this plan file (relative to the session cwd, repoPath).
+	// Plan filenames are slugified to [A-Za-z0-9_+-], so the rule needs no
+	// quoting inside the comma-separated list.
+	rel, err := filepath.Rel(repoPath, planPath)
+	if err != nil {
+		return "", fmt.Errorf("plan path: %w", err)
+	}
+	allowed := "Read,Grep,Glob,Edit(./" + filepath.ToSlash(rel) + ")"
 	defaultModel := domain.DefaultAlias(a.ListModels())
-	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s -p %q", defaultModel, prompt)
-	_, err := a.spawnSession("refactor", repoPath, cmd, domain.SessionAgent, defaultModel)
+	// No shell: auto-approved commands like `git log --output=` can write files.
+	argv := []string{"claude", "--model", defaultModel,
+		"--allowedTools", allowed, "--disallowedTools", "Bash", "-p", prompt}
+	_, err = a.spawnSessionArgv("refactor", repoPath, argv, domain.SessionAgent, defaultModel)
 	if err != nil {
 		return "", fmt.Errorf("spawn refactor plan agent: %w", err)
 	}
@@ -474,4 +497,99 @@ func runClaudePrompt(parentCtx context.Context, repoPath, model, systemPrompt, u
 		return "", fmt.Errorf("claude --print: %w", err)
 	}
 	return strings.TrimSpace(string(out)), nil
+}
+
+// SpawnPRReview spawns a Claude agent to do an adversarial review of the latest PR.
+// Returns the tmux pane target.
+func (a *App) SpawnPRReview(repoPath string) (string, error) {
+	if _, err := a.repoDir(repoPath); err != nil {
+		return "", err
+	}
+	findPR := a.prNumber
+	if findPR == nil {
+		findPR = latestOpenPR
+	}
+	prNumber, err := findPR(a.ctx, repoPath)
+	if err != nil {
+		return "", err
+	}
+	if !isPRNumber(prNumber) {
+		return "", fmt.Errorf("invalid PR number %q", prNumber)
+	}
+
+	// The app fetches the diff itself so the agent needs no shell (below).
+	fetchDiff := a.prDiff
+	if fetchDiff == nil {
+		fetchDiff = ghPRDiff
+	}
+	diff, err := fetchDiff(a.ctx, repoPath, prNumber)
+	if err != nil {
+		return "", err
+	}
+	diffFile, err := os.CreateTemp("", "mashed-pr-"+prNumber+"-*.diff") // 0600
+	if err != nil {
+		return "", fmt.Errorf("write PR diff: %w", err)
+	}
+	_, werr := diffFile.WriteString(diff)
+	if cerr := diffFile.Close(); werr == nil {
+		werr = cerr
+	}
+	if werr != nil {
+		os.Remove(diffFile.Name())
+		return "", fmt.Errorf("write PR diff: %w", werr)
+	}
+
+	prompt := fmt.Sprintf(`You are an adversarial code reviewer. Review PR #%s in this repo thoroughly.
+Look for: bugs, security vulnerabilities, race conditions, edge cases, performance issues,
+missing error handling, breaking changes, and any code that could fail in production.
+Be specific — cite file names and line numbers. Don't be nice, be thorough.
+The PR diff is in this file; start by reading it with the Read tool: %s`, prNumber, diffFile.Name())
+
+	// R16 / C3: the prompt is one argv element and the agent is read-only.
+	// No shell at all: Claude Code auto-approves read-only-looking commands
+	// such as `git log`, which accept --output=<file> and would let a
+	// prompt-injected PR write arbitrary files (PR 2 security review).
+	defaultModel := domain.DefaultAlias(a.ListModels())
+	argv := []string{"claude", "--model", defaultModel,
+		"--allowedTools", "Read,Grep,Glob", "--disallowedTools", "Bash", "-p", prompt}
+	return a.spawnSessionArgv("review", repoPath, argv, domain.SessionAgent, defaultModel)
+}
+
+// ghPRDiff returns `gh pr diff <n>` for the repo.
+func ghPRDiff(ctx context.Context, repoPath, n string) (string, error) {
+	cmd := exec.CommandContext(ctx, "gh", "pr", "diff", n)
+	cmd.Dir = repoPath
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("gh pr diff %s: %w", n, err)
+	}
+	return string(out), nil
+}
+
+// latestOpenPR returns the number of the most recent open PR in repoPath.
+func latestOpenPR(ctx context.Context, repoPath string) (string, error) {
+	ghCmd := exec.CommandContext(ctx, "gh", "pr", "list", "--state", "open", "--limit", "1", "--json", "number", "--jq", ".[0].number")
+	ghCmd.Dir = repoPath
+	prOut, err := ghCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("no open PRs found: %w", err)
+	}
+	n := strings.TrimSpace(string(prOut))
+	if n == "" {
+		return "", fmt.Errorf("no open PRs found")
+	}
+	return n, nil
+}
+
+// isPRNumber reports whether s is a non-empty string of ASCII digits.
+func isPRNumber(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
 }

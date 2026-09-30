@@ -14,7 +14,7 @@ Add click-to-select functionality to file cards in the Summarisation Modal, allo
 
 ### Architecture
 
-- **File to modify:** `/Users/linus/Development/mashed/frontend/src/views/SummarisationModal.svelte`
+- **File to modify:** `/Users/dev/Development/mashed/frontend/src/views/SummarisationModal.svelte`
 - **No backend changes** -- this story is pure frontend state and UI.
 
 ### State Changes
@@ -78,8 +78,8 @@ Add to the `<style>` section:
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/frontend/src/views/SummarisationModal.svelte` -- the only file to modify
-- `/Users/linus/Development/mashed/.wolf/cerebrum.md` -- Do-Not-Repeat: use `color-mix()` not `rgba()`, use `var(--accent-green)` not `#39ff14`
+- `/Users/dev/Development/mashed/frontend/src/views/SummarisationModal.svelte` -- the only file to modify
+- `/Users/dev/Development/mashed/.wolf/cerebrum.md` -- Do-Not-Repeat: use `color-mix()` not `rgba()`, use `var(--accent-green)` not `#39ff14`
 
 ## Acceptance Criteria
 

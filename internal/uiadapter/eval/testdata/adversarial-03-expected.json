@@ -1,0 +1,8 @@
+{
+  "decision_group_count": 1,
+  "widget_types": ["free"],
+  "must_contain_urls": ["https://example.com/rfc-9999"],
+  "must_contain_code_blocks": ["```yaml\nservice: eval\nversion: 2\nflags:\n  - strict\n  - preserve_urls\n```"],
+  "fallback_answer_shape": "free",
+  "category": "adversarial"
+}

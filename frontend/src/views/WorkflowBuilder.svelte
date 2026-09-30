@@ -2,16 +2,13 @@
   import { SvelteFlowProvider } from '@xyflow/svelte';
   import '@xyflow/svelte/dist/style.css';
   import { writable } from 'svelte/store';
-  import { createEventDispatcher, onMount, onDestroy, tick } from 'svelte';
+  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import { fly } from 'svelte/transition';
-  import { Save } from 'lucide-svelte';
-  import { EventsOn } from '../../wailsjs/runtime/runtime.js';
   import { GetBmadProcesses, ListBmadTemplates, ListBmadWorkflowsByRepo,
            SaveBmadWorkflow, GetBmadWorkflow, CreateFromTemplate,
            DeleteBmadWorkflow, ListBmadAgents, ListAllAgents, SaveBmadAgent, DeleteBmadAgent,
            StartBmadWorkflow, PauseBmadWorkflow, ResumeBmadWorkflow, StopBmadWorkflow,
-           GetTerminalPort, GetSprintStatus, GetNodeOutput, ListModels,
-           GetBmadCurrentExecution,
+           GetTerminalPort, GetSprintStatus, ListModels,
            ListAllMashedAssets } from '../../wailsjs/go/main/App.js';
   // bmad.WorkflowDef / WorkflowNode / WorkflowEdge are Wails-generated
   // classes (not interfaces) with a `convertValues` method on the
@@ -23,7 +20,6 @@
   // type-check AND makes the field list a single source of truth with
   // the Go side of the binding.
   import { bmad } from '../../wailsjs/go/models';
-  import Terminal from '../components/Terminal.svelte';
   import ProcessSidebar from '../components/bmad/ProcessSidebar.svelte';
   import CanvasPane from '../components/bmad/CanvasPane.svelte';
   import ProcessNode from '../components/bmad/ProcessNode.svelte';
@@ -34,35 +30,69 @@
   import TransformNode from '../components/bmad/TransformNode.svelte';
   import MergeNode from '../components/bmad/MergeNode.svelte';
   import MultiFileLoaderNode from '../components/bmad/MultiFileLoaderNode.svelte';
-  import ExecutionBar from '../components/bmad/ExecutionBar.svelte';
+  import BuilderToolbar from '../components/bmad/BuilderToolbar.svelte';
+  import TerminalModal from '../components/bmad/TerminalModal.svelte';
   import NodeConfigPanel from '../components/bmad/NodeConfigPanel.svelte';
   import AgentConfigModal from '../components/bmad/AgentConfigModal.svelte';
   import OutputViewerModal from '../components/bmad/OutputViewerModal.svelte';
   import ArrayEditorModal from '../components/bmad/ArrayEditorModal.svelte';
   import QuestionResponseModal from '../components/bmad/QuestionResponseModal.svelte';
+  import InputResponseModal from '../components/bmad/InputResponseModal.svelte';
+  import NodeInputSnackbarStack from '../components/bmad/NodeInputSnackbarStack.svelte';
   import NameWorkflowModal from '../components/bmad/NameWorkflowModal.svelte';
+  import {
+    interactiveInput,
+    openModal as openInteractiveModal,
+    closeModal as closeInteractiveModal,
+    openModalForNode,
+    dismissNode,
+  } from '../stores/interactiveInput';
   import SkillEditorModal from '../components/bmad/SkillEditorModal.svelte';
   import RepoContextBar from '../components/bmad/RepoContextBar.svelte';
   import CanvasFailureToast from '../components/bmad/CanvasFailureToast.svelte';
-  import { parseFriendlyTarget } from '../lib/bmadSessionName';
-  import { computeAutoFill } from '../lib/bmad/autoFill';
   import {
     snapshotCanvas,
     canvasNodesToWorkflowNodes,
     canvasEdgesToWorkflowEdges,
     workflowNodesToCanvasNodes,
     workflowEdgesToCanvasEdges,
-    COMMAND_NODE_SENTINEL_PHRASE,
     COMMAND_NODE_SENTINEL_DEFAULT_BODY,
-  } from '../lib/workflowSerialisation.js';
+  } from '../lib/workflowSerialisation';
+  // Extracted logic (spec R31): canvas handlers, execution restore + event
+  // wiring, and the leave intercept live in plain modules that mutate this
+  // component's state through the accessor context built below.
+  import { createCanvasHandlers } from '../lib/workflowBuilder/canvasHandlers';
+  import { createExecEvents } from '../lib/workflowBuilder/execEvents';
+  import { createLeaveIntercept, computeIsDirty } from '../lib/workflowBuilder/leaveIntercept';
 
+  // ── Type aliases: reusable JSDoc shortcuts to keep the annotations
+  // below terse and to centralise the re-export surface so a future
+  // rename only needs to touch this block.
+  /** @typedef {import('../types/workflow').CanvasNode} CanvasNode */
+  /** @typedef {import('../types/workflow').CanvasEdge} CanvasEdge */
+  /** @typedef {import('../lib/types/wails').Workflow} Workflow */
+  /** @typedef {import('../lib/types/wails').ProcessDef} ProcessDef */
+  /** @typedef {import('../lib/types/wails').BmadAgentConfig} BmadAgentConfig */
+  /** @typedef {import('../lib/types/wails').GroupedAgents} GroupedAgents */
+  /** @typedef {import('../lib/types/wails').GroupedMashedAssets} GroupedMashedAssets */
+  /** @typedef {import('../lib/types/wails').MashedAssetInfo} MashedAssetInfo */
+  /** @typedef {import('../lib/types/wails').SprintStatus} SprintStatus */
+  /** @typedef {import('../lib/types/wails').SprintStory} SprintStory */
+
+  /** @type {string} */
   export let repoPath = '';
+  /** @type {string} */
   export let repoBranch = '';
+  /** @type {import('../components/bmad/questionSnackbarUtils').QuestionEventLike | null} */
   export let pendingQuestion = null;
+  /** @type {string} */
+  export let pendingTmuxTarget = '';
 
+  /** @type {import('svelte').EventDispatcher<{ 'question-responded': { nodeId: string | undefined }; back: void; 'tmux-opened': void }>} */
   const dispatch = createEventDispatcher();
 
   let showQuestionModal = false;
+  /** @type {import('../components/bmad/questionSnackbarUtils').QuestionEventLike | null} */
   let activeQuestion = null;
 
   // Only open the modal on a truthy transition when not already showing.
@@ -72,6 +102,15 @@
   $: if (pendingQuestion && !showQuestionModal) {
     activeQuestion = pendingQuestion;
     showQuestionModal = true;
+  }
+
+  // Idle snackbar click arrives as pendingTmuxTarget — open the terminal
+  // modal for that tmux session and immediately clear the prop so the
+  // reactive block cannot re-fire on unrelated parent re-renders.
+  $: if (pendingTmuxTarget) {
+    terminalTarget = pendingTmuxTarget;
+    showTerminalModal = true;
+    dispatch('tmux-opened');
   }
 
   function handleQuestionResponded() {
@@ -99,38 +138,36 @@
     multiFileLoader: MultiFileLoaderNode,
   };
 
-  const nodes = writable([]);
-  const edges = writable([]);
+  /** @type {import('svelte/store').Writable<CanvasNode[]>} */
+  const nodes = writable(/** @type {CanvasNode[]} */ ([]));
+  /** @type {import('svelte/store').Writable<CanvasEdge[]>} */
+  const edges = writable(/** @type {CanvasEdge[]} */ ([]));
 
+  /** @type {ProcessDef[]} */
   let processes = [];
+  /** @type {Workflow[]} */
   let templates = [];
+  /** @type {Workflow[]} */
   let savedWorkflows = [];
-  /** @type {{ bmadAgents: any[], localAgents: any[], globalAgents: any[] }} */
+  /** @type {GroupedAgents | { bmadAgents: BmadAgentConfig[]; localAgents: import('../lib/types/wails').AgentInfo[]; globalAgents: import('../lib/types/wails').AgentInfo[] }} */
   let groupedAgents = { bmadAgents: [], localAgents: [], globalAgents: [] };
   /**
    * Mashed-ready skills and commands grouped by scope × kind. Fetched
    * in onMount and re-fetched whenever the repoPath changes so the
    * sidebar always reflects the current repo's local assets.
-   * @type {{ localCommands: any[], globalCommands: any[], localSkills: any[], globalSkills: any[] }}
+   * @type {GroupedMashedAssets | { localCommands: MashedAssetInfo[]; globalCommands: MashedAssetInfo[]; localSkills: MashedAssetInfo[]; globalSkills: MashedAssetInfo[] }}
    */
   let groupedMashedAssets = { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
+  /** @type {SprintStatus | null} */
   let sprintStatus = null;
+  /** @type {Workflow | null} */
   let currentWorkflow = null;
   let workflowName = 'Untitled Workflow';
   let saving = false;
 
-  // ── Unsaved-changes tracking ────────────────────────────────────────
-  //
-  // lastSavedSnapshot captures the canvas shape at the most recent
-  // successful save (or load). The reactive `isDirty` check compares a
-  // fresh snapshot against this baseline so tryLeave() can decide whether
-  // navigation is free, silent-autosave, or needs the NameWorkflowModal.
-  //
-  // Dirty detection is deliberately structural (nodes + edges + name)
-  // rather than change-counting: it's stable across undo, reorder, and
-  // config edits without bookkeeping inside each mutation path. The
-  // downside is an O(nodes+edges) JSON.stringify on every leave, which
-  // is negligible for canvases with dozens of nodes.
+  // ── Unsaved-changes tracking (see lib/workflowBuilder/leaveIntercept.js) ──
+  // lastSavedSnapshot is the canvas shape at the most recent successful
+  // save (or load); `isDirty` compares a fresh snapshot against it.
   let lastSavedSnapshot = snapshotCanvas([], [], 'Untitled Workflow');
   // True when the user explicitly chose "Discard" from NameWorkflowModal —
   // suppresses re-prompting on the next reactive pass while App.svelte
@@ -139,8 +176,6 @@
 
   // Leave-intercept modal state
   let showNameModal = false;
-  /** @type {null | ((decision: 'save' | 'discard' | 'cancel', name?: string) => void)} */
-  let nameModalResolver = null;
 
   // Phase 2 sentinel toast: surfaced when a command node transitions to
   // `failed`. Phase 3 will replace the fail-fast with real execution.
@@ -149,9 +184,7 @@
   // Dirty flag re-evaluates whenever nodes/edges/name change. Discard-latch
   // short-circuits to false so the view-switch triggered by a Discard click
   // never bounces back into the modal.
-  $: isDirty =
-    !discardLatch &&
-    snapshotCanvas($nodes, $edges, workflowName) !== lastSavedSnapshot;
+  $: isDirty = computeIsDirty(discardLatch, $nodes, $edges, workflowName, lastSavedSnapshot);
 
   /** True when the user has built something but never saved it at all. */
   $: isUnnamedDraft = !currentWorkflow?.id && $nodes.length > 0;
@@ -160,24 +193,25 @@
   let defaultModelId = '';
 
   // Execution state
+  /** @type {string | null} */
   let executionId = null;
   let executionStatus = 'idle';
   let nodeProgress = { completed: 0, total: 0 };
   let execError = '';
 
   // Config panel state
+  /** @type {CanvasNode | null} */
   let selectedNode = null;
-  let configPanelWidth = 280;
+  let configPanelWidth = 360;
 
   // Agent modal state
   let showAgentModal = false;
+  /** @type {BmadAgentConfig | null} */
   let editingAgent = null;
 
   // Terminal modal state
   let showTerminalModal = false;
   let terminalTarget = '';
-  $: terminalRepoPath = repoPath;
-  $: parsedTerminalTarget = parseFriendlyTarget(terminalTarget);
 
   // Output viewer modal state
   let showOutputModal = false;
@@ -186,6 +220,7 @@
   let outputLoading = false;
 
   // Skill editor modal state
+  /** @type {MashedAssetInfo | null} */
   let editingAsset = null;
   let lastSavedPath = '';
   let showSaveToast = false;
@@ -194,7 +229,73 @@
   // Array editor modal state
   let showArrayModal = false;
   let arrayModalNodeId = '';
+  /** @type {string[]} */
   let arrayModalItems = [];
+
+  // Live sidebar reload state (skills-watch-02) — driven by
+  // refetchMashedAssets in lib/workflowBuilder/execEvents.js.
+  let assetsFetching = false;
+  let assetsError = false;
+  /** @type {Record<string, 'created' | 'updated'>} */
+  let flashedPaths = {};
+
+  // Accessor context shared by the extracted modules. Every setter is a
+  // plain assignment inside this component, so Svelte invalidation (and
+  // therefore re-render ordering) is identical to the inline code.
+  const ctx = {
+    nodes,
+    edges,
+    get repoPath() { return repoPath; },
+    get processes() { return processes; },
+    get templates() { return templates; },
+    get isDirty() { return isDirty; },
+    get sprintStatus() { return sprintStatus; }, set sprintStatus(v) { sprintStatus = v; },
+    get currentWorkflow() { return currentWorkflow; }, set currentWorkflow(v) { currentWorkflow = v; },
+    get workflowName() { return workflowName; }, set workflowName(v) { workflowName = v; },
+    get lastSavedSnapshot() { return lastSavedSnapshot; }, set lastSavedSnapshot(v) { lastSavedSnapshot = v; },
+    get discardLatch() { return discardLatch; }, set discardLatch(v) { discardLatch = v; },
+    get showNameModal() { return showNameModal; }, set showNameModal(v) { showNameModal = v; },
+    get failureToastMessage() { return failureToastMessage; }, set failureToastMessage(v) { failureToastMessage = v; },
+    get executionId() { return executionId; }, set executionId(v) { executionId = v; },
+    get executionStatus() { return executionStatus; }, set executionStatus(v) { executionStatus = v; },
+    get selectedNode() { return selectedNode; }, set selectedNode(v) { selectedNode = v; },
+    get terminalTarget() { return terminalTarget; }, set terminalTarget(v) { terminalTarget = v; },
+    get arrayModalNodeId() { return arrayModalNodeId; }, set arrayModalNodeId(v) { arrayModalNodeId = v; },
+    get arrayModalItems() { return arrayModalItems; }, set arrayModalItems(v) { arrayModalItems = v; },
+    get showArrayModal() { return showArrayModal; }, set showArrayModal(v) { showArrayModal = v; },
+    get showOutputModal() { return showOutputModal; }, set showOutputModal(v) { showOutputModal = v; },
+    get outputModalContent() { return outputModalContent; }, set outputModalContent(v) { outputModalContent = v; },
+    get outputModalLabel() { return outputModalLabel; }, set outputModalLabel(v) { outputModalLabel = v; },
+    get outputLoading() { return outputLoading; }, set outputLoading(v) { outputLoading = v; },
+    get editingAsset() { return editingAsset; }, set editingAsset(v) { editingAsset = v; },
+    get lastSavedPath() { return lastSavedPath; }, set lastSavedPath(v) { lastSavedPath = v; },
+    get saveToastPath() { return saveToastPath; }, set saveToastPath(v) { saveToastPath = v; },
+    get showSaveToast() { return showSaveToast; }, set showSaveToast(v) { showSaveToast = v; },
+    get showTerminalModal() { return showTerminalModal; }, set showTerminalModal(v) { showTerminalModal = v; },
+    get groupedMashedAssets() { return groupedMashedAssets; }, set groupedMashedAssets(v) { groupedMashedAssets = v; },
+    get assetsFetching() { return assetsFetching; }, set assetsFetching(v) { assetsFetching = v; },
+    get assetsError() { return assetsError; }, set assetsError(v) { assetsError = v; },
+    get flashedPaths() { return flashedPaths; }, set flashedPaths(v) { flashedPaths = v; },
+    loadNodesEdges,
+    updateProgress,
+    saveWorkflow,
+    onLeave: () => dispatch('back'),
+  };
+
+  const {
+    isValidConnection, inferEdgeLabel, onConnect, onDropProcess, onDropStory,
+    onDropControlFlow, onNodeClick, onNodesDelete, onEdgesDelete, onReconnect,
+    onSelectionChange, onAddTemplate, onConfigUpdate,
+    handleEditItems, handleArraySave, onOpenTerminal, handleOpenOutput,
+  } = createCanvasHandlers(ctx);
+  // Registers every EventsOn listener now (component init), exactly as the
+  // inline listeners did; torn down via execEvents.destroy() in onDestroy.
+  const execEvents = createExecEvents(ctx);
+  const { restoreForRepo, refetchMashedAssets, handleInputSkip } = execEvents;
+  const leave = createLeaveIntercept(ctx);
+  const {
+    handleNameModalSave, handleNameModalDiscard, handleNameModalCancel, handleBackRequest, handleAssetSaved,
+  } = leave;
 
   onMount(async () => {
     try {
@@ -317,485 +418,32 @@
     })();
   }
 
-  /**
-   * Restore the canvas for a repo on mount or after a cross-repo switch.
-   *
-   * Precedence:
-   *   1. A non-terminal execution exists (running or paused) → load its
-   *      workflow definition and repaint per-node statuses so the live
-   *      pipeline is visible immediately.
-   *   2. No live execution → leave whatever is on the canvas alone. The
-   *      user may have explicitly loaded a different workflow via the
-   *      sidebar and we do not want to clobber their selection.
-   *
-   * The restored state is baselined as the clean snapshot so tryLeave()
-   * does not mistakenly treat restored RUNNING nodes as unsaved edits.
-   */
-  async function restoreForRepo(path) {
-    if (!path) return;
-    try {
-      const exec = await GetBmadCurrentExecution(path);
-      if (!exec || !exec.workflowId) return;
-
-      // Load the workflow definition behind the execution — this gives
-      // us the canonical node/edge shape. GetBmadWorkflow returns the
-      // saved workflow; we then overlay the exec's live node statuses
-      // on top.
-      let wf = null;
-      try {
-        wf = await GetBmadWorkflow(exec.workflowId);
-      } catch (e) {
-        console.warn('restoreForRepo: workflow backing exec is missing', e);
-        return;
-      }
-      if (!wf) return;
-
-      currentWorkflow = wf;
-      workflowName = wf.name || 'Untitled Workflow';
-      loadNodesEdges(wf);
-
-      // Overlay live statuses from the running exec so the canvas shows
-      // running / complete nodes without waiting for the next event.
-      const byId = new Map((exec.nodes || []).map((n) => [n.id, n]));
-      $nodes = $nodes.map((n) => {
-        const live = byId.get(n.id);
-        if (!live) return n;
-        return {
-          ...n,
-          data: {
-            ...n.data,
-            status: live.status || n.data.status,
-            tmuxTarget: live.tmuxTarget || n.data.tmuxTarget,
-            storyId: live.storyId || n.data.storyId,
-          },
-        };
-      });
-
-      executionId = exec.id;
-      executionStatus = exec.status || 'running';
-      updateProgress();
-
-      // Loaded + overlaid state IS the clean baseline — the user has
-      // not edited anything, so tryLeave should not fire on the next
-      // navigation.
-      lastSavedSnapshot = snapshotCanvas($nodes, $edges, workflowName);
-    } catch (e) {
-      console.warn('restoreForRepo: failed', e);
-    }
-  }
-
-  // Listen for live node status updates (scoped by execID)
-  const cancelStatusListener = EventsOn('bmad:node:status', (event) => {
-    if (!event?.nodeId || (executionId && event.execId !== executionId)) return;
-    $nodes = $nodes.map(n => {
-      if (n.id === event.nodeId) {
-        return { ...n, data: {
-          ...n.data,
-          status: event.status,
-          tmuxTarget: event.tmuxTarget || n.data.tmuxTarget,
-          iterationCount: event.iteration || n.data.iterationCount,
-        } };
+  // Sync rounds store -> node data so ProcessNode re-renders round counter.
+  $: if ($interactiveInput.rounds) {
+    const patches = $interactiveInput.rounds;
+    let changed = false;
+    const next = $nodes.map((n) => {
+      const r = patches[n.id];
+      if (typeof r === 'number' && n.data?.nodeRound !== r) {
+        changed = true;
+        return { ...n, data: { ...n.data, nodeRound: r } };
       }
       return n;
     });
-    const updatedNode = $nodes.find(n => n.id === event.nodeId);
-    // Update selected node if it matches
-    if (selectedNode && selectedNode.id === event.nodeId && updatedNode) {
-      selectedNode = updatedNode;
-    }
-    // Phase 2 sentinel detection: a command node flipping to `failed` is,
-    // by construction, the "command nodes not yet runnable" case — the
-    // backend executor's default branch logs that phrase then calls
-    // failNode. When NodeStatusEvent grows a `message` field, we prefer
-    // it; until then, svelte-flow type is the authoritative signal.
-    if (event.status === 'failed') {
-      const eventMessage = typeof event.message === 'string' ? event.message : '';
-      const isCommandFailure =
-        (updatedNode && updatedNode.type === 'command') ||
-        eventMessage.toLowerCase().includes(COMMAND_NODE_SENTINEL_PHRASE);
-      if (isCommandFailure) {
-        failureToastMessage = eventMessage || COMMAND_NODE_SENTINEL_DEFAULT_BODY;
-      }
-    }
-    updateProgress();
-  });
-
-  let autoFillSaveTimer = null;
-  const cancelArtifactListener = EventsOn('bmad:node:artifacts', (event) => {
-    if (!event?.nodeId || (executionId && event.execId !== executionId)) return;
-    $nodes = $nodes.map(n => {
-      if (n.id === event.nodeId) {
-        return { ...n, data: {
-          ...n.data,
-          artifactStatus: { found: event.found || [], missing: event.missing || [] },
-        } };
-      }
-      return n;
-    });
-
-    // breadcrumbs-06: Downstream auto-fill of empty InputPaths from resolved
-    // upstream OutputPaths. Per plan lines 138-144, fan-out is deferred — a
-    // single upstream path is copied to every connected downstream slot that
-    // accepts the artifact and is currently empty. Populated slots never clobber.
-    if (event.paths && typeof event.paths === 'object' && Object.keys(event.paths).length > 0) {
-      const { updates } = computeAutoFill(event, $nodes, $edges);
-      if (updates.length > 0) {
-        const byTarget = new Map();
-        for (const u of updates) {
-          if (!byTarget.has(u.nodeId)) byTarget.set(u.nodeId, []);
-          byTarget.get(u.nodeId).push(u);
-        }
-        $nodes = $nodes.map(n => {
-          const nodeUpdates = byTarget.get(n.id);
-          if (!nodeUpdates) return n;
-          const prevConfig = n.data?.config || {};
-          const nextInputPaths = { ...(prevConfig.inputPaths || {}) };
-          for (const u of nodeUpdates) nextInputPaths[u.artifactName] = u.path;
-          return {
-            ...n,
-            data: {
-              ...n.data,
-              config: { ...prevConfig, inputPaths: nextInputPaths },
-            },
-          };
-        });
-        clearTimeout(autoFillSaveTimer);
-        autoFillSaveTimer = setTimeout(() => { saveWorkflow(); }, 500);
-      }
-    }
-
-    if (selectedNode && selectedNode.id === event.nodeId) {
-      selectedNode = $nodes.find(n => n.id === event.nodeId) || selectedNode;
-    }
-  });
-
-  const cancelExecListener = EventsOn('bmad:execution:status', (event) => {
-    if (executionId && event.execId !== executionId) return;
-    if (event?.status) executionStatus = event.status;
-  });
-
-  let sprintRefreshTimer = null;
-  const cancelSprintListener = EventsOn('bmad:sprint:updated', (event) => {
-    // Update node storyStatus immediately
-    if (event?.storyId) {
-      $nodes = $nodes.map(n => {
-        if (n.data?.storyId === event.storyId) {
-          return { ...n, data: { ...n.data, storyStatus: event.status } };
-        }
-        return n;
-      });
-    }
-    // Debounce full sprint data refresh (coalesces rapid node completions)
-    clearTimeout(sprintRefreshTimer);
-    sprintRefreshTimer = setTimeout(async () => {
-      if (repoPath) {
-        try { sprintStatus = await GetSprintStatus(repoPath); } catch {}
-      }
-    }, 400);
-  });
-
-  // ── Live sidebar reload on disk changes (skills-watch-02) ──
-  //
-  // The backend AssetWatcher (skills-watch-01) emits 'bmad:assets:changed'
-  // when skill/command files change on disk. We re-fetch and diff the list
-  // to update the sidebar reactively.
-  let assetsFetching = false;
-  let assetsError = false;
-  let flashedPaths = {};
-  let assetFetchDirty = false;
-  let flashTimer = null;
-  let errorTimer = null;
-
-  /**
-   * Flatten all four mashed-asset groups into a Map<path, serialized>
-   * for efficient diff detection between fetches.
-   */
-  function flattenAssetPaths(grouped) {
-    const map = new Map();
-    for (const key of ['localCommands', 'globalCommands', 'localSkills', 'globalSkills']) {
-      for (const asset of grouped?.[key] || []) {
-        map.set(asset.path, JSON.stringify(asset));
-      }
-    }
-    return map;
+    if (changed) $nodes = next;
   }
-
-  async function refetchMashedAssets() {
-    if (assetsFetching) {
-      assetFetchDirty = true;
-      return;
-    }
-    assetsFetching = true;
-    assetsError = false;
-
-    // Capture scroll position before refetch
-    const tabContent = document.querySelector('.sidebar .tab-content');
-    const prevScroll = tabContent?.scrollTop ?? 0;
-
-    try {
-      const prevPaths = flattenAssetPaths(groupedMashedAssets);
-      const newGrouped = await ListAllMashedAssets(repoPath || '');
-
-      // Compute diff: new paths → 'created', changed paths → 'updated'
-      const newPaths = flattenAssetPaths(newGrouped);
-      const flashed = {};
-      for (const [path, serialized] of newPaths) {
-        if (!prevPaths.has(path)) {
-          flashed[path] = 'created';
-        } else if (prevPaths.get(path) !== serialized) {
-          flashed[path] = 'updated';
-        }
-      }
-
-      groupedMashedAssets = newGrouped || { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
-      flashedPaths = flashed;
-
-      // Clear flash classes after animation completes
-      clearTimeout(flashTimer);
-      if (Object.keys(flashed).length > 0) {
-        flashTimer = setTimeout(() => { flashedPaths = {}; }, 400);
-      }
-
-      // Restore scroll after Svelte re-renders the keyed list
-      await tick();
-      if (tabContent) tabContent.scrollTop = prevScroll;
-
-    } catch (e) {
-      console.error('bmad:assets:changed refetch failed:', e);
-      assetsError = true;
-      clearTimeout(errorTimer);
-      errorTimer = setTimeout(() => { assetsError = false; }, 2000);
-    } finally {
-      assetsFetching = false;
-      if (assetFetchDirty) {
-        assetFetchDirty = false;
-        refetchMashedAssets();
-      }
-    }
-  }
-
-  const cancelAssetsListener = EventsOn('bmad:assets:changed', () => {
-    refetchMashedAssets();
-  });
 
   onDestroy(() => {
-    if (cancelStatusListener) cancelStatusListener();
-    if (cancelArtifactListener) cancelArtifactListener();
-    if (cancelExecListener) cancelExecListener();
-    if (cancelSprintListener) cancelSprintListener();
-    if (cancelAssetsListener) cancelAssetsListener();
-    clearTimeout(flashTimer);
-    clearTimeout(errorTimer);
-    clearTimeout(autoFillSaveTimer);
+    execEvents.destroy();
   });
 
   function updateProgress() {
     const total = $nodes.length;
-    const completed = $nodes.filter(n => n.data.status === 'complete').length;
+    const completed = $nodes.filter(n => n.data?.status === 'complete').length;
     nodeProgress = { completed, total };
   }
 
-  function isValidConnection(connection) {
-    if (connection.source === connection.target) return false;
-    const exists = $edges.some(e =>
-      e.source === connection.source && e.target === connection.target
-    );
-    return !exists;
-  }
-
-  function inferEdgeLabel(sourceHandle) {
-    if (sourceHandle === 'true') return 'true';
-    if (sourceHandle === 'false') return 'false';
-    if (sourceHandle === 'loop-body') return 'body';
-    if (sourceHandle === 'loop-exit') return 'exit';
-    return '';
-  }
-
-  function onConnect(params) {
-    const label = inferEdgeLabel(params.sourceHandle);
-    const newEdge = {
-      id: `edge-${Date.now()}`,
-      source: params.source,
-      target: params.target,
-      sourceHandle: params.sourceHandle,
-      targetHandle: params.targetHandle,
-      label,
-      data: { label },
-    };
-    $edges = [...$edges, newEdge];
-  }
-
-  function onDropProcess(processId, position) {
-    if (processId === 'util-multi-file-loader') {
-      const newNode = {
-        id: `node-${Date.now()}`,
-        type: 'multiFileLoader',
-        position,
-        data: {
-          label: 'Multi File Loader',
-          processId,
-          nodeType: 'multiFileLoader',
-          status: 'pending',
-          config: { entries: '[]' },
-        },
-      };
-      $nodes = [...$nodes, newNode];
-      return;
-    }
-
-    const process = processes.find(p => p.id === processId);
-    if (!process) return;
-
-    const newNode = {
-      id: `node-${Date.now()}`,
-      type: 'bmadProcess',
-      position,
-      data: { label: process.name, processId: process.id, process, status: 'pending', config: {} },
-    };
-    $nodes = [...$nodes, newNode];
-  }
-
-  function onDropStory(storyData, position) {
-    const newNode = {
-      id: `story-node-${Date.now()}`,
-      type: 'bmadProcess',
-      position,
-      data: {
-        label: storyData.storyId,
-        processId: 'bmad-dev-story',
-        storyId: storyData.storyId,
-        storyStatus: storyData.status,
-        status: 'pending',
-        config: { storyId: storyData.storyId },
-      },
-    };
-    $nodes = [...$nodes, newNode];
-  }
-
-  const controlFlowNames = { condition: 'Condition', loop: 'Loop', loopUntil: 'Loop Until', transform: 'Transform', merge: 'Merge' };
-
-  function onDropControlFlow(nodeType, position) {
-    const newNode = {
-      id: `cf-${Date.now()}`,
-      type: nodeType,
-      position,
-      data: { nodeType, label: controlFlowNames[nodeType] || nodeType, status: 'pending', config: {} },
-    };
-    $nodes = [...$nodes, newNode];
-  }
-
-  function onNodeClick(detail) {
-    const node = detail.node;
-    if (node) selectedNode = node;
-  }
-
-  function onNodesDelete(deletedNodes) {
-    // Filter out running nodes — they cannot be deleted
-    const protectedIds = deletedNodes
-      .filter(n => n.data?.status === 'running')
-      .map(n => n.id);
-
-    if (protectedIds.length > 0) {
-      // Re-add protected nodes that xyflow already removed
-      const protectedNodes = deletedNodes.filter(n => protectedIds.includes(n.id));
-      $nodes = [...$nodes, ...protectedNodes];
-    }
-
-    // Clear selectedNode if it was deleted
-    if (selectedNode && deletedNodes.some(n => n.id === selectedNode.id) && !protectedIds.includes(selectedNode.id)) {
-      selectedNode = null;
-    }
-    updateProgress();
-  }
-
-  function onEdgesDelete(deletedEdges) {
-    // xyflow handles store removal; no additional state cleanup needed
-  }
-
-  function onReconnect(detail) {
-    const { oldEdge, newConnection } = detail;
-    $edges = $edges.map(e => {
-      if (e.id === oldEdge.id) {
-        const label = inferEdgeLabel(newConnection.sourceHandle);
-        return {
-          ...e,
-          source: newConnection.source,
-          target: newConnection.target,
-          sourceHandle: newConnection.sourceHandle,
-          targetHandle: newConnection.targetHandle,
-          label,
-          data: { label },
-        };
-      }
-      return e;
-    });
-  }
-
-  function onSelectionChange(selection) {
-    if (selection.nodes.length === 1) {
-      selectedNode = selection.nodes[0];
-    } else if (selection.nodes.length === 0) {
-      selectedNode = null;
-    }
-  }
-
-  function onAddTemplate(templateId, position, connectToNodeId) {
-    const tpl = templates.find(t => t.id === templateId);
-    if (!tpl || !tpl.nodes?.length) return;
-
-    const ts = Date.now();
-    const idMap = {};
-
-    // Create new nodes offset from the click position
-    const newNodes = tpl.nodes.map((n, i) => {
-      const newId = `tpl-${ts}-${i}`;
-      idMap[n.id] = newId;
-      return {
-        id: newId,
-        type: 'bmadProcess',
-        position: { x: position.x + (n.position?.x || 0), y: position.y + (n.position?.y || 0) },
-        data: {
-          label: n.label,
-          processId: n.processId,
-          process: processes.find(p => p.id === n.processId) || null,
-          status: 'pending',
-          config: n.config || {},
-        },
-      };
-    });
-
-    // Recreate template edges with new IDs
-    const newEdges = (tpl.edges || []).map((e, i) => ({
-      id: `tpl-edge-${ts}-${i}`,
-      source: idMap[e.source] || e.source,
-      target: idMap[e.target] || e.target,
-    })).filter(e => e.source && e.target);
-
-    $nodes = [...$nodes, ...newNodes];
-    $edges = [...$edges, ...newEdges];
-
-    // Connect the source node to the first template node
-    if (connectToNodeId && newNodes.length > 0) {
-      $edges = [...$edges, {
-        id: `connect-${ts}`,
-        source: connectToNodeId,
-        target: newNodes[0].id,
-      }];
-    }
-
-    updateProgress();
-  }
-
-  function onConfigUpdate(e) {
-    const { nodeId, config } = e.detail;
-    $nodes = $nodes.map(n => {
-      if (n.id === nodeId) {
-        return { ...n, data: { ...n.data, config } };
-      }
-      return n;
-    });
-  }
-
+  /** @param {CustomEvent<BmadAgentConfig>} e */
   async function handleAgentSave(e) {
     try {
       await SaveBmadAgent(e.detail);
@@ -807,6 +455,7 @@
     }
   }
 
+  /** @param {CustomEvent<string>} e */
   async function handleAgentDelete(e) {
     try {
       await DeleteBmadAgent(e.detail);
@@ -816,49 +465,6 @@
     } catch (err) {
       console.error('Failed to delete agent:', err);
     }
-  }
-
-  function handleEditItems(e) {
-    const { nodeId, items } = e.detail;
-    arrayModalNodeId = nodeId;
-    arrayModalItems = items || [];
-    showArrayModal = true;
-  }
-
-  function handleArraySave(e) {
-    const savedItems = e.detail;
-    $nodes = $nodes.map(n => {
-      if (n.id === arrayModalNodeId) {
-        const config = { ...n.data.config, items: savedItems.length > 0 ? JSON.stringify(savedItems) : '' };
-        return { ...n, data: { ...n.data, config } };
-      }
-      return n;
-    });
-    if (selectedNode && selectedNode.id === arrayModalNodeId) {
-      selectedNode = $nodes.find(n => n.id === arrayModalNodeId) || selectedNode;
-    }
-    showArrayModal = false;
-  }
-
-  async function onOpenTerminal(e) {
-    terminalTarget = e.detail;
-    showTerminalModal = true;
-  }
-
-  async function handleOpenOutput(e) {
-    const nodeId = e.detail;
-    const node = $nodes.find(n => n.id === nodeId);
-    outputModalLabel = node?.data?.label || nodeId;
-    outputLoading = true;
-    showOutputModal = true;
-    outputModalContent = '';
-
-    try {
-      outputModalContent = await GetNodeOutput(executionId, nodeId);
-    } catch (err) {
-      outputModalContent = 'Error loading output: ' + err;
-    }
-    outputLoading = false;
   }
 
   /**
@@ -929,114 +535,21 @@
     }
   }
 
-  // ── Leave intercept ─────────────────────────────────────────────────
-  //
-  // tryLeave returns true when navigation should proceed, false when it
-  // should be cancelled (e.g. user clicked Cancel in NameWorkflowModal).
-  //
-  // Decision tree:
-  //   1. Not dirty (or canvas empty)         → proceed
-  //   2. Dirty + has saved ID                → silent save + proceed
-  //   3. Dirty + unnamed (no ID yet)         → show modal, await choice
-  //         • save     → name & save, proceed
-  //         • discard  → blank canvas, proceed
-  //         • cancel   → stay put, return false
-  //
-  // Exposed via `export` so App.svelte can call it imperatively via
-  // bind:this before triggering cross-view navigation (e.g. when a
-  // snackbar click wants to switch repos).
-  export async function tryLeave() {
-    // Nothing to protect against.
-    if (!isDirty || $nodes.length === 0) return true;
-
-    // Case 2 — named workflow, silent save. If the save fails we MUST
-    // refuse the leave; otherwise the user would silently lose their
-    // edits when navigating back or switching repos.
-    if (currentWorkflow?.id) {
-      const ok = await saveWorkflow();
-      return ok;
-    }
-
-    // Case 3 — unnamed draft. Prompt the user.
-    return new Promise((resolve) => {
-      nameModalResolver = async (decision, name) => {
-        nameModalResolver = null;
-        showNameModal = false;
-        if (decision === 'cancel') {
-          resolve(false);
-          return;
-        }
-        if (decision === 'discard') {
-          // Blank the canvas BEFORE resolving so the reactive `isDirty`
-          // check on the next tick sees an empty canvas and no longer
-          // triggers the modal if the consumer re-queries.
-          discardLatch = true;
-          $nodes = [];
-          $edges = [];
-          currentWorkflow = null;
-          workflowName = 'Untitled Workflow';
-          lastSavedSnapshot = snapshotCanvas([], [], 'Untitled Workflow');
-          // Release the latch on the next microtask so subsequent user
-          // edits are tracked again.
-          queueMicrotask(() => { discardLatch = false; });
-          resolve(true);
-          return;
-        }
-        // decision === 'save' — commit the name the user typed and
-        // attempt the write. On backend failure we resolve false so
-        // the parent back-click is aborted and the modal stays closed
-        // (the user can click Back again to retry). Future polish
-        // could re-open the modal with an inline error instead.
-        if (name && name.length > 0) workflowName = name;
-        const saved = await saveWorkflow();
-        resolve(saved);
-      };
-      showNameModal = true;
-    });
+  // Leave intercept — see lib/workflowBuilder/leaveIntercept.js for the
+  // decision tree. Exposed via `export` so App.svelte can call it
+  // imperatively via bind:this before triggering cross-view navigation
+  // (e.g. when a snackbar click wants to switch repos).
+  export function tryLeave() {
+    return leave.tryLeave();
   }
 
-  function handleNameModalSave(e) {
-    if (nameModalResolver) nameModalResolver('save', e.detail?.name);
-  }
-  function handleNameModalDiscard() {
-    if (nameModalResolver) nameModalResolver('discard');
-  }
-  function handleNameModalCancel() {
-    if (nameModalResolver) nameModalResolver('cancel');
-  }
-
-  async function handleAssetSaved(e) {
-    const savedPath = e.detail?.path || '';
-    editingAsset = null;
-    lastSavedPath = savedPath;
-
-    // Refresh sidebar data.
-    try {
-      groupedMashedAssets = await ListAllMashedAssets(repoPath || '');
-    } catch {
-      groupedMashedAssets = { localCommands: [], globalCommands: [], localSkills: [], globalSkills: [] };
-    }
-
-    // Show toast and auto-dismiss after 2500ms.
-    saveToastPath = savedPath;
-    showSaveToast = true;
-    setTimeout(() => { showSaveToast = false; }, 2500);
-
-    // Clear row flash highlight after 400ms.
-    setTimeout(() => { lastSavedPath = ''; }, 400);
-  }
-
-  async function handleBackRequest() {
-    const ok = await tryLeave();
-    if (ok) dispatch('back');
-  }
-
+  /** @param {Workflow} wf */
   function loadNodesEdges(wf) {
     // skills-cmd-03 AC-1: the type-mapping ternary inside
     // workflowNodesToCanvasNodes routes `nodeType === 'command'` to
     // svelte-flow `type: 'command'` (rendered by CommandNode.svelte) while
     // preserving the legacy `bmadProcess` fallback for blank / `'process'`
-    // nodeTypes. Unit-tested in workflowSerialisation.test.js.
+    // nodeTypes. Unit-tested in workflowSerialisation.test.ts.
     $nodes = workflowNodesToCanvasNodes(wf.nodes, processes);
     $edges = workflowEdgesToCanvasEdges(wf.edges, inferEdgeLabel);
     selectedNode = null;
@@ -1047,6 +560,7 @@
     lastSavedSnapshot = snapshotCanvas($nodes, $edges, workflowName);
   }
 
+  /** @param {CustomEvent<string>} e */
   async function loadWorkflow(e) {
     const wfId = e.detail;
     try {
@@ -1059,6 +573,7 @@
     }
   }
 
+  /** @param {CustomEvent<string>} e */
   async function useTemplate(e) {
     const templateId = e.detail;
     // Templates CreateFromTemplate returns a brand-new saved workflow
@@ -1076,6 +591,7 @@
     }
   }
 
+  /** @param {CustomEvent<string>} e */
   async function deleteWorkflow(e) {
     const wfId = e.detail;
     try {
@@ -1111,6 +627,7 @@
     lastSavedSnapshot = snapshotCanvas([], [], 'Untitled Workflow');
   }
 
+  /** @param {CustomEvent<{ model?: string }>} e */
   async function handleExecStart(e) {
     const { model } = e.detail;
     execError = '';
@@ -1201,35 +718,20 @@
 
   <div class="canvas-area">
     <RepoContextBar {repoPath} {repoBranch} {sprintStatus} on:back={handleBackRequest} />
-    <div class="toolbar">
-      <span class="toolbar-label">File Name:</span>
-      <input
-        class="workflow-name-input"
-        type="text"
-        bind:value={workflowName}
-        placeholder="Workflow name..."
-      />
-      <button class="toolbar-btn new-btn" on:click={newWorkflow} title="New workflow">New</button>
-      <button class="toolbar-btn save-btn" on:click={saveWorkflow} disabled={saving} title="Save workflow">
-        <Save size={13} />
-        {saving ? 'Saving...' : 'Save'}
-      </button>
-      <button class="toolbar-btn agents-btn" on:click={() => { editingAgent = null; showAgentModal = true; }} title="Manage agents">
-        Agents
-      </button>
-
-      <div class="toolbar-sep" />
-
-      <ExecutionBar
-        {executionStatus}
-        {nodeProgress}
-        {repoPath}
-        on:start={handleExecStart}
-        on:pause={handleExecPause}
-        on:resume={handleExecResume}
-        on:stop={handleExecStop}
-      />
-    </div>
+    <BuilderToolbar
+      bind:workflowName
+      {saving}
+      {executionStatus}
+      {nodeProgress}
+      {repoPath}
+      onNew={newWorkflow}
+      onSave={saveWorkflow}
+      onAgents={() => { editingAgent = null; showAgentModal = true; }}
+      on:start={handleExecStart}
+      on:pause={handleExecPause}
+      on:resume={handleExecResume}
+      on:stop={handleExecStop}
+    />
 
     <div class="canvas-with-panel">
       <SvelteFlowProvider>
@@ -1271,6 +773,7 @@
         on:open-terminal={onOpenTerminal}
         on:open-output={handleOpenOutput}
         on:edit-items={handleEditItems}
+        on:open-prompt={(e) => openModalForNode(e.detail)}
       />
 
       {#if failureToastMessage}
@@ -1291,32 +794,11 @@
   </div>
 
   {#if showTerminalModal}
-    <div class="terminal-overlay" role="presentation" on:click={() => showTerminalModal = false} on:keydown={() => {}}>
-      <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-      <div class="terminal-modal" role="dialog" on:click|stopPropagation on:keydown={() => {}}>
-        <div class="terminal-modal-header">
-          <span class="terminal-modal-title" title={terminalTarget}>
-            {#if parsedTerminalTarget}
-              <span class="tmt-prefix">Terminal</span>
-              <span class="tmt-dash">—</span>
-              <span class="tmt-repo">{parsedTerminalTarget.repo}</span>
-              <span class="tmt-sep">·</span>
-              <span class="tmt-branch">{parsedTerminalTarget.branch}</span>
-              <span class="tmt-sep">·</span>
-              <span class="tmt-label">{parsedTerminalTarget.label}</span>
-            {:else}
-              {terminalTarget}
-            {/if}
-          </span>
-          <button class="terminal-modal-close" on:click={() => showTerminalModal = false}>&times;</button>
-        </div>
-        <div class="terminal-modal-body">
-          {#key terminalTarget}
-            <Terminal paneTarget={terminalTarget} repoPath={terminalRepoPath} />
-          {/key}
-        </div>
-      </div>
-    </div>
+    <TerminalModal
+      {terminalTarget}
+      {repoPath}
+      onClose={() => showTerminalModal = false}
+    />
   {/if}
 
   {#if showAgentModal}
@@ -1350,6 +832,27 @@
       question={activeQuestion}
       on:responded={handleQuestionResponded}
       on:close={handleQuestionClose}
+    />
+  {/if}
+
+  <!-- S6: Interactive input snackbar + modal. Snackbar surfaces all
+       PendingPrompts in the store; clicking a Respond button opens the modal. -->
+  <NodeInputSnackbarStack
+    pendingPrompts={$interactiveInput.pendingPrompts}
+    on:respond={(e) => openInteractiveModal(e.detail.prompt)}
+    on:skip={(e) => handleInputSkip(e.detail.prompt)}
+    on:dismiss={(e) => {
+      const nodeId = e.detail?.entry?.nodeId;
+      if (nodeId) dismissNode(nodeId);
+    }}
+  />
+
+  {#if $interactiveInput.activeModal}
+    <InputResponseModal
+      prompt={$interactiveInput.activeModal}
+      execId={executionId || $interactiveInput.activeModal.execId || ''}
+      repoName={repoPath ? repoPath.split('/').pop() : ''}
+      on:close={closeInteractiveModal}
     />
   {/if}
 
@@ -1398,78 +901,6 @@
     min-width: 0;
   }
 
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: var(--sp-xs) 10px;
-    background: var(--bg-surface);
-    border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-  }
-
-  .toolbar-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-xs);
-    padding: 4px 10px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: var(--text-body);
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 100ms ease, color 100ms ease, border-color 100ms ease;
-    flex-shrink: 0;
-  }
-
-  .toolbar-btn:hover {
-    background: var(--bg-active);
-    color: var(--text-primary);
-    border-color: var(--border-emphasis);
-  }
-
-  .toolbar-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .save-btn:hover { border-color: var(--accent-green); color: var(--accent-green); }
-  .agents-btn:hover { border-color: var(--accent-purple, #9d6fff); color: var(--accent-purple, #9d6fff); }
-
-  .toolbar-label {
-    font-family: var(--font-mono);
-    font-size: var(--text-body);
-    font-weight: 500;
-    color: var(--text-primary);
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-
-  .toolbar-sep {
-    width: 1px;
-    height: 18px;
-    background: var(--border-subtle);
-    flex-shrink: 0;
-  }
-
-  .workflow-name-input {
-    flex: 1;
-    min-width: 120px;
-    padding: 4px 8px;
-    background: var(--bg-deepest);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: var(--text-body);
-    outline: none;
-    transition: border-color 100ms ease;
-  }
-
-  .workflow-name-input:focus { border-color: var(--accent-green); }
 
   .canvas-with-panel {
     flex: 1;
@@ -1524,92 +955,6 @@
 
   .exec-error-dismiss:hover {
     background: color-mix(in srgb, var(--accent-red) 15%, transparent);
-  }
-
-  /* Terminal modal */
-  .terminal-overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--overlay-backdrop);
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .terminal-modal {
-    width: 80vw;
-    height: 70vh;
-    background: var(--bg-deepest);
-    border: 1px solid var(--border-emphasis);
-    border-radius: var(--radius-lg, 8px);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
-  }
-
-  .terminal-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background: var(--bg-surface);
-    border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-  }
-
-  .terminal-modal-title {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .tmt-prefix {
-    color: var(--text-muted);
-    font-weight: 400;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  .tmt-dash {
-    color: var(--text-muted);
-    margin: 0 var(--sp-2xs);
-  }
-  .tmt-repo {
-    color: var(--text-primary);
-    font-weight: 500;
-  }
-  .tmt-branch {
-    color: var(--text-dim);
-    font-weight: 400;
-  }
-  .tmt-label {
-    color: var(--accent-green);
-    font-weight: 500;
-  }
-  .tmt-sep {
-    color: var(--text-muted);
-    margin: 0 var(--sp-xs);
-  }
-
-  .terminal-modal-close {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: var(--text-section);
-    cursor: pointer;
-    padding: 0 4px;
-    line-height: 1;
-  }
-
-  .terminal-modal-close:hover { color: var(--text-primary); }
-
-  .terminal-modal-body {
-    flex: 1;
-    overflow: hidden;
   }
 
   /* ── Save toast ── */

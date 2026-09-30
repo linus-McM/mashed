@@ -164,6 +164,7 @@ func TestGenerateSkillFiles_ErrorOnInvalidBaseDir(t *testing.T) {
 }
 
 func TestGenerateSkillFiles_ErrorOnReadOnlyDir(t *testing.T) {
+	skipIfRoot(t)
 	dir := t.TempDir()
 	// Create the subdirectory but make it read-only so file creation fails
 	subDir := filepath.Join(dir, "bmad-brainstorming")

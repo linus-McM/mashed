@@ -219,6 +219,82 @@ export namespace bmad {
 		    return a;
 		}
 	}
+	export class InputSpec {
+	    id: string;
+	    source: string;
+	    shape?: string;
+	    required: boolean;
+	    artifactName?: string;
+	    upstreamNodeId?: string;
+	    prompt?: string;
+	    options?: string[];
+	    optionsRef?: string;
+	    default?: string;
+	    validation?: string;
+	    maxLength?: number;
+	    helpText?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new InputSpec(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.source = source["source"];
+	        this.shape = source["shape"];
+	        this.required = source["required"];
+	        this.artifactName = source["artifactName"];
+	        this.upstreamNodeId = source["upstreamNodeId"];
+	        this.prompt = source["prompt"];
+	        this.options = source["options"];
+	        this.optionsRef = source["optionsRef"];
+	        this.default = source["default"];
+	        this.validation = source["validation"];
+	        this.maxLength = source["maxLength"];
+	        this.helpText = source["helpText"];
+	    }
+	}
+	export class InteractiveTurn {
+	    round: number;
+	    role: string;
+	    inputId?: string;
+	    content: string;
+	    timestamp?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new InteractiveTurn(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.round = source["round"];
+	        this.role = source["role"];
+	        this.inputId = source["inputId"];
+	        this.content = source["content"];
+	        this.timestamp = source["timestamp"];
+	    }
+	}
+	export class IterationGate {
+	    kind: string;
+	    maxRounds?: number;
+	    acceptTokens?: string[];
+	    rejectTokens?: string[];
+	    customExpr?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new IterationGate(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kind = source["kind"];
+	        this.maxRounds = source["maxRounds"];
+	        this.acceptTokens = source["acceptTokens"];
+	        this.rejectTokens = source["rejectTokens"];
+	        this.customExpr = source["customExpr"];
+	    }
+	}
 	
 	export class ModuleDef {
 	    id: string;
@@ -238,6 +314,78 @@ export namespace bmad {
 	        this.version = source["version"];
 	        this.processes = source["processes"];
 	        this.upgradePath = source["upgradePath"];
+	    }
+	}
+	export class NodeInputEntry {
+	    inputId: string;
+	    round?: number;
+	    value: string;
+	    timestamp: number;
+	    key?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NodeInputEntry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.inputId = source["inputId"];
+	        this.round = source["round"];
+	        this.value = source["value"];
+	        this.timestamp = source["timestamp"];
+	        this.key = source["key"];
+	    }
+	}
+	export class OutputSpec {
+	    id: string;
+	    target: string;
+	    artifactName?: string;
+	    description?: string;
+	    optional?: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new OutputSpec(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.target = source["target"];
+	        this.artifactName = source["artifactName"];
+	        this.description = source["description"];
+	        this.optional = source["optional"];
+	    }
+	}
+	export class PendingPrompt {
+	    execId?: string;
+	    nodeId: string;
+	    inputId: string;
+	    prompt: string;
+	    shape: string;
+	    options?: string[];
+	    round: number;
+	    createdAt: number;
+	    promptId: string;
+	    lastOutput?: string;
+	    structured?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PendingPrompt(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.execId = source["execId"];
+	        this.nodeId = source["nodeId"];
+	        this.inputId = source["inputId"];
+	        this.prompt = source["prompt"];
+	        this.shape = source["shape"];
+	        this.options = source["options"];
+	        this.round = source["round"];
+	        this.createdAt = source["createdAt"];
+	        this.promptId = source["promptId"];
+	        this.lastOutput = source["lastOutput"];
+	        this.structured = source["structured"];
 	    }
 	}
 	export class Position {
@@ -265,6 +413,11 @@ export namespace bmad {
 	    outputs: string[];
 	    moduleId: string;
 	    version: string;
+	    mode?: string;
+	    enableAstAdapter?: boolean;
+	    inputSpecs?: InputSpec[];
+	    outputSpecs?: OutputSpec[];
+	    gate?: IterationGate;
 	
 	    static createFrom(source: any = {}) {
 	        return new ProcessDef(source);
@@ -282,7 +435,30 @@ export namespace bmad {
 	        this.outputs = source["outputs"];
 	        this.moduleId = source["moduleId"];
 	        this.version = source["version"];
+	        this.mode = source["mode"];
+	        this.enableAstAdapter = source["enableAstAdapter"];
+	        this.inputSpecs = this.convertValues(source["inputSpecs"], InputSpec);
+	        this.outputSpecs = this.convertValues(source["outputSpecs"], OutputSpec);
+	        this.gate = this.convertValues(source["gate"], IterationGate);
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class SprintStory {
 	    id: string;
@@ -413,6 +589,7 @@ export namespace bmad {
 	    nodeType?: string;
 	    outputPaths?: Record<string, string>;
 	    inputPaths?: Record<string, string>;
+	    inputSpecs?: InputSpec[];
 	
 	    static createFrom(source: any = {}) {
 	        return new WorkflowNode(source);
@@ -432,6 +609,7 @@ export namespace bmad {
 	        this.nodeType = source["nodeType"];
 	        this.outputPaths = source["outputPaths"];
 	        this.inputPaths = source["inputPaths"];
+	        this.inputSpecs = this.convertValues(source["inputSpecs"], InputSpec);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -510,6 +688,11 @@ export namespace bmad {
 	    startedAt: string;
 	    currentNode: string;
 	    nodeOutputs?: Record<string, string>;
+	    nodeRounds?: Record<string, number>;
+	    pendingPrompts?: PendingPrompt[];
+	    nodeInputs?: Record<string, any>;
+	    nodeInputHistory?: Record<string, Array<NodeInputEntry>>;
+	    version?: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new WorkflowExecution(source);
@@ -525,6 +708,11 @@ export namespace bmad {
 	        this.startedAt = source["startedAt"];
 	        this.currentNode = source["currentNode"];
 	        this.nodeOutputs = source["nodeOutputs"];
+	        this.nodeRounds = source["nodeRounds"];
+	        this.pendingPrompts = this.convertValues(source["pendingPrompts"], PendingPrompt);
+	        this.nodeInputs = source["nodeInputs"];
+	        this.nodeInputHistory = this.convertValues(source["nodeInputHistory"], Array<NodeInputEntry>, true);
+	        this.version = source["version"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -903,6 +1091,28 @@ export namespace main {
 		}
 	}
 	
+	export class MarkdownMenuSettings {
+	    bold: boolean;
+	    italic: boolean;
+	    strikethrough: boolean;
+	    code: boolean;
+	    link: boolean;
+	    latex: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new MarkdownMenuSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.bold = source["bold"];
+	        this.italic = source["italic"];
+	        this.strikethrough = source["strikethrough"];
+	        this.code = source["code"];
+	        this.link = source["link"];
+	        this.latex = source["latex"];
+	    }
+	}
 	export class NerdFontEntry {
 	    family: string;
 	    filePath: string;
@@ -953,6 +1163,20 @@ export namespace main {
 	        this.protected = source["protected"];
 	    }
 	}
+	export class TerminalAuth {
+	    port: number;
+	    token: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new TerminalAuth(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.port = source["port"];
+	        this.token = source["token"];
+	    }
+	}
 	export class VSCodeThemeEntry {
 	    label: string;
 	    extensionId: string;
@@ -980,6 +1204,16 @@ export namespace main {
 	    fontSize?: number;
 	    sidebarWidth?: number;
 	    editorSettings?: EditorSettings;
+	    markdownMenu?: MarkdownMenuSettings;
+	    ollamaEnabled: boolean;
+	    ollamaModel?: string;
+	    uiAdapterEnabled: boolean;
+	    uiAdapterTimeoutMs?: number;
+	    uiAdapterUntrustedExpanded: boolean;
+	    backend?: string;
+	    claudeModel?: string;
+	    cliModel?: string;
+	    routerPolicy?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new mashedConfig(source);
@@ -995,6 +1229,16 @@ export namespace main {
 	        this.fontSize = source["fontSize"];
 	        this.sidebarWidth = source["sidebarWidth"];
 	        this.editorSettings = this.convertValues(source["editorSettings"], EditorSettings);
+	        this.markdownMenu = this.convertValues(source["markdownMenu"], MarkdownMenuSettings);
+	        this.ollamaEnabled = source["ollamaEnabled"];
+	        this.ollamaModel = source["ollamaModel"];
+	        this.uiAdapterEnabled = source["uiAdapterEnabled"];
+	        this.uiAdapterTimeoutMs = source["uiAdapterTimeoutMs"];
+	        this.uiAdapterUntrustedExpanded = source["uiAdapterUntrustedExpanded"];
+	        this.backend = source["backend"];
+	        this.claudeModel = source["claudeModel"];
+	        this.cliModel = source["cliModel"];
+	        this.routerPolicy = source["routerPolicy"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

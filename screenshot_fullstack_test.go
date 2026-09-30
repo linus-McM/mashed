@@ -113,6 +113,7 @@ func TestEnsureGitignoreEntry_AC5(t *testing.T) {
 // ---------- AC-1: TakeScreenshot new signature ----------
 
 func TestTakeScreenshot_AC1_NewSignature(t *testing.T) {
+	skipUnlessInteractiveScreenshotsEnabled(t)
 	app := &App{ctx: context.Background()}
 	tmpDir := t.TempDir()
 
@@ -142,6 +143,7 @@ func TestTakeScreenshot_AC5_EmptyRepoPath(t *testing.T) {
 // ---------- AC-6: User cancellation (new signature) ----------
 
 func TestTakeScreenshot_AC6_Cancellation_NewSig(t *testing.T) {
+	skipUnlessInteractiveScreenshotsEnabled(t)
 	app := &App{ctx: context.Background()}
 	tmpDir := t.TempDir()
 

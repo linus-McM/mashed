@@ -46,6 +46,22 @@ type fakeSessionManager struct {
 	killed    []string
 	shutdown  bool
 	pidToSess map[int]*terminal.ManagedSession
+	argvs     [][]string // every SpawnArgv call, in order
+}
+
+func (f *fakeSessionManager) SpawnArgv(_ context.Context, name, _ string, argv []string, _, _ uint16) (*terminal.ManagedSession, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.alive[name] = true
+	f.argvs = append(f.argvs, append([]string(nil), argv...))
+	return nil, nil
+}
+
+// spawnedArgvs returns a copy of the recorded SpawnArgv calls.
+func (f *fakeSessionManager) spawnedArgvs() [][]string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([][]string(nil), f.argvs...)
 }
 
 func newFakeManager(aliveNames ...string) *fakeSessionManager {
@@ -59,7 +75,7 @@ func newFakeManager(aliveNames ...string) *fakeSessionManager {
 	return m
 }
 
-func (f *fakeSessionManager) Spawn(_ context.Context, name, _, _ string) (*terminal.ManagedSession, error) {
+func (f *fakeSessionManager) Spawn(_ context.Context, name, _, _ string, _, _ uint16) (*terminal.ManagedSession, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.alive[name] = true
@@ -568,20 +584,6 @@ func TestStory1_RegisterSessionConcurrent(t *testing.T) {
 	count := len(app.terminalSessions)
 	app.mu.Unlock()
 	assert.Greater(t, count, 0)
-}
-
-// ── Story 4: AC-7 recoverSessions is a no-op ──
-
-func TestStory4_AC7_RecoverSessionsIsNoOp(t *testing.T) {
-	app := testApp()
-
-	// recoverSessions should be a no-op — no tmux shell-out, no sessions added
-	app.recoverSessions()
-
-	app.mu.Lock()
-	count := len(app.terminalSessions)
-	app.mu.Unlock()
-	assert.Equal(t, 0, count, "recoverSessions must be a no-op")
 }
 
 // ── Story 5: Dual PID Lookup in Scan ──

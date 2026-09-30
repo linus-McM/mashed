@@ -47,8 +47,8 @@ Stories 1, 2, and 3 are independent and can be executed in parallel by separate 
 
 ## Story Files
 
-- `/Users/linus/Development/mashed/docs/stories/lefthook-01-coverage-script.md`
-- `/Users/linus/Development/mashed/docs/stories/lefthook-02-pty-test-isolation.md`
-- `/Users/linus/Development/mashed/docs/stories/lefthook-03-frontend-testing.md`
-- `/Users/linus/Development/mashed/docs/stories/lefthook-04-lefthook-config.md`
-- `/Users/linus/Development/mashed/docs/stories/lefthook-05-justfile-targets.md`
+- `/Users/dev/Development/mashed/docs/stories/lefthook-01-coverage-script.md`
+- `/Users/dev/Development/mashed/docs/stories/lefthook-02-pty-test-isolation.md`
+- `/Users/dev/Development/mashed/docs/stories/lefthook-03-frontend-testing.md`
+- `/Users/dev/Development/mashed/docs/stories/lefthook-04-lefthook-config.md`
+- `/Users/dev/Development/mashed/docs/stories/lefthook-05-justfile-targets.md`

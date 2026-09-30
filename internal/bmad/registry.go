@@ -4,6 +4,12 @@ package bmad
 // Initialized once in init() and never mutated afterward.
 var registry []ProcessDef
 
+// testRegistry is a secondary catalog populated only by test-code init()
+// functions. ProcessByID consults it after `registry` so production code
+// paths behave identically whether tests register fixtures or not.
+// Production builds see an empty slice — zero overhead.
+var testRegistry []ProcessDef
+
 func init() {
 	registry = []ProcessDef{
 		// ── Analysis (5) ──
@@ -18,6 +24,19 @@ func init() {
 			Outputs:     []string{"brainstorm-notes"},
 			ModuleID:    "core",
 			Version:     "1.0.0",
+			// Interactive shape — schema §10.1.
+			Mode:             InteractIterative,
+			EnableAstAdapter: true,
+			InputSpecs: []InputSpec{
+				{ID: "topic", Source: InputFromUser, Shape: ShapeFree, Required: true, Prompt: "What topic do you want to brainstorm?", MaxLength: 500},
+				{ID: "approach", Source: InputFromUser, Shape: ShapeChoice, Required: true, Prompt: "How should we pick techniques?", Options: []string{"user-pick", "ai-recommend", "random", "progressive"}},
+				{ID: "technique", Source: InputFromRegistry, OptionsRef: "registry:brain-methods.csv#technique_name"},
+				{ID: "round-response", Source: InputFromUser, Shape: ShapeJSON, Prompt: "Add ideas, pivot, or type 'done' when satisfied.", HelpText: "Type 'done' to wrap up; 'skip' to move to the next technique."},
+			},
+			OutputSpecs: []OutputSpec{
+				{ID: "brainstorm-notes", Target: OutputToFile, ArtifactName: "brainstorm-notes", Description: "Organised brainstorm session notes"},
+			},
+			Gate: &IterationGate{Kind: GateUserConfirm, MaxRounds: 30, AcceptTokens: []string{"done", "wrap up", "finish"}, RejectTokens: []string{"abort", "cancel"}},
 		},
 		{
 			ID:          "bmad-product-brief",
@@ -30,6 +49,20 @@ func init() {
 			Outputs:     []string{"product-brief"},
 			ModuleID:    "core",
 			Version:     "1.0.0",
+			// Interactive shape — schema §10.2.
+			Mode:             InteractGuided,
+			EnableAstAdapter: true,
+			InputSpecs: []InputSpec{
+				{ID: "mode", Source: InputFromUser, Shape: ShapeChoice, Required: true, Prompt: "How do you want to work?", Options: []string{"guided", "yolo", "autonomous"}, Default: "guided"},
+				{ID: "existing-brief", Source: InputFromFile, ArtifactName: "product-brief"},
+				{ID: "brainstorm-input", Source: InputFromUpstream},
+				{ID: "stage-response", Source: InputFromUser, Shape: ShapeJSON, Prompt: "{{stage_prompt}}", HelpText: "Type 'skip' to move on without more detail."},
+				{ID: "final-approval", Source: InputFromUser, Shape: ShapeApproval, Required: true, Prompt: "Approve this brief?"},
+			},
+			OutputSpecs: []OutputSpec{
+				{ID: "product-brief", Target: OutputToFile, ArtifactName: "product-brief"},
+			},
+			Gate: &IterationGate{Kind: GateUserConfirm, MaxRounds: 10, AcceptTokens: []string{"yes"}},
 		},
 		{
 			ID:          "bmad-domain-research",
@@ -302,6 +335,21 @@ func init() {
 			Outputs:     []string{"elicitation-notes"},
 			ModuleID:    "core",
 			Version:     "1.0.0",
+			// Interactive shape — schema §10.4.
+			Mode:             InteractIterative,
+			EnableAstAdapter: true,
+			InputSpecs: []InputSpec{
+				{ID: "target-content", Source: InputFromUpstream, Required: true},
+				// method recurs every round — marked Required=false so iterationInput() picks it.
+				// §10.4 JSON shows required=true for schema docs; the executor treats it as the
+				// per-round recurring slot per the prose under §10.4 and AC-2.
+				{ID: "method", Source: InputFromUser, Shape: ShapeJSON, Prompt: "Pick a reasoning method:", OptionsRef: "registry:methods.csv?random=5", HelpText: "[r] reshuffle · [a] see all · [x] accept and proceed"},
+				{ID: "apply-changes", Source: InputFromUser, Shape: ShapeApproval, Required: true, Prompt: "Apply these changes to the document?"},
+			},
+			OutputSpecs: []OutputSpec{
+				{ID: "elicitation-notes", Target: OutputToBoth, ArtifactName: "elicitation-notes"},
+			},
+			Gate: &IterationGate{Kind: GateUserConfirm, MaxRounds: 20, AcceptTokens: []string{"x", "proceed", "done"}},
 		},
 		{
 			ID:          "bmad-review-edge-case-hunter",
@@ -328,6 +376,17 @@ func init() {
 			Outputs:     []string{"code"},
 			ModuleID:    "core",
 			Version:     "1.0.0",
+			// Interactive shape — schema §10.3.
+			Mode:             InteractParty,
+			EnableAstAdapter: true,
+			InputSpecs: []InputSpec{
+				{ID: "topic", Source: InputFromUser, Shape: ShapeFree, Required: true, Prompt: "What do you want the team to discuss?", MaxLength: 1000},
+				{ID: "message", Source: InputFromUser, Shape: ShapeJSON, Prompt: "Your turn. Type 'exit' to end the conversation."},
+			},
+			OutputSpecs: []OutputSpec{
+				{ID: "transcript", Target: OutputToFile, ArtifactName: "retro-notes", Optional: true},
+			},
+			Gate: &IterationGate{Kind: GateUserConfirm, MaxRounds: 100, AcceptTokens: []string{"exit", "done", "wrap up"}},
 		},
 		{
 			ID:          "bmad-quick-flow",
@@ -450,6 +509,11 @@ func ProcessesByPhase(phase BmadPhase) []ProcessDef {
 // ProcessByID looks up a single process by its unique ID.
 func ProcessByID(id string) (ProcessDef, bool) {
 	for _, p := range registry {
+		if p.ID == id {
+			return p, true
+		}
+	}
+	for _, p := range testRegistry {
 		if p.ID == id {
 			return p, true
 		}

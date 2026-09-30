@@ -15,11 +15,14 @@
 !/.claude/skills/mashed-refactor-asset/
 .desloppify/
 .logs/
+logs/
 scorecard.png
 build/bin
 mashed
 node_modules
-frontend/dist
+frontend/dist/*
+!frontend/dist/.gitkeep
+graphify-out/
 images/*
 # macOS Finder metadata — ignore at any depth
 **/.DS_Store
@@ -67,6 +70,7 @@ images/*
 *.seed
 *.log
 *.csv
+!internal/bmad/testdata/*.csv
 *.dat
 *.backup
 console-**.log
@@ -85,3 +89,16 @@ playwright-report/
 # mashed screenshots
 .screenshots/
 todo.md
+.env.local
+.env.development
+.env.test
+.env.production
+.env*
+.repomix-output.xml
+.claude/repomix/
+
+# Generated artefacts and personal tool state (repo health R26)
+desloppify-workspace/
+frontend/coverage/
+.vite/
+frontend/.claude/

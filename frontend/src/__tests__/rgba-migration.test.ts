@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { WORKFLOW_BUILDER_FILES, readJoined } from './splitSources';
 
 // Story uiqa-05 — rgba() → color-mix() migration.
 // Covers AC-1..AC-7. Walks frontend/src recursively and scans *.svelte/*.css
@@ -10,7 +11,7 @@ import { resolve, join } from 'node:path';
 const FRONTEND_SRC = resolve(__dirname, '..');
 const STYLE_CSS = resolve(FRONTEND_SRC, 'style.css');
 
-const BACKDROP_FILES = [
+const BACKDROP_FILES: (string | string[])[] = [
   'views/NewSessionModal.svelte',
   'views/SpawnAgent.svelte',
   'views/BranchModal.svelte',
@@ -18,15 +19,16 @@ const BACKDROP_FILES = [
   'views/SummarisationModal.svelte',
   'views/MergeModal.svelte',
   'views/ForcePushModal.svelte',
-  'views/WorkflowBuilder.svelte',
+  WORKFLOW_BUILDER_FILES,
   'components/NewRepoModal.svelte',
   'components/AboutModal.svelte',
   'components/bmad/OutputViewerModal.svelte',
   'components/bmad/AgentConfigModal.svelte',
   'components/bmad/ArrayEditorModal.svelte',
-].map((p) => resolve(FRONTEND_SRC, p));
+].map((p) => (Array.isArray(p) ? p : resolve(FRONTEND_SRC, p)));
 
 const read = (p: string) => readFileSync(p, 'utf8');
+const readEntry = (p: string | string[]) => (Array.isArray(p) ? readJoined(p) : read(p));
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
@@ -99,9 +101,9 @@ describe('uiqa-05: rgba() → color-mix() migration', () => {
 
   describe('AC-5: modal backdrops use var(--overlay-backdrop)', () => {
     for (const file of BACKDROP_FILES) {
-      const rel = file.replace(FRONTEND_SRC + '/', '');
+      const rel = (Array.isArray(file) ? file[0] : file).replace(FRONTEND_SRC + '/', '');
       it(`AC-5 (BDD#5): ${rel} has no literal rgba(0, 0, 0, 0.6) backdrop`, () => {
-        const src = read(file);
+        const src = readEntry(file);
         // Any backdrop/overlay/scrim rule must not contain the literal.
         const backdropRule = src.match(
           /\.(modal-backdrop|overlay|scrim|modal-overlay)[^{]*\{[^}]*\}/g,

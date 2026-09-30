@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mashed.dev/schemas/generate_menu.json",
+  "title": "GenerateMenu",
+  "description": "Strict subset of uiast.json for menu/choice widget payloads.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "options"],
+  "properties": {
+    "type": { "type": "string", "const": "menu" },
+    "default": { "type": "string" },
+    "min": { "type": "integer" },
+    "max": { "type": "integer" },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value"],
+        "properties": {
+          "value": { "type": "string" },
+          "label": { "type": "string" }
+        }
+      }
+    }
+  }
+}

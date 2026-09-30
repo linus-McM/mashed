@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { AGENT_DETAIL_FILES, FEED_FILES, readJoined } from '../../__tests__/splitSources';
 
 // Story uiqa-04 — Shared .glow-btn class. Covers AC-1..AC-6 and all 7 BDD
 // scenarios. Reads source files from disk and injects style.css into jsdom
@@ -8,8 +9,6 @@ import { resolve } from 'node:path';
 
 const FRONTEND_SRC = resolve(__dirname, '../..');
 const STYLE_CSS = resolve(FRONTEND_SRC, 'style.css');
-const NOTIFICATION_FEED = resolve(FRONTEND_SRC, 'views/NotificationFeed.svelte');
-const AGENT_DETAIL = resolve(FRONTEND_SRC, 'views/AgentDetail.svelte');
 
 const read = (p: string) => readFileSync(p, 'utf8');
 
@@ -24,6 +23,13 @@ function templateOnly(src: string): string {
   const block = styleBlock(src);
   return block ? src.replace(block, '') : src;
 }
+
+// Feed style blocks / templates extracted per file, then joined.
+const feedStyles = () => readJoined(FEED_FILES, styleBlock);
+const feedTemplates = () => readJoined(FEED_FILES, templateOnly);
+// AgentDetail style blocks / templates extracted per file, then joined.
+const agentStyles = () => readJoined(AGENT_DETAIL_FILES, styleBlock);
+const agentTemplates = () => readJoined(AGENT_DETAIL_FILES, templateOnly);
 
 let injectedStyle: HTMLStyleElement;
 beforeAll(() => {
@@ -75,21 +81,21 @@ describe('uiqa-04: shared .glow-btn class', () => {
 
   describe('AC-2: .action-hot removed from NotificationFeed + glow-btn binding present', () => {
     it('AC-2 (BDD#3): NotificationFeed <style> block has zero ".action-hot" selectors', () => {
-      expect(styleBlock(read(NOTIFICATION_FEED))).not.toMatch(/\.action-hot/);
+      expect(feedStyles()).not.toMatch(/\.action-hot/);
     });
 
     it('AC-2 (BDD#3): NotificationFeed template has at least one class:glow-btn binding', () => {
-      expect(templateOnly(read(NOTIFICATION_FEED))).toMatch(/class:glow-btn/);
+      expect(feedTemplates()).toMatch(/class:glow-btn/);
     });
   });
 
   describe('AC-3: .git-hot removed from AgentDetail + glow-btn binding present', () => {
     it('AC-3 (BDD#4): AgentDetail <style> block has zero ".git-hot" selectors', () => {
-      expect(styleBlock(read(AGENT_DETAIL))).not.toMatch(/\.git-hot/);
+      expect(agentStyles()).not.toMatch(/\.git-hot/);
     });
 
     it('AC-3 (BDD#4): AgentDetail template has at least one class:glow-btn binding', () => {
-      expect(templateOnly(read(AGENT_DETAIL))).toMatch(/class:glow-btn/);
+      expect(agentTemplates()).toMatch(/class:glow-btn/);
     });
   });
 
@@ -143,18 +149,18 @@ describe('uiqa-04: shared .glow-btn class', () => {
 
   describe('AC-6: hot-button count conserved (6 pre → 6 post)', () => {
     it('AC-6: NotificationFeed has exactly 3 class:glow-btn bindings (was 3 class:action-hot)', () => {
-      const matches = templateOnly(read(NOTIFICATION_FEED)).match(/class:glow-btn/g) ?? [];
+      const matches = feedTemplates().match(/class:glow-btn/g) ?? [];
       expect(matches.length).toBe(3);
     });
 
     it('AC-6: AgentDetail has exactly 3 class:glow-btn bindings (was 3 class:git-hot)', () => {
-      const matches = templateOnly(read(AGENT_DETAIL)).match(/class:glow-btn/g) ?? [];
+      const matches = agentTemplates().match(/class:glow-btn/g) ?? [];
       expect(matches.length).toBe(3);
     });
 
     it('AC-6: total glow-btn count (6) matches pre-refactor hot-button count (6)', () => {
-      const nf = (templateOnly(read(NOTIFICATION_FEED)).match(/class:glow-btn/g) ?? []).length;
-      const ad = (templateOnly(read(AGENT_DETAIL)).match(/class:glow-btn/g) ?? []).length;
+      const nf = (feedTemplates().match(/class:glow-btn/g) ?? []).length;
+      const ad = (agentTemplates().match(/class:glow-btn/g) ?? []).length;
       expect(nf + ad).toBe(6);
     });
   });

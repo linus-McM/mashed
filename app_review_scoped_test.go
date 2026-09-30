@@ -19,15 +19,7 @@ import (
 // initTestGitRepo creates a temporary git repo with an initial commit.
 func initTestGitRepo(t *testing.T) string {
 	t.Helper()
-	dir := t.TempDir()
-	gitRun(t, dir, "init")
-	gitRun(t, dir, "config", "user.email", "test@test.com")
-	gitRun(t, dir, "config", "user.name", "Test")
-	readme := filepath.Join(dir, "README.md")
-	require.NoError(t, os.WriteFile(readme, []byte("# Test\n"), 0o644))
-	gitRun(t, dir, "add", ".")
-	gitRun(t, dir, "commit", "-m", "initial")
-	return dir
+	return initTestGitRepoAt(t, t.TempDir())
 }
 
 // gitRun runs a git command in the given directory.
@@ -112,6 +104,19 @@ func TestBuildScopedDiff_AC2_UntrackedFallback(t *testing.T) {
 	assert.NotEmpty(t, diff, "untracked file should produce non-empty diff via --no-index fallback")
 	assert.Contains(t, diff, "new_feature.go")
 	assert.Contains(t, diff, "NewFeature")
+}
+
+// R11: a path through a symlinked directory that points outside the repo is
+// skipped, so the untracked --no-index fallback cannot leak external files.
+func TestBuildScopedDiff_SymlinkEscapeSkipped(t *testing.T) {
+	t.Parallel()
+	repoPath := initTestGitRepo(t)
+	outside := t.TempDir()
+	createUntrackedFile(t, outside, "secret.txt", "TOP-SECRET-CONTENT\n")
+	require.NoError(t, os.Symlink(outside, filepath.Join(repoPath, "outdir")))
+
+	diff, _ := buildScopedDiff(context.Background(), repoPath, []string{"outdir/secret.txt"})
+	assert.NotContains(t, diff, "TOP-SECRET-CONTENT", "symlinked dir escape must not leak content")
 }
 
 // ---------------------------------------------------------------------------

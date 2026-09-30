@@ -12,9 +12,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// recoverSessions is a no-op. PTY sessions do not survive app restart.
-func (a *App) recoverSessions() {}
-
 // recoverSessionsFromOutput parses tmux list-sessions output and registers sessions.
 // Returns the number of sessions recovered.
 func (a *App) recoverSessionsFromOutput(sessionOutput string) int {

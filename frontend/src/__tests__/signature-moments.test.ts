@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { FEED_FILES, readJoined } from './splitSources';
 
 // Story uiqa-10 — Signature Moments: running agent pulse, status-bar ambient
 // SparkLine + pulse dot, terminal-style commit panel. Source-level assertions
@@ -14,9 +15,9 @@ import { resolve } from 'node:path';
 
 const FRONTEND_SRC = resolve(__dirname, '..');
 const STYLE_CSS = resolve(FRONTEND_SRC, 'style.css');
-const NOTIFICATION_FEED = resolve(FRONTEND_SRC, 'views/NotificationFeed.svelte');
 
 const read = (p: string) => readFileSync(p, 'utf8');
+const readFeed = () => readJoined(FEED_FILES);
 
 /**
  * Extract every `@media (prefers-reduced-motion: no-preference) { ... }` block
@@ -69,14 +70,14 @@ describe('uiqa-10: signature moments — pulse, ambient, terminal', () => {
     });
 
     it('AC-1: NotificationFeed.svelte binds class:is-running on the .agent-row element', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       // The binding lives inside the agent-row element declaration — match the
       // class attribute + class:is-running in close proximity.
       expect(src).toMatch(/class=["']agent-row["'][\s\S]{0,400}?class:is-running=/);
     });
 
     it('AC-1: class:is-running expression matches on eventType === "running" (project-specific status field)', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       expect(src).toMatch(/class:is-running=\{\s*agent\.eventType\s*===\s*['"]running['"]\s*\}/);
     });
 
@@ -99,17 +100,17 @@ describe('uiqa-10: signature moments — pulse, ambient, terminal', () => {
 
   describe('Sub-brief B: status bar ambient SparkLine + pulse dot', () => {
     it('AC-3: NotificationFeed declares a reactive aggregateSamples computation', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       expect(src).toMatch(/\$:\s*aggregateSamples\b/);
     });
 
     it('AC-3: NotificationFeed declares a reactive anyRunning computation', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       expect(src).toMatch(/\$:\s*anyRunning\b/);
     });
 
     it('AC-3: status bar template renders <SparkLine data={aggregateSamples} ...>', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       // Status bar container followed by a SparkLine with data={aggregateSamples}.
       expect(src).toMatch(
         /class=["']status-bar["'][\s\S]*?<SparkLine[^>]*data=\{aggregateSamples\}/,
@@ -117,19 +118,19 @@ describe('uiqa-10: signature moments — pulse, ambient, terminal', () => {
     });
 
     it('AC-3: aggregateSamples SparkLine is guarded by a length check (> 1)', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       expect(src).toMatch(/aggregateSamples\.length\s*>\s*1/);
     });
 
     it('AC-4: status bar template contains a .status-pulse element with aria-label "agents active"', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       expect(src).toMatch(
         /class=["']status-bar["'][\s\S]*?class=["']status-pulse["'][^>]*aria-label=["']agents active["']/,
       );
     });
 
     it('AC-4: status-pulse element is guarded by {#if anyRunning}', () => {
-      const src = read(NOTIFICATION_FEED);
+      const src = readFeed();
       // anyRunning if-block must enclose the status-pulse span.
       expect(src).toMatch(
         /\{#if\s+anyRunning\s*\}[\s\S]*?class=["']status-pulse["'][\s\S]*?\{\/if\}/,

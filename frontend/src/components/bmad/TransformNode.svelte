@@ -2,6 +2,8 @@
   import { Handle, Position } from '@xyflow/svelte';
   import { Wand2 } from 'lucide-svelte';
 
+  /** @typedef {import('../../types/workflow').CanvasNodeData} CanvasNodeData */
+  /** @type {CanvasNodeData} */
   export let data = {};
   // svelte-ignore unused-export-let
   export let id = '';
@@ -9,8 +11,8 @@
 
   $: status = data.status || 'pending';
   $: label = data.label || 'Transform';
-  $: config = data.config || {};
-  $: extractType = config.extractType || '';
+  $: config = /** @type {Record<string, unknown>} */ (data.config || {});
+  $: extractType = typeof config.extractType === 'string' ? config.extractType : '';
 </script>
 
 <div class="transform-node" class:selected class:running={status === 'running'}>

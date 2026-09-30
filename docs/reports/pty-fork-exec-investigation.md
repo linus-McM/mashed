@@ -37,7 +37,7 @@ The frontend catch block silently swallows the error with `console.error()`, mak
 
 ## Environment Details
 
-- Binary: `/Users/linus/Development/mashed/build/bin/mashed.app/Contents/MacOS/mashed`
+- Binary: `/Users/dev/Development/mashed/build/bin/mashed.app/Contents/MacOS/mashed`
 - Wails builds as a macOS `.app` bundle with embedded WebKit (WKWebView)
 - The binary has `com.apple.provenance` xattr (sticky, cannot be removed on Sequoia)
 - Wails dev server runs on `:34115` (Go bindings) and `:5173` (Vite frontend)
@@ -91,13 +91,13 @@ if (!window.go) window.go = noopProxy();
 
 ### 5. Apple Developer certificate signing
 
-**Identity:** `Apple Development: linus McManamey (5X8A9U965U)`
+**Identity:** `<your signing identity>`
 
-**Command:** `codesign --force --deep --options runtime --sign "Apple Development: linus McManamey (5X8A9U965U)" --entitlements entitlements.plist mashed.app`
+**Command:** `codesign --force --deep --options runtime --sign "<your signing identity>" --entitlements entitlements.plist mashed.app`
 
 **Verification:**
 ```
-Authority=Apple Development: linus McManamey (5X8A9U965U)
+Authority=<your signing identity>
 Authority=Apple Worldwide Developer Relations Certification Authority
 Authority=Apple Root CA
 CodeDirectory flags=0x10000(runtime)

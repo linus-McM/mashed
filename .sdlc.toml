@@ -1,0 +1,65 @@
+# sdlc plugin configuration (read by every stage; commit it)
+[commands]
+test = "bash scripts/test-all.sh"   # must exit non-zero on failure
+lint = ""                   # optional
+build = ""                  # optional
+
+[build]
+require_tdd = true          # `test run` refuses without a recorded red->green cycle
+protected_paths = []        # globs Claude may never edit, e.g. "src/gen/**"
+test_globs = ["tests/**", "test_*.py", "*_test.py", "*_test.go", "**/__tests__/**", "*.test.*", "*.spec.*"]
+
+[deploy]
+command = ""                # release command with {env}, e.g. "./deploy.sh {env}"; the pre-bash hook gates it
+rollback = ""               # single rehearsed command; required before production
+[deploy.environments]
+dev = "free"                # agent deploys freely
+staging = "ask"             # agent asks before deploying
+production = "gate"         # needs RELEASE_APPROVAL=<name> in the environment
+
+[checkpoint]
+enabled = true              # commit generated artifacts at each stage boundary; SDLC_CHECKPOINT=off also disables
+paths = [".sdlc.toml", ".graphifyignore", ".claude/settings.local.json"]   # committed alongside the SDLC home directory; git-ignored entries are skipped
+
+[evals]
+threshold = 1.0             # minimum pass rate for `test evals`
+
+[maintain]
+metrics = "sdlc/metrics.jsonl"   # {"metric": str, "value": float, "ts": str} per line
+
+[knowledge]
+enabled = true              # Graphify graph + OKF bundle; SDLC_KNOWLEDGE=off also disables
+auto_install = false        # SessionStart installs missing tools only when true; stage commands always do
+bundle = "sdlc/knowledge"   # OKF bundle root, relative to the project root
+claude_md_pointer = true    # add a two-line pointer block to CLAUDE.md
+clean_every = 5             # force a clean graph rebuild after this many incremental refreshes
+max_behind = 1              # `knowledge status` fails when an index is behind HEAD by more commits
+stale_after_days = 14       # concept stale_after = generation time + this
+artifact_skew_seconds = 300 # graph.json / GRAPH_REPORT.md / graph.html mtimes may differ this much
+pack_max_tokens = 0         # Repomix context-pack budget; 0 = none (over budget: --compress, then seeds only, each step reported)
+pack_hops = 1               # graph hops from the stage's seed files (callers, callees, community)
+pack_base = "main"          # the test pack covers `git diff <pack_base>...HEAD`
+min_community_nodes = 3     # smaller Graphify communities get no Module concept
+god_nodes = 10              # Hub concepts from `graphify god-nodes --top N`
+ignore = ["sdlc/*/references/", "sdlc/*/docs/", "sdlc/docs/", "sdlc/knowledge/", "graphify-out/", ".venv/"]   # written to .graphifyignore
+
+[docs]
+enabled = true              # Archify stage documents; SDLC_DOCS=off also disables
+dir = "docs"                # per-feature subdirectory for <stage>.json, <stage>.html, <stage>.receipt.json
+quality = "showcase"        # Archify quality profile passed to `deliver`
+open = true                 # `docs open` launches the HTML locally (never when CI is set)
+min_node = 18               # lowest Node major the archify bootstrap step accepts
+min_version = "2.17"        # `knowledge status` notes an older installed Archify skill
+[docs.types]                # stage -> Archify diagram type
+plan = "architecture"
+design = "dataflow"
+build = "workflow"
+test = "sequence"
+deploy = "lifecycle"
+maintain = "lifecycle"
+
+[workflows]
+enabled = true              # stage Workflow scripts (sdlc:<name>); SDLC_WORKFLOWS=off also disables
+auto_env = true             # session start merges [workflows.env] into .claude/settings.local.json
+[workflows.env]             # never overwrites a value already set there
+CLAUDE_CODE_WORKFLOWS = "1" # makes the Workflow tool available and on by default

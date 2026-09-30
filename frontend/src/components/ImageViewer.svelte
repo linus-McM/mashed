@@ -1,24 +1,36 @@
-<script>
+<script lang="ts">
   import { onDestroy } from 'svelte';
   import { buildImagePath } from './imageViewerUtils';
   import { ReadFileBase64 } from '../../wailsjs/go/main/App.js';
+  import { errorMessage } from '../lib/errorMessage';
+
+  /** Discriminated view-model for the image viewer's three render states. */
+  type ViewerState =
+    | { status: 'loading' }
+    | { status: 'loaded'; dataUri: string }
+    | { status: 'error'; message: string };
+
+  /** Minimal structural shape of a panzoom instance — we only touch `dispose()`. */
+  interface PanzoomInstance {
+    dispose(): void;
+  }
 
   export let filePath = '';
   export let repoPath = '';
 
-  let state = { status: 'loading' };
-  let imgElement;
-  let panzoomInstance = null;
+  let state: ViewerState = { status: 'loading' };
+  let imgElement: HTMLImageElement | undefined;
+  let panzoomInstance: PanzoomInstance | null = null;
   let loadGeneration = 0;
 
-  function disposePanzoom() {
+  function disposePanzoom(): void {
     if (panzoomInstance) {
       panzoomInstance.dispose();
       panzoomInstance = null;
     }
   }
 
-  async function loadImage(fp, rp) {
+  async function loadImage(fp: string, rp: string): Promise<void> {
     if (!fp) return;
     const gen = ++loadGeneration;
     state = { status: 'loading' };
@@ -30,13 +42,13 @@
       state = { status: 'loaded', dataUri };
     } catch (err) {
       if (gen !== loadGeneration) return;
-      state = { status: 'error', message: `Failed to load ${fp}: ${err}` };
+      state = { status: 'error', message: `Failed to load ${fp}: ${errorMessage(err)}` };
     }
   }
 
   $: loadImage(filePath, repoPath);
 
-  async function attachPanzoom() {
+  async function attachPanzoom(): Promise<void> {
     if (!imgElement || panzoomInstance) return;
     const gen = loadGeneration;
     const panzoom = (await import('panzoom')).default;

@@ -1,0 +1,8 @@
+{
+  "decision_group_count": 1,
+  "widget_types": ["choice"],
+  "must_contain_urls": ["https://example.org/v1/api", "https://example.net/alt"],
+  "must_contain_code_blocks": ["```json\n{\"id\": 42, \"ok\": true}\n```"],
+  "fallback_answer_shape": "choice",
+  "category": "adversarial"
+}

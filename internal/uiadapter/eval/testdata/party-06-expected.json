@@ -1,0 +1,7 @@
+{
+  "decision_group_count": 1,
+  "widget_types": ["json"],
+  "must_contain_code_blocks": ["```json\n{\"guests\": [\"ada\", \"ben\", \"cara\"]}\n```"],
+  "fallback_answer_shape": "json",
+  "category": "party"
+}

@@ -1,0 +1,1 @@
+{"id":"bmad-editorial-review-prose","name":"Editorial Review (Prose)","phase":"support","agentRole":"tech-writer","skillName":"bmad-editorial-review-prose","description":"Review document prose for clarity, tone, and readability.","inputs":["any-doc"],"outputs":["reviewed-doc"],"moduleId":"core","version":"1.0.0"}

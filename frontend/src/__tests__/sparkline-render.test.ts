@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { FEED_FILES, readJoined } from './splitSources';
 
 // Story uiqa-09 — Render SparkLine in NotificationFeed.
 // Grep-based contract tests that ensure SparkLine is actually wired into
@@ -9,13 +10,12 @@ import { resolve } from 'node:path';
 // differences between dev, build, and vitest environments.
 
 const FRONTEND_SRC = resolve(__dirname, '..');
-const NOTIFICATION_FEED = resolve(FRONTEND_SRC, 'views/NotificationFeed.svelte');
 const SPARKLINE = resolve(FRONTEND_SRC, 'components/SparkLine.svelte');
 
 const read = (p: string) => readFileSync(p, 'utf8');
 
 describe('uiqa-09 SparkLine render in NotificationFeed', () => {
-  const feed = read(NOTIFICATION_FEED);
+  const feed = readJoined(FEED_FILES);
 
   it('AC-7: keeps SparkLine import and uses it at least once', () => {
     // Import site
@@ -47,9 +47,10 @@ describe('uiqa-09 SparkLine render in NotificationFeed', () => {
 
   it('SparkLine component still exposes only the text-based props API', () => {
     // Guard against accidental refactor: props must be exactly `data` and `maxVal`.
+    // Regex accepts optional TypeScript type annotations post-retyping (Phase 4c).
     const spark = read(SPARKLINE);
-    expect(spark).toMatch(/export\s+let\s+data\s*=\s*\[\]/);
-    expect(spark).toMatch(/export\s+let\s+maxVal\s*=\s*0/);
+    expect(spark).toMatch(/export\s+let\s+data(?:\s*:\s*number\[\])?\s*=\s*\[\]/);
+    expect(spark).toMatch(/export\s+let\s+maxVal(?:\s*:\s*number)?\s*=\s*0/);
     // Ensure it is still a span, not an SVG.
     expect(spark).toMatch(/<span\s+class="sparkline"/);
   });

@@ -73,7 +73,7 @@ $: progressPct = totalStories > 0 ? (doneStories / totalStories) * 100 : 0;
 ## Acceptance Criteria
 
 AC-1: Context bar shows repo name
-- Given WorkflowBuilder loaded with repoPath "/Users/linus/Development/my-project"
+- Given WorkflowBuilder loaded with repoPath "/Users/dev/Development/my-project"
 - When the context bar renders
 - Then it displays "my-project" as the repo name
 - And the full path is available in a tooltip
@@ -104,7 +104,7 @@ AC-4: Context bar is positioned above toolbar
 Feature: Repo context header bar
 
   Scenario: Display repo name and sprint progress
-    Given RepoContextBar rendered with repoPath "/Users/linus/Dev/my-project"
+    Given RepoContextBar rendered with repoPath "/Users/dev/Dev/my-project"
     And sprintStatus with 2 epics containing 5 total stories, 2 done
     Then the text "my-project" is visible
     And the text "2/5 stories done" is visible
@@ -117,7 +117,7 @@ Feature: Repo context header bar
     And no progress bar is rendered
 
   Scenario: Long repo name is truncated
-    Given RepoContextBar with repoPath "/Users/linus/Development/my-extremely-long-project-name-that-goes-on"
+    Given RepoContextBar with repoPath "/Users/dev/Development/my-extremely-long-project-name-that-goes-on"
     Then the repo name is truncated with ellipsis
     And the full path is in the title tooltip
 

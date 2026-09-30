@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,11 +10,16 @@ import (
 	"time"
 
 	"mashed/internal/domain"
+	"mashed/internal/scanner"
 )
 
 // watchSessions starts fsnotify-based session file watching.
-func (a *App) watchSessions() {
-	ch, err := a.provider.WatchSessions(a.ctx)
+// It runs until ctx ends and scans st on every session file change.
+func (a *App) watchSessions(ctx context.Context, st *scanState) {
+	a.sessionWatchers.Add(1)
+	defer a.sessionWatchers.Add(-1)
+
+	ch, err := st.provider.WatchSessions(ctx)
 	if err != nil {
 		log.Printf("session watcher error: %v", err)
 		return
@@ -21,25 +27,25 @@ func (a *App) watchSessions() {
 
 	for {
 		select {
-		case <-a.ctx.Done():
+		case <-ctx.Done():
 			return
 		case _, ok := <-ch:
 			if !ok {
 				return
 			}
 			// Trigger a scan on any session file change
-			a.doScan()
+			a.doScan(st)
 		}
 	}
 }
 
 // findSessionByID parses a specific session file by its ID.
-func (a *App) findSessionByID(sessionDir, sessionID string) *domain.SessionData {
+func (a *App) findSessionByID(p *scanner.ClaudeCodeProvider, sessionDir, sessionID string) *domain.SessionData {
 	path := filepath.Join(sessionDir, sessionID+".jsonl")
 	if _, err := os.Stat(path); err != nil {
 		return nil
 	}
-	data, err := a.provider.ParseSession(path)
+	data, err := p.ParseSession(path)
 	if err != nil {
 		return nil
 	}
@@ -47,7 +53,7 @@ func (a *App) findSessionByID(sessionDir, sessionID string) *domain.SessionData 
 }
 
 // findLatestSession finds and parses the most recently modified .jsonl file in a session directory.
-func (a *App) findLatestSession(sessionDir string) *domain.SessionData {
+func (a *App) findLatestSession(p *scanner.ClaudeCodeProvider, sessionDir string) *domain.SessionData {
 	entries, err := os.ReadDir(sessionDir)
 	if err != nil {
 		return nil
@@ -74,7 +80,7 @@ func (a *App) findLatestSession(sessionDir string) *domain.SessionData {
 		return nil
 	}
 
-	data, err := a.provider.ParseSession(latestPath)
+	data, err := p.ParseSession(latestPath)
 	if err != nil {
 		log.Printf("parse session %s: %v", latestPath, err)
 		return nil
@@ -84,6 +90,8 @@ func (a *App) findLatestSession(sessionDir string) *domain.SessionData {
 
 // consumeEngineEvents reads from the engine's event channel and maintains the notification list.
 func (a *App) consumeEngineEvents() {
+	a.engineConsumers.Add(1)
+	defer a.engineConsumers.Add(-1)
 	for {
 		select {
 		case <-a.ctx.Done():
@@ -113,7 +121,7 @@ func (a *App) consumeEngineEvents() {
 }
 
 // findUnclaimed finds the most recent session file that hasn't been claimed by another agent.
-func (a *App) findUnclaimed(sessionDir string, claimed map[string]bool) *domain.SessionData {
+func (a *App) findUnclaimed(p *scanner.ClaudeCodeProvider, sessionDir string, claimed map[string]bool) *domain.SessionData {
 	entries, err := os.ReadDir(sessionDir)
 	if err != nil {
 		return nil
@@ -151,7 +159,7 @@ func (a *App) findUnclaimed(sessionDir string, claimed map[string]bool) *domain.
 		if claimed[f.key] {
 			continue
 		}
-		data, err := a.provider.ParseSession(f.path)
+		data, err := p.ParseSession(f.path)
 		if err != nil {
 			continue
 		}

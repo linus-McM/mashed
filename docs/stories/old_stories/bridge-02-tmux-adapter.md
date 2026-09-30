@@ -58,7 +58,7 @@ Introduce a new `TmuxAdapter` type that can attach to an existing, externally-cr
 
 - **Concurrency:** `Attach` spawns up to three goroutines per attachment (FIFO reader, pane-death watcher, optional polling). All are tied to the attachment's `context.Context`; `Close` cancels the context and waits for them via `sync.WaitGroup`.
 - **Close idempotence:** Wrap the cleanup block in `sync.Once` so double-`Close()` is safe.
-- **Error wrapping:** Use custom error type `TerminalError` (already present in package `internal/terminal`) with `Op: "tmux_attach"`, `Op: "tmux_pipe"`, etc. Wrap underlying errors with `fmt.Errorf("...: %w", err)` so `errors.Is`/`errors.As` still work. See `/Users/linus/.claude/projects/-Users-linus-Development-mashed/memory/feedback_error_handling.md` for the project's preferred pattern.
+- **Error wrapping:** Use custom error type `TerminalError` (already present in package `internal/terminal`) with `Op: "tmux_attach"`, `Op: "tmux_pipe"`, etc. Wrap underlying errors with `fmt.Errorf("...: %w", err)` so `errors.Is`/`errors.As` still work. See `/Users/dev/.claude/projects/-Users-dev-Development-mashed/memory/feedback_error_handling.md` for the project's preferred pattern.
 - **Sentinels:** Add `ErrPaneDead = errors.New("terminal: pane is dead")` and `ErrTmuxUnavailable = errors.New("terminal: tmux not available")`.
 - **FIFO cleanup on crash:** On `Close()`, always `os.Remove(fifoPath)` and `os.RemoveAll(tempDir)` even if other cleanup fails. Use `defer` chains.
 - **`tmux pipe-pane -o` flag:** `-o` is critical — it stops any existing pipe before starting the new one so concurrent attachments don't fight. Document in a code comment.

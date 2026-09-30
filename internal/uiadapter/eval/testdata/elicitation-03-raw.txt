@@ -1,0 +1,3 @@
+Does this draft satisfy the acceptance criteria you listed earlier?
+
+Reply a) accept, r) reject and retry, or x) exit the elicitation loop.

@@ -1,0 +1,7 @@
+{
+  "decision_group_count": 1,
+  "widget_types": ["approval"],
+  "must_contain_code_blocks": ["```json\n{\n  \"theme\": \"neon\",\n  \"hours\": [\"21:00\", \"02:00\"],\n  \"capacity\": 40\n}\n```"],
+  "fallback_answer_shape": "approval",
+  "category": "party"
+}

@@ -1,0 +1,16 @@
+{
+  "stage": "plan",
+  "type": "architecture",
+  "sources": [
+    {
+      "resource": "sdlc/repo-health-remediation/intent.md",
+      "digest": "31515eacb1790795a121ea2e354b2cb561a94b4f0a18cbc154270d8460950659"
+    }
+  ],
+  "source_digest": "9b00a14ff719e053deb97231dc42ffdb7f8e81fdff3fc6fa5cf55cafb7d68207",
+  "specification_sha256": "04917aff1ed35f8b2616f5132cf8b0a265087f16ff92a5b997884a653938752e",
+  "artifact_sha256": "c60e6e91581daf13d7a275956e1fb1284ca6c7519fc8cb639e8f99b6253d1cda",
+  "validation": "9/9 showcase, 0 errors, 0 warnings",
+  "archify_version": "2.17.0-dev.1",
+  "delivered_at": "2026-09-29T10:04:57Z"
+}

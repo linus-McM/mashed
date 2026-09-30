@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"os/exec"
@@ -117,6 +118,44 @@ func resolveHelperPath() string {
 	return ""
 }
 
+// warnIfDistMissing logs a warning when the embedded frontend has no
+// index.html — e.g. `go build` on a fresh clone embeds only the tracked
+// frontend/dist/.gitkeep placeholder (R21).
+func warnIfDistMissing(fsys fs.FS, logf func(string, ...any)) {
+	if _, err := fs.Stat(fsys, "frontend/dist/index.html"); err != nil {
+		logf("WARNING: frontend/dist/index.html is not embedded; run `npm run build` in frontend/ (or `wails build`) before building the app")
+	}
+}
+
+// setupHelperSocketDir creates a private (0700) directory for the PTY helper
+// socket and returns a cleanup func that removes it (R12).
+func setupHelperSocketDir() (string, func(), error) {
+	dir, err := os.MkdirTemp("", "mashed-pty-")
+	if err != nil {
+		return "", func() {}, err
+	}
+	if err := os.Chmod(dir, 0o700); err != nil {
+		os.RemoveAll(dir)
+		return "", func() {}, err
+	}
+	return dir, func() { os.RemoveAll(dir) }, nil
+}
+
+// dialHelperSecure dials the helper only if its socket is owner-only (R12).
+func dialHelperSecure(path string) (*helper.Client, error) {
+	fi, err := os.Lstat(path)
+	if err != nil {
+		return nil, err
+	}
+	if fi.Mode()&os.ModeSocket == 0 {
+		return nil, fmt.Errorf("pty helper: %s is not a socket", path)
+	}
+	if perm := fi.Mode().Perm(); perm&0o077 != 0 {
+		return nil, fmt.Errorf("pty helper: socket %s is accessible to other users (mode %o)", path, perm)
+	}
+	return helper.Dial(path)
+}
+
 // waitForSocket polls until the Unix socket file appears or the timeout expires.
 func waitForSocket(path string, timeout time.Duration) bool {
 	deadline := time.Now().Add(timeout)
@@ -130,14 +169,25 @@ func waitForSocket(path string, timeout time.Duration) bool {
 }
 
 func main() {
+	warnIfDistMissing(assets, log.Printf)
+
 	// Resolve and launch PTY helper.
 	helperPath := resolveHelperPath()
 	var helperClient *helper.Client
 	var helperCmd *exec.Cmd
 
+	sockDir, cleanupSockDir, sockDirErr := "", func() {}, error(nil)
 	if helperPath != "" {
-		sockPath := filepath.Join(os.TempDir(),
-			fmt.Sprintf("mashed-pty-%d.sock", os.Getpid()))
+		sockDir, cleanupSockDir, sockDirErr = setupHelperSocketDir()
+		if sockDirErr != nil {
+			log.Printf("WARNING: PTY helper socket dir: %v", sockDirErr)
+			helperPath = ""
+		}
+	}
+	defer cleanupSockDir()
+
+	if helperPath != "" {
+		sockPath := filepath.Join(sockDir, "pty.sock")
 
 		helperCmd = exec.Command(helperPath)
 		helperCmd.Env = append(os.Environ(),
@@ -151,7 +201,7 @@ func main() {
 			log.Printf("WARNING: PTY helper failed to start: %v", err)
 		} else {
 			if waitForSocket(sockPath, 3*time.Second) {
-				client, err := helper.Dial(sockPath)
+				client, err := dialHelperSecure(sockPath)
 				if err != nil {
 					log.Printf("WARNING: PTY helper dial failed: %v", err)
 				} else {
@@ -165,6 +215,13 @@ func main() {
 
 	app := NewApp(helperClient)
 
+	// Story uiadapter-logging-1: ensure ./logs exists before the
+	// production logger tries to open the daily file. Failure is
+	// non-fatal — NewProductionLogger will degrade to stdout-only.
+	if err := os.MkdirAll("./logs", 0o755); err != nil {
+		log.Printf("uiadapter: log dir create failed: %v", err)
+	}
+
 	// Graceful shutdown: close client, signal helper, wait for exit.
 	defer func() {
 		if helperClient != nil {
@@ -177,17 +234,17 @@ func main() {
 	}()
 
 	err := wails.Run(&options.App{
-		Title:            "Mashed",
-		Width:            1280,
-		Height:           800,
-		MinWidth:         800,
-		MinHeight:        600,
-		DisableResize:    false,
-		Frameless:        true,
+		Title:         "Mashed",
+		Width:         1280,
+		Height:        800,
+		MinWidth:      800,
+		MinHeight:     600,
+		DisableResize: false,
+		Frameless:     true,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		Menu:             buildMenu(app),
+		Menu: buildMenu(app),
 		// Design system: --bg-deepest #07080a
 		BackgroundColour: &options.RGBA{R: 7, G: 8, B: 10, A: 255},
 		OnStartup:        app.startup,
@@ -196,7 +253,7 @@ func main() {
 			app,
 		},
 		Mac: &mac.Options{
-			TitleBar: mac.TitleBarHiddenInset(),
+			TitleBar:             mac.TitleBarHiddenInset(),
 			WebviewIsTransparent: true,
 			WindowIsTranslucent:  false,
 		},

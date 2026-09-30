@@ -11,15 +11,18 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"mashed/internal/agent"
 	"mashed/internal/bmad"
 	"mashed/internal/domain"
 	"mashed/internal/explain"
+	"mashed/internal/fsutil"
 	"mashed/internal/scanner"
 	"mashed/internal/terminal"
 	"mashed/internal/terminal/helper"
+	"mashed/internal/uiadapter"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -33,7 +36,8 @@ type paneDiscoverer interface {
 
 // sessionManager abstracts PTY session lifecycle for testability.
 type sessionManager interface {
-	Spawn(ctx context.Context, name, repoPath, command string) (*terminal.ManagedSession, error)
+	Spawn(ctx context.Context, name, repoPath, command string, cols, rows uint16) (*terminal.ManagedSession, error)
+	SpawnArgv(ctx context.Context, name, repoPath string, argv []string, cols, rows uint16) (*terminal.ManagedSession, error)
 	Kill(name string) error
 	IsAlive(name string) bool
 	FindByPID(pid int) (*terminal.ManagedSession, bool)
@@ -42,20 +46,35 @@ type sessionManager interface {
 
 // App is the main application struct bound to the Wails frontend.
 type App struct {
-	ctx         context.Context
-	cancel      context.CancelFunc
-	provider    *scanner.ClaudeCodeProvider
-	repoScanner *scanner.RepoScanner
-	engine      *agent.NotificationEngine
-	bridge      *terminal.Bridge
-	manager     sessionManager
-	panes       paneDiscoverer
-	explainer   *explain.Explainer
+	ctx     context.Context
+	cancel  context.CancelFunc
+	engine  *agent.NotificationEngine
+	bridge  *terminal.Bridge
+	manager sessionManager
+	// prNumber finds the PR SpawnPRReview reviews; nil means latestOpenPR.
+	// Tests replace it to avoid calling gh.
+	prNumber func(ctx context.Context, repoPath string) (string, error)
+	// prDiff fetches a PR's diff for SpawnPRReview; nil means `gh pr diff`.
+	prDiff           func(ctx context.Context, repoPath, prNumber string) (string, error)
+	panes            paneDiscoverer
+	explainer        *explain.Explainer
 	mu               sync.Mutex
 	activeRepoPath   string
 	activePaneTarget string
 
-	devDir        string // root directory to scan for repos
+	// scan holds devDir, provider and repoScanner as one immutable snapshot;
+	// readers call scanSnapshot() once per operation (R17). Restarts are
+	// serialised by scanMu; scanCancel/scanWG stop the previous goroutines.
+	scan       atomic.Pointer[scanState]
+	scanMu     sync.Mutex
+	scanCancel context.CancelFunc
+	scanWG     sync.WaitGroup
+	// newProvider builds the session provider; nil means
+	// scanner.NewClaudeCodeProvider. Tests inject failures.
+	newProvider func(dir string) (*scanner.ClaudeCodeProvider, error)
+	// Running goroutine counters (tests assert at most one of each).
+	scanLoops, sessionWatchers, engineConsumers atomic.Int32
+
 	notifications []domain.NotificationEvent
 	// tokenSamples is a per-agent rolling window of token counts powering
 	// the notification-feed sparkline (uiqa-09). Keyed by agentID. Reads and
@@ -65,10 +84,17 @@ type App struct {
 
 	bmadStorage  *bmad.Storage
 	bmadExecutor *bmad.Executor
-	assetWatcher *bmad.AssetWatcher
+	assetWatcher *bmad.AssetWatcher // guarded by watcherMu
+	watcherMu    sync.Mutex
 
 	terminalSessions map[string]domain.TerminalSession
 	logFile          *os.File
+
+	// shutdownHooks are drained in (*App).shutdown. Each hook is invoked
+	// exactly once; errors are log.Printf'd and never block subsequent
+	// hooks. Story uiadapter-logging-1 introduced this slice to register
+	// the production log-file closer.
+	shutdownHooks []func() error
 }
 
 // VSCodeThemeEntry represents a single color theme found in a VSCodium extension.
@@ -96,17 +122,53 @@ type EditorSettings struct {
 	SmoothScrolling         bool   `json:"smoothScrolling"`
 }
 
-// mashedConfig persists user settings between launches.
-type mashedConfig struct {
-	DevDir          string          `json:"devDir"`
-	Theme           string          `json:"theme,omitempty"`
-	VSCodiumExtPath string          `json:"vscodiumExtPath,omitempty"`
-	ImportedTheme   string          `json:"importedTheme,omitempty"`
-	MonoFont        string          `json:"monoFont,omitempty"`
-	FontSize        int             `json:"fontSize,omitempty"`
-	SidebarWidth    int             `json:"sidebarWidth,omitempty"`
-	EditorSettings  *EditorSettings `json:"editorSettings,omitempty"`
+// MarkdownMenuSettings holds per-action visibility toggles for the markdown
+// formatting toolbar. Every field is a bool so any combination is valid.
+type MarkdownMenuSettings struct {
+	Bold          bool `json:"bold"`
+	Italic        bool `json:"italic"`
+	Strikethrough bool `json:"strikethrough"`
+	Code          bool `json:"code"`
+	Link          bool `json:"link"`
+	Latex         bool `json:"latex"`
 }
+
+// mashedConfig persists user settings between launches.
+//
+// OllamaEnabled / UIAdapterEnabled / UIAdapterUntrustedExpanded omit
+// omitempty so explicit false round-trips to disk; loadConfig
+// distinguishes missing from false where the default is TRUE.
+type mashedConfig struct {
+	DevDir                     string                `json:"devDir"`
+	Theme                      string                `json:"theme,omitempty"`
+	VSCodiumExtPath            string                `json:"vscodiumExtPath,omitempty"`
+	ImportedTheme              string                `json:"importedTheme,omitempty"`
+	MonoFont                   string                `json:"monoFont,omitempty"`
+	FontSize                   int                   `json:"fontSize,omitempty"`
+	SidebarWidth               int                   `json:"sidebarWidth,omitempty"`
+	EditorSettings             *EditorSettings       `json:"editorSettings,omitempty"`
+	MarkdownMenu               *MarkdownMenuSettings `json:"markdownMenu,omitempty"`
+	OllamaEnabled              bool                  `json:"ollamaEnabled"`
+	OllamaModel                string                `json:"ollamaModel,omitempty"`
+	UIAdapterEnabled           bool                  `json:"uiAdapterEnabled"`
+	UIAdapterTimeoutMs         int                   `json:"uiAdapterTimeoutMs,omitempty"`
+	UIAdapterUntrustedExpanded bool                  `json:"uiAdapterUntrustedExpanded"`
+
+	// Plan v3 Story 18 — dynamic backend/router selection (runtime pick).
+	Backend      string `json:"backend,omitempty"`      // "ollama" | "claude-api" | "claude-cli"
+	ClaudeModel  string `json:"claudeModel,omitempty"`  // for backend=claude-api
+	CLIModel     string `json:"cliModel,omitempty"`     // for backend=claude-cli
+	RouterPolicy string `json:"routerPolicy,omitempty"` // enum — see Plan §3 Story 16
+}
+
+const (
+	defaultOllamaModel = "gemma3:4b"
+	// 30s budget covers Ollama gemma3:4b cold-load (~10s) + generation
+	// (~5s) on a typical Mac. The previous 3s budget guaranteed a fallback
+	// AST on the first call after a server restart, hiding the structured
+	// menu the adapter would otherwise have produced.
+	defaultUIAdapterTimeoutMs = 30000
+)
 
 // configPath returns the path to the mashed config file.
 func configPath() string {
@@ -120,31 +182,119 @@ func themesPath() string {
 	return filepath.Join(home, ".mashed", "themes.json")
 }
 
-// loadConfig reads the persisted config, or returns empty config.
+// loadConfig reads the persisted config, applying defaults for missing keys.
+// Two-pass decode distinguishes missing key (default true) from explicit false.
 func loadConfig() mashedConfig {
+	cfg := defaultConfig()
 	data, err := os.ReadFile(configPath())
 	if err != nil {
-		return mashedConfig{}
+		return cfg
 	}
-	var cfg mashedConfig
+
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		log.Printf("warning: malformed config.json, ignoring: %v", err)
+		return defaultConfig()
+	}
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		log.Printf("warning: malformed config.json, ignoring: %v", err)
-		return mashedConfig{}
+		return defaultConfig()
+	}
+
+	if _, ok := raw["ollamaEnabled"]; !ok {
+		cfg.OllamaEnabled = true
+	}
+	if _, ok := raw["uiAdapterEnabled"]; !ok {
+		cfg.UIAdapterEnabled = true
+	}
+	if !validOllamaModelName(cfg.OllamaModel) {
+		if cfg.OllamaModel != "" {
+			log.Printf("warning: config.json ollamaModel %q fails validation, falling back to default", cfg.OllamaModel)
+		}
+		cfg.OllamaModel = defaultOllamaModel
+	}
+	if cfg.UIAdapterTimeoutMs == 0 {
+		cfg.UIAdapterTimeoutMs = defaultUIAdapterTimeoutMs
 	}
 	return cfg
 }
 
-// saveConfig persists the config to disk.
-func saveConfig(cfg mashedConfig) error {
-	dir := filepath.Dir(configPath())
-	if err := os.MkdirAll(dir, 0755); err != nil {
+func defaultConfig() mashedConfig {
+	return mashedConfig{
+		OllamaEnabled:      true,
+		OllamaModel:        defaultOllamaModel,
+		UIAdapterEnabled:   true,
+		UIAdapterTimeoutMs: defaultUIAdapterTimeoutMs,
+	}
+}
+
+// ensurePrivateDir creates dir if needed and makes it owner-only (R13).
+func ensurePrivateDir(dir string) error {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return err
+	}
+	return os.Chmod(dir, 0o700)
+}
+
+// writePrivateFile writes data atomically as an owner-only file (R13).
+func writePrivateFile(path string, data []byte) error {
+	if err := ensurePrivateDir(filepath.Dir(path)); err != nil {
 		return fmt.Errorf("creating config dir: %w", err)
 	}
+	if err := fsutil.WriteFileAtomic(path, data, 0o600); err != nil {
+		return err
+	}
+	return os.Chmod(path, 0o600)
+}
+
+// configRecoveredHook is told where a malformed config.json was moved.
+// (*App).registerConfigRecovery sets it at startup.
+var configRecoveredHook func(quarantinedPath string)
+
+// registerConfigRecovery emits `config:recovered` whenever saveConfig
+// quarantines a malformed config.json (R14).
+func (a *App) registerConfigRecovery() {
+	configRecoveredHook = func(p string) {
+		a.emitEvent("config:recovered", map[string]string{"quarantinedPath": p})
+	}
+}
+
+// quarantineMalformedConfig moves an existing config.json that does not
+// parse as JSON to config.json.corrupt-<unix>, so the next write never
+// replaces the user's bytes with defaults (R14). It returns the new path, or
+// "" when there was nothing to quarantine.
+func quarantineMalformedConfig() (string, error) {
+	path := configPath()
+	data, err := os.ReadFile(path)
+	if err != nil || json.Valid(data) {
+		return "", nil
+	}
+	dst := fmt.Sprintf("%s.corrupt-%d", path, time.Now().Unix())
+	if err := os.Rename(path, dst); err != nil {
+		return "", fmt.Errorf("quarantine malformed config: %w", err)
+	}
+	log.Printf("warning: malformed config.json moved to %s", dst)
+	return dst, nil
+}
+
+// saveConfig persists the config to disk atomically, owner-only. A malformed
+// config.json on disk is quarantined first instead of being overwritten.
+func saveConfig(cfg mashedConfig) error {
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshaling config: %w", err)
 	}
-	return os.WriteFile(configPath(), data, 0644)
+	quarantined, err := quarantineMalformedConfig()
+	if err != nil {
+		return err
+	}
+	if err := writePrivateFile(configPath(), data); err != nil {
+		return err
+	}
+	if quarantined != "" && configRecoveredHook != nil {
+		configRecoveredHook(quarantined)
+	}
+	return nil
 }
 
 // NewApp creates a new App instance. The helperClient may be nil; Spawn will
@@ -176,11 +326,13 @@ func NewApp(helperClient *helper.Client) *App {
 // startup is called by Wails when the app starts.
 func (a *App) startup(ctx context.Context) {
 	a.ctx, a.cancel = context.WithCancel(ctx)
+	a.registerConfigRecovery()
 
 	a.initSessionLog()
 
 	// Engine needs Wails context for event emission
 	a.engine = agent.NewNotificationEngine(a.ctx)
+	go a.consumeEngineEvents() // once per app, not per SetDevDir (R17)
 
 	// Start the terminal WebSocket bridge
 	if err := a.bridge.Start(a.ctx); err != nil {
@@ -198,7 +350,7 @@ func (a *App) startup(ctx context.Context) {
 	// Restore devDir from config so GetDevDir() works even if scanning fails.
 	cfg := loadConfig()
 	if cfg.DevDir != "" {
-		a.devDir = cfg.DevDir
+		a.scan.Store(&scanState{devDir: cfg.DevDir})
 		if err := a.initScanning(cfg.DevDir); err != nil {
 			log.Printf("scanning failed for %s: %v — app will show feed but may be empty", cfg.DevDir, err)
 		}
@@ -212,9 +364,65 @@ func (a *App) startup(ctx context.Context) {
 		log.Printf("bmad storage init failed: %v", err)
 	} else {
 		a.bmadStorage = storage
+		var bmadOpts []bmad.Option
+		if cfg.UIAdapterEnabled {
+			level := uiadapter.ParseLogLevel(os.Getenv("UIADAPTER_LOG_LEVEL"))
+			adapterLogger, closer, logErr := uiadapter.NewProductionLogger(level, "./logs")
+			if logErr != nil {
+				log.Printf("uiadapter: production logger fallback to stdout-only: %v", logErr)
+			}
+			if closer != nil {
+				a.shutdownHooks = append(a.shutdownHooks, closer.Close)
+			}
+			// Pick the adapter implementation based on cfg.Backend. The
+			// "claude-cli" path delegates to the user's local `claude`
+			// binary (no API key required) and forces Haiku to keep
+			// per-translation cost negligible — Opus would cost ~30x for
+			// a task that only needs JSON shaping.
+			var adapter uiadapter.Adapter
+			switch cfg.Backend {
+			case "claude-cli":
+				cliModel := cfg.CLIModel
+				if cliModel == "" {
+					cliModel = "claude-haiku-4-5"
+				}
+				adapterLogger.Info("uiadapter.boot",
+					"op", "uiadapter.boot",
+					"boot_level", level.String(),
+					"backend", "claude-cli",
+					"model", cliModel,
+					"timeout_ms", cfg.UIAdapterTimeoutMs,
+				)
+				adapter = newClaudeCLIAdapter(uiadapter.Config{
+					Enabled:            true,
+					ClaudeModelPrimary: cliModel,
+					TimeoutMs:          cfg.UIAdapterTimeoutMs,
+					ClaudeCLIBinary:    "claude",
+					// --verbose is mandatory when --output-format is
+					// stream-json (claude refuses with exit 1 otherwise);
+					// --model pins Haiku for cost.
+					ClaudeCLIExtraFlags: []string{"--verbose", "--model", cliModel},
+				}, adapterLogger)
+			default:
+				adapterLogger.Info("uiadapter.boot",
+					"op", "uiadapter.boot",
+					"boot_level", level.String(),
+					"backend", "ollama",
+					"model", cfg.OllamaModel,
+					"timeout_ms", cfg.UIAdapterTimeoutMs,
+				)
+				adapter = uiadapter.NewDefault(uiadapter.Config{
+					Enabled:     true,
+					Model:       cfg.OllamaModel,
+					TimeoutMs:   cfg.UIAdapterTimeoutMs,
+					MaxInflight: 1,
+				}, adapterLogger)
+			}
+			bmadOpts = append(bmadOpts, bmad.WithAdapter(adapter))
+		}
 		a.bmadExecutor = bmad.NewExecutor(storage, func(event string, data interface{}) {
 			runtime.EventsEmit(a.ctx, event, data)
-		})
+		}, bmadOpts...)
 
 		// Clean up any BMAD tmux sessions left over from prior runs.
 		// Executions map is empty here (no workflows can have started yet),
@@ -227,31 +435,34 @@ func (a *App) startup(ctx context.Context) {
 		cleanupCancel()
 	}
 
-	// Start asset watcher for skills/commands directories.
-	assetRoots := bmad.AssetWatchRoots(a.activeRepoPath)
-	aw := bmad.NewAssetWatcher(assetRoots, func(event string, data interface{}) {
-		runtime.EventsEmit(a.ctx, event, data)
-	})
-	if err := aw.Start(a.ctx); err != nil {
-		log.Printf("bmad: asset watcher start failed (non-fatal): %v", err)
-	} else {
-		a.assetWatcher = aw
-	}
+	// Start asset watcher for skills/commands directories; SetActiveContext
+	// moves it to each newly active repo (R19).
+	a.mu.Lock()
+	active := a.activeRepoPath
+	a.mu.Unlock()
+	a.swapAssetWatcher(active)
 }
 
 // shutdown is called by Wails when the app is closing.
 func (a *App) shutdown(ctx context.Context) {
-	if a.assetWatcher != nil {
-		a.assetWatcher.Stop()
-	}
+	a.stopAssetWatcher()
 	if a.cancel != nil {
 		a.cancel()
 	}
+	a.stopScanning()
 	if a.manager != nil {
 		a.manager.Shutdown()
 	}
 	if a.bridge != nil {
 		a.bridge.Stop()
+	}
+	// Drain the registered shutdown hooks (e.g. uiadapter log-file
+	// closer). Errors are logged but never block subsequent hooks per
+	// Story uiadapter-logging-1 AC-1.6.
+	for _, h := range a.shutdownHooks {
+		if err := h(); err != nil {
+			log.Printf("uiadapter: shutdown hook error: %v", err)
+		}
 	}
 }
 
@@ -283,9 +494,52 @@ func (a *App) PickFile(title string) (string, error) {
 // SetActiveContext stores the current repo path and pane target for screenshot routing.
 func (a *App) SetActiveContext(repoPath, paneTarget string) {
 	a.mu.Lock()
-	defer a.mu.Unlock()
+	prev := a.activeRepoPath
 	a.activeRepoPath = repoPath
 	a.activePaneTarget = paneTarget
+	a.mu.Unlock()
+
+	// R19: watch the newly active repo's skills/commands.
+	if repoPath != prev && a.ctx != nil {
+		a.swapAssetWatcher(repoPath)
+	}
+}
+
+// swapAssetWatcher replaces the asset watcher with one rooted at repoPath
+// (plus the global ~/.claude roots). The new watcher starts before the old
+// one stops; if it fails to start, the old one keeps running.
+func (a *App) swapAssetWatcher(repoPath string) {
+	a.watcherMu.Lock()
+	defer a.watcherMu.Unlock()
+	aw := bmad.NewAssetWatcher(bmad.AssetWatchRoots(repoPath), func(event string, data interface{}) {
+		a.emitEvent(event, data)
+	})
+	if err := aw.Start(a.ctx); err != nil {
+		log.Printf("bmad: asset watcher start failed (non-fatal): %v", err)
+		return
+	}
+	old := a.assetWatcher
+	a.assetWatcher = aw
+	if old != nil {
+		old.Stop()
+	}
+}
+
+// currentAssetWatcher returns the running asset watcher, or nil.
+func (a *App) currentAssetWatcher() *bmad.AssetWatcher {
+	a.watcherMu.Lock()
+	defer a.watcherMu.Unlock()
+	return a.assetWatcher
+}
+
+// stopAssetWatcher stops and clears the asset watcher.
+func (a *App) stopAssetWatcher() {
+	a.watcherMu.Lock()
+	defer a.watcherMu.Unlock()
+	if a.assetWatcher != nil {
+		a.assetWatcher.Stop()
+		a.assetWatcher = nil
+	}
 }
 
 // TakeScreenshot launches macOS screencapture and saves under {repoPath}/.screenshots/.
@@ -363,23 +617,26 @@ func (a *App) SetDevDir(dir string) error {
 		return fmt.Errorf("path is not a directory: %s", dir)
 	}
 
+	// Start scanning first: if the provider fails, the previous scanners and
+	// the persisted DevDir stay as they were (R18).
+	if err := a.initScanning(dir); err != nil {
+		return err
+	}
+
 	// Persist (load-modify-save to preserve Theme/VSCodiumExtPath)
 	a.mu.Lock()
 	cfg := loadConfig()
 	cfg.DevDir = dir
 	if err := saveConfig(cfg); err != nil {
-		a.mu.Unlock()
 		log.Printf("failed to save config: %v", err)
-	} else {
-		a.mu.Unlock()
 	}
-
-	return a.initScanning(dir)
+	a.mu.Unlock()
+	return nil
 }
 
 // GetDevDir returns the current development directory.
 func (a *App) GetDevDir() string {
-	return a.devDir
+	return a.scanSnapshot().devDir
 }
 
 // GetConfig returns the full persisted config for the frontend.
@@ -511,6 +768,42 @@ func (a *App) SetEditorSettings(settings EditorSettings) error {
 	return saveConfig(cfg)
 }
 
+// DefaultMarkdownMenuSettings returns the default visibility for each markdown
+// toolbar action. LaTeX defaults to off; all other actions default to on.
+func (a *App) DefaultMarkdownMenuSettings() MarkdownMenuSettings {
+	return MarkdownMenuSettings{
+		Bold:          true,
+		Italic:        true,
+		Strikethrough: true,
+		Code:          true,
+		Link:          true,
+		Latex:         false,
+	}
+}
+
+// GetMarkdownMenuSettings returns persisted markdown menu settings, or defaults
+// if none saved. Reads must never mutate the on-disk config.
+func (a *App) GetMarkdownMenuSettings() MarkdownMenuSettings {
+	cfg := loadConfig()
+	if cfg.MarkdownMenu == nil {
+		return a.DefaultMarkdownMenuSettings()
+	}
+	return *cfg.MarkdownMenu
+}
+
+// SetMarkdownMenuSettings persists markdown menu settings to config. All fields
+// are bool, so no validation is required.
+func (a *App) SetMarkdownMenuSettings(settings MarkdownMenuSettings) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	cfg := loadConfig()
+	cfg.MarkdownMenu = &settings
+	if err := saveConfig(cfg); err != nil {
+		return fmt.Errorf("save markdown menu settings: %w", err)
+	}
+	return nil
+}
+
 // GetSavedThemes returns all saved imported themes as a JSON string.
 // The format is {"themeId": { label, css, monaco, xterm }, ...}.
 func (a *App) GetSavedThemes() string {
@@ -534,15 +827,11 @@ func (a *App) SaveTheme(id string, themeJSON string) error {
 
 	all[id] = json.RawMessage(themeJSON)
 
-	dir := filepath.Dir(themesPath())
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("creating themes dir: %w", err)
-	}
 	data, err := json.MarshalIndent(all, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshaling themes: %w", err)
 	}
-	return os.WriteFile(themesPath(), data, 0644)
+	return writePrivateFile(themesPath(), data)
 }
 
 // RemoveTheme removes a saved theme from ~/.mashed/themes.json.
@@ -561,7 +850,7 @@ func (a *App) RemoveTheme(id string) error {
 	if err != nil {
 		return fmt.Errorf("marshaling themes: %w", err)
 	}
-	return os.WriteFile(themesPath(), data, 0644)
+	return writePrivateFile(themesPath(), data)
 }
 
 // GetNotifications returns the current notification list sorted by priority.
@@ -576,6 +865,19 @@ func (a *App) GetNotifications() []domain.NotificationEvent {
 // GetTerminalPort returns the WebSocket terminal bridge port.
 func (a *App) GetTerminalPort() int {
 	return a.bridge.GetTerminalPort()
+}
+
+// TerminalAuth is what the webview needs to open an authenticated terminal
+// WebSocket: the bridge port and the per-launch token (R5).
+type TerminalAuth struct {
+	Port  int    `json:"port"`
+	Token string `json:"token"`
+}
+
+// GetTerminalAuth returns the bridge port and connection token. The token is
+// sent as the `mashed.auth.<token>` WebSocket subprotocol, never in a URL.
+func (a *App) GetTerminalAuth() TerminalAuth {
+	return TerminalAuth{Port: a.bridge.GetTerminalPort(), Token: a.bridge.Token()}
 }
 
 // initSessionLog creates a timestamped log file in .logs/ for this session.

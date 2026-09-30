@@ -62,8 +62,8 @@ func dialBridgeWS(t *testing.T, b *Bridge, sessionName string) *websocket.Conn {
 	require.Greater(t, port, 0, "bridge port should be positive")
 
 	url := fmt.Sprintf("ws://127.0.0.1:%d/ws/%s", port, sessionName)
-	dialer := websocket.Dialer{}
-	ws, _, err := dialer.Dial(url, nil)
+	dialer := websocket.Dialer{Subprotocols: []string{SubprotocolV1, authSubprotocolPrefix + b.Token()}}
+	ws, _, err := dialer.Dial(url, http.Header{"Origin": {"wails://wails"}})
 	require.NoError(t, err, "WebSocket dial to %s should succeed", url)
 
 	t.Cleanup(func() { ws.Close() })
@@ -123,7 +123,7 @@ func TestBridge_AC2_WSRoutesToSession(t *testing.T) {
 
 	sm, b := startBridgeWithManager(t, ctx)
 
-	_, err := sm.Spawn(ctx, "test-sess", t.TempDir(), "echo hello-bridge && cat")
+	_, err := sm.Spawn(ctx, "test-sess", t.TempDir(), "echo hello-bridge && cat", 0, 0)
 	require.NoError(t, err, "Spawn should succeed")
 
 	time.Sleep(outputSettleTime)
@@ -171,7 +171,10 @@ func TestBridge_AC3_ErrorResponses(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			url := fmt.Sprintf("http://127.0.0.1:%d%s", port, tt.path)
-			resp, err := http.Get(url)
+			req, err := http.NewRequest(http.MethodGet, url, nil)
+			require.NoError(t, err)
+			req.Header = authHeader(b)
+			resp, err := http.DefaultClient.Do(req)
 			require.NoError(t, err, "HTTP GET should not error")
 			defer resp.Body.Close()
 
@@ -242,7 +245,7 @@ func TestBridge_AC5_MultipleClients(t *testing.T) {
 
 	sm, b := startBridgeWithManager(t, ctx)
 
-	_, err := sm.Spawn(ctx, "shared", t.TempDir(), "cat")
+	_, err := sm.Spawn(ctx, "shared", t.TempDir(), "cat", 0, 0)
 	require.NoError(t, err, "Spawn should succeed")
 	time.Sleep(outputSettleTime)
 
@@ -517,7 +520,8 @@ func dialBridgeWSCtx(t *testing.T, ctx context.Context, b *Bridge, name string) 
 	port := b.GetTerminalPort()
 	require.Greater(t, port, 0, "bridge port should be positive")
 	url := fmt.Sprintf("ws://127.0.0.1:%d/ws/%s", port, name)
-	ws, _, err := websocket.DefaultDialer.DialContext(ctx, url, nil)
+	dialer := websocket.Dialer{Subprotocols: []string{SubprotocolV1, authSubprotocolPrefix + b.Token()}}
+	ws, _, err := dialer.DialContext(ctx, url, http.Header{"Origin": {"wails://wails"}})
 	require.NoError(t, err, "WebSocket dial to %s should succeed", url)
 	t.Cleanup(func() { _ = ws.Close() })
 	return ws
@@ -672,6 +676,7 @@ func TestBridge_AC4_NonBMADMissReturns404(t *testing.T) {
 	url := fmt.Sprintf("http://127.0.0.1:%d/ws/randomname", b.GetTerminalPort())
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	require.NoError(t, err)
+	req.Header = authHeader(b)
 
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
@@ -839,6 +844,7 @@ func TestBridge_NilAdapterDegradesGracefully(t *testing.T) {
 	url := fmt.Sprintf("http://127.0.0.1:%d/ws/bmad-anything", b.GetTerminalPort())
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	require.NoError(t, err)
+	req.Header = authHeader(b)
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()

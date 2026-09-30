@@ -1,0 +1,697 @@
+# Plan: Repo health remediation
+From: spec.md (2026-09-29). Status: accepted. Risk: high.
+
+## Files that change
+- .gitignore (step 0 housekeeping; PR 3-4)
+- .repomixignore (step 0 housekeeping, no R)
+- .sdlc.toml (step 0)
+- scripts/test-all.sh (new, step 0)
+- frontend/src/lib/__tests__/workflowSerialisation.test.ts (step 0)
+- repo_hygiene_test.go (new, step 0; grows in PR 3-5)
+- testutil_git_test.go (new, step 0 hook-env fix)
+- internal/uiadapter/testmain_git_test.go (new, hook-env fix: pre-push TestCodegen_NoDrift)
+- internal/terminal/bridge.go
+- internal/terminal/origins_prod.go (new)
+- internal/terminal/origins_dev.go (new)
+- internal/terminal/bridge_auth_test.go (new)
+- internal/terminal/bridge_origin_prod_test.go (new, `//go:build !dev` ProdRejectsDevOrigin)
+- internal/terminal/bridge_test.go
+- app.go
+- frontend/wailsjs/go/main/App.js (regenerated)
+- frontend/wailsjs/go/main/App.d.ts (regenerated)
+- frontend/wailsjs/go/models.ts (regenerated)
+- frontend/src/components/Terminal.svelte
+- frontend/src/components/__tests__/Terminal.auth.test.ts (new)
+- frontend/src/lib/terminalSocket.ts (new, s1.2: openTerminalSocket and watchEarlyClose)
+- internal/pathguard/pathguard.go (new)
+- internal/pathguard/pathguard_test.go (new)
+- app_git.go
+- app_files_guard_test.go (new)
+- readfilebase64_test.go (s1.4: fixtures get DevDir as an allowed root)
+- frontend/src/components/MonacoEditor.svelte
+- frontend/src/components/MarkdownEditor.svelte
+- frontend/src/components/__tests__/MonacoEditor.guard.test.ts (new)
+- frontend/src/components/__tests__/MarkdownEditor.guard.test.ts (new)
+- frontend/src/lib/saveFeedback.ts (new, s1.5: shared runSave and describeSaveError)
+- app_review.go
+- app_review_scoped.go
+- app_review_scoped_test.go
+- theme_scanner.go
+- theme_scanner_test.go
+- app_git_file_test.go (new)
+- internal/git/refs.go (new)
+- internal/git/refs_test.go (new)
+- app_git_guard_test.go (new)
+- cmd/pty-helper/main.go
+- cmd/pty-helper/main_test.go (new)
+- main.go
+- main_socket_test.go (new)
+- internal/fsutil/atomic.go (new)
+- internal/fsutil/atomic_test.go (new)
+- internal/bmad/storage.go
+- app_config_test.go
+- app_uiadapter.go
+- app_uiadapter_v3.go
+- app_uiadapter_bindings_test.go
+- app_uiadapter_v3_test.go
+- editor_settings_test.go
+- markdown_menu_test.go
+- bundled_themes_test.go
+- internal/terminal/manager.go
+- internal/terminal/manager_argv_test.go (new)
+- app_spawn.go
+- app_review_test.go
+- app_git_spawn_test.go (new)
+- app_terminal_registry_test.go
+- app_scan.go
+- app_sessions.go
+- app_scan_lifecycle_test.go (new)
+- app_asset_follow_test.go (new)
+- internal/terminal/session.go
+- internal/terminal/session_test.go
+- frontend/dist/.gitkeep (new)
+- frontend/vite.config.js
+- frontend/bun.lock (deleted)
+- frontend/package.json
+- frontend/package-lock.json
+- frontend/package.json.md5 (regenerated)
+- frontend/src/__tests__/vite-keep-dist.test.ts (new)
+- main_embed_test.go (new)
+- .nvmrc (new)
+- justfile
+- wails.json
+- internal/bmad/testutil_root_test.go (new)
+- internal/bmad/skillgen_test.go
+- internal/bmad/artifacts_test.go
+- internal/bmad/assets_write_test.go
+- .github/workflows/ci.yml (new)
+- lefthook.yml
+- docs/stories/backlog.md (new)
+- .gitattributes (new)
+- font_scanner.go
+- font_scanner_test.go (new)
+- LICENSE (new)
+- .githooks/pre-commit (deleted)
+- .golangci.yml (new)
+- README.md (s4.2 personal data)
+- docs/plans/mashed-pty-helper-implementation-plan.md (s4.2 personal data)
+- docs/plans/repo-health-remediation.md (s4.2 personal data)
+- frontend/src/components/bmad/ProcessSidebar.svelte (conditional on owner decision: drop skill)
+- .claude/skills/mashed-refactor-asset/SKILL.md (new; conditional on owner decision: restore skill)
+- docs/DOCUMENTATION_SUMMARY.txt (s4.1 personal path cleanup)
+- docs/SPECIFICATION.md (s4.1 personal path cleanup)
+- docs/agent_reports/skill-rectification-use-repo-code-2026-04-12.md (s4.1 personal path cleanup)
+- docs/agent_reports/skill-validation-team-sprint-2026-04-12.md (s4.1 personal path cleanup)
+- docs/agent_reports/skill-validation-use-repo-code-2026-04-12.md (s4.1 personal path cleanup)
+- docs/reports/pty-fork-exec-investigation.md (s4.1 personal path cleanup)
+- docs/stories/markdown-toolbar-01-backend-config.md (s4.1 personal path cleanup)
+- docs/stories/markdown-toolbar-02-frontend-store.md (s4.1 personal path cleanup)
+- docs/stories/markdown-toolbar-03-toolbar-builder.md (s4.1 personal path cleanup)
+- docs/stories/markdown-toolbar-04-settings-layout-refactor.md (s4.1 personal path cleanup)
+- docs/stories/markdown-toolbar-05-markdown-editor-panel.md (s4.1 personal path cleanup)
+- docs/stories/markdown-toolbar-06-editor-wiring.md (s4.1 personal path cleanup)
+- docs/stories/markdown-toolbar-07-app-hydration.md (s4.1 personal path cleanup)
+- docs/stories/markdown-toolbar-08-e2e-verification.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/bmad-sprint-backlog.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/bridge-01-descriptive-session-names.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/bridge-02-tmux-adapter.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/lefthook-backlog.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/review-scoped-01-backend-scoped-advice.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/review-scoped-02-file-selection-ui.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/review-scoped-03-wired-scoped-flow.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/sprint2-03-repo-scoped-workflows.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/sprint2-04-repo-context-flow.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/sprint2-06-execution-bar-simplification.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/sprint2-08-repo-context-header.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/theme-01-backend-scanner.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/theme-02-converter.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/theme-03-store-refactor.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/theme-04-settings-activation.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/theme-05-monaco-registration.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/vsix-01-backend-zip-reading.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/vsix-02-frontend-vsix-path-handling.md (s4.1 personal path cleanup)
+- docs/stories/old_stories/vsix-sprint-backlog.md (s4.1 personal path cleanup)
+- docs/stories/uiadapter-logging-1-infrastructure-and-boot.md (s4.1 personal path cleanup)
+- docs/stories/uiadapter-logging-2-plumb-subcomponents.md (s4.1 personal path cleanup)
+- docs/stories/uiadapter-logging-3-instrument-cache-and-network.md (s4.1 personal path cleanup)
+- docs/stories/uiadapter-logging-4-instrument-pipeline.md (s4.1 personal path cleanup)
+- docs/stories/uiadapter-logging-5-instrument-payload-shaping.md (s4.1 personal path cleanup)
+- docs/stories/uiadapter-logging-6-tests-and-docs.md (s4.1 personal path cleanup)
+- internal/bmad/question_test.go (s4.1 personal path cleanup)
+- internal/bmad/session_naming_test.go (s4.1 personal path cleanup)
+- internal/bmad/testdata/exec_verify/verify1_slash_injection.txt (s4.1 personal path cleanup)
+- internal/bmad/testdata/exec_verify/verify2_idle_stable_pane.txt (s4.1 personal path cleanup)
+- internal/scanner/claude.go (s4.1 personal path cleanup)
+- internal/scanner/watcher.go (s4.1 personal path cleanup)
+- internal/bmad/executor.go
+- internal/bmad/executor_lifecycle.go (new)
+- internal/bmad/executor_schedule.go (new)
+- internal/bmad/executor_command.go (new)
+- internal/bmad/executor_node_state.go (new)
+- internal/bmad/executor_loaders.go (new)
+- internal/bmad/executor_interactive.go (new)
+- internal/bmad/executor_inputs.go (new)
+- scripts/api-diff.sh (new)
+- internal/bmad/executor_test.go
+- internal/bmad/executor_lifecycle_test.go (new)
+- internal/bmad/executor_schedule_test.go (new)
+- internal/bmad/executor_loaders_test.go (new)
+- internal/bmad/question_idle_test.go (new; idle-detection tests moved from question_test.go)
+- frontend/src/views/NotificationFeed.svelte
+- frontend/src/components/feed/RepoHeader.svelte (new)
+- frontend/src/components/feed/AgentList.svelte (new)
+- frontend/src/components/feed/RepoActions.svelte (new)
+- frontend/src/components/feed/CommitOutputPanel.svelte (new)
+- frontend/src/lib/feed/repoTree.ts (new)
+- frontend/src/components/__tests__/neon-green.test.ts
+- frontend/src/components/__tests__/glow-btn.test.ts
+- frontend/src/components/__tests__/remaining-colors.test.ts
+- frontend/src/__tests__/token-normalization.test.ts
+- frontend/src/__tests__/entry-animations.test.ts
+- frontend/src/__tests__/signature-moments.test.ts
+- frontend/src/__tests__/sparkline-render.test.ts
+- frontend/src/__tests__/rgba-migration.test.ts
+- frontend/src/views/WorkflowBuilder.svelte
+- frontend/src/lib/workflowBuilder/canvasHandlers.js (new)
+- frontend/src/lib/workflowBuilder/execEvents.js (new)
+- frontend/src/lib/workflowBuilder/leaveIntercept.js (new)
+- frontend/src/components/bmad/BuilderToolbar.svelte (new)
+- frontend/src/components/bmad/TerminalModal.svelte (new)
+- frontend/src/views/Settings.svelte
+- frontend/src/components/settings/UIAdapterSettings.svelte (new)
+- frontend/src/components/settings/VSCodiumThemes.svelte (new)
+- frontend/src/components/settings/EditorSettings.svelte (new)
+- frontend/src/views/AgentDetail.svelte
+- frontend/src/components/agent/FileStrip.svelte (new)
+- frontend/src/components/agent/CommitOutputPanel.svelte (new)
+- frontend/src/components/agent/SubAgentPanel.svelte (new)
+- frontend/src/components/agent/SessionTabs.svelte (new)
+- internal/git/branch.go (new)
+- internal/git/commit.go (new)
+- internal/git/remote.go (new)
+- internal/git/files.go (new)
+- internal/git/branch_test.go (new)
+- internal/git/commit_test.go (new)
+- internal/git/remote_test.go (new)
+- internal/git/files_test.go (new)
+- app_terminal_registry.go
+- frontend/src/components/EditorRouter.svelte
+- frontend/src/components/__tests__/EditorRouter.lazy.test.ts (new)
+- frontend/src/components/LazyView.svelte (new, s5.8: dynamic-import wrapper with aria-busy placeholder)
+- frontend/src/__tests__/splitSources.ts (new, /simplify: shared parent+children source lists for style tests)
+- frontend/src/components/__tests__/LazyView.test.ts (new)
+- frontend/src/components/__tests__/fixtures/LazyProbe.svelte (new, test fixture)
+- frontend/src/App.svelte (s5.8: WorkflowBuilder lazy-loaded)
+- scripts/check-entry-chunk.mjs (new)
+- internal/terminal/bridge_auth_dev_test.go (new)
+- .playwright-cli/page-2026-04-08T02-07-40-459Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T02-08-01-351Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T02-08-43-225Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T02-10-43-332Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T02-11-05-458Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T02-12-50-811Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T02-13-10-615Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T02-13-29-179Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T02-17-42-304Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T02-17-57-674Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T02-20-15-065Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T02-20-28-908Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T03-32-30-687Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T03-32-47-520Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T03-33-27-801Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T04-45-22-257Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T04-47-03-333Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T04-47-24-899Z.yml (s4.1 untracked)
+- .playwright-cli/page-2026-04-08T04-47-46-615Z.yml (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-15-54-193Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-18-35-918Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-22-07-700Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-33-29-404Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-38-05-974Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-39-03-053Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-42-53-767Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-46-37-596Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-47-35-278Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-50-29-051Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-51-53-146Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-54-52-127Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T21-59-06-260Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T22-01-31-542Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T22-09-33-251Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T22-12-31-018Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T22-15-15-831Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T22-17-00-582Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-01T23-12-01-648Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-02T01-17-14-795Z.log (s4.1 untracked)
+- .playwright-mcp/console-2026-04-02T01-17-22-689Z.log (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-15-54-581Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-18-35-994Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-19-06-087Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-22-07-779Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-22-23-486Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-33-29-564Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-33-53-183Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-38-06-223Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-39-03-176Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-40-24-868Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-42-53-855Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-43-11-621Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-46-37-841Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-47-35-361Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-50-29-188Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-51-53-292Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-53-19-907Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-54-52-281Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T21-59-06-437Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T22-01-31-701Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T22-09-33-442Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T22-11-20-170Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T22-12-31-209Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T22-13-21-095Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T22-15-16-033Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T22-17-00-770Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-01T23-12-01-876Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-02T01-17-15-032Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-02T05-58-07-871Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-02T05-58-11-675Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-04T08-14-29-283Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-04T08-14-48-697Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T12-58-23-669Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T12-58-27-121Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T12-59-05-350Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T12-59-09-337Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T12-59-42-717Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T12-59-46-642Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-00-20-995Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-01-01-228Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-02-25-079Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-02-31-992Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-02-43-583Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-02-56-519Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-03-02-262Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-03-25-579Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-03-39-762Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-03-43-742Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-04-04-100Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-04-22-662Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-05-10-829Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-05-19-074Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-05-28-748Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-05-47-315Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-05-56-106Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-13-36-476Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-14-18-389Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-17-36-610Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-17-43-368Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-18-01-381Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-18-07-995Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-18-27-334Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-18-45-049Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-07T13-18-51-156Z.png (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T02-50-00-675Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T02-50-34-997Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T02-50-49-634Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T02-51-09-361Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T02-51-25-176Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T02-51-36-182Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T02-53-48-314Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T03-06-53-875Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T03-07-06-834Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T03-07-27-099Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T03-08-27-539Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T03-31-23-603Z.yml (s4.1 untracked)
+- .playwright-mcp/page-2026-04-08T03-31-47-553Z.yml (s4.1 untracked)
+- .vite/deps_temp_c90be2f4/package.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/benchmark.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/hook-setup/eval_metadata.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/hook-setup/with_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/hook-setup/with_skill/outputs/transcript.md (s4.1 untracked)
+- desloppify-workspace/iteration-1/hook-setup/with_skill/timing.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/hook-setup/without_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/hook-setup/without_skill/outputs/step1-venv.log (s4.1 untracked)
+- desloppify-workspace/iteration-1/hook-setup/without_skill/outputs/step2-pip-install.log (s4.1 untracked)
+- desloppify-workspace/iteration-1/hook-setup/without_skill/outputs/step5-initial-scan.log (s4.1 untracked)
+- desloppify-workspace/iteration-1/hook-setup/without_skill/outputs/step8-hook-setup.log (s4.1 untracked)
+- desloppify-workspace/iteration-1/hook-setup/without_skill/outputs/transcript.md (s4.1 untracked)
+- desloppify-workspace/iteration-1/hook-setup/without_skill/timing.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/setup-and-scan/eval_metadata.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/setup-and-scan/with_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/setup-and-scan/with_skill/outputs/scan-results.md (s4.1 untracked)
+- desloppify-workspace/iteration-1/setup-and-scan/with_skill/outputs/setup-status.md (s4.1 untracked)
+- desloppify-workspace/iteration-1/setup-and-scan/with_skill/outputs/transcript.md (s4.1 untracked)
+- desloppify-workspace/iteration-1/setup-and-scan/with_skill/timing.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/setup-and-scan/without_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/setup-and-scan/without_skill/timing.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/eval_metadata.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/with_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/with_skill/outputs/next-actions.txt (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/with_skill/outputs/scan-results.txt (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/with_skill/outputs/setup-log.txt (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/with_skill/outputs/transcript.md (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/with_skill/timing.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/without_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/without_skill/outputs/health-check-report.md (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/without_skill/outputs/raw-command-outputs.txt (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/without_skill/outputs/transcript.md (s4.1 untracked)
+- desloppify-workspace/iteration-1/sloppy-code-check/without_skill/timing.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/benchmark.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/feedback.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/hook-setup/with_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/hook-setup/with_skill/outputs/transcript.md (s4.1 untracked)
+- desloppify-workspace/iteration-2/hook-setup/with_skill/timing.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/hook-setup/without_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/hook-setup/without_skill/outputs/transcript.md (s4.1 untracked)
+- desloppify-workspace/iteration-2/hook-setup/without_skill/timing.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/setup-and-scan/with_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/setup-and-scan/with_skill/outputs/query.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/setup-and-scan/with_skill/outputs/scorecard.png (s4.1 untracked)
+- desloppify-workspace/iteration-2/setup-and-scan/with_skill/outputs/transcript.md (s4.1 untracked)
+- desloppify-workspace/iteration-2/setup-and-scan/with_skill/timing.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/setup-and-scan/without_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/setup-and-scan/without_skill/outputs/transcript.md (s4.1 untracked)
+- desloppify-workspace/iteration-2/setup-and-scan/without_skill/timing.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/sloppy-code-check/with_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/sloppy-code-check/with_skill/outputs/transcript.md (s4.1 untracked)
+- desloppify-workspace/iteration-2/sloppy-code-check/with_skill/timing.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/sloppy-code-check/without_skill/grading.json (s4.1 untracked)
+- desloppify-workspace/iteration-2/sloppy-code-check/without_skill/outputs/transcript.md (s4.1 untracked)
+- desloppify-workspace/iteration-2/sloppy-code-check/without_skill/timing.json (s4.1 untracked)
+- docs/repomixer/bmad-method/bmad-method.xml (s4.1 untracked)
+- docs/repomixer/desloppify/desloppify.xml (s4.1 untracked)
+- docs/repomixer/wails/wails.xml (s4.1 untracked)
+- docs/repomixer/xyflow/xyflow.xml (s4.1 untracked)
+- frontend/.claude/scheduled_tasks.lock (s4.1 untracked)
+- frontend/coverage/base.css (s4.1 untracked)
+- frontend/coverage/block-navigation.js (s4.1 untracked)
+- frontend/coverage/clover.xml (s4.1 untracked)
+- frontend/coverage/coverage-final.json (s4.1 untracked)
+- frontend/coverage/favicon.png (s4.1 untracked)
+- frontend/coverage/index.html (s4.1 untracked)
+- frontend/coverage/prettify.css (s4.1 untracked)
+- frontend/coverage/prettify.js (s4.1 untracked)
+- frontend/coverage/sort-arrow-sprite.png (s4.1 untracked)
+- frontend/coverage/sorter.js (s4.1 untracked)
+- todo.md (s4.1 untracked)
+- fonts/CaskaydiaMonoNerdFontMono-Regular.ttf (s4.3 LFS renormalize)
+- fonts/FiraCodeNerdFontMono-Regular.ttf (s4.3 LFS renormalize)
+- fonts/HackNerdFontMono-Regular.ttf (s4.3 LFS renormalize)
+- fonts/InconsolataNerdFontMono-Regular.ttf (s4.3 LFS renormalize)
+- fonts/JetBrainsMonoNerdFontMono-Regular.ttf (s4.3 LFS renormalize)
+- fonts/MononokiNerdFontMono-Regular.ttf (s4.3 LFS renormalize)
+- fonts/SauceCodeProNerdFontMono-Regular.ttf (s4.3 LFS renormalize)
+- fonts/SpaceMonoNerdFontMono-Regular.ttf (s4.3 LFS renormalize)
+- fonts/UbuntuMonoNerdFontMono-Regular.ttf (s4.3 LFS renormalize)
+- fonts/ZedMonoNerdFontMono-Regular.ttf (s4.3 LFS renormalize)
+- themes/JuanLias.ultra-instinct-theme-0.1.4.vsix (s4.3 LFS renormalize)
+- themes/LhacenMed.cursor-noir-1.0.1.vsix (s4.3 LFS renormalize)
+- themes/RINDAMAN2426.ubuntu-aubergine-theme-1.0.1.vsix (s4.3 LFS renormalize)
+- themes/SeptWong.vscode-webstorm-theme-1.0.5.vsix (s4.3 LFS renormalize)
+- themes/Zhangcy.claude-themes-by-zhangcy-0.0.6.vsix (s4.3 LFS renormalize)
+- themes/bastndev.lynx-theme-4.1.0.vsix (s4.3 LFS renormalize)
+- themes/jdinhlife.gruvbox-1.29.0.vsix (s4.3 LFS renormalize)
+- themes/mhdstk.vibe-black-0.0.10.vsix (s4.3 LFS renormalize)
+- themes/monokai.theme-monokai-pro-vscode-2.0.13.vsix (s4.3 LFS renormalize)
+- themes/moondevaa.DarkPlusChocolate-0.1.1.vsix (s4.3 LFS renormalize)
+- themes/ni3rav.andromeda-night-0.0.7.vsix (s4.3 LFS renormalize)
+- themes/oderwat.indent-rainbow-8.3.1.vsix (s4.3 LFS renormalize)
+- themes/pittaya-org.pittaya-theme-1.0.1.vsix (s4.3 LFS renormalize)
+- themes/prettier.prettier-vscode-12.2.0.vsix (s4.3 LFS renormalize)
+- themes/zhuangtongfa.material-theme-3.19.0.vsix (s4.3 LFS renormalize)
+
+## Order of work
+Conventions for every step:
+- The test command is `bash scripts/test-all.sh` (set in `.sdlc.toml` by step 0). It runs `go test -race -count=1 ./...` and then `npx vitest run` in `frontend/`, with any `/.orca/` directory removed from PATH. The Orca `tmux` shim answers `has-session` with 0 for any name, which breaks `internal/bmad/resume_ghost_test.go`.
+- For step `<id>`: write the named test first, then run `sdlc build red <id>` (must fail), then make the smallest change, then `sdlc build green <id>` (must pass), then `sdlc build sync`, then commit `build(repo-health-remediation): <id>`.
+- `repo_hygiene_test.go` (root package, new in step 0) holds one `TestRepo_*` function per repository-configuration requirement. It reads files and runs `git ls-files`, so configuration steps get a real red/green cycle.
+- Each PR is one branch, stacked on the previous one: `repo-health/pr1-security` from `main`, then `pr2-features`, `pr3-build`, `pr4-hygiene`, `pr5-structure`. Open each PR as a draft against `main` (or against the previous branch until that branch merges). Merge in order 1 to 5. Only the owner merges. Never force-push `main`.
+- Before opening each PR: run `/security-review` and attach its output to that PR's review.md (R32).
+- The root test package's `TestMain` (`testutil_git_test.go`) unsets every inherited `GIT_*` variable, and test helpers use `cleanGitEnv()`. Any other package whose tests create temp repos gets the same `TestMain`. Git hooks export `GIT_DIR`/`GIT_INDEX_FILE`, so without this a hook-run `go test` rewrites the real repository. This happened on 2026-09-30: the pre-commit hook's `go-test-changed` ran `app_review_scoped_test.go` and set `core.bare=true`, added a `[user] Test` section and made a stray branch commit. All three were repaired, and s0 fixes `gitRun`.
+- Line numbers in this plan are pinned to HEAD 4ff58d4. After PR 1, find code by function name.
+- Linux: the owner installs a container runtime before step 0 (`brew install colima docker && colima start`). Step 0 records a Linux baseline with `docker run --rm -v "$PWD":/src -w /src --user $(id -u):$(id -g) -e HOME=/tmp golang:1.25 go test -count=1 ./...`. Re-run it before opening each PR; a new Linux-only failure blocks that PR. If no runtime is installed, Linux coverage starts with the PR 3 CI, and this is an accepted risk.
+- Steps with no `sdlc build red` entry of their own: s1.0 (probe), s1.2 (committed with s1.1), s1.12a (refactor, green only) and s3.3 (root-only). Each of these records its proof in the PR.
+
+### PR 1: Security (branch `repo-health/pr1-security`)
+0. **s0-baseline.** The failing test is the current suite. On macOS today, `frontend/src/lib/__tests__/workflowSerialisation.test.ts` "preserves positions for mixed process + command nodes" fails. With the Orca shim on PATH, `internal/bmad/resume_ghost_test.go` also fails twice.
+   - Add `scripts/test-all.sh`.
+   - In `.sdlc.toml`, set `commands.test = "bash scripts/test-all.sh"` and add `"*_test.go"` and `"**/__tests__/**"` to `build.test_globs`.
+   - Add `graphify-out/` to `.gitignore`. Commit the pending `.repomixignore` change.
+   - Add `repo_hygiene_test.go` with the `repoRoot(t)` and `trackedFiles(t)` helpers and TestRepo_GraphifyOutIgnored (`git check-ignore graphify-out/x` exits 0). The `.gitignore` and `.repomixignore` edits are housekeeping with no spec requirement.
+   - Record the Linux baseline (see Conventions).
+   - Run `sdlc build red s0-baseline`. Then change the stale assertion at `workflowSerialisation.test.ts:229` from `'complete'` to `'pending'`. `workflowNodesToCanvasNodes` resets every restored status to `pending` on purpose (`frontend/src/lib/workflowSerialisation.ts:224-228`), so the test was wrong, not the code.
+   - Run `sdlc build green s0-baseline`.
+0b. **s1.0-origin-probe (R6; no commit, no red).** On a scratch branch off `repo-health/pr1-security`, add `log.Printf("origin=%q host=%q", r.Header.Get("Origin"), r.Host)` at the top of `handleWS` in `internal/terminal/bridge.go`. Run `wails build`, launch the .app, open a terminal pane and record the values. Repeat under `wails dev`. Write both values into `sdlc/repo-health-remediation/r6-origins.md` and the PR 1 description draft. If the Origin is `null` or empty, stop and return to design before writing any test in s1.1. Delete the scratch branch.
+1. **s1.1-bridge-auth (R1-R4).** Write `internal/terminal/bridge_auth_test.go` first. It holds TestBridge_RejectsMissingToken, RejectsWrongToken, UnknownSessionWithoutToken403, RejectsForeignOrigin, RejectsEmptyOrigin, ProdRejectsDevOrigin, RejectsForeignHost, TokenUniquePerInstance, TokenNotLogged, ValidTokenAndOriginUpgrades and TestNewBridge_RandFailureFailsClosed.
+   - In `internal/terminal/bridge.go`:
+     - Add an unexported `newBridge(manager, tmux, randReader io.Reader)`. `NewBridge` keeps its signature and calls `newBridge` with `crypto/rand.Reader`.
+     - Add a 32-byte token, hex encoded, and `Token()`.
+     - Add `authorize(r)`, called first in `handleWS`. It checks Host, then Origin, then the `mashed.auth.<hex>` subprotocol using `subtle.ConstantTimeCompare`.
+     - Set `upgrader.Subprotocols = []string{"mashed.v1"}` and remove the always-true `CheckOrigin`.
+     - Add `ReadHeaderTimeout: 5 * time.Second`.
+     - `Start` returns an error when token generation failed.
+   - The allowlist is `allowedOrigins` in `origins_prod.go` (`//go:build !dev`: `wails://wails`) and `origins_dev.go` (`//go:build dev`: that plus `http://localhost:34115` and `http://127.0.0.1:34115`).
+   - In `bridge_test.go`, add a `dialAuthed(t, b, name)` helper that sends the token subprotocol and `Origin: wails://wails`. Switch the existing dials to it.
+   - Also run `go test -tags dev -run DevAcceptsLocalhost34115 ./internal/terminal/`. That test lives in `bridge_auth_test.go` behind `//go:build dev`, in a separate `bridge_auth_dev_test.go` file (new). Add that file to Files that change in the same commit.
+   - Do not commit yet. Step 2 lands in the same commit, because of the constraint that the token and `Terminal.svelte` ship together.
+2. **s1.2-terminal-auth-ui (R5).** Write `frontend/src/components/__tests__/Terminal.auth.test.ts` first. It mocks `../../wailsjs/go/main/App.js` `GetTerminalAuth` and a `WebSocket` class. It asserts that the constructor receives `['mashed.v1', 'mashed.auth.<token>']`. It also asserts that a close before open renders an `aria-live="polite"` message, "terminal authorisation failed or bridge unavailable", with a Retry button.
+   - In `app.go`, add `type TerminalAuth struct{ Port int; Token string }` and `(*App) GetTerminalAuth() TerminalAuth`. Keep `GetTerminalPort`, which `WorkflowBuilder.svelte:13` uses.
+   - Regenerate the bindings with `wails generate module`, which updates `App.js`, `App.d.ts` and `models.ts`.
+   - Change `Terminal.svelte:210-263`: use `GetTerminalAuth`, open the socket with the subprotocols, and add the aria-live status and Retry control.
+   - Run green, then commit steps 1 and 2 together as `build(repo-health-remediation): s1.1-s1.2 terminal auth`.
+   - R6: on the final `wails build`, confirm that the terminal connects. The observed Origin values come from s1.0.
+3. **s1.3-pathguard (R7 core).** Write `internal/pathguard/pathguard_test.go` first. It is a table test using t.TempDir roots and covers: traversal, an absolute path outside every root, a symlink escape, a new leaf inside a symlinked directory that points outside, a DevDir root outside HOME, and each denylist entry (`.zshrc`, `.zprofile`, `.zshenv`, `.bashrc`, `.bash_profile`, `.profile`, `.gitconfig`, `.ssh/x`, `Library/LaunchAgents/x.plist`).
+   - Implement `internal/pathguard/pathguard.go` with: `HomeRoot()`, `AllowedRoots(devDir string) []string`, `ResolveExisting(roots []string, p string)`, `ResolveForWrite(roots []string, p string)`, `CheckWriteDenylist(home, resolved string)`, `ErrOutsideRoot` and `ErrDeniedPath`.
+   - Follow the pattern at `theme_scanner.go:437-450`: Abs, then Clean, then EvalSymlinks on both the path and the root, then compare against the root plus a separator prefix.
+4. **s1.4-file-bindings (R7 bindings).** Write `app_files_guard_test.go` first. It uses `t.Setenv("HOME", tmp)` and a DevDir outside HOME. It checks that ReadFile, ReadFileBase64 and WriteFile reject each bad case with `errors.Is(err, pathguard.ErrOutsideRoot)` (or `ErrDeniedPath`), leave the target untouched, and still work inside the roots, including creating a new file.
+   - Change `app_git.go:757-826` to resolve through `pathguard.AllowedRoots(a.GetDevDir())`. WriteFile writes to the `ResolveForWrite` result, the symlink-resolved target, so a symlinked file keeps its link. Add TestWriteFile_SymlinkInsideRootPreservesLink.
+5. **s1.5-editor-rejection (R7 UI).** The live save paths are `MonacoEditor.svelte:440-455` and `MarkdownEditor.svelte:52-66`. `CodeEditor.svelte` has no importer and is not changed. Write `frontend/src/components/__tests__/MonacoEditor.guard.test.ts` and `MarkdownEditor.guard.test.ts` first. In each, a mocked `WriteFile` rejects with "path outside allowed roots", and the test asserts that an `aria-live` region shows the reason and that the editor content is unchanged.
+   - Change the catch blocks in both editors to set an announced message, not only `saveStatus = 'error'`.
+6. **s1.6-bundled-theme-guard (R8).** Write TestReadBundledThemeFile_RejectsOutsideBundledDir and RejectsSymlinkEscape in `theme_scanner_test.go` first.
+   - In `theme_scanner.go:329`, call `pathguard.ResolveExisting([]string{bundledThemesDir()}, themePath)`.
+7. **s1.7-repo-relative-reads (R9).** Write `app_git_file_test.go` first. Each test builds a temp repo with `git init`.
+   - TestReadFileDiff_RejectsTraversal creates `<tmp>/outside.txt` with known content and calls `ReadFileDiff(repo, "../outside.txt")`. It asserts `errors.Is(err, pathguard.ErrOutsideRoot)` and that the output does not contain the content. Today the `--no-index` fallback leaks it, so this is red.
+   - TestReadFileAtHead_RejectsAbsolute asserts `errors.Is(err, pathguard.ErrOutsideRoot)`, not only `err != nil`.
+   - TestReadFileAtHead_DeletedTrackedFileStillReadable: a file committed and then deleted from the working tree still returns its HEAD content.
+   - TestReadFileDiff_DashPathCreatesNoFile (filePath `--output=/tmp/x`) is a regression guard that already passes today.
+   - Change `app_git.go:828-861`. The `--no-index` fallback uses `pathguard.ResolveExisting`. ReadFileAtHead and the tracked `git diff HEAD -- <path>` branch use lexical containment (Clean, then reject absolute paths, `..` and a leading `-`), so deleted tracked files still resolve. Pass `--` before every path.
+8. **s1.8-ref-validation (R10 core).** Write `internal/git/refs_test.go` first. It is a table test: `--help`, `-b`, `-`, `a..b`, `x@{1}`, `a b`, `foo.lock`, `/x` and `x/` are rejected; `feature/foo-1` and `main` are accepted.
+   - Implement `internal/git/refs.go` with `ValidateBranchName` and `ErrInvalidRef`. It is pure Go and follows the `git check-ref-format --branch` rules plus a leading `-` rejection.
+9. **s1.9-git-binding-guard (R10, R11).** Write `app_git_guard_test.go` first. It uses a temp repo under a temp HOME with autoCommit=true and a dirty tree. It checks that GitSwitchBranch, GitCreateBranch (prefix, name and composed name) and GitMergeInto reject a bad ref, and that the HEAD sha and `git status --porcelain` are unchanged. It also includes TestGitBindings_RejectRepoOutsideRoots, a table over every binding that takes repoPath.
+   - Also call `a.repoDir(repoPath)` at the top of StreamCodeReviewSummary and StreamAdvice (`app_review.go`) and StreamScopedAdvice (`app_review_scoped.go`). Replace `containedPath` in `app_review_scoped.go` with `pathguard.ResolveExisting([]string{repo}, fp)`. Extend the TestGitBindings_RejectRepoOutsideRoots table with these three bindings, and add a symlink-escape case for StreamScopedAdvice in `app_review_scoped_test.go`.
+   - In `app_git.go`, add `(a *App) repoDir(repoPath string) (string, error)`. Validate refs before the auto-commit blocks at `:204-210`, `:231-239` and `:609-616`. Use `git checkout <ref> --`, and put `--` before every UI-supplied path.
+10. **s1.10-pty-socket (R12).** First extract the seams the tests call: `listenSocket(path string) (*net.UnixListener, error)` in `cmd/pty-helper/main.go`, and `setupHelperSocketDir() (dir string, cleanup func(), err error)` and `dialHelperSecure(path string) (*helper.Client, error)` in `main.go`. The tests fail to compile until these exist.
+    - `cmd/pty-helper/main_test.go` TestListenSocket_Mode0600 asserts `fi.Mode().Perm() == 0600` (0755 under the default umask today) and a 0700 parent directory.
+    - `main_socket_test.go` TestDialRefusesWorldAccessibleSocket chmods a listening socket to 0777 and expects an error. TestHelperShutdown_RemovesSocketDir checks that cleanup removes the directory.
+    - `listenSocket` sets umask 0177 before `ListenUnix` and then chmods the socket to 0600. `main.go:133-160` uses `setupHelperSocketDir` (`os.MkdirTemp("", "mashed-pty-")`) and `dialHelperSecure` (an `os.Lstat` mode check before `helper.Dial`), and calls cleanup on shutdown.
+11. **s1.11-atomic-write (R13).** Write `internal/fsutil/atomic_test.go` first. It injects a fault through a read-only directory (skipped as root), and checks that the original file is byte-identical after a failure, that no temp file is left, and that an existing file keeps its mode.
+    - The fault-injection test has its own `if os.Geteuid() == 0 { t.Skip("read-only dir is ineffective as root") }`.
+    - Implement `internal/fsutil/atomic.go` `WriteFileAtomic(path string, data []byte, perm os.FileMode) error`: CreateTemp in the same directory, write, fsync, chmod, rename, and remove the temp file on error.
+    - Make `internal/bmad/storage.go:225` `atomicWriteJSON` marshal the value and call it. The existing bmad storage tests must stay green.
+12. **s1.12a-loadconfig-signature: superseded during build (2026-09-30).** Every config setter already serialises its load-modify-save on `a.mu`, so there is no lost-update race to fix. The real R13/R14 gaps (torn reads, file modes, overwriting a malformed file) all sit in `saveConfig`. `loadConfig()` keeps its signature, which avoids about 106 call-site edits. There is no `cfgMu` and no `updateConfig`.
+13. **s1.12b-config-lock (R13, R14).** Write these in `app_config_test.go` first:
+    - TestConfig_FilesAre0600In0700Dir: `SetTheme` and `SaveTheme` under a temp HOME with a pre-existing 0755 `~/.mashed`; stat the modes. Red today: 0644 files in a 0755 dir.
+    - TestConfig_ReadsNeverSeeTornWrite: a setter loop races 2000 `GetConfig` reads that must always see the stored theme. Red today: the non-atomic `os.WriteFile` exposes a truncated file.
+    - TestConfig_ConcurrentSetters_NoLostUpdate: 50 concurrent `SaveTheme` calls with distinct ids all survive. This is a regression guard; it passes today because of `a.mu`.
+    - `saveConfig`, `SaveTheme` and `RemoveTheme` write through `writePrivateFile` (`fsutil.WriteFileAtomic`, 0600 file, 0700 dir). The `WriteFile` binding writes through `fsutil.WriteFileAtomic` on the resolved target.
+14. **s1.12c-config-quarantine (R14).** Write TestConfig_MalformedIsQuarantinedNotOverwritten first. It asserts the original bytes are in `config.json.corrupt-<unix>`, and that a captured emit func received `config:recovered` with `quarantinedPath`.
+    - `TestU1_AC4_MashedConfig_MalformedJSON_ReturnsDefaults` stays as is: reads still fall back to defaults. The quarantine happens in `saveConfig`, before the first write over a malformed file.
+14b. **s1.13-denylist-case (R7, C1; from the PR 1 /security-review, added 2026-09-30).** Write TestCheckWriteDenylist_CaseAndAliases (`internal/pathguard/pathguard_test.go`) and TestWriteFile_RejectsDenylistCaseVariants (`app_files_guard_test.go`) first. Red today: on case-insensitive APFS, `~/.ZSHRC`, `~/.SSH/authorized_keys` and `~/library/launchagents/x.plist` pass the case-sensitive denylist and reach the real files.
+    - `CheckWriteDenylist` compares names case-insensitively and also by identity (`os.SameFile` against each denied file, and against each denied directory for every ancestor of the target).
+    - Add `.zlogin`, `.zlogout`, `.bash_login`, `.tmux.conf` and `.config/git/config` to the denylist.
+    - Then run `/security-review` and open draft PR 1.
+
+### PR 2: Broken features and races (branch `repo-health/pr2-features`)
+15. **s2.1-spawn-argv (R15).** Write `internal/terminal/manager_argv_test.go` first. It uses a fake `helperSpawner` that records `helper.SpawnRequest`. It checks that argv with spaces, quotes, newlines and `$(x)` arrives unchanged, that empty argv and empty argv[0] return TerminalError, and that `Spawn("")` starts $SHELL while `Spawn("a b")` splits.
+    - In `internal/terminal/manager.go`, add an unexported `helperSpawner` interface (satisfied by `*helper.Client`) and `SpawnArgv(ctx, name, repoPath string, argv []string, cols, rows uint16)`. `Spawn` becomes a wrapper.
+    - `NewSessionManager` stores the client as a `helperSpawner` only when `client != nil`, so the interface field stays untyped nil. Add TestSessionManager_NilClient_SpawnArgvReturnsErrHelperNotRunning. `internal/terminal/manager_test.go` must stay green unmodified.
+    - This step is its own commit (the API lands before its callers).
+16. **s2.2-spawn-callers (R16).** First run `claude --help` and a one-off `claude -p hi --allowedTools "Bash(gh pr diff:*)"` to confirm the rule syntax for `Bash(...)` and path-scoped `Write`; record it in the step. Then write TestSpawnPRReview_ArgvExact in `app_git_spawn_test.go` and TestSpawnRefactorPlan_ArgvExact in `app_review_test.go` first. Both use `fakeSessionManager` (`app_terminal_registry_test.go:43`), extended to record argv. They assert the exact argv from R16, that argv contains no `--dangerously-skip-permissions`, and that the refactor Write rule names exactly `.claude/plans/<plan file>`. Also write TestSpawnPRReview_RejectsNonDigitPRNumber: the prNumber stub returns `12; rm -rf`, `--help` and an empty string, SpawnPRReview returns an error, and the fake records no spawn. The gh PR number comes from a stub: add a `prNumber func(ctx, repo) (string, error)` field on App, defaulting to the current `gh pr list` call.
+    - Add `SpawnArgv` to the `sessionManager` interface (`app.go:36`).
+    - Add `spawnSessionArgv` in `app_spawn.go`.
+    - Change `SpawnPRReview` (digits-only PR number) and `SpawnRefactorPlan` (`app_review.go:357-359`) to use it.
+    - Before committing, smoke-run both spawns and record the result in the PR.
+17. **s2.3-scan-lifecycle (R17, R18).** Write `app_scan_lifecycle_test.go` first. It calls SetDevDir 20 times, alternating two temp directories, then shuts down. It checks `goleak.VerifyNone(t, goleak.IgnoreCurrent())`, a running-goroutine counter of at most 1 scanLoop and 1 watchSessions, exactly one consumeEngineEvents, and passes `-race`. It also includes TestSetDevDir_ProviderFailureKeepsPreviousState, using a provider factory seam `newProvider func(dir string) (*scanner.ClaudeCodeProvider, error)` on App.
+    - In `app_scan.go`, add `scanState` behind an `atomic.Pointer`, plus `scanMu`, `scanCancel` and `scanWG`.
+    - `initScanning` builds the new state first. It persists config, cancels, waits, swaps, then restarts.
+    - Move `consumeEngineEvents` into `startup` (`app.go:252`).
+    - Switch these readers to one snapshot per operation: `doScan` in `app_scan.go`; the devDir read in `app_spawn.go`; every `a.devDir`/`a.provider`/`a.repoScanner` read in `app_git.go` (CreateRepo, RepoStatus and helpers; find them with `grep -n 'a\.devDir\|a\.provider\|a\.repoScanner' app_git.go`); watchSessions, findSessionByID, findLatestSession and findUnclaimed in `app_sessions.go`; and `GetDevDir` in `app.go`. Red/green for this step also runs `go test -race -count=5 -run SetDevDir .`.
+18. **s2.4-asset-follow (R19).** Write `app_asset_follow_test.go` first. It uses two temp repos and a captured emit function. It checks that an event arrives for repoB within the debounce window plus 1 s, that nothing arrives for repoA, and that the same repo does not restart the watcher.
+    - In `app.go:423` `SetActiveContext`, add `swapAssetWatcher` under a `watcherMu`: start the new watcher, then stop the old one, and keep the old one if Start fails. Move the startup block at `app.go:361-370` onto it. The shutdown read at `app.go:375-376` also takes `watcherMu`. The test also calls shutdown concurrently with SetActiveContext under `-race`.
+19. **s2.5-late-scrollback (R20).** First record the flake: `go test -count=50 -run AC2 ./internal/terminal/` must fail at least once before the rewrite. If it never fails, commit the AC2 rewrite separately as a test-only change. Write TestManagedSession_LateClientAfterExitGetsScrollback in `internal/terminal/session_test.go` first. Rewrite `TestManagedSession_AC2_TwoClientsReceiveOutput` (`session_test.go:235`) to use `cat`, with input sent by the client.
+    - In `internal/terminal/session.go`, add an `exited` flag. A late client gets the scrollback, then close 1000 "process exited", with no input path.
+    - Check with `go test -count=50 -run AC2 ./internal/terminal/`.
+    - Build note (2026-09-30): AC2 passed 50 out of 50 runs on macOS before the fix, so no red was recorded for it here. The cause of the Linux flake is exactly R20: `echo hello` exits before the clients attach, and a late client used to get nothing. After the fix, the late client gets the scrollback. AC2 as written therefore passes whether the client attaches early or late, and the `cat` rewrite is not needed. The existing nil-client-map check is the "exited" state, so there is no separate flag. Linux confirmation comes from the PR 3 CI `-count=50` step.
+    - Then run `/security-review` and open draft PR 2.
+19b. **s2.6-no-shell-agents (R16, C3; from the PR 2 /security-review, added 2026-09-30).** The review allowlist `Bash(git log *)`, `git show *` and `git diff *` let the agent write any file via `--output=<file> --format=tformat:<text>`. Worse, claude 2.1.285 auto-approves `git log --output=…` even without any rule. Verified with the CLI; `--disallowedTools Bash` blocks it.
+    - Update TestSpawnPRReview_ArgvExact and TestSpawnRefactorPlan_ArgvExact first. Both argvs gain `--disallowedTools Bash`. The review allowlist becomes `Read,Grep,Glob`, and the review diff is fetched by the app (`a.prDiff`, default `gh pr diff <N>`) into a 0600 temp file that the prompt names.
+    - Deviation from R16's exact argv: two extra elements (`--disallowedTools`, `Bash`), recorded here for the design owner.
+
+### PR 3: Build and test health (branch `repo-health/pr3-build`)
+20. **s3.1-dist-placeholder (R21).** Write TestRepo_DistPlaceholderTracked first (`frontend/dist/.gitkeep` is tracked, and `.gitignore` has `frontend/dist/*` and `!frontend/dist/.gitkeep`).
+    - Also write `frontend/src/__tests__/vite-keep-dist.test.ts` (imports `vite.config.js`, finds the `keepDistPlaceholder` plugin, calls `closeBundle` with outDir set to a temp dir, and asserts `.gitkeep` exists) and `main_embed_test.go` TestWarnIfDistMissing (an `fstest.MapFS` without index.html and a captured logger; extract `warnIfDistMissing(fsys fs.FS, logf func(string, ...any))` in `main.go`).
+    - Add `frontend/dist/.gitkeep` and the `.gitignore` rules.
+    - Add a `keepDistPlaceholder` plugin in `frontend/vite.config.js` whose closeBundle writes `.gitkeep`.
+    - Add a `main.go` startup log warning when `frontend/dist/index.html` is missing from the embedded FS.
+    - Check that `npm run build` leaves `git status --porcelain` empty.
+21. **s3.2-npm-only (R22).** Write TestRepo_SinglePackageManager first. It checks: no `frontend/bun.lock`; `.nvmrc` is `22`; `frontend/package.json` engines.node is `>=22 <23`; the justfile build recipe and wails.json `frontend:install` use `npm ci`.
+    - Delete `frontend/bun.lock`. Run `npm install` on Node 22 to regenerate `package-lock.json`. Edit `package.json`, `justfile` and `wails.json`, and add `.nvmrc`.
+    - Regenerate and commit `frontend/package.json.md5` (`wails generate module` or a build). TestRepo_SinglePackageManager also checks that the md5 matches `package.json`.
+    - Check with `cd frontend && npm ci`.
+22. **s3.3-root-tests (R23).** The failing test is `docker run --rm -v "$PWD":/src -w /src golang:1.25 go test ./internal/bmad/ -run 'ErrorOnReadOnlyDir|StatErrorNotNotExist|WriteFailure'`, which runs as root and fails today. Without a container runtime, the proof is a ci.yml go-job step `sudo -E env "PATH=$PATH" go test ./internal/bmad/ -run '...'` added in s3.4. `sdlc build red` cannot show this on macOS as a normal user, so this step has no red/green entry; the container output before and after is recorded in the PR.
+    - Add `internal/bmad/testutil_root_test.go` `skipIfRoot(t)` and call it from `skillgen_test.go:166`, `artifacts_test.go:149` and `assets_write_test.go:209`.
+23. **s3.4-ci (R24).** Write TestRepo_CIWorkflow first. It parses `.github/workflows/ci.yml` and checks: triggers on push and pull_request to main and dev; `permissions: contents: read`; `go` and `frontend` jobs; `lfs: false`; every `uses:` pinned to a 40-hex SHA; `svelte-check.yml` sha256 equals a constant recorded at base.
+    - Add `.github/workflows/ci.yml` with these jobs:
+      - The `go` job: setup-go 1.25, `test -f frontend/dist/.gitkeep`, `go build ./...`, `go vet ./...` and `go test -race ./...`. Also add `go test -count=50 -run 'AC2|LateClient' ./internal/terminal/` (R20 on ubuntu) and the root run of the three `internal/bmad` tests (R23).
+      - The `frontend` job: setup-node from `.nvmrc`, `npm ci`, `npm run lint:tokens`, `npx vitest run` and `npm run build`, then check that `git status --porcelain` is empty.
+24. **s3.5-prepush (R25).** Write TestRepo_PrePushCoversRoot first (the lefthook pre-push command is `go test -short -count=1 ./...`).
+    - Edit `lefthook.yml:60`.
+    - Then run `/security-review` and open draft PR 3.
+
+### PR 4: Repo hygiene (branch `repo-health/pr4-hygiene`)
+Before this PR starts, the owner must: choose the LICENSE (C12); choose to restore `mashed-refactor-asset` or drop its UI reference; and install `git-lfs` (`brew install git-lfs && git lfs install`).
+25. **s4.1-untrack-junk (R26, R29 todo.md).** Write TestRepo_NoTrackedJunk first. It checks that `git ls-files` returns nothing under the junk paths listed in Files that change, that each path is matched by `git check-ignore`, and that no tracked file outside `docs/plans/` and `sdlc/` contains `/Users/linus`.
+    - Run `git rm -r --cached` on the junk paths and extend `.gitignore`.
+    - Move `todo.md` items to `docs/stories/backlog.md`.
+    - Build the needles in the test from fragments (`"/Users/" + "linus"`), and exclude `repo_hygiene_test.go` and `.github/workflows/ci.yml` by pathspec, so the check cannot match itself.
+    - Add the R26 steps to the ci.yml go job (`! git ls-files | grep -E '^(docs/repomixer|\.playwright-(mcp|cli)|desloppify-workspace|frontend/coverage|\.vite|frontend/\.claude)/'` and the `/Users/linus` git grep), and extend TestRepo_CIWorkflow to assert them.
+    - Replace `/Users/linus/...` with `~/...` in the listed docs and Go files. For the Go files, only change test fixtures and comments, and keep behaviour.
+26. **s4.2-personal-data (R27).** Write TestRepo_NoPersonalData first (`git grep -nE '5X8A9U965U|linus\.a\.mcm'` finds nothing outside `sdlc/`).
+    - Change `justfile:48, 56, 57, 75` to `env_var_or_default("MASHED_SIGN_IDENTITY", "-")`.
+    - Change the wails.json author email to a project alias chosen by the owner.
+    - Replace the identity string with `<your signing identity>` in `README.md:63`, `docs/plans/mashed-pty-helper-implementation-plan.md:313,318`, `docs/plans/repo-health-remediation.md:130` and `docs/reports/pty-fork-exec-investigation.md:94-100`.
+    - Build the needles from fragments (`"5X8A9U" + "965U"`) and exclude `repo_hygiene_test.go` and `ci.yml` by pathspec. Add the R27 grep step to ci.yml and assert it in TestRepo_CIWorkflow.
+    - Smoke-test `just build` on macOS with the variable unset (C11).
+27. **s4.3-lfs (R28).** Write TestRepo_LFSAttributes (`.gitattributes` routes `themes/*.vsix` and `fonts/*.ttf` through `filter=lfs`) first. Also write TestScanFonts_SkipsLFSPointer in `font_scanner_test.go` (new) and TestScanBundledThemes_SkipsLFSPointer in `theme_scanner_test.go`.
+    - Add `.gitattributes` and run `git add --renormalize themes fonts`.
+    - Make `font_scanner.go` and `theme_scanner.go` skip files that begin with `version https://git-lfs`.
+    - Add a `just check-lfs` recipe, called by `just build`, that fails when a bundled asset is still a pointer. TestRepo_JustfileLFSGuard runs `just check-lfs` against a temp pointer file (via a `MASHED_ASSET_DIRS` override) and expects a non-zero exit; it skips when `just` is not installed.
+28. **s4.4-repo-basics (R29).** Write TestRepo_Basics first. It checks: `LICENSE` exists with a name-only copyright line; there is no `.githooks/`; `lefthook.yml` has no desloppify block; `.golangci.yml` enables govet, errcheck, staticcheck and gosec with `new-from-rev`; the `.gitignore` `.claude` block is collapsed per the owner's decision; and `!internal/bmad/testdata/*.csv` is present.
+    - Make those changes.
+    - If the owner drops the skill: remove the reference at `frontend/src/components/bmad/ProcessSidebar.svelte:30,440` and ignore all of `.claude/`. If the owner restores it: add `.claude/skills/mashed-refactor-asset/SKILL.md` after the licence check (C12), and have TestRepo_Basics assert that it is tracked.
+    - Check with `golangci-lint run`.
+    - Then run `/security-review` and open draft PR 4.
+
+### PR 5: Structure, no behaviour change (branch `repo-health/pr5-structure`)
+Guard for every step: `scripts/api-diff.sh` (new) compares `go doc -all ./internal/bmad` output, with positions stripped, against `main`. The executor_suspend, executor_interactive and executor_respond tests pass unmodified, and the vitest and Playwright AC suites stay green.
+29. **s5.1-executor-split (R30).** Write TestRepo_BmadFilesUnder1000Lines first. Also write `scripts/api-diff.sh`, which runs `go doc -all ./internal/bmad` on HEAD and on the base ref in a temp worktree, strips positions, and diffs the two.
+    - Move code out of `internal/bmad/executor.go`, with no logic edits, into:
+      - `executor_lifecycle.go`: lines 152-614.
+      - `executor_schedule.go`: lines 628-1165 and 2302-2357.
+      - `executor_command.go`: lines 1166-1596.
+      - `executor_node_state.go`: lines 1597-1833, plus recordNodeError, setStatus and verifyOutputs.
+      - `executor_loaders.go`: lines 1834-2106 and 2118-2190.
+      - `executor_interactive.go`: lines 2358-2595 and 2609-2648.
+      - `executor_inputs.go`: lines 2191-2301 and 2649-3016.
+    - About 165 lines stay in `executor.go`. Run `goimports -w internal/bmad`.
+    - Also split the oversized test files by moving whole test functions, with bodies unchanged: `executor_test.go` (3027 lines) into `executor_lifecycle_test.go`, `executor_schedule_test.go` and `executor_loaders_test.go`; and part of `question_test.go` (1039 lines) into `question_fixtures_test.go`. `go test -list . ./internal/bmad` is identical before and after. The executor_suspend, executor_interactive and executor_respond tests are not touched.
+    - Check that `scripts/api-diff.sh main` prints nothing.
+30. **s5.2-feed-split (R31).** Write TestRepo_NotificationFeedUnder1000Lines first.
+    - Extract these from `frontend/src/views/NotificationFeed.svelte`, each with the scoped styles its markup uses:
+      - `frontend/src/components/feed/RepoHeader.svelte`
+      - `frontend/src/components/feed/AgentList.svelte`
+      - `frontend/src/components/feed/RepoActions.svelte`
+      - `frontend/src/components/feed/CommitOutputPanel.svelte`
+      - `frontend/src/lib/feed/repoTree.ts`, holding the pure functions from lines 270-480.
+    - Update the source paths in the style-reading tests to the children:
+      - `frontend/src/components/__tests__/neon-green.test.ts`, `glow-btn.test.ts` and `remaining-colors.test.ts`.
+      - `frontend/src/__tests__/token-normalization.test.ts`, `entry-animations.test.ts`, `signature-moments.test.ts`, `sparkline-render.test.ts` and `rgba-migration.test.ts`.
+    - Keep focus order and ARIA the same. Run `cd frontend && npx playwright test` before and after the extraction.
+31. **s5.3-builder-split (R31).** Write TestRepo_WorkflowBuilderUnder1000Lines first.
+    - Extract these from `frontend/src/views/WorkflowBuilder.svelte`:
+      - `frontend/src/lib/workflowBuilder/canvasHandlers.js`: lines 863-1100.
+      - `frontend/src/lib/workflowBuilder/execEvents.js`: lines 408-588 and 688-860.
+      - `frontend/src/lib/workflowBuilder/leaveIntercept.js`: lines 190-226 and 1242-1345.
+      - `frontend/src/components/bmad/BuilderToolbar.svelte`
+      - `frontend/src/components/bmad/TerminalModal.svelte`
+    - Keep the Playwright dev seams (lines 306-356) in the parent's onMount.
+    - Repoint the WorkflowBuilder reads in `rgba-migration.test.ts` and `remaining-colors.test.ts` to the parent plus its children (concatenate the sources).
+    - Run `npx playwright test` before and after the extraction.
+32. **s5.4-settings-split (R31).** Write TestRepo_SettingsUnder1000Lines first.
+    - Extract these from `frontend/src/views/Settings.svelte`, keeping `data-testid` attributes:
+      - `frontend/src/components/settings/UIAdapterSettings.svelte`
+      - `frontend/src/components/settings/VSCodiumThemes.svelte`
+      - `frontend/src/components/settings/EditorSettings.svelte`
+    - Repoint the Settings reads in `neon-green.test.ts` and `remaining-colors.test.ts`. `Settings.test.ts` stays unmodified and green.
+    - Run `npx playwright test` before and after.
+33. **s5.5-agentdetail-split (R31).** Write TestRepo_AgentDetailUnder1000Lines first.
+    - Extract these from `frontend/src/views/AgentDetail.svelte`:
+      - `frontend/src/components/agent/FileStrip.svelte`
+      - `frontend/src/components/agent/CommitOutputPanel.svelte`
+      - `frontend/src/components/agent/SubAgentPanel.svelte`
+      - `frontend/src/components/agent/SessionTabs.svelte`
+    - Repoint the AgentDetail reads in `glow-btn.test.ts`, `neon-green.test.ts`, `token-normalization.test.ts` and `remaining-colors.test.ts` to AgentDetail plus `frontend/src/components/agent/*.svelte`. Binding-count assertions sum across those files.
+    - Sharing one commit panel with the feed is not done here, because their styles differ.
+    - Run `npx playwright test` before and after.
+34. **s5.6-git-shellouts (R31).** Write TestRepo_AppGitNoDirectGitExec first. Also write temp-repo tests in `internal/git/branch_test.go`, `commit_test.go`, `remote_test.go` (with a local bare remote) and `files_test.go`.
+    - Add `internal/git/branch.go`, `commit.go`, `remote.go` and `files.go`, as ctx-taking functions that return `*GitError`.
+    - Point every git exec in `app_git.go` at them.
+    - Replace the three auto-commit blocks with `(a *App) autoCommitIfRequested(repoPath string, autoCommit bool) error` in `app_git.go`.
+    - Every phase 1 validator and `--` stays in place, and `app_git_guard_test.go` stays green.
+35. **s5.7-recover-stub (R31).** Write TestRepo_NoRecoverSessionsStub first (the source no longer declares `recoverSessions()`).
+    - Delete the stub at `app_terminal_registry.go:15-16`, and its no-op test at `app_terminal_registry_test.go:573-584`.
+36. **s5.8-lazy-markdown (R31).** R31 amendment approved by linus on 2026-09-30:
+    - Monaco and its worker chunks are lazy and exempt, and `chunkSizeWarningLimit: 2600` stays.
+    - The 500 kB target applies to the entry chunk the app boots from. It was measured at 986 kB, so it is met by lazy-loading heavy views (WorkflowBuilder/xyflow, Terminal/xterm, MarkdownEditor), each behind an aria-busy placeholder, and enforced by `scripts/check-entry-chunk.mjs` in the ci.yml frontend job.
+    - Write `frontend/src/components/__tests__/EditorRouter.lazy.test.ts` first. It checks that an `aria-busy="true"` placeholder renders until the dynamic import resolves, and that MarkdownEditor mounts after it.
+    - Write `scripts/check-entry-chunk.mjs` as the second red: after `npm run build`, it fails if the entry chunk in `frontend/dist/assets` is 500 kB or larger. Run it before the lazy import.
+    - Change the static import at `frontend/src/components/EditorRouter.svelte:5` to `import()`. Call the check script from the ci.yml frontend job.
+    - Handle `chunkSizeWarningLimit` in `frontend/vite.config.js` as the accepted amendment decides.
+    - Then run `/security-review` and open draft PR 5.
+
+## Risks
+- **Riskiest step: s1.1/s1.2 (terminal auth).** If WKWebView sends no Origin, or sends `null`, the terminal breaks for every user. Mitigation: the R6 manual gate before PR 1 merges, and the bridge change and the `Terminal.svelte` change ship in one commit and revert together.
+- **s1.4 and s1.9: path and repo confinement.** These can break real workflows where a repo sits outside both $HOME and DevDir, or reached through a symlinked path such as `/tmp` or `/var` on macOS (both are symlinks to `/private`). Mitigation: roots are resolved through EvalSymlinks too; the CodeEditor error is announced; tests use real symlinks.
+- **s1.12: config store.** A lock-order mistake between `a.mu` and `cfgMu` deadlocks the app. Mitigation: the rule "never hold a.mu while taking cfgMu", `-race`, and the 50-goroutine test.
+- **s2.2: `--allowedTools`.** A wrong rule syntax makes the review and refactor agents stall on permission prompts, or fail. Mitigation: check `claude --help` and smoke-run both spawns before committing.
+- **s2.3: scan restart.** Restart waits for an in-flight `doScan` (lsof and git), so a restart can stall for a bounded time (C16). A missed reader keeps a data race; `-race` catches it.
+- **s2.5: scrollback.** Output can leak to any authenticated client (C7); that is accepted.
+- **s3.2: lockfile regeneration.** Dependencies may drift within their semver ranges. Mitigation: run the full vitest and build before and after.
+- **s4.1: untracking.** Removes files from the index only, so local copies remain. A too-broad ignore rule could hide real files. Mitigation: TestRepo_NoTrackedJunk lists exact paths, and `!internal/bmad/testdata/*.csv` is kept.
+- **s4.3: LFS.** Clones without git-lfs get pointer files. Mitigation: the scanners skip pointers, the justfile guard, CI runs with `lfs: false`, and the 1 GB monthly bandwidth (C10).
+- **s4.2: ad-hoc signing.** Ad-hoc signing may stop the PTY helper spawning on current macOS (C11). Mitigation: the smoke test, and `MASHED_SIGN_IDENTITY` stays available.
+- **PR 5: refactor.** The no-behaviour-change refactor could break the BMAD invariants (C13). Mitigation: the API-diff script, the unmodified executor tests, and moves only, with no logic edits in the same commit.
+- **s2.1 typed nil.** A nil `*helper.Client` wrapped in `helperSpawner` defeats the nil check, and the app panics on spawn when the PTY helper is down. Mitigation: the guarded constructor and the nil-client tests.
+- **s1.4 atomic rename.** Atomic rename replaces symlinks and changes inodes. Mitigation: write to the resolved target, and the symlink-preservation test.
+- **s1.4 NodeConfigPanel.** The file-loader preview (PickFile, then ReadFile) now rejects files picked outside $HOME and DevDir. Its existing fileError path shows the message; this is accepted.
+- **s3.2 svelte-check Node version.** `svelte-check.yml` stays on Node 20 (kept unchanged, so the required check keeps its name), so `npm ci` there emits EBADENGINE warnings. A follow-up switches its node-version to `.nvmrc` without renaming the job.
+- **R31 deviation.** Monaco's lazy chunk is about 2.6 MB and cannot be split under the 500 kB default. The accepted spec asks for the default limit to be restored. This needs a spec amendment signed by linus before PR 5 opens: either exempt the Monaco chunk (keep `chunkSizeWarningLimit: 2600` and gate on the entry chunk with `scripts/check-entry-chunk.mjs`), or drop the restore clause. s5.8 does not start until the amendment is accepted.
+- **Linux.** No container runtime is installed on the host today. Until one is, Linux-only failures surface first in the PR 3 CI.
+- **Test command.** The test command strips `/.orca/` from PATH. If the owner runs outside Orca this does nothing. If another shim shadows tmux, the ghost tests fail again.
+- **s0 edits a test.** It changes a stale assertion rather than the code. Justification: the code comment at `workflowSerialisation.ts:224` states the intended reset.
+- **Steps without their own red:** s1.0, s1.2, s1.12a and s3.3 (see Conventions).
+- **Out of scope, by owner decision:** CSP and markdown sanitising (C3 remainder), a history rewrite (C9, follow-up intent), and Linux or Windows support.
+- **Rejected options** (from the spec's Rejected alternatives):
+  - A token in the URL query: it leaks to logs.
+  - `Auth.Wrap` middleware and a NewBridge signature change: it touches 9 call sites.
+  - Replacing GetTerminalPort: WorkflowBuilder uses it.
+  - Confining ReadBundledThemeFile to $HOME: the bundle lives in /Applications.
+  - Shelling out to `git check-ref-format`: it passes untrusted input to a process.
+  - Only adding `--` to the `--no-index` fallback: it still allows traversal.
+  - Unlocked config reads: they lose updates.
+  - Exporting atomicWriteJSON as is: it has a fixed `.tmp` name.
+  - A configStore rewrite: churn beyond need.
+  - An `AssetWatcher.SetRoots` API: riskier inside internal/bmad.
+  - Keeping consumeEngineEvents in initScanning: it duplicates consumers.
+  - Folding svelte-check into ci.yml: it renames a required check.
+  - Random session-name suffixes and `--end-of-options`: not needed once the socket is authenticated.
+  - `git lfs migrate --no-rewrite`: `.gitattributes` plus renormalize is simpler.
+  - Adding a separate test runner: `repo_hygiene_test.go` reuses `go test`.
+
+## Proof
+- `bash scripts/test-all.sh` exits 0 after every green step. Each step has one red entry and one green entry in `sdlc/repo-health-remediation/tdd.jsonl`, except s1.0, s1.2, s1.12a and s3.3.
+- `go test -race -count=1 ./...` exits 0 (R14, R17).
+- `go test -tags dev -run DevAcceptsLocalhost34115 ./internal/terminal/` passes (R2).
+- `go test -count=50 -run 'AC2|LateClient' ./internal/terminal/` passes on the macOS host and in the ci.yml go job on ubuntu (R20).
+- `go test -run 'TestGitBindings_RejectRepoOutsideRoots|TestReadFileDiff_DashPathCreatesNoFile' .` passes (R11; the spec's Proof calls this test RejectRepoOutsideHome, renamed after C2).
+- `go test ./internal/bmad/...` passes as root (container, or the ci.yml root step) and on the host as a normal user (R23).
+- `cd frontend && npm ci && npx vitest run && npm run build && git status --porcelain` gives exit 0 and empty status (R21, R22).
+- `go vet ./...` exits 0. `golangci-lint run` reports no issues (R29).
+- `lefthook run pre-push` output lists package `mashed` (R25).
+- `git ls-files | grep -E '^(docs/repomixer|\.playwright-(mcp|cli)|desloppify-workspace|frontend/coverage|\.vite|frontend/\.claude)/'` prints nothing. `git grep -nE '5X8A9U965U|linus\.a\.mcm' -- ':!sdlc'` prints nothing (R26, R27).
+- `git lfs ls-files` lists all 25 theme and font files (R28).
+- `wc -l internal/bmad/*.go frontend/src/views/{NotificationFeed,WorkflowBuilder,Settings,AgentDetail}.svelte` shows every file under 1000 lines, test files included. `grep -n 'exec.Command' app_git.go | grep '"git"'` prints nothing (R30, R31).
+- `node scripts/check-entry-chunk.mjs` exits 0 after `npm run build` (R31 entry chunk under 500 kB; the chunk-limit clause depends on the amendment in Risks).
+- `cd frontend && npx playwright test` passes before and after each s5.2-s5.5 step (R31 focus order and ARIA).
+- `bash scripts/api-diff.sh main` prints no differences (R30).
+- Manual: the R6 Origin values are recorded in the PR 1 description; the R16 smoke runs in PR 2; the R27 `just build` with MASHED_SIGN_IDENTITY unset in PR 4.
+- CI: on each PR against `dev`, the `go`, `frontend` and `svelte-check` checks are green (R24).
+- `/security-review` reports no high-severity findings, attached to each PR's review.md (R32).

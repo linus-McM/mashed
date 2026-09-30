@@ -2,12 +2,12 @@
   "$schema": "https://wails.io/schemas/config.v2.json",
   "name": "mashed",
   "outputfilename": "mashed",
-  "frontend:install": "npm install",
+  "frontend:install": "npm ci",
   "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
     "name": "Linus McManamey",
-    "email": "linus.a.mcm@gmail.com"
+    "email": "support@surfseer.com"
   }
 }

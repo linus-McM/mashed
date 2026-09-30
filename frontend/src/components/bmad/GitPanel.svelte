@@ -1,4 +1,13 @@
 <script>
+  /** @typedef {import('../../lib/types/wails').RepoStatusInfo} RepoStatusInfo */
+  /**
+   * @typedef {{ action: string | null; result: string | null; error: string | null }} ActionState
+   * @typedef {{ path: string; message: string }} ForcePushState
+   * @typedef {{ lines: { step: string; output: string }[]; error: string | null; explanation: string | null; done: boolean }} CommitPanelState
+   * @typedef {{ path: string; branch: string; color?: string }} BranchModalState
+   * @typedef {{ repoPath: string; step?: string; output?: string; error?: string; explanation?: string; done?: boolean }} GitCommitProgressEvent
+   */
+
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { EventsOn, EventsOff } from '../../../wailsjs/runtime/runtime.js';
   import { GitCommitStreaming, GitPull, GitPush, GitCommitPushAndPR, SpawnPRReview, RepoStatus } from '../../../wailsjs/go/main/App.js';
@@ -8,14 +17,18 @@
   import MergeModal from '../../views/MergeModal.svelte';
   import ForcePushModal from '../../views/ForcePushModal.svelte';
   import SummarisationModal from '../../views/SummarisationModal.svelte';
+  import { errorMessage } from '../../lib/errorMessage';
 
   export let repoPath = '';
   export let repoBranch = '';
 
+  /** @type {import('svelte').EventDispatcher<{ 'branch-changed': { branch: string } }>} */
   const dispatch = createEventDispatcher();
 
   // Repo status
+  /** @type {RepoStatusInfo} */
   let status = { dirty: false, openPRs: 0, ahead: 0, behind: 0, protected: false };
+  /** @type {ReturnType<typeof setInterval> | undefined} */
   let statusInterval;
 
   async function refreshStatus() {
@@ -38,6 +51,7 @@
   $: if (repoPath) refreshStatus();
 
   // Action states
+  /** @type {ActionState} */
   let actionState = { action: null, result: null, error: null };
 
   function clearActionAfterDelay() {
@@ -48,19 +62,24 @@
     }, 5000);
   }
 
+  /**
+   * @param {string} actionName
+   * @param {(path: string) => Promise<string>} fn
+   */
   async function runAction(actionName, fn) {
     actionState = { action: actionName, result: null, error: null };
     try {
       const result = await fn(repoPath);
       actionState = { action: null, result: result || 'Done', error: null };
     } catch (err) {
-      actionState = { action: null, result: null, error: err?.message || String(err) };
+      actionState = { action: null, result: null, error: errorMessage(err) };
     }
     refreshStatus();
     clearActionAfterDelay();
   }
 
   // Push with conflict detection
+  /** @type {ForcePushState | null} */
   let forcePushRepo = null;
 
   async function smartPush() {
@@ -75,7 +94,7 @@
         clearActionAfterDelay();
       }
     } catch (err) {
-      actionState = { action: null, result: null, error: err?.message || String(err) };
+      actionState = { action: null, result: null, error: errorMessage(err) };
       clearActionAfterDelay();
     }
     refreshStatus();
@@ -89,6 +108,7 @@
   }
 
   // Streaming commit
+  /** @type {CommitPanelState | null} */
   let commitPanel = null;
 
   function startStreamingCommit() {
@@ -101,7 +121,7 @@
     commitPanel = null;
   }
 
-  EventsOn('git:commit:progress', (evt) => {
+  EventsOn('git:commit:progress', (/** @type {GitCommitProgressEvent} */ evt) => {
     if (evt.repoPath !== repoPath) return;
     if (!commitPanel) {
       commitPanel = { lines: [], error: null, explanation: null, done: false };
@@ -128,11 +148,15 @@
   });
 
   // Modal state
+  /** @type {BranchModalState | null} */
   let branchModalRepo = null;
+  /** @type {BranchModalState | null} */
   let switchModalRepo = null;
+  /** @type {BranchModalState | null} */
   let mergeModalRepo = null;
   let summariseModalOpen = false;
 
+  /** @param {CustomEvent<{ branch?: string }>} e */
   function onBranchCreated(e) {
     const newBranch = e.detail?.branch;
     if (newBranch) {
@@ -143,6 +167,7 @@
     refreshStatus();
   }
 
+  /** @param {CustomEvent<{ branch?: string }>} e */
   function onBranchSwitched(e) {
     const newBranch = e.detail?.branch;
     if (newBranch) {

@@ -16,8 +16,8 @@ Update the frontend JavaScript to correctly parse VSIX-encoded theme paths (`/pa
 
 Two files are modified:
 
-1. **`/Users/linus/Development/mashed/frontend/src/lib/themeInit.js`**
-2. **`/Users/linus/Development/mashed/frontend/src/views/Settings.svelte`**
+1. **`/Users/dev/Development/mashed/frontend/src/lib/themeInit.js`**
+2. **`/Users/dev/Development/mashed/frontend/src/views/Settings.svelte`**
 
 **Changes to `themeInit.js`:**
 
@@ -93,8 +93,8 @@ Currently it reads:
 
 ### Reference Files
 
-- `/Users/linus/Development/mashed/frontend/src/lib/themeInit.js` -- lines 24-44 (extractExtensionId and makeThemeId)
-- `/Users/linus/Development/mashed/frontend/src/views/Settings.svelte` -- lines 1-6 (imports) and line 171 (inline ID construction)
+- `/Users/dev/Development/mashed/frontend/src/lib/themeInit.js` -- lines 24-44 (extractExtensionId and makeThemeId)
+- `/Users/dev/Development/mashed/frontend/src/views/Settings.svelte` -- lines 1-6 (imports) and line 171 (inline ID construction)
 
 ## Acceptance Criteria
 
@@ -134,7 +134,7 @@ AC-5: makeThemeId is exported
 Feature: VSIX path handling in frontend
 
   Scenario: Extract extension ID from VSIX-encoded path
-    Given themePath is "/Users/linus/.vscodium/extensions/dracula.vsix::vsix::extension/themes/dracula.json"
+    Given themePath is "/Users/dev/.vscodium/extensions/dracula.vsix::vsix::extension/themes/dracula.json"
     When extractExtensionId(themePath) is called
     Then it returns "dracula"
 

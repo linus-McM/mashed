@@ -3,12 +3,15 @@ package main
 import (
 	"archive/zip"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
+
+	"mashed/internal/pathguard"
 )
 
 // --- Helper: create a mock VSCodium extension directory ---
@@ -1369,5 +1372,83 @@ func TestListVSCodiumThemes_ExtensionID(t *testing.T) {
 	// ExtensionID should be the vsix filename minus the .vsix extension
 	if themes[0].ExtensionID != "publisher.extension-name-1.2.3" {
 		t.Errorf("ExtensionID = %q, want %q", themes[0].ExtensionID, "publisher.extension-name-1.2.3")
+	}
+}
+
+// R28 regression guard: a bundled .vsix that is still an LFS pointer is
+// skipped without error (it is not a zip).
+func TestScanBundledThemes_SkipsLFSPointer(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "pointer.vsix"), []byte(lfsPointer), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	createMockVSIX(t, dir, "real.vsix", map[string]string{
+		"extension/package.json":     `{"name":"real","contributes":{"themes":[{"label":"Real","uiTheme":"vs-dark","path":"./themes/real.json"}]}}`,
+		"extension/themes/real.json": `{"name":"Real"}`,
+	})
+	themes, err := scanVSIXDirectory(dir)
+	if err != nil {
+		t.Fatalf("scanVSIXDirectory: %v", err)
+	}
+	for _, th := range themes {
+		if strings.Contains(th.ThemePath, "pointer.vsix") {
+			t.Fatalf("pointer vsix produced a theme: %+v", th)
+		}
+	}
+}
+
+// useBundledThemesDir points ReadBundledThemeFile at dir for one test.
+func useBundledThemesDir(t *testing.T, dir string) {
+	t.Helper()
+	orig := bundledThemesDirFn
+	bundledThemesDirFn = func() string { return dir }
+	t.Cleanup(func() { bundledThemesDirFn = orig })
+}
+
+// R8: a vsixPath outside the bundled themes directory is rejected.
+func TestReadBundledThemeFile_RejectsOutsideBundledDir(t *testing.T) {
+	base := t.TempDir()
+	themes := filepath.Join(base, "themes")
+	other := filepath.Join(base, "other")
+	for _, d := range []string{themes, other} {
+		if err := os.MkdirAll(d, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	createMockVSIX(t, other, "evil.vsix", map[string]string{"extension/themes/x.json": `{"name":"x"}`})
+	useBundledThemesDir(t, themes)
+
+	app := &App{}
+	for _, p := range []string{
+		filepath.Join(other, "evil.vsix"),
+		filepath.Join(themes, "..", "other", "evil.vsix"),
+	} {
+		_, err := app.ReadBundledThemeFile(makeVSIXThemePath(p, "extension/themes/x.json"))
+		if !errors.Is(err, pathguard.ErrOutsideRoot) {
+			t.Errorf("ReadBundledThemeFile(%s) err = %v, want ErrOutsideRoot", p, err)
+		}
+	}
+}
+
+// R8: a symlink inside the bundled dir that points outside is rejected.
+func TestReadBundledThemeFile_RejectsSymlinkEscape(t *testing.T) {
+	base := t.TempDir()
+	themes := filepath.Join(base, "themes")
+	other := filepath.Join(base, "other")
+	for _, d := range []string{themes, other} {
+		if err := os.MkdirAll(d, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	createMockVSIX(t, other, "evil.vsix", map[string]string{"extension/themes/x.json": `{"name":"x"}`})
+	if err := os.Symlink(filepath.Join(other, "evil.vsix"), filepath.Join(themes, "link.vsix")); err != nil {
+		t.Fatal(err)
+	}
+	useBundledThemesDir(t, themes)
+
+	app := &App{}
+	_, err := app.ReadBundledThemeFile(makeVSIXThemePath(filepath.Join(themes, "link.vsix"), "extension/themes/x.json"))
+	if !errors.Is(err, pathguard.ErrOutsideRoot) {
+		t.Fatalf("err = %v, want ErrOutsideRoot", err)
 	}
 }

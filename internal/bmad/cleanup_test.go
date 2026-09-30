@@ -160,6 +160,30 @@ func TestExecutor_CleanupStaleSessions_AC3_SwallowsNoServerRunning(t *testing.T)
 		"AC-3: no kill-session calls should be issued when no tmux server is running")
 }
 
+// AC-3 (macOS variant): tmux on macOS reports an absent daemon as
+// "error connecting to <socket> (No such file or directory)" rather than
+// "no server running". Both phrasings must be swallowed.
+func TestExecutor_CleanupStaleSessions_AC3_SwallowsErrorConnectingTo(t *testing.T) {
+	h := newHarness(t)
+	listErr := errors.New("error connecting to /private/tmp/tmux-501/default (No such file or directory)")
+	runner, calls, mu := cleanupRunner("", listErr, nil)
+	h.executor.SetCommandRunner(runner)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	err := h.executor.CleanupStaleSessions(ctx)
+	assert.NoError(t, err,
+		"AC-3: list-sessions error containing 'error connecting to' must be swallowed (macOS tmux phrasing)")
+
+	mu.Lock()
+	snapshot := append([]cmdCall(nil), *calls...)
+	mu.Unlock()
+
+	assert.Empty(t, killSessionTargets(snapshot),
+		"AC-3: no kill-session calls should be issued when no tmux server is running")
+}
+
 // AC-4: When an individual kill fails, the remaining kills are still attempted
 // and the returned error wraps the first failure (errors.Is reachable).
 //

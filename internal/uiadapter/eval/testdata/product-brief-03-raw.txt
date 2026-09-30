@@ -1,0 +1,9 @@
+Stage 3 — Constraints
+
+Which constraints must the brief honour? (select all that apply)
+
+- must keep existing auth flow
+- must preserve mobile parity
+- must not add a new vendor
+- must ship before the compliance deadline
+- must stay within the current infra budget

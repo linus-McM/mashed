@@ -1,0 +1,1 @@
+{"id":"bmad-create-architecture","name":"Create Architecture","phase":"solutioning","agentRole":"architect","skillName":"bmad-create-architecture","description":"Design the system architecture based on PRD requirements.","inputs":["PRD.md"],"outputs":["architecture.md"],"moduleId":"core","version":"1.0.0"}

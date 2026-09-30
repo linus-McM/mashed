@@ -2,6 +2,9 @@ package terminal
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -40,9 +43,20 @@ const closeReasonMaxBytes = 123
 // be torn down anyway.
 const closeWriteTimeout = time.Second
 
+// SubprotocolV1 is the WebSocket subprotocol the server selects. The client
+// also offers authSubprotocolPrefix+token; browsers cannot set custom headers
+// on a WebSocket, and a subprotocol keeps the token out of URLs and logs.
+const (
+	SubprotocolV1         = "mashed.v1"
+	authSubprotocolPrefix = "mashed.auth."
+)
+
+// wsUpgrader selects mashed.v1. Origin is enforced in authorize, which runs
+// before the upgrade, so CheckOrigin only repeats that decision.
 var wsUpgrader = websocket.Upgrader{
+	Subprotocols: []string{SubprotocolV1},
 	CheckOrigin: func(r *http.Request) bool {
-		return true // allow Wails webview origin
+		return allowedOrigins[r.Header.Get("Origin")]
 	},
 }
 
@@ -90,6 +104,8 @@ type Bridge struct {
 	tmuxAdapter TmuxAttacher
 	ctx         context.Context
 	cancel      context.CancelFunc
+	token       string // per-launch hex token; "" when generation failed
+	tokenErr    error
 }
 
 // NewBridge creates a new terminal bridge backed by the given SessionManager
@@ -97,14 +113,36 @@ type Bridge struct {
 // any /ws/bmad-* request that misses the SessionManager returns 404 instead
 // of attempting an attach. Call Start() to begin serving.
 func NewBridge(manager *SessionManager, tmuxAdapter TmuxAttacher) *Bridge {
-	return &Bridge{
+	return newBridge(manager, tmuxAdapter, rand.Reader)
+}
+
+// newBridge draws the 32-byte connection token from randReader (R4).
+func newBridge(manager *SessionManager, tmuxAdapter TmuxAttacher, randReader io.Reader) *Bridge {
+	b := &Bridge{
 		manager:     manager,
 		tmuxAdapter: tmuxAdapter,
 	}
+	buf := make([]byte, 32)
+	if _, err := io.ReadFull(randReader, buf); err != nil {
+		b.tokenErr = err
+	} else {
+		b.token = hex.EncodeToString(buf)
+	}
+	return b
+}
+
+// Token returns the per-launch token the webview must present. Exposed to the
+// frontend only through the GetTerminalAuth binding; never logged.
+func (b *Bridge) Token() string {
+	return b.token
 }
 
 // Start begins listening on a random localhost port for WebSocket connections.
+// It fails closed: without a token the bridge does not listen.
 func (b *Bridge) Start(ctx context.Context) error {
+	if b.token == "" {
+		return &TerminalError{Op: "bridge_start", Err: fmt.Errorf("token generation failed: %w", b.tokenErr)}
+	}
 	b.ctx, b.cancel = context.WithCancel(ctx)
 
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
@@ -117,7 +155,7 @@ func (b *Bridge) Start(ctx context.Context) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws/", b.handleWS)
 
-	b.server = &http.Server{Handler: mux}
+	b.server = &http.Server{Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 
 	go func() {
 		if err := b.server.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -152,7 +190,33 @@ func (b *Bridge) shutdown() {
 	}
 }
 
+// authorize checks, in order, the Host (loopback + our port, against DNS
+// rebinding), the Origin allowlist and the token subprotocol. It runs before
+// any session lookup, so unauthenticated callers learn nothing (R1-R4).
+func (b *Bridge) authorize(r *http.Request) (reason string, ok bool) {
+	if r.Host != fmt.Sprintf("127.0.0.1:%d", b.port) {
+		return "host " + r.Host, false
+	}
+	origin := r.Header.Get("Origin")
+	if !allowedOrigins[origin] {
+		return fmt.Sprintf("origin %q", origin), false
+	}
+	for _, p := range websocket.Subprotocols(r) {
+		tok, found := strings.CutPrefix(p, authSubprotocolPrefix)
+		if found && subtle.ConstantTimeCompare([]byte(tok), []byte(b.token)) == 1 {
+			return "", true
+		}
+	}
+	return "missing or invalid token", false
+}
+
 func (b *Bridge) handleWS(w http.ResponseWriter, r *http.Request) {
+	if reason, ok := b.authorize(r); !ok {
+		log.Printf("terminal bridge: rejected %s: %s", r.URL.Path, reason)
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
 	name := strings.TrimPrefix(r.URL.Path, "/ws/")
 	if name == "" {
 		http.Error(w, "missing session name", http.StatusBadRequest)

@@ -14,9 +14,9 @@ import (
 
 // Sentinel errors for SessionManager.
 var (
-	ErrSessionExists      = errors.New("terminal: session already exists")
-	ErrSessionNotFound    = errors.New("terminal: session not found")
-	ErrHelperNotRunning   = errors.New("terminal: PTY helper not running")
+	ErrSessionExists    = errors.New("terminal: session already exists")
+	ErrSessionNotFound  = errors.New("terminal: session not found")
+	ErrHelperNotRunning = errors.New("terminal: PTY helper not running")
 )
 
 // SessionManager owns a map of named ManagedSession instances and provides
@@ -24,12 +24,28 @@ var (
 type SessionManager struct {
 	mu           sync.Mutex
 	sessions     map[string]*ManagedSession
-	helperClient *helper.Client
+	helperClient helperSpawner
+}
+
+// helperSpawner is the part of *helper.Client the manager uses; tests supply
+// a fake.
+type helperSpawner interface {
+	Spawn(ctx context.Context, req helper.SpawnRequest) (*os.File, int, error)
+	Kill(id string, sig syscall.Signal) error
+	Close() error
 }
 
 // NewSessionManager creates a new SessionManager. The client may be nil;
 // Spawn will return ErrHelperNotRunning in that case.
 func NewSessionManager(client *helper.Client) *SessionManager {
+	if client == nil {
+		// Keep the interface field untyped-nil so the nil checks hold.
+		return newSessionManagerWith(nil)
+	}
+	return newSessionManagerWith(client)
+}
+
+func newSessionManagerWith(client helperSpawner) *SessionManager {
 	return &SessionManager{
 		sessions:     make(map[string]*ManagedSession),
 		helperClient: client,
@@ -38,27 +54,34 @@ func NewSessionManager(client *helper.Client) *SessionManager {
 
 // Spawn creates a new PTY session with the given name, working directory, and command.
 // If command is empty, the user's default shell is used.
+// cols/rows set the initial PTY winsize; pass 0 to use the defaults (80x24).
 // The helper client must be non-nil; otherwise ErrHelperNotRunning is returned.
-func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath string, command string) (*ManagedSession, error) {
-	if sm.helperClient == nil {
-		return nil, ErrHelperNotRunning
-	}
-
-	var parts []string
+//
+// command is split on whitespace, so quoted arguments are not supported; use
+// SpawnArgv for programmatic commands with arguments containing spaces.
+func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath string, command string, cols, rows uint16) (*ManagedSession, error) {
 	if command == "" {
 		shell := os.Getenv("SHELL")
 		if shell == "" {
 			shell = "/bin/zsh"
 		}
-		parts = []string{shell}
-	} else {
-		// NOTE: strings.Fields splits on whitespace only — quoted arguments are not
-		// handled. This is a documented limitation per the story spec. Callers with
-		// complex commands should pre-split arguments.
-		parts = strings.Fields(command)
-		if len(parts) == 0 {
-			return nil, &TerminalError{Op: "spawn", Err: fmt.Errorf("empty command for session %q", name)}
-		}
+		return sm.SpawnArgv(ctx, name, repoPath, []string{shell}, cols, rows)
+	}
+	parts := strings.Fields(command)
+	if len(parts) == 0 {
+		return nil, &TerminalError{Op: "spawn", Err: fmt.Errorf("empty command for session %q", name)}
+	}
+	return sm.SpawnArgv(ctx, name, repoPath, parts, cols, rows)
+}
+
+// SpawnArgv creates a new PTY session running argv[0] with argv[1:] passed
+// through unchanged, one element per argument (R15).
+func (sm *SessionManager) SpawnArgv(ctx context.Context, name string, repoPath string, argv []string, cols, rows uint16) (*ManagedSession, error) {
+	if sm.helperClient == nil {
+		return nil, ErrHelperNotRunning
+	}
+	if len(argv) == 0 || argv[0] == "" {
+		return nil, &TerminalError{Op: "spawn", Err: fmt.Errorf("empty argv for session %q", name)}
 	}
 
 	sm.mu.Lock()
@@ -69,14 +92,22 @@ func (sm *SessionManager) Spawn(ctx context.Context, name string, repoPath strin
 	sm.sessions[name] = nil // reserve slot
 	sm.mu.Unlock()
 
+	if cols == 0 {
+		cols = 80
+	}
+	if rows == 0 {
+		rows = 24
+	}
+
+	env := applyLoginPATH(append(os.Environ(), "TERM=xterm-256color"))
 	ptmx, pid, err := sm.helperClient.Spawn(ctx, helper.SpawnRequest{
 		ID:    name,
-		Shell: parts[0],
-		Args:  parts[1:],
-		Env:   append(os.Environ(), "TERM=xterm-256color"),
+		Shell: resolveExecutable(argv[0]),
+		Args:  argv[1:],
+		Env:   env,
 		Cwd:   repoPath,
-		Cols:  80,
-		Rows:  24,
+		Cols:  cols,
+		Rows:  rows,
 	})
 	if err != nil {
 		sm.mu.Lock()

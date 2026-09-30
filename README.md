@@ -60,7 +60,7 @@ Canonical per-file navigation lives in `.wolf/anatomy.md` (auto-maintained by Op
 - Node.js 20+ and npm
 - [Wails CLI v2.12+](https://wails.io/docs/gettingstarted/installation)
 - [just](https://github.com/casey/just) (task runner)
-- Apple Developer identity for local codesigning — currently hard-coded in `justfile` as `"Apple Development: linus McManamey (5X8A9U965U)"`; edit to your own identity before `just build`.
+- Codesigning identity — `just build` signs ad hoc (`-`) by default, which works for local builds; set `MASHED_SIGN_IDENTITY` to your Apple Development identity to sign for release.
 
 ### Develop
 
@@ -127,6 +127,18 @@ Dark-only, industrial/utilitarian. Full spec in `DESIGN.md`:
 - OpenWolf-managed — read `.wolf/OPENWOLF.md` each session; consult `.wolf/anatomy.md` before opening files and `.wolf/cerebrum.md` before writing code.
 - Bugs and recurring fixes live in `.wolf/buglog.json`.
 - Sprint/story artifacts live in `_bmad-output/`.
+
+## Debug logging
+
+The UI adapter ships structured `slog` debug logging. Set `UIADAPTER_LOG_LEVEL=debug`
+to see per-request traces; default `info` keeps production quiet. Records fan out to
+stdout (human-readable) and `./logs/uiadapter-YYYYMMDD.log` (JSON, machine-grep).
+Sanitize discipline is strict: lengths, hashes, durations, IDs only — never raw
+payloads. Tail with:
+
+    tail -f logs/uiadapter-*.log | jq 'select(.op=="client.chat")'
+
+Shortcut: `just trace` runs `wails dev` with debug enabled and tees both streams.
 
 ## License
 

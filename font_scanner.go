@@ -2,8 +2,10 @@ package main
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/base64"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -226,6 +228,12 @@ func familyFromFilename(name string) string {
 	return base
 }
 
+// isLFSPointer reports whether data is a Git LFS pointer file rather than the
+// real binary content.
+func isLFSPointer(data []byte) bool {
+	return bytes.HasPrefix(data, []byte("version https://git-lfs.github.com/spec/"))
+}
+
 // addFontToFamilies indexes a font file (name + raw bytes) into the families map.
 func addFontToFamilies(families map[string][]LocalFontFile, name string, data []byte) {
 	family := familyFromFilename(name)
@@ -293,6 +301,11 @@ func (a *App) ListLocalFonts() []LocalFontFamily {
 		}
 		data, err := os.ReadFile(path)
 		if err != nil {
+			continue
+		}
+		if isLFSPointer(data) {
+			// A clone without git-lfs has a text pointer, not the font (R28).
+			log.Printf("skipping %s: Git LFS pointer, run `git lfs pull`", entry.Name())
 			continue
 		}
 		addFontToFamilies(families, entry.Name(), data)

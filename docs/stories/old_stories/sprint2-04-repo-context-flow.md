@@ -95,7 +95,7 @@ AC-1: Repo picker shown before workflow builder
 AC-2: Selected repo flows into WorkflowBuilder
 - Given the user selects "my-project" from the repo picker
 - When the WorkflowBuilder loads
-- Then it receives `repoPath="/Users/linus/Development/my-project"` as a prop
+- Then it receives `repoPath="/Users/dev/Development/my-project"` as a prop
 - And the listed saved workflows are filtered to that repo
 
 AC-3: Saved workflows are repo-scoped

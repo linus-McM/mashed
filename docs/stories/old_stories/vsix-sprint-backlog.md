@@ -17,4 +17,4 @@
 
 **vsix-02 (frontend, S):** Updates `extractExtensionId` and `makeThemeId` in `themeInit.js` to handle `::vsix::` separator, exports `makeThemeId`, and updates `Settings.svelte` to use the shared function instead of inline duplication. 3 tasks, 5 acceptance criteria.
 
-Story files written to: `/Users/linus/Development/mashed/docs/stories/`
+Story files written to: `/Users/dev/Development/mashed/docs/stories/`

@@ -1,0 +1,1 @@
+{"id":"bmad-sprint-status","name":"Sprint Status","phase":"implementation","agentRole":"pm","skillName":"bmad-sprint-status","description":"Update and report on current sprint progress and blockers.","inputs":["sprint-status.yaml"],"outputs":["sprint-status.yaml"],"moduleId":"core","version":"1.0.0"}

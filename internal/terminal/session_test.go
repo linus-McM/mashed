@@ -254,6 +254,35 @@ func TestManagedSession_AC2_TwoClientsReceiveOutput(t *testing.T) {
 	assert.Contains(t, string(data2), "hello", "client 2 output should contain 'hello'")
 }
 
+// R20: a client attaching after the process exited gets the full scrollback,
+// then a normal close "process exited"; it has no input path.
+func TestManagedSession_LateClientAfterExitGetsScrollback(t *testing.T) {
+	if testing.Short() {
+		t.Skip("requires PTY (fork/exec)")
+	}
+	sess := startTestSession(t, "echo hello-late")
+	require.Eventually(t, func() bool { return !sess.IsAlive() }, 5*time.Second, 10*time.Millisecond,
+		"process should exit")
+	select {
+	case <-sess.done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("readLoop did not finish")
+	}
+
+	srv, cli := wsTestPair(t)
+	sess.AddClient(srv)
+
+	data, err := readWSTimeout(t, cli, wsReadTimeout)
+	require.NoError(t, err, "late client should receive the scrollback")
+	assert.Contains(t, string(data), "hello-late")
+
+	_, err = readWSTimeout(t, cli, wsReadTimeout)
+	var ce *websocket.CloseError
+	require.ErrorAs(t, err, &ce, "then a close frame")
+	assert.Equal(t, websocket.CloseNormalClosure, ce.Code)
+	assert.Equal(t, "process exited", ce.Text)
+}
+
 // ---------------------------------------------------------------------------
 // AC-3: Atomic Scrollback Replay (BDD Scenario 3)
 // ---------------------------------------------------------------------------

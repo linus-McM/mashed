@@ -46,8 +46,11 @@ func saveSingleNodeWorkflow(t *testing.T, s *Storage, nodeType NodeType, config 
 		Description: "single-node fixture for skills-cmd-01 tests",
 		Nodes: []WorkflowNode{
 			{
-				ID:        "n1",
-				ProcessID: "bmad-brainstorming",
+				ID: "n1",
+				// Autonomous legacy process (Mode == "") — S7 made
+				// bmad-brainstorming interactive so the legacy tests use an
+				// autonomous process for their fixture.
+				ProcessID: autonomousProcessFixtureID,
 				Label:     "Only",
 				Status:    NodePending,
 				Config:    config,
@@ -180,7 +183,7 @@ func saveChainedDAGWorkflow(t *testing.T, s *Storage, bCommand, cCommand string)
 		Name:        "exec03-chained-dag",
 		Description: "A→B→C chained DAG for exec-03 tests",
 		Nodes: []WorkflowNode{
-			{ID: "A", ProcessID: "bmad-brainstorming", Label: "Process A", Status: NodePending, NodeType: NodeTypeProcess},
+			{ID: "A", ProcessID: autonomousProcessFixtureID, Label: "Process A", Status: NodePending, NodeType: NodeTypeProcess},
 			{ID: "B", Label: "Command B", Status: NodePending, NodeType: NodeTypeCommand, Config: map[string]string{"commandName": bCommand}},
 			{ID: "C", Label: "Command C", Status: NodePending, NodeType: NodeTypeCommand, Config: map[string]string{"commandName": cCommand}},
 		},
@@ -204,7 +207,7 @@ func saveTwoNodeDAGWorkflow(t *testing.T, s *Storage, bCommand string) string {
 		Name:        "exec03-two-node-dag",
 		Description: "A→B two-node DAG for exec-03 tests",
 		Nodes: []WorkflowNode{
-			{ID: "A", ProcessID: "bmad-brainstorming", Label: "Process A", Status: NodePending, NodeType: NodeTypeProcess},
+			{ID: "A", ProcessID: autonomousProcessFixtureID, Label: "Process A", Status: NodePending, NodeType: NodeTypeProcess},
 			{ID: "B", Label: "Command B", Status: NodePending, NodeType: NodeTypeCommand, Config: map[string]string{"commandName": bCommand}},
 		},
 		Edges: []WorkflowEdge{

@@ -1,0 +1,1 @@
+{"id":"bmad-technical-research","name":"Technical Research","phase":"analysis","agentRole":"architect","skillName":"bmad-technical-research","description":"Investigate technical approaches, libraries, and architectural options.","inputs":[],"outputs":["tech-research"],"moduleId":"core","version":"1.0.0"}

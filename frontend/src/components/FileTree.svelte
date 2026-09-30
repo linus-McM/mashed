@@ -3,12 +3,16 @@
   import { File, Folder, FolderOpen, ChevronRight } from 'lucide-svelte';
   import { flatPathsToTree } from '../lib/fileTree.js';
 
+  /** @type {string[]} */
   export let files = [];
   export let selectedPath = '';
+  /** @type {Set<string>} */
   export let changedPaths = new Set();
 
+  /** @type {import('svelte').EventDispatcher<{ select: { path: string } }>} */
   const dispatch = createEventDispatcher();
 
+  /** @type {Set<string>} */
   let expandedDirs = new Set();
   let searchQuery = '';
 
@@ -24,7 +28,14 @@
    * Flatten the tree into a renderable list, only including children
    * of expanded directories. Each entry carries its depth for indentation.
    */
+  /**
+   * @param {import('../lib/fileTree.js').TreeNode[]} nodes
+   * @param {number} depth
+   * @param {Set<string>} expanded
+   * @returns {Array<{ node: import('../lib/fileTree.js').TreeNode; depth: number }>}
+   */
   function flattenVisible(nodes, depth, expanded) {
+    /** @type {Array<{ node: import('../lib/fileTree.js').TreeNode; depth: number }>} */
     let result = [];
     for (const node of nodes) {
       result.push({ node, depth });

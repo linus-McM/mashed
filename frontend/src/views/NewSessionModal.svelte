@@ -5,7 +5,10 @@
   import { Terminal, ChevronDown } from 'lucide-svelte';
   import cliConfig from '../config/claude-cli.json';
 
+  /** @type {import('svelte').EventDispatcher<{ spawn: { command: string; model: string; repoPath: string }; cancel: void }>} */
   const dispatch = createEventDispatcher();
+
+  /** @typedef {'execution' | 'session' | 'tools' | 'advanced' | 'output'} SectionKey */
 
   // uiqa-06: modal fade entry/exit. prefers-reduced-motion zeroes durations.
   const reducedMotion = typeof window !== 'undefined' &&
@@ -30,13 +33,16 @@
   let outputFormat = cliConfig.outputFormats.find(o => o.default)?.value || 'text';
 
   // Toggle flags
+  /** @type {Record<string, boolean>} */
   let toggles = {};
   for (const t of cliConfig.toggleFlags) {
     toggles[t.flag] = t.default || false;
   }
 
   // Conditional flags (toggle + text value)
+  /** @type {Record<string, boolean>} */
   let conditionalEnabled = {};
+  /** @type {Record<string, string>} */
   let conditionalValues = {};
   for (const c of (cliConfig.conditionalFlags || [])) {
     conditionalEnabled[c.flag] = c.default || false;
@@ -44,12 +50,14 @@
   }
 
   // Text fields
+  /** @type {Record<string, string>} */
   let textValues = {};
   for (const f of cliConfig.textFields) {
     textValues[f.flag] = f.default || '';
   }
 
   // Section open state — Execution + Session open by default; rest collapsed.
+  /** @type {Record<SectionKey, boolean>} */
   let openSections = {
     execution: true,
     session: true,
@@ -58,6 +66,7 @@
     output: false,
   };
 
+  /** @param {SectionKey} key */
   function toggleSection(key) {
     openSections[key] = !openSections[key];
   }
@@ -74,29 +83,47 @@
   );
 
   // Svelte reactivity gotcha: `$:` only tracks variables directly referenced
-  // in the block, not vars used inside called functions. Listing every
-  // reactive dep via the comma operator forces re-evaluation on any change.
-  $: command = (
-    model,
-    permissionMode,
-    effort,
-    outputFormat,
-    toggles,
-    conditionalEnabled,
-    conditionalValues,
-    textValues,
-    repoPath,
-    buildCommand()
-  );
+  // in the block, not vars used inside called functions. Reference every
+  // reactive dep so the reactive statement re-runs when any of them changes.
+  $: command = (() => {
+    // Touch every dependency to register it with the reactive tracker.
+    void model;
+    void permissionMode;
+    void effort;
+    void outputFormat;
+    void toggles;
+    void conditionalEnabled;
+    void conditionalValues;
+    void textValues;
+    void repoPath;
+    return buildCommand({ withCd: false });
+  })();
+
+  // Display-only variant with `cd <path> &&` prefix for the preview pane.
+  // The exec command above must NOT include the cd prefix — backend tokenises
+  // with strings.Fields and execs parts[0] directly, so `cd` would run as
+  // /usr/bin/cd (a no-op stub) and immediately exit, killing the PTY.
+  $: displayCommand = (() => {
+    void model;
+    void permissionMode;
+    void effort;
+    void outputFormat;
+    void toggles;
+    void conditionalEnabled;
+    void conditionalValues;
+    void textValues;
+    void repoPath;
+    return buildCommand({ withCd: true });
+  })();
 
   $: isOpus = model.includes('opus');
 
-  function buildCommand() {
+  /** @param {{ withCd: boolean }} opts */
+  function buildCommand(opts) {
     const parts = [];
 
-    // Full statement: cd into the repo, then launch claude.
-    // Paths with spaces get quoted so the preview is copy-pasteable.
-    if (repoPath) {
+    // The cd prefix is preview-only. Backend already sets cwd via repoPath.
+    if (opts.withCd && repoPath) {
       const safePath = /\s/.test(repoPath) ? `"${repoPath}"` : repoPath;
       parts.push(`cd ${safePath} &&`);
     }
@@ -144,7 +171,7 @@
       const val = (textValues[f.flag] || '').trim();
       if (val) {
         if (f.flag === '--allowedTools' || f.flag === '--disallowedTools') {
-          for (const tool of val.split(',').map(s => s.trim()).filter(Boolean)) {
+          for (const tool of val.split(',').map(/** @param {string} s */ s => s.trim()).filter(Boolean)) {
             parts.push(f.flag, `"${tool}"`);
           }
         } else if (f.multiline) {
@@ -166,6 +193,7 @@
     dispatch('cancel');
   }
 
+  /** @param {KeyboardEvent} e */
   function handleKeydown(e) {
     if (e.key === 'Escape') cancel();
   }
@@ -420,7 +448,7 @@
     <!-- Sticky footer: command preview + actions -->
     <footer class="modal-footer">
       <div class="command-preview-pane">
-        <pre class="command-preview"><span class="command-prompt">$ </span>{command}</pre>
+        <pre class="command-preview"><span class="command-prompt">$ </span>{displayCommand}</pre>
       </div>
       <div class="actions">
         <button class="btn-cancel" on:click={cancel}>Cancel</button>

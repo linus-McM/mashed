@@ -15,12 +15,32 @@ import (
 // spawnSession creates a new managed PTY session with the given prefix, working
 // directory, and optional shell command. It returns the session name.
 // If command is empty, the session starts the user's default shell.
-func (a *App) spawnSession(prefix, repoPath, command string, sessionType domain.SessionType, model string) (string, error) {
+// cols/rows set the initial PTY winsize; 0 falls back to defaults (80x24).
+func (a *App) spawnSession(prefix, repoPath, command string, sessionType domain.SessionType, model string, cols, rows uint16) (string, error) {
+	return a.spawnRegistered(prefix, repoPath, sessionType, model, func(name string) error {
+		_, err := a.manager.Spawn(a.ctx, name, repoPath, command, cols, rows)
+		return err
+	})
+}
+
+// spawnSessionArgv is spawnSession for a pre-split argv: every element
+// reaches the process unchanged (R15/R16). Use it for commands built in code,
+// such as claude with a multi-line prompt.
+func (a *App) spawnSessionArgv(prefix, repoPath string, argv []string, sessionType domain.SessionType, model string) (string, error) {
+	return a.spawnRegistered(prefix, repoPath, sessionType, model, func(name string) error {
+		_, err := a.manager.SpawnArgv(a.ctx, name, repoPath, argv, 0, 0)
+		return err
+	})
+}
+
+// spawnRegistered names a session, starts it with spawn, then registers it
+// and emits eventSessionAdded.
+func (a *App) spawnRegistered(prefix, repoPath string, sessionType domain.SessionType, model string, spawn func(name string) error) (string, error) {
 	now := time.Now()
 	repoName := repoNameFromDir(repoPath)
 	sessionName := fmt.Sprintf("%s-%s-%d", prefix, repoName, now.Unix())
 
-	if _, err := a.manager.Spawn(a.ctx, sessionName, repoPath, command); err != nil {
+	if err := spawn(sessionName); err != nil {
 		return "", fmt.Errorf("spawn session failed: %w", err)
 	}
 
@@ -35,7 +55,7 @@ func (a *App) spawnSession(prefix, repoPath, command string, sessionType domain.
 		IsAlive:     true,
 	}
 	a.registerSession(session)
-	runtime.EventsEmit(a.ctx, eventSessionAdded, session)
+	a.emitEvent(eventSessionAdded, session)
 
 	log.Printf("spawned session %s at %s", sessionName, repoPath)
 	return sessionName, nil
@@ -43,7 +63,9 @@ func (a *App) spawnSession(prefix, repoPath, command string, sessionType domain.
 
 // SpawnAgent starts a new Claude session in a managed PTY for the given repo.
 // Returns the session name for the terminal bridge.
-func (a *App) SpawnAgent(repoPath string, model string) (string, error) {
+// cols/rows set the initial PTY winsize so claude's first paint matches the
+// frontend viewport; 0 means use the helper defaults.
+func (a *App) SpawnAgent(repoPath string, model string, cols, rows uint16) (string, error) {
 	if repoPath == "" {
 		return "", fmt.Errorf("empty repo path")
 	}
@@ -51,34 +73,35 @@ func (a *App) SpawnAgent(repoPath string, model string) (string, error) {
 		model = domain.DefaultAlias(a.ListModels())
 	}
 	cmd := fmt.Sprintf("claude --dangerously-skip-permissions --model %s", model)
-	return a.spawnSession("mashed", repoPath, cmd, domain.SessionAgent, model)
+	return a.spawnSession("mashed", repoPath, cmd, domain.SessionAgent, model, cols, rows)
 }
 
 // SpawnAgentWithCommand starts a Claude session using a fully built CLI command.
 // Returns the session name.
-func (a *App) SpawnAgentWithCommand(repoPath, command string) (string, error) {
+func (a *App) SpawnAgentWithCommand(repoPath, command string, cols, rows uint16) (string, error) {
 	if repoPath == "" || command == "" {
 		return "", fmt.Errorf("repo path and command are required")
 	}
-	return a.spawnSession("mashed", repoPath, command, domain.SessionAgent, "")
+	return a.spawnSession("mashed", repoPath, command, domain.SessionAgent, "", cols, rows)
 }
 
 // SpawnTerminal starts a plain shell PTY session in the given repo directory.
 // Returns the session name for the terminal bridge.
-func (a *App) SpawnTerminal(repoPath string) (string, error) {
+func (a *App) SpawnTerminal(repoPath string, cols, rows uint16) (string, error) {
 	if repoPath == "" {
 		return "", fmt.Errorf("empty repo path")
 	}
-	return a.spawnSession("term", repoPath, "", domain.SessionTerminal, "")
+	return a.spawnSession("term", repoPath, "", domain.SessionTerminal, "", cols, rows)
 }
 
 // GetAgentLog returns the parsed log lines for an agent's latest session.
 func (a *App) GetAgentLog(repoPath string) []domain.LogLine {
-	if a.provider == nil || repoPath == "" {
+	provider := a.scanSnapshot().provider
+	if provider == nil || repoPath == "" {
 		return nil
 	}
-	sessionDir := a.provider.SessionDir(repoPath)
-	data := a.findLatestSession(sessionDir)
+	sessionDir := provider.SessionDir(repoPath)
+	data := a.findLatestSession(provider, sessionDir)
 	if data == nil {
 		return nil
 	}

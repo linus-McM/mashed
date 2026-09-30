@@ -159,3 +159,176 @@ func TestStory1_AC4_LegacyWorkflowRoundTrip(t *testing.T) {
 		})
 	}
 }
+
+// ── Story ui-ast-U0, AC-1: ProcessDef.EnableAstAdapter round-trip ──
+//
+// RED Phase: EnableAstAdapter does not exist on ProcessDef yet. These tests
+// MUST fail until the go-engineer adds the field (GREEN phase). Compile
+// failure in this package blocks every bmad test — that is the intended RED
+// signal.
+func TestU0_AC1_ProcessDef_EnableAstAdapter_RoundTrip(t *testing.T) {
+	base := ProcessDef{
+		ID:          "bmad-test-u0",
+		Name:        "Test",
+		Phase:       PhaseAnalysis,
+		AgentRole:   RoleAnalyst,
+		SkillName:   "bmad-test-u0",
+		Description: "desc",
+		Inputs:      []string{},
+		Outputs:     []string{},
+		ModuleID:    "core",
+		Version:     "1.0.0",
+	}
+
+	t.Run("EnableAstAdapter=true marshals with key and round-trips", func(t *testing.T) {
+		p := base
+		p.EnableAstAdapter = true
+
+		data, err := json.Marshal(p)
+		require.NoError(t, err)
+		assert.Contains(t, string(data), `"enableAstAdapter":true`,
+			"JSON must include enableAstAdapter:true when the flag is set")
+
+		var decoded ProcessDef
+		require.NoError(t, json.Unmarshal(data, &decoded))
+		assert.True(t, decoded.EnableAstAdapter,
+			"decoded EnableAstAdapter must round-trip to true")
+	})
+
+	t.Run("EnableAstAdapter=false (zero) omits JSON key", func(t *testing.T) {
+		p := base
+		data, err := json.Marshal(p)
+		require.NoError(t, err)
+		assert.NotContains(t, string(data), "enableAstAdapter",
+			"JSON must omit enableAstAdapter key when the flag is zero (omitempty)")
+	})
+}
+
+// ── Story ui-ast-U4, AC-1: PendingPrompt.Structured round-trip ──
+//
+// RED Phase: Structured field does not exist on PendingPrompt yet. Compile
+// failure in this package is the intended RED signal until T1-GREEN adds
+// the field with `json:"structured,omitempty"`.
+//
+// Spec references:
+//   - docs/stories/ui-ast-U4-executor-wiring.md §5.1 (lines 48–58, 410)
+//   - AC-1: 4 KiB Structured survives byte-for-byte; empty omits JSON key.
+func TestPendingPrompt_Structured_RoundTrip(t *testing.T) {
+	base := PendingPrompt{
+		NodeID:    "node-1",
+		InputID:   "spec-confirm",
+		Prompt:    "Confirm?",
+		Shape:     ShapeJSON,
+		Options:   []string{"done", "skip"},
+		Round:     2,
+		CreatedAt: 1700000000,
+		PromptID:  "p-1",
+	}
+
+	t.Run("4 KiB Structured survives JSON round-trip byte-for-byte", func(t *testing.T) {
+		// Build a ~4 KiB JSON-ish blob. The adapter emits a UIAST JSON string;
+		// for the round-trip test the content is opaque — only identity matters.
+		payload := make([]byte, 4096)
+		for i := range payload {
+			payload[i] = byte('a' + (i % 26))
+		}
+		structured := string(payload)
+
+		p := base
+		p.Structured = structured
+
+		data, err := json.Marshal(p)
+		require.NoError(t, err, "marshal must succeed")
+
+		var decoded PendingPrompt
+		require.NoError(t, json.Unmarshal(data, &decoded), "unmarshal must succeed")
+
+		assert.Equal(t, structured, decoded.Structured,
+			"Structured field must survive marshal/unmarshal byte-for-byte")
+	})
+
+	t.Run("non-empty Structured emits the structured JSON key", func(t *testing.T) {
+		p := base
+		p.Structured = `{"type":"unknown"}`
+
+		data, err := json.Marshal(p)
+		require.NoError(t, err)
+		assert.Contains(t, string(data), `"structured":`,
+			"JSON must include structured key when Structured is non-empty")
+	})
+
+	t.Run("empty Structured omits the JSON key (omitempty)", func(t *testing.T) {
+		p := base
+		data, err := json.Marshal(p)
+		require.NoError(t, err)
+		assert.NotContains(t, string(data), `"structured":`,
+			"JSON must omit structured key when Structured is empty (omitempty)")
+	})
+}
+
+// ── Story ui-ast-U4, AC-12 setup: NodeInputEntry Round + Key round-trip ──
+//
+// RED Phase: NodeInputEntry.Key does not exist yet. Compile failure is the
+// RED signal until T1-GREEN adds `Key string` (with omitempty) and ensures
+// `Round int` carries `omitempty` so pre-U4 snapshots don't bloat with
+// "round":0 "key":"" noise.
+//
+// Spec references:
+//   - docs/stories/ui-ast-U4-executor-wiring.md §5.3.1 (lines 104–126)
+//   - §5.3.2 gate walk relies on Round; §5.3.1 flatten writes per-sub-answer Key.
+func TestNodeInputEntry_RoundAndKey_RoundTrip(t *testing.T) {
+	t.Run("populated Round and Key round-trip via JSON", func(t *testing.T) {
+		e := NodeInputEntry{
+			InputID:   "spec-confirm",
+			Round:     2,
+			Value:     "done",
+			Timestamp: 1700000000,
+			Key:       "spec-confirm:confirm",
+		}
+		data, err := json.Marshal(e)
+		require.NoError(t, err, "marshal must succeed")
+
+		assert.Contains(t, string(data), `"round":2`,
+			"JSON must include round when Round is non-zero")
+		assert.Contains(t, string(data), `"key":"spec-confirm:confirm"`,
+			"JSON must include key when Key is non-empty")
+
+		var decoded NodeInputEntry
+		require.NoError(t, json.Unmarshal(data, &decoded), "unmarshal must succeed")
+		assert.Equal(t, e, decoded,
+			"NodeInputEntry must round-trip via JSON")
+	})
+
+	t.Run("zero Round omits the round JSON key (omitempty)", func(t *testing.T) {
+		e := NodeInputEntry{
+			InputID: "spec-confirm",
+			Value:   "done",
+		}
+		data, err := json.Marshal(e)
+		require.NoError(t, err)
+		assert.NotContains(t, string(data), `"round"`,
+			"JSON must omit round key when Round is zero (omitempty)")
+	})
+
+	t.Run("empty Key omits the key JSON field (omitempty)", func(t *testing.T) {
+		e := NodeInputEntry{
+			InputID: "spec-confirm",
+			Round:   1,
+			Value:   "done",
+		}
+		data, err := json.Marshal(e)
+		require.NoError(t, err)
+		assert.NotContains(t, string(data), `"key"`,
+			"JSON must omit key field when Key is empty (omitempty)")
+	})
+
+	t.Run("legacy entries without Key or Round decode cleanly", func(t *testing.T) {
+		raw := `{"inputId":"spec-confirm","value":"done","timestamp":1700000000}`
+		var e NodeInputEntry
+		require.NoError(t, json.Unmarshal([]byte(raw), &e))
+		assert.Equal(t, "spec-confirm", e.InputID)
+		assert.Equal(t, "done", e.Value)
+		assert.Zero(t, e.Round, "legacy absence of round must decode to zero")
+		assert.Empty(t, e.Key, "legacy absence of key must decode to empty")
+	})
+}

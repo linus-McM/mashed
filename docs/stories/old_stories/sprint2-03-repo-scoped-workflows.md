@@ -77,8 +77,8 @@ func (s *Storage) ListWorkflowsByRepo(repoPath string) ([]WorkflowDef, error) {
 
 AC-1: WorkflowDef has RepoPath field
 - Given a WorkflowDef struct
-- When RepoPath is set to "/Users/linus/Development/my-project"
-- Then serializing to JSON includes `"repoPath": "/Users/linus/Development/my-project"`
+- When RepoPath is set to "/Users/dev/Development/my-project"
+- Then serializing to JSON includes `"repoPath": "/Users/dev/Development/my-project"`
 - And deserializing back preserves the value
 
 AC-2: ListWorkflowsByRepo filters correctly
